@@ -61,7 +61,14 @@
       if (!a) return null;
       if (busCtx !== a) {   // 소리 장치가 새로 생겼으면 버스도 새로
         try {
-          bus = a.createGain(); bus.gain.value = target(); bus.connect(a.destination); busCtx = a;
+          // 0.1.20: 음악을 키우면서 큰 소리에서 찢어지지 않게 버스 뒤에 리미터를 둔다
+          bus = a.createGain(); bus.gain.value = target();
+          var lim = a.createDynamicsCompressor ? a.createDynamicsCompressor() : null;
+          if (lim) {
+            try { lim.threshold.value = -3; lim.knee.value = 3; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.15; } catch (e) { /* 무시 */ }
+            bus.connect(lim); lim.connect(a.destination);
+          } else bus.connect(a.destination);
+          busCtx = a;
           current = null;
         } catch (e) { bus = null; busCtx = null; return null; }
       }
@@ -159,10 +166,10 @@
         dimmed = on;
         rampBus(target());
       },
-      /** 설정의 음악 크기(0~1, 곡선을 거친 값). 0 이어도 멈추지는 않는다(끄기는 setMuted). */
+      /** 설정의 음악 크기(0~2: 비율 × 배수). 0 이어도 멈추지는 않는다(끄기는 setMuted). */
       setVolume: function (v) {
         if (!(typeof v === 'number' && isFinite(v))) return;
-        volume = Math.max(0, Math.min(1, v));
+        volume = Math.max(0, Math.min(2, v));
         rampBus(target());
       },
       want: function (name) {

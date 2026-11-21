@@ -248,6 +248,13 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .daily-goal{color:#C9B8FF !important}
 .daily.done{opacity:.8}
 .res-medal{display:flex;gap:8px;align-items:center;font-weight:700}
+/* ===== 만든 사람들(0.1.20) ===== */
+.credits{display:flex;flex-direction:column;gap:14px}
+.credits h3{margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.cr{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:var(--panel2)}
+.cr b{font-size:15px}
+.cr span{font-size:13px;color:var(--muted);line-height:1.45}
+.cr a{color:var(--acc);font-size:12px;word-break:break-all;text-decoration:none}
 /* ===== 도움말(0.1.18): 톱니바퀴 왼쪽 ? 단추. 항목을 눌러 펼친다 ===== */
 .icon-pair{display:flex;align-items:center;flex:none}
 .help-d{border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
@@ -534,8 +541,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     <div class="sheet">
       <span class="label">설정</span>
       <h2 id="set-title" style="font-size:26px">소리와 진동</h2>
-      <label class="set-row"><span>음악</span><input type="range" id="set-music" min="0" max="100" step="1" aria-label="음악 크기"><span class="set-v" id="set-music-v">70</span></label>
-      <label class="set-row"><span>효과음</span><input type="range" id="set-sfx" min="0" max="100" step="1" aria-label="효과음 크기"><span class="set-v" id="set-sfx-v">80</span></label>
+      <label class="set-row"><span>음악</span><input type="range" id="set-music" min="0" max="100" step="5" aria-label="음악 크기"><span class="set-v" id="set-music-v">50</span></label>
+      <label class="set-row"><span>효과음</span><input type="range" id="set-sfx" min="0" max="100" step="5" aria-label="효과음 크기"><span class="set-v" id="set-sfx-v">50</span></label>
       <div class="set-row"><span>진동</span><button class="switch" id="set-vib" aria-pressed="true" aria-label="진동"></button></div>
       <p class="muted" id="set-paused" style="font-size:13px" hidden>이 창이 떠 있는 동안 출동 시간은 멈춰 있어요.</p>
       <div class="set-hub" id="set-hub">
@@ -551,9 +558,21 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
         <div class="set-sep"></div>
         <button class="ghost danger" id="set-reset">진행 초기화</button>
       </div>
+      <div class="set-sep"></div>
+      <button class="ghost" id="set-credits">만든 사람들</button>
       <button class="primary" id="set-close">닫기</button>
     </div>
   </div>
+  <!-- 만든 사람들(0.1.20): 설정 창에서 연다. 음악은 CC BY 라 제목·작곡가·라이선스를 밝힌다 -->
+  <div class="sheet-back" id="credits-sheet" role="dialog" aria-modal="true" aria-labelledby="credits-title" hidden>
+    <div class="sheet">
+      <span class="label">만든 사람들</span>
+      <h2 id="credits-title" style="font-size:26px">수사 3팀</h2>
+      <div id="credits-body" class="credits"></div>
+      <button class="primary" id="credits-close">닫기</button>
+    </div>
+  </div>
+
   <!-- 도움말(0.1.18): 출동 중에 열면 시간이 멈춘다. 내용은 ui.js 가 규칙 수치로 채운다 -->
   <div class="sheet-back" id="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
     <div class="sheet">
@@ -610,6 +629,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.20', date: '2026-11-22', title: '소리 크기와 만든 사람들',
+      items: [
+        '전체 소리를 두 배로 키웠어요.',
+        '음악과 효과음 크기는 5씩 움직이고, 처음 값은 50이에요. 처음 값 그대로였다면 50으로 바뀌어요.',
+        '설정 맨 아래에 만든 사람들이 생겼어요. 음악·효과음·글꼴 출처를 이곳으로 옮겼어요.'
+      ] },
     { ver: '0.1.19', date: '2026-11-22', title: '계급 · 메달 · 특별 출동 · 준비물',
       items: [
         '계급이 생겼어요. 경위에서 시작해서 현장에서 직접 잡은 수로 경감, 경정, 총경, 경무관까지 올라요. 한 계급마다 수사비 +5%예요.',
@@ -2439,8 +2464,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
  *     키 'guar.suspects3.settings' = {"music":70,"sfx":80,"vibrate":true}
  *   예전 판의 소리 끔(guar.suspects.mute = '1')은 처음 한 번 음악 0 · 효과음 0 으로 옮긴다.
  *
- *   크기 곡선: 귀는 소리 크기를 비율로 느껴서 0~100 을 그대로 곱하면 아래쪽이 휙 줄어든다.
- *     gain = (값/100)^2 로 바꾸면 막대를 옮기는 만큼 고르게 줄어드는 느낌이 난다. 0 이면 완전히 꺼진다.
+ *   0.1.20: 5 단위 · 기본 50. 크기는 값에 비례(gain = 값/100)하고, 전체를 키우는 배수는 ui.js 에 있다.
+ *     (0.1.18~19 는 제곱 곡선 · 기본 70/80 이었다. 50 에서 예전 기본보다 2배 크게 들리도록 ui.js 배수를 맞췄다)
+ *     예전 설정 중 기본값(70/80)을 그대로 둔 사람은 새 기본 50/50 으로 옮기고, 직접 바꾼 값은 5 단위로만 맞춘다.
  *
  *   백업 코드: 'T3-' + base64(UTF-8 JSON). 한글 이름이 들어 있어도 깨지지 않는다.
  *     읽을 때는 머리말·base64·JSON·저장 버전(v)을 차례로 확인하고, 하나라도 틀리면 이유를 담아 실패를 돌려준다.
@@ -2456,14 +2482,16 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
   var KEY = 'guar.suspects3.settings';
   var LEGACY_MUTE_KEY = 'guar.suspects.mute';
-  var DEFAULTS = { music: 70, sfx: 80, vibrate: true };
+  var DEFAULTS = { music: 50, sfx: 50, vibrate: true };
+  var STEP = 5;
+  var SCALE = 2;   // 저장 형식 번호(크기 눈금). 없으면 0.1.18~19 의 눈금
   var CODE_PREFIX = 'T3-';
 
-  // 0~100 정수로. 숫자가 아니면 기본값
+  // 0~100 의 5 단위로. 숫자가 아니면 기본값
   function level(v, def) {
     var n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
     if (!isFinite(n)) return def;
-    return Math.max(0, Math.min(100, Math.round(n)));
+    return Math.max(0, Math.min(100, Math.round(n / STEP) * STEP));
   }
 
   /** 아무 값이나 받아 올바른 설정 객체로 만든다(모르는 키는 버린다). */
@@ -2484,7 +2512,17 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var raw = null;
     try { raw = store.get(KEY); } catch (e) { raw = null; }
     if (raw) {
-      try { return normalize(JSON.parse(raw)); } catch (e) { return normalize(null); }
+      var o;
+      try { o = JSON.parse(raw); } catch (e) { return normalize(null); }
+      if (o && typeof o === 'object' && o.scale !== SCALE) {
+        // 예전 눈금: 손대지 않은 기본값(70/80)이면 새 기본으로, 아니면 값만 5 단위로
+        if (o.music === 70) o.music = DEFAULTS.music;
+        if (o.sfx === 80) o.sfx = DEFAULTS.sfx;
+        var s0 = normalize(o);
+        save(store, s0);
+        return s0;
+      }
+      return normalize(o);
     }
     var s = normalize(null), legacy = null;
     try { legacy = store.get(LEGACY_MUTE_KEY); } catch (e) { legacy = null; }
@@ -2492,11 +2530,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     return s;
   }
   function save(store, s) {
-    try { store.set(KEY, JSON.stringify(normalize(s))); return true; } catch (e) { return false; }
+    var o = normalize(s); o.scale = SCALE;
+    try { store.set(KEY, JSON.stringify(o)); return true; } catch (e) { return false; }
   }
 
-  /** 0~100 → 실제 곱할 크기(0~1). */
-  function gain(v) { var x = level(v, 0) / 100; return x * x; }
+  /** 0~100 → 비율(0~1). 실제 크기는 ui.js 가 이 비율에 배수를 곱한다. */
+  function gain(v) { return level(v, 0) / 100; }
 
   /* ---------- 백업 코드 ---------- */
   // UTF-8 ↔ base64 (브라우저와 node 18+ 모두 btoa/atob 가 있다)
@@ -2541,7 +2580,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   };
 
   return {
-    KEY: KEY, LEGACY_MUTE_KEY: LEGACY_MUTE_KEY, DEFAULTS: DEFAULTS, CODE_PREFIX: CODE_PREFIX,
+    KEY: KEY, LEGACY_MUTE_KEY: LEGACY_MUTE_KEY, DEFAULTS: DEFAULTS, STEP: STEP, SCALE: SCALE, CODE_PREFIX: CODE_PREFIX,
     normalize: normalize, load: load, save: save, gain: gain,
     exportCode: exportCode, importCode: importCode, REASONS: REASONS
   };
@@ -2655,7 +2694,14 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       if (!a) return null;
       if (busCtx !== a) {   // 소리 장치가 새로 생겼으면 버스도 새로
         try {
-          bus = a.createGain(); bus.gain.value = target(); bus.connect(a.destination); busCtx = a;
+          // 0.1.20: 음악을 키우면서 큰 소리에서 찢어지지 않게 버스 뒤에 리미터를 둔다
+          bus = a.createGain(); bus.gain.value = target();
+          var lim = a.createDynamicsCompressor ? a.createDynamicsCompressor() : null;
+          if (lim) {
+            try { lim.threshold.value = -3; lim.knee.value = 3; lim.ratio.value = 12; lim.attack.value = 0.003; lim.release.value = 0.15; } catch (e) { /* 무시 */ }
+            bus.connect(lim); lim.connect(a.destination);
+          } else bus.connect(a.destination);
+          busCtx = a;
           current = null;
         } catch (e) { bus = null; busCtx = null; return null; }
       }
@@ -2753,10 +2799,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
         dimmed = on;
         rampBus(target());
       },
-      /** 설정의 음악 크기(0~1, 곡선을 거친 값). 0 이어도 멈추지는 않는다(끄기는 setMuted). */
+      /** 설정의 음악 크기(0~2: 비율 × 배수). 0 이어도 멈추지는 않는다(끄기는 setMuted). */
       setVolume: function (v) {
         if (!(typeof v === 'number' && isFinite(v))) return;
-        volume = Math.max(0, Math.min(1, v));
+        volume = Math.max(0, Math.min(2, v));
         rampBus(target());
       },
       want: function (name) {
@@ -2822,8 +2868,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
    *   음악·효과음이 둘 다 0 이면 소리 장치를 아예 만들지 않는다.
    */
   var ST = window.Team3Settings;
-  var settings = ST ? ST.load(store) : { music: 70, sfx: 80, vibrate: true };
-  function curve(v) { return ST ? ST.gain(v) : Math.pow(v / 100, 2); }
+  var settings = ST ? ST.load(store) : { music: 50, sfx: 50, vibrate: true };
+  function curve(v) { return ST ? ST.gain(v) : v / 100; }
   function silent() { return settings.music === 0 && settings.sfx === 0; }
 
   /* ---------- 소리: 파일 없이 WebAudio 로 합성 ---------- */
@@ -2831,7 +2877,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
    * 모든 소리는 master 를 거쳐 나간다(0.1.2): 전체 크기 2배(MASTER_GAIN) → 리미터(컴프레서) → 스피커.
    *   소리가 작다는 의견으로 전체를 두 배로 키웠다. 여러 소리가 겹쳐도 찢어지지 않게 리미터로 위를 눌러 둔다.
    */
-  var MASTER_GAIN = 2;
+  // 0.1.20: 효과음 크기 50 에서 예전 기본(배수 2 × 0.8²≈1.28)의 2배 ≈ 2.5 가 되도록 5 × 0.5. 리미터가 찢어짐을 막는다
+  var MASTER_GAIN = 5;
   var ac = null, master = null;
   function audio() {
     if (silent()) return null;
@@ -2870,7 +2917,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
    *   BGM_GAIN: 효과음 아래에 깔리는 크기. 곡 크기는 tools/make_music.py 에서 LUFS 로 맞춰 두었다.
    *   사람이 화면을 누를 때마다 wake → 막혀 있던 첫 곡이 이때 나온다(브라우저 자동 재생 정책).
    */
-  var BGM_GAIN = 0.55;
+  // 0.1.20: 음악 크기 50 에서 예전 기본(0.55 × 0.7²≈0.27)의 2배 ≈ 0.55 가 되도록 1.1 × 0.5
+  var BGM_GAIN = 1.1;
   var music = window.Team3Bgm
     ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN * curve(settings.music) })
     : { want: function () {}, wake: function () {}, duck: function () {}, dim: function () {}, setVolume: function () {}, setMuted: function () {}, state: function () { return {}; } };
@@ -3625,6 +3673,48 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       '<p>진행은 이 기기에만 저장돼요. 앱을 지우거나 기기를 바꾸기 전에 <b>백업 코드</b>를 복사해 두세요.</p>');
     return out;
   }
+  /* ---------- 만든 사람들(0.1.20) ----------
+   * 음악 출처는 music.js(곡마다 credit)에서 읽는다. 곡을 바꾸면 make_music.py 의 credit 만 고치면 된다.
+   * 효과음·글꼴은 여기 표(OTHER_CREDITS). 링크는 새 창(안드로이드 앱에서는 바깥 브라우저)으로 연다.
+   */
+  var MUSIC_PLACE = { office: '사무실', field: '현장 출동', boss: '주범 조 출동' };
+  var OTHER_CREDITS = [
+    { group: '효과음', title: '시계 초침', who: 'Dragon Studio', license: 'Pixabay Content License', url: 'https://pixabay.com/' },
+    { group: '효과음', title: '사이렌', who: 'Universfield', license: 'Pixabay Content License', url: 'https://pixabay.com/' },
+    { group: '글꼴', title: 'Black Han Sans', who: 'Zess Type', license: 'SIL Open Font License 1.1', url: 'https://fonts.google.com/specimen/Black+Han+Sans' }
+  ];
+  function escHtml(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function crLink(u) {
+    if (!u) return '';
+    var href = /^https?:\/\//.test(u) ? u : 'https://' + u;
+    return '<a href="' + escHtml(href) + '" target="_blank" rel="noopener noreferrer">' + escHtml(u.replace(/^https?:\/\//, '')) + '</a>';
+  }
+  function creditsHtml() {
+    var out = '<div><h3>제작</h3><div class="cr"><b>Guar</b><span>기획 · 개발</span></div></div>';
+    var M = window.Team3Music || {}, rows = [];
+    Object.keys(M).forEach(function (k) {
+      var c = M[k] && M[k].credit; if (!c || !c.title) return;
+      // url 칸에 "주소 · 주소" 로 여러 개를 적어 둘 수 있다
+      var links = String(c.url || '').split(' · ').filter(Boolean).map(crLink).join(' ');
+      rows.push('<div class="cr"><b>"' + escHtml(c.title) + '"</b><span>' + escHtml((MUSIC_PLACE[k] ? MUSIC_PLACE[k] + ' · ' : '') + [c.artist, c.license].filter(Boolean).join(' · ')) + '</span>' + links + '</div>');
+    });
+    if (rows.length) out += '<div><h3>음악</h3><div style="display:flex;flex-direction:column;gap:8px">' + rows.join('') + '</div></div>';
+    ['효과음', '글꼴'].forEach(function (g) {
+      var list = OTHER_CREDITS.filter(function (c) { return c.group === g; });
+      out += '<div><h3>' + g + '</h3><div style="display:flex;flex-direction:column;gap:8px">' + list.map(function (c) {
+        return '<div class="cr"><b>' + escHtml(c.title) + '</b><span>' + escHtml(c.who + ' · ' + c.license) + '</span>' + crLink(c.url) + '</div>';
+      }).join('') + '</div></div>';
+    });
+    return out;
+  }
+  // 설정 창 위에 겹쳐 연다(설정 창은 그대로 둔다. 닫으면 설정 창으로 돌아간다)
+  function openCredits() {
+    $('credits-body').innerHTML = creditsHtml();
+    $('credits-sheet').hidden = false;
+    $('credits-close').focus();
+  }
+  function closeCredits() { $('credits-sheet').hidden = true; }
+
   function openHelp() {
     if (sheetOpen()) return;
     $('help-paused').hidden = !pauseForSheet();
@@ -3728,6 +3818,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   $('h-sound').addEventListener('click', openSettings);
   $('set-close').addEventListener('click', closeSettings);
   $('btn-help').addEventListener('click', openHelp);
+  $('set-credits').addEventListener('click', openCredits);
+  $('credits-close').addEventListener('click', closeCredits);
+  $('credits-sheet').addEventListener('click', function (e) { if (e.target === this) closeCredits(); });
   $('h-help').addEventListener('click', openHelp);
   $('help-close').addEventListener('click', closeHelp);
   $('help-sheet').addEventListener('click', function (e) { if (e.target === this) closeHelp(); });
@@ -3736,7 +3829,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   ['music', 'sfx'].forEach(function (k) {
     var el = $('set-' + k);
     el.addEventListener('input', function () {
-      settings[k] = Math.max(0, Math.min(100, Math.round(+el.value) || 0));
+      settings[k] = Math.max(0, Math.min(100, Math.round((+el.value || 0) / 5) * 5));
       $('set-' + k + '-v').textContent = settings[k];
       applyVolumes();
     });
@@ -3762,7 +3855,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   $('tut-start').addEventListener('click', again);
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
-    if (!$('help-sheet').hidden) closeHelp(); else if (!$('settings-sheet').hidden) closeSettings(); else if (!$('quit-sheet').hidden) closeQuit();
+    if (!$('credits-sheet').hidden) closeCredits(); else if (!$('help-sheet').hidden) closeHelp(); else if (!$('settings-sheet').hidden) closeSettings(); else if (!$('quit-sheet').hidden) closeQuit();
   });
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && game && !sheetOpen()) { cancelAnimationFrame(raf); raf = requestAnimationFrame(loop); }
@@ -3815,6 +3908,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
    *   멈춤 창 → 닫고 계속 / 출동 중 → 멈춤 창 / 튜토리얼·결과 → 사무실 / 사무실 → exit
    */
   function back() {
+    if (!$('credits-sheet').hidden) { closeCredits(); return 'stay'; }
     if (!$('help-sheet').hidden) { closeHelp(); return 'stay'; }
     if (!$('settings-sheet').hidden) { closeSettings(); return 'stay'; }
     if (!$('quit-sheet').hidden) { closeQuit(); return 'stay'; }
@@ -4454,13 +4548,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
         return '<details class="pn"><summary><b>' + esc(n.ver) + '</b> ' + esc(n.title) + '</summary><div class="pn-body">' + lines(n.items) + '</div></details>';
       }).join('');
     }
-    // 음악 출처(CC BY 4.0 은 제목·작곡가·라이선스를 밝혀야 한다)
-    var cr = window.Team3Bgm && window.Team3Music ? window.Team3Bgm.credits(window.Team3Music) : [];
-    if (cr.length) {
-      body += '<span class="pn-past">음악</span>' + lines(cr.map(function (c) {
-        return '"' + c.title + '"' + (c.artist ? ' · ' + c.artist : '') + (c.license ? ' · ' + c.license : '') + (c.url ? ' · ' + c.url : '');
-      }));
-    }
+    // 음악 출처는 0.1.20 부터 설정 → 만든 사람들 로 옮겼다
     openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body });
     lsSet(NOTES_SEEN_KEY, VERSION);
     renderVersionButton();

@@ -11,7 +11,9 @@ function memStore(init = {}) {
 test('normalize: 범위 밖·소수·문자·빈 값을 0~100 정수와 기본값으로', () => {
   assert.deepStrictEqual(S.normalize(null), S.DEFAULTS);
   assert.deepStrictEqual(S.normalize({ music: 150, sfx: -3, vibrate: 'yes' }), { music: 100, sfx: 0, vibrate: true });
-  assert.deepStrictEqual(S.normalize({ music: '42.6', sfx: 'abc', vibrate: false, extra: 1 }), { music: 43, sfx: S.DEFAULTS.sfx, vibrate: false });
+  assert.deepStrictEqual(S.normalize({ music: '42.6', sfx: 'abc', vibrate: false, extra: 1 }), { music: 45, sfx: S.DEFAULTS.sfx, vibrate: false });
+  assert.strictEqual(S.normalize({ music: 52 }).music, 50, '5 단위로');
+  assert.strictEqual(S.DEFAULTS.music, 50); assert.strictEqual(S.DEFAULTS.sfx, 50);
   assert.strictEqual(S.normalize({ music: '' }).music, S.DEFAULTS.music);
   assert.strictEqual(S.normalize({ music: Infinity }).music, S.DEFAULTS.music);
 });
@@ -21,6 +23,7 @@ test('load/save: 저장한 값을 그대로 읽고, 깨진 값은 기본값', ()
   assert.deepStrictEqual(S.load(st), S.DEFAULTS);
   assert.ok(S.save(st, { music: 10, sfx: 20, vibrate: false }));
   assert.deepStrictEqual(S.load(st), { music: 10, sfx: 20, vibrate: false });
+  assert.strictEqual(JSON.parse(st.m[S.KEY]).scale, S.SCALE);
   assert.deepStrictEqual(S.load(memStore({ [S.KEY]: '{깨짐' })), S.DEFAULTS);
 });
 
@@ -40,10 +43,10 @@ test('저장소가 던져도(사파리 사생활 보호 등) 기본값으로 동
   assert.strictEqual(S.save(bad, S.DEFAULTS), false);
 });
 
-test('크기 곡선: 0 → 0, 100 → 1, 50 → 0.25, 범위 밖은 자른다', () => {
+test('크기 비율: 0 → 0, 100 → 1, 50 → 0.5, 범위 밖은 자른다', () => {
   assert.strictEqual(S.gain(0), 0);
   assert.strictEqual(S.gain(100), 1);
-  assert.strictEqual(S.gain(50), 0.25);
+  assert.strictEqual(S.gain(50), 0.5);
   assert.strictEqual(S.gain(300), 1);
   assert.strictEqual(S.gain('x'), 0);
 });
@@ -69,4 +72,14 @@ test('백업 코드 실패: 빈 값·다른 머리말·잘린 코드·JSON 아�
   assert.strictEqual(S.importCode(ok, 2).reason, 'version');
   for (const r of ['empty', 'prefix', 'broken', 'version']) assert.ok(S.REASONS[r]);
   assert.throws(() => S.exportCode(''));
+});
+
+test('예전 눈금(0.1.18~19) 설정: 손대지 않은 기본값 70/80 은 새 기본 50/50, 직접 바꾼 값은 5 단위로 맞추고 다시 적는다', () => {
+  const a = memStore({ [S.KEY]: JSON.stringify({ music: 70, sfx: 80, vibrate: false }) });
+  assert.deepStrictEqual(S.load(a), { music: 50, sfx: 50, vibrate: false });
+  assert.strictEqual(JSON.parse(a.m[S.KEY]).scale, S.SCALE);
+  const b = memStore({ [S.KEY]: JSON.stringify({ music: 33, sfx: 0, vibrate: true }) });
+  assert.deepStrictEqual(S.load(b), { music: 35, sfx: 0, vibrate: true });
+  const c = memStore({ [S.KEY]: JSON.stringify({ music: 70, sfx: 80, vibrate: true, scale: S.SCALE }) });
+  assert.deepStrictEqual(S.load(c), { music: 70, sfx: 80, vibrate: true }, '새 눈금으로 저장된 70/80 은 그대로');
 });

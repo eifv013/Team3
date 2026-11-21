@@ -5,8 +5,9 @@
  *     키 'guar.suspects3.settings' = {"music":70,"sfx":80,"vibrate":true}
  *   예전 판의 소리 끔(guar.suspects.mute = '1')은 처음 한 번 음악 0 · 효과음 0 으로 옮긴다.
  *
- *   크기 곡선: 귀는 소리 크기를 비율로 느껴서 0~100 을 그대로 곱하면 아래쪽이 휙 줄어든다.
- *     gain = (값/100)^2 로 바꾸면 막대를 옮기는 만큼 고르게 줄어드는 느낌이 난다. 0 이면 완전히 꺼진다.
+ *   0.1.20: 5 단위 · 기본 50. 크기는 값에 비례(gain = 값/100)하고, 전체를 키우는 배수는 ui.js 에 있다.
+ *     (0.1.18~19 는 제곱 곡선 · 기본 70/80 이었다. 50 에서 예전 기본보다 2배 크게 들리도록 ui.js 배수를 맞췄다)
+ *     예전 설정 중 기본값(70/80)을 그대로 둔 사람은 새 기본 50/50 으로 옮기고, 직접 바꾼 값은 5 단위로만 맞춘다.
  *
  *   백업 코드: 'T3-' + base64(UTF-8 JSON). 한글 이름이 들어 있어도 깨지지 않는다.
  *     읽을 때는 머리말·base64·JSON·저장 버전(v)을 차례로 확인하고, 하나라도 틀리면 이유를 담아 실패를 돌려준다.
@@ -22,14 +23,16 @@
 
   var KEY = 'guar.suspects3.settings';
   var LEGACY_MUTE_KEY = 'guar.suspects.mute';
-  var DEFAULTS = { music: 70, sfx: 80, vibrate: true };
+  var DEFAULTS = { music: 50, sfx: 50, vibrate: true };
+  var STEP = 5;
+  var SCALE = 2;   // 저장 형식 번호(크기 눈금). 없으면 0.1.18~19 의 눈금
   var CODE_PREFIX = 'T3-';
 
-  // 0~100 정수로. 숫자가 아니면 기본값
+  // 0~100 의 5 단위로. 숫자가 아니면 기본값
   function level(v, def) {
     var n = typeof v === 'number' ? v : typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
     if (!isFinite(n)) return def;
-    return Math.max(0, Math.min(100, Math.round(n)));
+    return Math.max(0, Math.min(100, Math.round(n / STEP) * STEP));
   }
 
   /** 아무 값이나 받아 올바른 설정 객체로 만든다(모르는 키는 버린다). */
@@ -50,7 +53,17 @@
     var raw = null;
     try { raw = store.get(KEY); } catch (e) { raw = null; }
     if (raw) {
-      try { return normalize(JSON.parse(raw)); } catch (e) { return normalize(null); }
+      var o;
+      try { o = JSON.parse(raw); } catch (e) { return normalize(null); }
+      if (o && typeof o === 'object' && o.scale !== SCALE) {
+        // 예전 눈금: 손대지 않은 기본값(70/80)이면 새 기본으로, 아니면 값만 5 단위로
+        if (o.music === 70) o.music = DEFAULTS.music;
+        if (o.sfx === 80) o.sfx = DEFAULTS.sfx;
+        var s0 = normalize(o);
+        save(store, s0);
+        return s0;
+      }
+      return normalize(o);
     }
     var s = normalize(null), legacy = null;
     try { legacy = store.get(LEGACY_MUTE_KEY); } catch (e) { legacy = null; }
@@ -58,11 +71,12 @@
     return s;
   }
   function save(store, s) {
-    try { store.set(KEY, JSON.stringify(normalize(s))); return true; } catch (e) { return false; }
+    var o = normalize(s); o.scale = SCALE;
+    try { store.set(KEY, JSON.stringify(o)); return true; } catch (e) { return false; }
   }
 
-  /** 0~100 → 실제 곱할 크기(0~1). */
-  function gain(v) { var x = level(v, 0) / 100; return x * x; }
+  /** 0~100 → 비율(0~1). 실제 크기는 ui.js 가 이 비율에 배수를 곱한다. */
+  function gain(v) { return level(v, 0) / 100; }
 
   /* ---------- 백업 코드 ---------- */
   // UTF-8 ↔ base64 (브라우저와 node 18+ 모두 btoa/atob 가 있다)
@@ -107,7 +121,7 @@
   };
 
   return {
-    KEY: KEY, LEGACY_MUTE_KEY: LEGACY_MUTE_KEY, DEFAULTS: DEFAULTS, CODE_PREFIX: CODE_PREFIX,
+    KEY: KEY, LEGACY_MUTE_KEY: LEGACY_MUTE_KEY, DEFAULTS: DEFAULTS, STEP: STEP, SCALE: SCALE, CODE_PREFIX: CODE_PREFIX,
     normalize: normalize, load: load, save: save, gain: gain,
     exportCode: exportCode, importCode: importCode, REASONS: REASONS
   };

@@ -616,13 +616,7 @@
         return '<details class="pn"><summary><b>' + esc(n.ver) + '</b> ' + esc(n.title) + '</summary><div class="pn-body">' + lines(n.items) + '</div></details>';
       }).join('');
     }
-    // 음악 출처(CC BY 4.0 은 제목·작곡가·라이선스를 밝혀야 한다)
-    var cr = window.Team3Bgm && window.Team3Music ? window.Team3Bgm.credits(window.Team3Music) : [];
-    if (cr.length) {
-      body += '<span class="pn-past">음악</span>' + lines(cr.map(function (c) {
-        return '"' + c.title + '"' + (c.artist ? ' · ' + c.artist : '') + (c.license ? ' · ' + c.license : '') + (c.url ? ' · ' + c.url : '');
-      }));
-    }
+    // 음악 출처는 0.1.20 부터 설정 → 만든 사람들 로 옮겼다
     openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body });
     lsSet(NOTES_SEEN_KEY, VERSION);
     renderVersionButton();

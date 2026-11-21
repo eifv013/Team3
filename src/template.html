@@ -248,6 +248,13 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .daily-goal{color:#C9B8FF !important}
 .daily.done{opacity:.8}
 .res-medal{display:flex;gap:8px;align-items:center;font-weight:700}
+/* ===== 만든 사람들(0.1.20) ===== */
+.credits{display:flex;flex-direction:column;gap:14px}
+.credits h3{margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.cr{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:var(--panel2)}
+.cr b{font-size:15px}
+.cr span{font-size:13px;color:var(--muted);line-height:1.45}
+.cr a{color:var(--acc);font-size:12px;word-break:break-all;text-decoration:none}
 /* ===== 도움말(0.1.18): 톱니바퀴 왼쪽 ? 단추. 항목을 눌러 펼친다 ===== */
 .icon-pair{display:flex;align-items:center;flex:none}
 .help-d{border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
@@ -534,8 +541,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     <div class="sheet">
       <span class="label">설정</span>
       <h2 id="set-title" style="font-size:26px">소리와 진동</h2>
-      <label class="set-row"><span>음악</span><input type="range" id="set-music" min="0" max="100" step="1" aria-label="음악 크기"><span class="set-v" id="set-music-v">70</span></label>
-      <label class="set-row"><span>효과음</span><input type="range" id="set-sfx" min="0" max="100" step="1" aria-label="효과음 크기"><span class="set-v" id="set-sfx-v">80</span></label>
+      <label class="set-row"><span>음악</span><input type="range" id="set-music" min="0" max="100" step="5" aria-label="음악 크기"><span class="set-v" id="set-music-v">50</span></label>
+      <label class="set-row"><span>효과음</span><input type="range" id="set-sfx" min="0" max="100" step="5" aria-label="효과음 크기"><span class="set-v" id="set-sfx-v">50</span></label>
       <div class="set-row"><span>진동</span><button class="switch" id="set-vib" aria-pressed="true" aria-label="진동"></button></div>
       <p class="muted" id="set-paused" style="font-size:13px" hidden>이 창이 떠 있는 동안 출동 시간은 멈춰 있어요.</p>
       <div class="set-hub" id="set-hub">
@@ -551,9 +558,21 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
         <div class="set-sep"></div>
         <button class="ghost danger" id="set-reset">진행 초기화</button>
       </div>
+      <div class="set-sep"></div>
+      <button class="ghost" id="set-credits">만든 사람들</button>
       <button class="primary" id="set-close">닫기</button>
     </div>
   </div>
+  <!-- 만든 사람들(0.1.20): 설정 창에서 연다. 음악은 CC BY 라 제목·작곡가·라이선스를 밝힌다 -->
+  <div class="sheet-back" id="credits-sheet" role="dialog" aria-modal="true" aria-labelledby="credits-title" hidden>
+    <div class="sheet">
+      <span class="label">만든 사람들</span>
+      <h2 id="credits-title" style="font-size:26px">수사 3팀</h2>
+      <div id="credits-body" class="credits"></div>
+      <button class="primary" id="credits-close">닫기</button>
+    </div>
+  </div>
+
   <!-- 도움말(0.1.18): 출동 중에 열면 시간이 멈춘다. 내용은 ui.js 가 규칙 수치로 채운다 -->
   <div class="sheet-back" id="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
     <div class="sheet">

@@ -25,8 +25,8 @@
    *   음악·효과음이 둘 다 0 이면 소리 장치를 아예 만들지 않는다.
    */
   var ST = window.Team3Settings;
-  var settings = ST ? ST.load(store) : { music: 70, sfx: 80, vibrate: true };
-  function curve(v) { return ST ? ST.gain(v) : Math.pow(v / 100, 2); }
+  var settings = ST ? ST.load(store) : { music: 50, sfx: 50, vibrate: true };
+  function curve(v) { return ST ? ST.gain(v) : v / 100; }
   function silent() { return settings.music === 0 && settings.sfx === 0; }
 
   /* ---------- 소리: 파일 없이 WebAudio 로 합성 ---------- */
@@ -34,7 +34,8 @@
    * 모든 소리는 master 를 거쳐 나간다(0.1.2): 전체 크기 2배(MASTER_GAIN) → 리미터(컴프레서) → 스피커.
    *   소리가 작다는 의견으로 전체를 두 배로 키웠다. 여러 소리가 겹쳐도 찢어지지 않게 리미터로 위를 눌러 둔다.
    */
-  var MASTER_GAIN = 2;
+  // 0.1.20: 효과음 크기 50 에서 예전 기본(배수 2 × 0.8²≈1.28)의 2배 ≈ 2.5 가 되도록 5 × 0.5. 리미터가 찢어짐을 막는다
+  var MASTER_GAIN = 5;
   var ac = null, master = null;
   function audio() {
     if (silent()) return null;
@@ -73,7 +74,8 @@
    *   BGM_GAIN: 효과음 아래에 깔리는 크기. 곡 크기는 tools/make_music.py 에서 LUFS 로 맞춰 두었다.
    *   사람이 화면을 누를 때마다 wake → 막혀 있던 첫 곡이 이때 나온다(브라우저 자동 재생 정책).
    */
-  var BGM_GAIN = 0.55;
+  // 0.1.20: 음악 크기 50 에서 예전 기본(0.55 × 0.7²≈0.27)의 2배 ≈ 0.55 가 되도록 1.1 × 0.5
+  var BGM_GAIN = 1.1;
   var music = window.Team3Bgm
     ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN * curve(settings.music) })
     : { want: function () {}, wake: function () {}, duck: function () {}, dim: function () {}, setVolume: function () {}, setMuted: function () {}, state: function () { return {}; } };
@@ -828,6 +830,48 @@
       '<p>진행은 이 기기에만 저장돼요. 앱을 지우거나 기기를 바꾸기 전에 <b>백업 코드</b>를 복사해 두세요.</p>');
     return out;
   }
+  /* ---------- 만든 사람들(0.1.20) ----------
+   * 음악 출처는 music.js(곡마다 credit)에서 읽는다. 곡을 바꾸면 make_music.py 의 credit 만 고치면 된다.
+   * 효과음·글꼴은 여기 표(OTHER_CREDITS). 링크는 새 창(안드로이드 앱에서는 바깥 브라우저)으로 연다.
+   */
+  var MUSIC_PLACE = { office: '사무실', field: '현장 출동', boss: '주범 조 출동' };
+  var OTHER_CREDITS = [
+    { group: '효과음', title: '시계 초침', who: 'Dragon Studio', license: 'Pixabay Content License', url: 'https://pixabay.com/' },
+    { group: '효과음', title: '사이렌', who: 'Universfield', license: 'Pixabay Content License', url: 'https://pixabay.com/' },
+    { group: '글꼴', title: 'Black Han Sans', who: 'Zess Type', license: 'SIL Open Font License 1.1', url: 'https://fonts.google.com/specimen/Black+Han+Sans' }
+  ];
+  function escHtml(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function crLink(u) {
+    if (!u) return '';
+    var href = /^https?:\/\//.test(u) ? u : 'https://' + u;
+    return '<a href="' + escHtml(href) + '" target="_blank" rel="noopener noreferrer">' + escHtml(u.replace(/^https?:\/\//, '')) + '</a>';
+  }
+  function creditsHtml() {
+    var out = '<div><h3>제작</h3><div class="cr"><b>Guar</b><span>기획 · 개발</span></div></div>';
+    var M = window.Team3Music || {}, rows = [];
+    Object.keys(M).forEach(function (k) {
+      var c = M[k] && M[k].credit; if (!c || !c.title) return;
+      // url 칸에 "주소 · 주소" 로 여러 개를 적어 둘 수 있다
+      var links = String(c.url || '').split(' · ').filter(Boolean).map(crLink).join(' ');
+      rows.push('<div class="cr"><b>"' + escHtml(c.title) + '"</b><span>' + escHtml((MUSIC_PLACE[k] ? MUSIC_PLACE[k] + ' · ' : '') + [c.artist, c.license].filter(Boolean).join(' · ')) + '</span>' + links + '</div>');
+    });
+    if (rows.length) out += '<div><h3>음악</h3><div style="display:flex;flex-direction:column;gap:8px">' + rows.join('') + '</div></div>';
+    ['효과음', '글꼴'].forEach(function (g) {
+      var list = OTHER_CREDITS.filter(function (c) { return c.group === g; });
+      out += '<div><h3>' + g + '</h3><div style="display:flex;flex-direction:column;gap:8px">' + list.map(function (c) {
+        return '<div class="cr"><b>' + escHtml(c.title) + '</b><span>' + escHtml(c.who + ' · ' + c.license) + '</span>' + crLink(c.url) + '</div>';
+      }).join('') + '</div></div>';
+    });
+    return out;
+  }
+  // 설정 창 위에 겹쳐 연다(설정 창은 그대로 둔다. 닫으면 설정 창으로 돌아간다)
+  function openCredits() {
+    $('credits-body').innerHTML = creditsHtml();
+    $('credits-sheet').hidden = false;
+    $('credits-close').focus();
+  }
+  function closeCredits() { $('credits-sheet').hidden = true; }
+
   function openHelp() {
     if (sheetOpen()) return;
     $('help-paused').hidden = !pauseForSheet();
@@ -931,6 +975,9 @@
   $('h-sound').addEventListener('click', openSettings);
   $('set-close').addEventListener('click', closeSettings);
   $('btn-help').addEventListener('click', openHelp);
+  $('set-credits').addEventListener('click', openCredits);
+  $('credits-close').addEventListener('click', closeCredits);
+  $('credits-sheet').addEventListener('click', function (e) { if (e.target === this) closeCredits(); });
   $('h-help').addEventListener('click', openHelp);
   $('help-close').addEventListener('click', closeHelp);
   $('help-sheet').addEventListener('click', function (e) { if (e.target === this) closeHelp(); });
@@ -939,7 +986,7 @@
   ['music', 'sfx'].forEach(function (k) {
     var el = $('set-' + k);
     el.addEventListener('input', function () {
-      settings[k] = Math.max(0, Math.min(100, Math.round(+el.value) || 0));
+      settings[k] = Math.max(0, Math.min(100, Math.round((+el.value || 0) / 5) * 5));
       $('set-' + k + '-v').textContent = settings[k];
       applyVolumes();
     });
@@ -965,7 +1012,7 @@
   $('tut-start').addEventListener('click', again);
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
-    if (!$('help-sheet').hidden) closeHelp(); else if (!$('settings-sheet').hidden) closeSettings(); else if (!$('quit-sheet').hidden) closeQuit();
+    if (!$('credits-sheet').hidden) closeCredits(); else if (!$('help-sheet').hidden) closeHelp(); else if (!$('settings-sheet').hidden) closeSettings(); else if (!$('quit-sheet').hidden) closeQuit();
   });
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && game && !sheetOpen()) { cancelAnimationFrame(raf); raf = requestAnimationFrame(loop); }
@@ -1018,6 +1065,7 @@
    *   멈춤 창 → 닫고 계속 / 출동 중 → 멈춤 창 / 튜토리얼·결과 → 사무실 / 사무실 → exit
    */
   function back() {
+    if (!$('credits-sheet').hidden) { closeCredits(); return 'stay'; }
     if (!$('help-sheet').hidden) { closeHelp(); return 'stay'; }
     if (!$('settings-sheet').hidden) { closeSettings(); return 'stay'; }
     if (!$('quit-sheet').hidden) { closeQuit(); return 'stay'; }
