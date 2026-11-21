@@ -1405,6 +1405,7 @@ details.pn .pn-body p{color:var(--muted)}
    *   검거   : 마림바 두 음(도 → 미), 연속 검거가 쌓이면 반음씩 올라간다.
    *   단계 상승·검거 불가 적중·사기 : 마림바 세 음.
  *   틀림(오인 체포·검거 불가 오판) : 마림바 두 음이 내려간다.
+ *   출동 끝 : 마림바 도-미-솔-도로 올라간다.
    */
   var sfx = {
     pick: function (n) { tone(392 * semi(Math.max(0, n - 1) * 2), 0.12, 'sine', 0.4, 0, null, 0.006); },   // 크기 0.2 → 0.4(두 배)
@@ -1422,7 +1423,8 @@ details.pn .pn-body p{color:var(--muted)}
     //   예전 소리(톱니파 170→90Hz 미끄러짐)는 혼자만 거친 파형이라 이상하게 들렸다.
     miss: function () { mallet(C4 * semi(-5), 0.22, 0); mallet(C4 * semi(-9), 0.22, 0.12); },
     none: function () { [0, 4, 7, 12].forEach(function (n, i) { mallet(C4 * semi(n), 0.2, i * 0.08); }); },
-    end: function () { [392, 330, 262].forEach(function (f, i) { tone(f, 0.22, 'triangle', 0.14, i * 0.12); }); },
+    // 출동 끝: 마림바로 도-미-솔-도 올라가며 끝맺는다(보상 화면과 어울리게). 예전 삼각파 솔-미-도를 바꿨다.
+    end: function () { [0, 4, 7, 12].forEach(function (n, i) { tone(C4 * semi(n), i === 3 ? 0.9 : 0.35, 'sine', 0.2, i * 0.1, null, 0.004); tone(C4 * semi(n) * 4, 0.08, 'sine', 0.05, i * 0.1, null, 0.002); }); },
     coin: function () { mallet(C4 * semi(7), 0.18, 0); mallet(C4 * semi(12), 0.16, 0.07); },
     tickLow: function () { tone(880, 0.05, 'sine', 0.07); }
   };
