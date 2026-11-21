@@ -198,6 +198,10 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .pn-head{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600}
 .pn-head b{color:var(--acc)}
 .pn p{margin:0;font-size:13px;line-height:1.55;color:var(--text)}
+/* 항목 줄 내어쓰기: 점은 고정 칸, 글은 그 오른쪽에서 줄바꿈 */
+p.li{display:flex;gap:6px;margin:0}
+p.li i{flex:none;font-style:normal;color:var(--muted)}
+p.li span{flex:1;min-width:0}
 .pn-new{border:1.5px solid var(--acc);animation:glow 2.4s ease-in-out infinite}
 @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,210,63,.0),0 0 10px rgba(255,210,63,.18)}50%{box-shadow:0 0 0 3px rgba(255,210,63,.18),0 0 22px rgba(255,210,63,.42)}}
 .new{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;background:var(--acc);color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.06em}
@@ -218,8 +222,11 @@ details.pn .pn-body p{color:var(--muted)}
 details.log-d summary{gap:10px;color:var(--text)}
 details.log-d summary b{color:var(--acc);font-size:13px;white-space:nowrap}
 .log-peek{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-details.log-d[open] .log-peek{visibility:hidden}
-details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.65}
+/* 펼친 일지는 안 접히는 일지(.log)와 똑같은 간격: 제목줄 아래 6px 뒤 바로 글 */
+details.log-d[open] .log-peek{display:none}
+details.log-d[open] summary{padding-bottom:0}
+details.log-d .pn-body{gap:0}
+details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 .pn-past{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 @media (prefers-reduced-motion:reduce){.pn-new{animation:none;box-shadow:0 0 14px rgba(255,210,63,.35)}}
 .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:6;padding:10px 14px;border-radius:10px;background:var(--panel2);font-size:13px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.4)}

@@ -232,3 +232,9 @@ test('수사 일지: 편마다 3줄 이상, 빈 줄 없고 한 줄이 폰 세로
     }
   }
 });
+
+test('수사 일지: "써드"는 마지막 편에서야 처음 나온다', () => {
+  const st = I.CASE.story, last = st[st.length - 1];
+  st.slice(0, -1).forEach(e => assert.ok(!e.text.includes('써드'), e.at + '명 편에 써드가 먼저 나옴'));
+  assert.ok(last.text.includes('써드'));
+});

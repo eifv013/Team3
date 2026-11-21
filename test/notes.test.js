@@ -16,3 +16,8 @@ test('패치노트: 형식과 순서', () => {
     if (i > 0) assert.ok(U.isNewer(N[i - 1].ver, n.ver), N[i - 1].ver + ' 이 ' + n.ver + ' 보다 새 버전이어야 한다');
   });
 });
+
+test('패치노트: 이야기 스포일러(악당 이름)를 적지 않는다', () => {
+  for (const n of N) for (const t of [n.title].concat(n.items))
+    for (const w of ['써드', '설계자']) assert.ok(!t.includes(w), n.ver + ' 패치노트에 스포일러: ' + w);
+});

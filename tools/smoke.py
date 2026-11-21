@@ -114,7 +114,15 @@ with sync_playwright() as p:
         if pg.locator('#info-body details.pn').count():
             pg.locator('#info-body details.pn summary').first.click(); pg.clock.run_for(100)
             if not pg.locator('#info-body details.pn[open]').count(): problems.append('지난 패치노트를 눌러도 안 펼쳐짐')
-            pg.screenshot(path=SHOT + 'notes.png')
+            pg.screenshot(path=SHOT + 'notes-open.png')
+            # 줄 정렬: 두 줄로 넘어간 항목의 둘째 줄이 점(·)이 아니라 글 첫 글자 아래에서 시작해야 한다
+            al = pg.evaluate('''() => [...document.querySelectorAll('#info-body p.li')].map(p => {
+                const dot = p.querySelector('i').getBoundingClientRect(), sp = p.querySelector('span');
+                const r = sp.getClientRects(); return { dot: dot.left, first: r[0] && r[0].left, all: [...r].map(x => x.left) };
+            })''')
+            if not al: problems.append('패치노트 항목 줄(p.li)이 없음')
+            for a_ in al:
+                if any(abs(x - a_['first']) > 1 for x in a_['all']) or a_['first'] <= a_['dot']: problems.append('패치노트 줄 정렬 어긋남'); break
             pg.locator('#info-body details.pn[open] .pn-body').first.click(); pg.clock.run_for(100)
             if pg.locator('#info-body details.pn[open]').count(): problems.append('펼친 패치노트 내용을 눌러도 안 접힘')
         pg.screenshot(path=SHOT + 'notes.png')
@@ -239,6 +247,14 @@ with sync_playwright() as p:
         if pg.locator('#info-body details.log-d[open]').count(): problems.append('지난 수사 일지가 펼쳐져 있음')
         pg.locator('#info-body details.log-d summary').first.click(); pg.clock.run_for(100)
         if not pg.locator('#info-body details.log-d[open]').count(): problems.append('지난 일지를 눌러도 안 펼쳐짐')
+        # 펼친 일지: 제목줄과 글 사이가 안 접히는 일지(.log)와 같아야 한다(빈 틈이 크게 벌어지지 않게)
+        gaps = pg.evaluate('''() => {
+            const d = document.querySelector('#info-body details.log-d[open]'), l = document.querySelector('#info-body .log:not(.locked)');
+            const g = (h, p) => p.getBoundingClientRect().top - h.getBoundingClientRect().top;
+            return [g(d.querySelector('summary b'), d.querySelector('.pn-body p')), l ? g(l.querySelector('.log-at'), l.querySelector('p')) : null];
+        }''')
+        if gaps[1] is not None and abs(gaps[0] - gaps[1]) > 4: problems.append('펼친 일지 제목줄-글 틈이 다름: %s' % gaps)
+        pg.screenshot(path=SHOT + 'story-open.png')
         pg.locator('#info-body details.log-d[open] .pn-body').first.click(); pg.clock.run_for(100)
         if pg.locator('#info-body details.log-d[open]').count(): problems.append('펼친 일지 글을 눌러도 안 접힘')
         pg.screenshot(path=SHOT + 'story-fold.png')

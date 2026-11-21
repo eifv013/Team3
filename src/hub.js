@@ -344,8 +344,10 @@
     var notes = $('up-notes');
     notes.textContent = '';
     (pendingUpdate.items.length ? pendingUpdate.items : [pendingUpdate.title]).slice(0, 4).forEach(function (t) {
-      var line = document.createElement('span');
-      line.textContent = '· ' + t;          // 서버에서 온 글이라 textContent 로만 넣는다
+      // 서버에서 온 글이라 textContent 로만 넣는다. 패치노트와 같은 내어쓰기 줄
+      var line = document.createElement('p'), dot = document.createElement('i'), txt = document.createElement('span');
+      line.className = 'li'; dot.textContent = '·'; txt.textContent = t;
+      line.appendChild(dot); line.appendChild(txt);
       notes.appendChild(line);
     });
     $('updating').hidden = false;
@@ -380,7 +382,8 @@
    * 패치노트 글은 우리가 쓴 notes.js 라 HTML 로 넣지만, 꺾쇠는 미리 바꿔 둔다.
    */
   var NOTES_SEEN_KEY = 'guar.suspects3.notesSeen';
-  function lines(items) { return items.map(function (t) { return '<p>· ' + esc(t) + '</p>'; }).join(''); }
+  // 항목 줄: 점(·)과 글을 나눠 두면, 글이 두 줄로 넘어가도 둘째 줄이 첫 글자 아래에 맞춰 선다
+  function lines(items) { return items.map(function (t) { return '<p class="li"><i>·</i><span>' + esc(t) + '</span></p>'; }).join(''); }
 
   function showVersionInfo() {
     if (!N.length) { openInfo({ label: '패치노트', title: '수사 3팀', body: p('기록이 없어요') }); return; }
