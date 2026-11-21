@@ -170,7 +170,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .casebox{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
 .casebox .bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
 .casebox .bar i{display:block;height:100%;background:var(--acc);border-radius:5px;transition:width .4s}
-.casebox .story{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.casebox .story{margin:0;font-size:13px;line-height:1.6;color:var(--muted);white-space:pre-line}
 .linkish{border:0;background:none;padding:0;color:var(--acc);font-size:13px;font-weight:600;text-align:left}
 .section-t{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 .shop{display:flex;flex-direction:column;gap:8px}
@@ -211,7 +211,7 @@ details.pn .pn-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:6
 details.pn .pn-body p{color:var(--muted)}
 .log{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;background:var(--panel2)}
 .log-at{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--acc)}
-.log p{margin:0;font-size:14px;line-height:1.65}
+.log p,details.log-d .pn-body p{margin:0;font-size:14px;line-height:1.7;white-space:pre-line}  /* 일지 줄바꿈(\n)을 그대로 줄로 */
 .log.locked{background:none;border:1.5px dashed var(--line)}
 .log.locked .log-at{color:var(--muted);font-weight:600}
 .log.fresh{border:1.5px solid var(--acc)}
@@ -486,6 +486,11 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.65}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.4', date: '2026-11-21', title: '수사 일지를 새로 썼어요',
+      items: [
+        '수사 일지 여섯 편을 모두 새로 썼어요. 편마다 더 길어지고 줄도 보기 좋게 나눴어요.',
+        '규칙을 만든 자의 이름이 드러나요. 놈들은 그를 "설계자", 또는 "써드"라고 불러요.'
+      ] },
     { ver: '0.1.3', date: '2026-11-21', title: '사건 1이 검거 1000명까지',
       items: [
         '사건 1 · 골목길 연쇄 절도의 목표가 300명에서 1000명으로 늘었어요. 이미 300명으로 끝낸 사건은 다시 이어서 할 수 있어요.',
@@ -1125,13 +1130,57 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.65}
     no: 1,
     title: '골목길 연쇄 절도',
     goal: 1000,          // 0.1.3: 300 → 1000(방치형답게 길게). 이야기도 4편 → 6편
+    // 0.1.4: 일지는 편마다 3줄 이상. 한 줄 = 한 호흡이자 폰 세로 화면 한 줄(줄바꿈 \n 그대로 화면에 줄로 나온다).
+    //        규칙을 만든 자 = "설계자", 놈들끼리 부르는 이름 = "써드". 진짜 이름은 사건 2 이후에 밝힌다.
     story: [
-      { at: 0,   text: '새벽 세 시, 골목 상가 여섯 곳이 한꺼번에 털렸다. 목격자는 많은데 말이 다 다르다. 서장이 우리 3팀에 사건을 넘겼다.' },
-      { at: 150, text: '잡아들인 자들이 하나같이 같은 말을 한다. "시키는 대로 했을 뿐." 누군가 세 명씩 짝을 지어 보내고 있다.' },
-      { at: 300, text: '세 명씩 짝지은 조에는 규칙이 있었다. 어느 특징이든 둘만 같은 조는 없다. 그 규칙을 만든 사람이 보이기 시작한다.' },
-      { at: 500, text: '규칙을 만든 자를 놈들은 "설계자"라고 불렀다. 가까운 놈들끼리는 "써드"라고 부른다고 했다. 세 번째. 우리 팀 번호와 같다. 서장은 우연이라고 했지만, 나는 그 말을 믿지 않는다.' },
-      { at: 750, text: '써드의 은신처를 찾아냈다. 텅 비어 있었다. 벽에는 우리 3팀 형사들의 몽타주가 세 장씩 짝지어 붙어 있었다. 둘만 같은 조는 없었다.' },
-      { at: 1000, text: '사건 종결. 마지막 조를 넘긴 날, 책상 위에 봉투 하나가 놓여 있었다. 안에는 다른 도시의 지도와 숫자 2, 그리고 한 줄. "다음 판도 내가 짠다. — 써드" 놈의 진짜 이름은 아직 아무도 모른다. — 사건 2에서 계속' }
+      { at: 0, text: [
+        '새벽 세 시, 골목 상가 여섯 곳이',
+        '한꺼번에 털렸다.',
+        'CCTV에 찍힌 건 늘 세 명.',
+        '얼굴도, 옷도, 걸음도 제각각이다.',
+        '서장이 사건 파일을 책상에 던졌다.',
+        '"3팀, 이건 너희가 맡아."'
+      ].join('\n') },
+      { at: 150, text: [
+        '잡아들인 놈들은 하나같이',
+        '같은 말만 되풀이했다.',
+        '"시키는 대로 했을 뿐이에요."',
+        '누가 시켰냐고 물으면 입을 다문다.',
+        '겁에 질린 눈으로 창밖만 본다.'
+      ].join('\n') },
+      { at: 300, text: [
+        '세 명씩 짝지은 조에는 규칙이 있었다.',
+        '모자, 얼굴, 시간, 표식.',
+        '셋이 모두 같거나, 모두 다르다.',
+        '둘만 같은 조는 한 번도 없었다.',
+        '우연으로는 이런 판을 짤 수 없다.'
+      ].join('\n') },
+      { at: 500, text: [
+        '규칙을 만든 자를',
+        '놈들은 "설계자"라고 불렀다.',
+        '가까운 놈들끼리는 "써드"라고 부른다.',
+        '세 번째. 우리 팀 번호와 같다.',
+        '서장은 우연이라고 했다.',
+        '나는 그 말을 믿지 않는다.'
+      ].join('\n') },
+      { at: 750, text: [
+        '써드의 은신처를 찾아냈다.',
+        '문을 땄을 땐 이미 텅 비어 있었다.',
+        '벽에는 우리 3팀 형사들의 몽타주가',
+        '세 장씩 짝지어 붙어 있었다.',
+        '둘만 같은 조는 없었다.',
+        '놈은 처음부터 우리를 보고 있었다.'
+      ].join('\n') },
+      { at: 1000, text: [
+        '마지막 조를 넘기고 사건 1을 닫았다.',
+        '그날 밤, 내 책상 위에',
+        '봉투 하나가 놓여 있었다.',
+        '다른 도시의 지도와 숫자 2,',
+        '그리고 한 줄.',
+        '"다음 판도 내가 짠다. — 써드"',
+        '놈의 진짜 이름은 아직 아무도 모른다.',
+        '— 사건 2에서 계속'
+      ].join('\n') }
     ]
   };
 
@@ -2265,7 +2314,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.65}
       if (fresh || i === unlocked - 1) {
         return '<div class="log' + (fresh ? ' fresh' : '') + '"><span class="log-at">' + (fresh ? '<span class="new">NEW</span>' : '') + at + '</span><p>' + esc(e.text) + '</p></div>';
       }
-      return '<details class="pn log-d"><summary><b>' + at + '</b><span class="log-peek">' + esc(e.text) + '</span></summary><div class="pn-body"><p>' + esc(e.text) + '</p></div></details>';
+      return '<details class="pn log-d"><summary><b>' + at + '</b><span class="log-peek">' + esc(e.text.split('\n')[0]) + '</span></summary><div class="pn-body"><p>' + esc(e.text) + '</p></div></details>';
     }).join('');
     openInfo({ label: '수사 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body });
     I.markStorySeen(save);

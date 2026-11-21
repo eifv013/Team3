@@ -170,7 +170,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .casebox{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
 .casebox .bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
 .casebox .bar i{display:block;height:100%;background:var(--acc);border-radius:5px;transition:width .4s}
-.casebox .story{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.casebox .story{margin:0;font-size:13px;line-height:1.6;color:var(--muted);white-space:pre-line}
 .linkish{border:0;background:none;padding:0;color:var(--acc);font-size:13px;font-weight:600;text-align:left}
 .section-t{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 .shop{display:flex;flex-direction:column;gap:8px}
@@ -211,7 +211,7 @@ details.pn .pn-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:6
 details.pn .pn-body p{color:var(--muted)}
 .log{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;background:var(--panel2)}
 .log-at{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--acc)}
-.log p{margin:0;font-size:14px;line-height:1.65}
+.log p,details.log-d .pn-body p{margin:0;font-size:14px;line-height:1.7;white-space:pre-line}  /* 일지 줄바꿈(\n)을 그대로 줄로 */
 .log.locked{background:none;border:1.5px dashed var(--line)}
 .log.locked .log-at{color:var(--muted);font-weight:600}
 .log.fresh{border:1.5px solid var(--acc)}

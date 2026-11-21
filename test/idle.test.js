@@ -221,3 +221,14 @@ test('수사 일지: 새 편이 열리면 안 읽음, 읽으면 사라짐, 저�
   assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 99 })), T0).save.storySeen, 6);
   assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 'x' })), T0).save.storySeen, 0);
 });
+
+test('수사 일지: 편마다 3줄 이상, 빈 줄 없고 한 줄이 폰 세로 화면 한 줄에 들어간다', () => {
+  for (const e of I.CASE.story) {
+    const lines = e.text.split('\n');
+    assert.ok(lines.length >= 3, e.at + '명 편이 3줄 미만');
+    for (const l of lines) {
+      assert.ok(l.trim().length > 0, e.at + '명 편에 빈 줄');
+      assert.ok(l.length <= 22, e.at + '명 편 줄이 김: ' + l);
+    }
+  }
+});

@@ -177,7 +177,7 @@
       if (fresh || i === unlocked - 1) {
         return '<div class="log' + (fresh ? ' fresh' : '') + '"><span class="log-at">' + (fresh ? '<span class="new">NEW</span>' : '') + at + '</span><p>' + esc(e.text) + '</p></div>';
       }
-      return '<details class="pn log-d"><summary><b>' + at + '</b><span class="log-peek">' + esc(e.text) + '</span></summary><div class="pn-body"><p>' + esc(e.text) + '</p></div></details>';
+      return '<details class="pn log-d"><summary><b>' + at + '</b><span class="log-peek">' + esc(e.text.split('\n')[0]) + '</span></summary><div class="pn-body"><p>' + esc(e.text) + '</p></div></details>';
     }).join('');
     openInfo({ label: '수사 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body });
     I.markStorySeen(save);
