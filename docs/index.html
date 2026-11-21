@@ -20,7 +20,7 @@
   --hit:#FFD23F; --miss:#FF7A59; --ok:#7BD88F;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--ink);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;
+html,body{margin:0;height:100%;background:var(--ink);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty;
   font-family:'IBM Plex Sans KR',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 button{font-family:inherit;color:inherit;cursor:pointer}
 button:disabled{cursor:default;opacity:.45}
@@ -164,6 +164,11 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .next-bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:3px;transition:width 1s linear}
 .next-bar i.snap{transition:none}
 .next-bar.fast i{background:var(--ok)}
+/* 1초에 여러 명: 꽉 찬 막대에 빗금이 흐른다 */
+.next-bar.stream i{transition:none;background:repeating-linear-gradient(135deg,var(--acc) 0 8px,#e6b92a 8px 16px);background-size:22.6px 100%;animation:stream .6s linear infinite}
+.next-bar.stream.fast i{background:repeating-linear-gradient(135deg,var(--ok) 0 8px,#5fbf73 8px 16px);background-size:22.6px 100%}
+@keyframes stream{to{background-position:22.6px 0}}
+@media (prefers-reduced-motion:reduce){.next-bar.stream i{animation:none}}
 .money{font-family:'Black Han Sans',sans-serif;font-size:30px;line-height:1;color:var(--acc)}
 .rate{font-size:12px;color:var(--muted)}
 .buff{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:6px;background:var(--acc);color:var(--ink);font-size:11px;font-weight:700}
@@ -185,7 +190,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .item .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .item .tx b{font-size:15px}
 .item .tx small{font-size:12px;color:var(--muted);line-height:1.35}
-.buy{min-width:84px;height:44px;padding:0 10px;border:0;border-radius:10px;background:var(--acc);color:var(--ink);font-size:14px;font-weight:700}
+.buy{min-width:84px;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:44px;padding:0 10px;border:0;border-radius:10px;background:var(--acc);color:var(--ink);font-size:14px;font-weight:700}
 .buy.max{background:var(--panel2);color:var(--muted)}
 /* 현장 출동: 이 게임의 핵심 단추. 경광등 띠 + 빛줄기 + 누르면 꾹 들어감 */
 .go-btn{position:relative;overflow:hidden;flex:none;height:72px;border:0;border-radius:16px;background:var(--acc);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
@@ -520,6 +525,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.7', date: '2026-11-21', title: '1분에 버는 수사비',
+      items: [
+        '사무실 위쪽에 팀이 1분에 버는 수사비가 보여요. 형사가 늘수록 이 값이 올라요.',
+        '팀이 아주 빨라지면 다음 검거 막대 대신 1초에 몇 명 잡는지 보여요.',
+        '수사 일지를 한 줄에 한 문장씩 다시 정리했어요.'
+      ] },
     { ver: '0.1.6', date: '2026-11-21', title: '주범은 현장에서',
       items: [
         '팀이 혼자 잡을 수 있는 건 800명까지예요. 마지막 200명은 주범 조라서 현장 출동으로만 잡을 수 있어요.',
@@ -1167,7 +1178,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   var GEAR = {
     time:    { name: '수사 기간 연장', desc: '현장 출동 시간 +10초', costs: [800, 2400, 7200] },
     veteran: { name: '베테랑 형사',   desc: '출동마다 무료 단서 +1번', costs: [1500, 6000] },
-    lab:     { name: '감식반',       desc: '네 가지가 된 뒤에도 셋째 조건을 보여 줌', costs: [3000] },
+    lab:     { name: '감식반',       desc: '네 가지일 때도 셋째 조건 표시', costs: [3000] },
     vault:   { name: '증거 보관실',   desc: '검거 불가 오판 벌점 10초 → 5초', costs: [4000] }
   };
   var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault'];
@@ -1178,60 +1189,56 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     title: '골목길 연쇄 절도',
     goal: 1000,          // 0.1.3: 300 → 1000(방치형답게 길게). 이야기도 4편 → 6편
     idleCap: 800,        // 0.1.6: 팀(방치)이 올릴 수 있는 사건 진척은 여기까지. 나머지(주범 조)는 현장 출동으로만 잡는다
-    // 0.1.4: 일지는 편마다 3줄 이상. 한 줄 = 한 호흡이자 폰 세로 화면 한 줄(줄바꿈 \n 그대로 화면에 줄로 나온다).
+    // 0.1.4: 일지는 편마다 3줄 이상. 한 줄 = 한 문장(문장을 두 줄로 쪼개지 않는다)이자 폰 세로 화면 한 줄(줄바꿈 \n 그대로 화면에 줄로 나온다).
     //        규칙을 만든 자 = "설계자". 놈이 스스로 밝히는 이름 "써드"는 마지막 편(1000명)에서야 나온다.
     //        진짜 이름은 사건 2 이후에 밝힌다. 패치노트에는 이야기 내용(스포일러)을 적지 않는다.
     story: [
       { at: 0, text: [
-        '새벽 세 시, 골목 상가 여섯 곳이',
-        '한꺼번에 털렸다.',
-        'CCTV에 찍힌 건 늘 세 명.',
+        '새벽 세 시, 상가 여섯 곳이 털렸다.',
+        'CCTV에 찍힌 건 늘 세 명이다.',
         '얼굴도, 옷도, 걸음도 제각각이다.',
-        '서장이 사건 파일을 책상에 던졌다.',
+        '서장이 파일을 책상에 던졌다.',
         '"3팀, 이건 너희가 맡아."'
       ].join('\n') },
       { at: 150, text: [
-        '잡아들인 놈들은 하나같이',
-        '같은 말만 되풀이했다.',
+        '잡아들인 놈들은 말이 똑같았다.',
         '"시키는 대로 했을 뿐이에요."',
         '누가 시켰냐고 물으면 입을 다문다.',
         '겁에 질린 눈으로 창밖만 본다.'
       ].join('\n') },
       { at: 300, text: [
-        '세 명씩 짝지은 조에는 규칙이 있었다.',
-        '모자, 얼굴, 시간, 표식.',
+        '세 명씩 짝지은 조에는 규칙이 있다.',
+        '모자, 얼굴, 시간, 표식이 기준이다.',
         '셋이 모두 같거나, 모두 다르다.',
         '둘만 같은 조는 한 번도 없었다.',
         '우연으로는 이런 판을 짤 수 없다.'
       ].join('\n') },
       { at: 500, text: [
-        '규칙을 만든 자를',
-        '놈들은 "설계자"라고 불렀다.',
-        '진짜 이름을 물으면 다들 고개를 젓는다.',
+        '놈들은 두목을 "설계자"라 불렀다.',
+        '진짜 이름을 물으면 고개를 젓는다.',
         '모르는 건지, 말 못 하는 건지.',
-        '서장은 그냥 두목일 거라고 했다.',
-        '나는 그보다 더 큰 놈이라고 본다.'
+        '서장은 그냥 두목일 거라 했다.',
+        '나는 더 큰 놈이라고 본다.'
       ].join('\n') },
       { at: 750, text: [
         '설계자의 은신처를 찾아냈다.',
         '문을 땄을 땐 이미 텅 비어 있었다.',
-        '벽에는 우리 3팀 형사들의 몽타주가',
-        '세 장씩 짝지어 붙어 있었다.',
-        '둘만 같은 조는 없었다.',
+        '벽에 우리 형사들 몽타주가 있었다.',
+        '세 장씩, 빈틈없이 짝지어서.',
         '놈은 처음부터 우리를 보고 있었다.'
       ].join('\n') },
       { at: 1000, text: [
-        '마지막 조를 넘기고 사건 1을 닫았다.',
-        '그날 밤, 내 책상 위에',
-        '봉투 하나가 놓여 있었다.',
-        '다른 도시의 지도와 숫자 2,',
-        '그리고 한 줄.',
+        '마지막 조를 넘기고 사건을 닫았다.',
+        '그날 밤, 책상 위에 봉투가 있었다.',
+        '다른 도시의 지도와 숫자 2.',
+        '쪽지엔 한 줄이 적혀 있었다.',
         '"다음 판도 내가 짠다. — 써드"',
-        '써드. 세 번째. 우리 팀 번호와 같다.',
-        '놈의 진짜 이름은 아직 아무도 모른다.',
+        '써드, 세 번째. 우리 팀 번호다.',
+        '놈의 진짜 이름은 아직 모른다.',
         '— 사건 2에서 계속'
       ].join('\n') }
     ]
+
   };
 
   // 프로필(사무실 위에 보이는 내 자리). 게임 이름인 "수사 3팀"은 바꾸지 않고, 경찰서와 팀장 이름만 바꾼다.
@@ -1461,6 +1468,22 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     return CASE.story.filter(function (e) { return save.caught >= e.at; });
   }
   function progress(save) { return Math.min(1, save.caught / CASE.goal); }
+  /*
+   * 지금 팀이 1분에 버는 수사비(사기 충전 중이면 그 배수까지). 자리 비움 절반은 넣지 않는다(켜 둔 화면에 쓰는 값).
+   *   형사가 늘면 1명당 값은 그대로지만 잡는 수가 늘어 이 값이 오른다 — 화면에서 이걸 보여 줘야 덜 헷갈린다.
+   */
+  function incomePerMin(save, now) {
+    return teamRate(save) * 60 * (buffed(save, now) ? TUNE.buffMult : 1) * payPerCatch(save);
+  }
+  // 검거 간격이 이보다 짧으면 "다음 검거까지" 막대 대신 "1초에 N명"으로 보여 준다(막대가 깜빡이지 않게)
+  var FAST_SEC = 1.5;
+  // 한 명을 잡는 데 지금 걸리는 시간(초) = 1 / 지금 속도
+  function catchInterval(save, now) {
+    var r = teamRate(save) * (buffed(save, now) ? TUNE.buffMult : 1);
+    return r > 0 ? 1 / r : Infinity;
+  }
+  function isStreaming(save, now) { return catchInterval(save, now) < FAST_SEC; }
+
   // 팀(방치)으로는 더 못 올리고 출동으로만 남은 걸 잡을 수 있는 상태인가
   function idleCapped(save) { return !save.closed && save.caught >= CASE.idleCap; }
   // 열렸지만 아직 안 읽은 편이 있는가 / 지금 열린 편까지 읽었다고 적기
@@ -1472,7 +1495,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     cleanName: cleanName, setProfile: setProfile,
     newSave: newSave, load: load, serialize: serialize,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
-    idleCapped: idleCapped, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
+    idleCapped: idleCapped, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
   };
 });
@@ -2227,6 +2250,20 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   /* ---------- 표시 도우미 ---------- */
   function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
+  // 큰 값은 만·억·조로 줄인다(단추·수사비가 화면을 넘지 않게). 1,000만 아래는 그대로 쉼표
+  function fmtShort(n) {
+    n = Math.floor(n);
+    if (!isFinite(n)) return '∞';
+    if (n < 1e7) return fmt(n);
+    var units = [[1e16, '경'], [1e12, '조'], [1e8, '억'], [1e4, '만']];
+    for (var i = 0; i < units.length; i++) {
+      if (n >= units[i][0]) {
+        var v = n / units[i][0];
+        return (v >= 1e4 ? fmt(v) : (Math.floor(v * 10) / 10).toLocaleString('ko-KR')) + units[i][1];
+      }
+    }
+    return fmt(n);
+  }
   function fmtDur(sec) {
     var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
     return h > 0 ? h + '시간 ' + m + '분' : m > 0 ? m + '분' : Math.floor(sec) + '초';
@@ -2269,6 +2306,14 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (justCaught) { fill.classList.add('snap'); fill.style.width = '0%'; void fill.offsetWidth; fill.classList.remove('snap'); }
     fill.style.width = (Math.min(1, n.frac) * 100).toFixed(1) + '%';
     fill.parentNode.classList.toggle('fast', I.buffed(save, t));
+    // 아주 빠르면(1.5초 미만에 1명) 막대가 깜빡이기만 하니, 꽉 찬 흐르는 막대 + "1초에 N명"으로 바꾼다
+    var stream = I.isStreaming(save, t);
+    fill.parentNode.classList.toggle('stream', stream);
+    if (stream) {
+      fill.style.width = '100%';
+      $('h-next').textContent = '1초에 ' + perMin(1 / I.catchInterval(save, t)) + '명 검거 · +' + I.payPerCatch(save) + '씩';
+      return;
+    }
     var sec = Math.ceil(n.sec);
     $('h-next').textContent = !isFinite(sec) ? '쉬는 중' : '다음 검거까지 ' + (sec >= 60 ? Math.floor(sec / 60) + '분 ' + (sec % 60 ? (sec % 60) + '초' : '') : sec + '초') +
       ' · +' + I.payPerCatch(save);
@@ -2283,9 +2328,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     // 이름을 안 정했으면 "신임 팀장"(이번에 3팀을 맡은 사람). 사건 1 이야기와 이어진다.
     ld.textContent = save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기';
     ld.classList.toggle('empty', !save.profile.leader);
-    $('h-money').textContent = '수사비 ' + fmt(save.money);
+    $('h-money').textContent = '수사비 ' + fmtShort(save.money);
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
-    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 1명당 ' + I.payPerCatch(save);
+    // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
+    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(I.incomePerMin(save, t)) + '/분';
     var b = $('h-buff');
     b.hidden = !buff;
     if (buff) b.textContent = '사기 충전 ×2 · ' + Math.ceil((save.buffUntil - t) / 1000) + '초';
@@ -2326,7 +2372,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   function setBuy(btn, c, word) {
     btn.classList.toggle('max', c == null);
     btn.disabled = c == null || save.money < c;
-    btn.textContent = c == null ? '최고 단계' : word + ' ' + fmt(c);
+    btn.textContent = c == null ? '최고 단계' : word + ' ' + fmtShort(c);
   }
 
   /* ---------- 안내 창 ---------- */

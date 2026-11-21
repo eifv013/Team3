@@ -30,6 +30,20 @@
   function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   /* ---------- 표시 도우미 ---------- */
   function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
+  // 큰 값은 만·억·조로 줄인다(단추·수사비가 화면을 넘지 않게). 1,000만 아래는 그대로 쉼표
+  function fmtShort(n) {
+    n = Math.floor(n);
+    if (!isFinite(n)) return '∞';
+    if (n < 1e7) return fmt(n);
+    var units = [[1e16, '경'], [1e12, '조'], [1e8, '억'], [1e4, '만']];
+    for (var i = 0; i < units.length; i++) {
+      if (n >= units[i][0]) {
+        var v = n / units[i][0];
+        return (v >= 1e4 ? fmt(v) : (Math.floor(v * 10) / 10).toLocaleString('ko-KR')) + units[i][1];
+      }
+    }
+    return fmt(n);
+  }
   function fmtDur(sec) {
     var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
     return h > 0 ? h + '시간 ' + m + '분' : m > 0 ? m + '분' : Math.floor(sec) + '초';
@@ -72,6 +86,14 @@
     if (justCaught) { fill.classList.add('snap'); fill.style.width = '0%'; void fill.offsetWidth; fill.classList.remove('snap'); }
     fill.style.width = (Math.min(1, n.frac) * 100).toFixed(1) + '%';
     fill.parentNode.classList.toggle('fast', I.buffed(save, t));
+    // 아주 빠르면(1.5초 미만에 1명) 막대가 깜빡이기만 하니, 꽉 찬 흐르는 막대 + "1초에 N명"으로 바꾼다
+    var stream = I.isStreaming(save, t);
+    fill.parentNode.classList.toggle('stream', stream);
+    if (stream) {
+      fill.style.width = '100%';
+      $('h-next').textContent = '1초에 ' + perMin(1 / I.catchInterval(save, t)) + '명 검거 · +' + I.payPerCatch(save) + '씩';
+      return;
+    }
     var sec = Math.ceil(n.sec);
     $('h-next').textContent = !isFinite(sec) ? '쉬는 중' : '다음 검거까지 ' + (sec >= 60 ? Math.floor(sec / 60) + '분 ' + (sec % 60 ? (sec % 60) + '초' : '') : sec + '초') +
       ' · +' + I.payPerCatch(save);
@@ -86,9 +108,10 @@
     // 이름을 안 정했으면 "신임 팀장"(이번에 3팀을 맡은 사람). 사건 1 이야기와 이어진다.
     ld.textContent = save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기';
     ld.classList.toggle('empty', !save.profile.leader);
-    $('h-money').textContent = '수사비 ' + fmt(save.money);
+    $('h-money').textContent = '수사비 ' + fmtShort(save.money);
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
-    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 1명당 ' + I.payPerCatch(save);
+    // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
+    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(I.incomePerMin(save, t)) + '/분';
     var b = $('h-buff');
     b.hidden = !buff;
     if (buff) b.textContent = '사기 충전 ×2 · ' + Math.ceil((save.buffUntil - t) / 1000) + '초';
@@ -129,7 +152,7 @@
   function setBuy(btn, c, word) {
     btn.classList.toggle('max', c == null);
     btn.disabled = c == null || save.money < c;
-    btn.textContent = c == null ? '최고 단계' : word + ' ' + fmt(c);
+    btn.textContent = c == null ? '최고 단계' : word + ' ' + fmtShort(c);
   }
 
   /* ---------- 안내 창 ---------- */

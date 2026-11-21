@@ -36,7 +36,7 @@
   var GEAR = {
     time:    { name: '수사 기간 연장', desc: '현장 출동 시간 +10초', costs: [800, 2400, 7200] },
     veteran: { name: '베테랑 형사',   desc: '출동마다 무료 단서 +1번', costs: [1500, 6000] },
-    lab:     { name: '감식반',       desc: '네 가지가 된 뒤에도 셋째 조건을 보여 줌', costs: [3000] },
+    lab:     { name: '감식반',       desc: '네 가지일 때도 셋째 조건 표시', costs: [3000] },
     vault:   { name: '증거 보관실',   desc: '검거 불가 오판 벌점 10초 → 5초', costs: [4000] }
   };
   var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault'];
@@ -47,60 +47,56 @@
     title: '골목길 연쇄 절도',
     goal: 1000,          // 0.1.3: 300 → 1000(방치형답게 길게). 이야기도 4편 → 6편
     idleCap: 800,        // 0.1.6: 팀(방치)이 올릴 수 있는 사건 진척은 여기까지. 나머지(주범 조)는 현장 출동으로만 잡는다
-    // 0.1.4: 일지는 편마다 3줄 이상. 한 줄 = 한 호흡이자 폰 세로 화면 한 줄(줄바꿈 \n 그대로 화면에 줄로 나온다).
+    // 0.1.4: 일지는 편마다 3줄 이상. 한 줄 = 한 문장(문장을 두 줄로 쪼개지 않는다)이자 폰 세로 화면 한 줄(줄바꿈 \n 그대로 화면에 줄로 나온다).
     //        규칙을 만든 자 = "설계자". 놈이 스스로 밝히는 이름 "써드"는 마지막 편(1000명)에서야 나온다.
     //        진짜 이름은 사건 2 이후에 밝힌다. 패치노트에는 이야기 내용(스포일러)을 적지 않는다.
     story: [
       { at: 0, text: [
-        '새벽 세 시, 골목 상가 여섯 곳이',
-        '한꺼번에 털렸다.',
-        'CCTV에 찍힌 건 늘 세 명.',
+        '새벽 세 시, 상가 여섯 곳이 털렸다.',
+        'CCTV에 찍힌 건 늘 세 명이다.',
         '얼굴도, 옷도, 걸음도 제각각이다.',
-        '서장이 사건 파일을 책상에 던졌다.',
+        '서장이 파일을 책상에 던졌다.',
         '"3팀, 이건 너희가 맡아."'
       ].join('\n') },
       { at: 150, text: [
-        '잡아들인 놈들은 하나같이',
-        '같은 말만 되풀이했다.',
+        '잡아들인 놈들은 말이 똑같았다.',
         '"시키는 대로 했을 뿐이에요."',
         '누가 시켰냐고 물으면 입을 다문다.',
         '겁에 질린 눈으로 창밖만 본다.'
       ].join('\n') },
       { at: 300, text: [
-        '세 명씩 짝지은 조에는 규칙이 있었다.',
-        '모자, 얼굴, 시간, 표식.',
+        '세 명씩 짝지은 조에는 규칙이 있다.',
+        '모자, 얼굴, 시간, 표식이 기준이다.',
         '셋이 모두 같거나, 모두 다르다.',
         '둘만 같은 조는 한 번도 없었다.',
         '우연으로는 이런 판을 짤 수 없다.'
       ].join('\n') },
       { at: 500, text: [
-        '규칙을 만든 자를',
-        '놈들은 "설계자"라고 불렀다.',
-        '진짜 이름을 물으면 다들 고개를 젓는다.',
+        '놈들은 두목을 "설계자"라 불렀다.',
+        '진짜 이름을 물으면 고개를 젓는다.',
         '모르는 건지, 말 못 하는 건지.',
-        '서장은 그냥 두목일 거라고 했다.',
-        '나는 그보다 더 큰 놈이라고 본다.'
+        '서장은 그냥 두목일 거라 했다.',
+        '나는 더 큰 놈이라고 본다.'
       ].join('\n') },
       { at: 750, text: [
         '설계자의 은신처를 찾아냈다.',
         '문을 땄을 땐 이미 텅 비어 있었다.',
-        '벽에는 우리 3팀 형사들의 몽타주가',
-        '세 장씩 짝지어 붙어 있었다.',
-        '둘만 같은 조는 없었다.',
+        '벽에 우리 형사들 몽타주가 있었다.',
+        '세 장씩, 빈틈없이 짝지어서.',
         '놈은 처음부터 우리를 보고 있었다.'
       ].join('\n') },
       { at: 1000, text: [
-        '마지막 조를 넘기고 사건 1을 닫았다.',
-        '그날 밤, 내 책상 위에',
-        '봉투 하나가 놓여 있었다.',
-        '다른 도시의 지도와 숫자 2,',
-        '그리고 한 줄.',
+        '마지막 조를 넘기고 사건을 닫았다.',
+        '그날 밤, 책상 위에 봉투가 있었다.',
+        '다른 도시의 지도와 숫자 2.',
+        '쪽지엔 한 줄이 적혀 있었다.',
         '"다음 판도 내가 짠다. — 써드"',
-        '써드. 세 번째. 우리 팀 번호와 같다.',
-        '놈의 진짜 이름은 아직 아무도 모른다.',
+        '써드, 세 번째. 우리 팀 번호다.',
+        '놈의 진짜 이름은 아직 모른다.',
         '— 사건 2에서 계속'
       ].join('\n') }
     ]
+
   };
 
   // 프로필(사무실 위에 보이는 내 자리). 게임 이름인 "수사 3팀"은 바꾸지 않고, 경찰서와 팀장 이름만 바꾼다.
@@ -330,6 +326,22 @@
     return CASE.story.filter(function (e) { return save.caught >= e.at; });
   }
   function progress(save) { return Math.min(1, save.caught / CASE.goal); }
+  /*
+   * 지금 팀이 1분에 버는 수사비(사기 충전 중이면 그 배수까지). 자리 비움 절반은 넣지 않는다(켜 둔 화면에 쓰는 값).
+   *   형사가 늘면 1명당 값은 그대로지만 잡는 수가 늘어 이 값이 오른다 — 화면에서 이걸 보여 줘야 덜 헷갈린다.
+   */
+  function incomePerMin(save, now) {
+    return teamRate(save) * 60 * (buffed(save, now) ? TUNE.buffMult : 1) * payPerCatch(save);
+  }
+  // 검거 간격이 이보다 짧으면 "다음 검거까지" 막대 대신 "1초에 N명"으로 보여 준다(막대가 깜빡이지 않게)
+  var FAST_SEC = 1.5;
+  // 한 명을 잡는 데 지금 걸리는 시간(초) = 1 / 지금 속도
+  function catchInterval(save, now) {
+    var r = teamRate(save) * (buffed(save, now) ? TUNE.buffMult : 1);
+    return r > 0 ? 1 / r : Infinity;
+  }
+  function isStreaming(save, now) { return catchInterval(save, now) < FAST_SEC; }
+
   // 팀(방치)으로는 더 못 올리고 출동으로만 남은 걸 잡을 수 있는 상태인가
   function idleCapped(save) { return !save.closed && save.caught >= CASE.idleCap; }
   // 열렸지만 아직 안 읽은 편이 있는가 / 지금 열린 편까지 읽었다고 적기
@@ -341,7 +353,7 @@
     cleanName: cleanName, setProfile: setProfile,
     newSave: newSave, load: load, serialize: serialize,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
-    idleCapped: idleCapped, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
+    idleCapped: idleCapped, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
   };
 });

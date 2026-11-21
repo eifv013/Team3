@@ -278,6 +278,8 @@ test('수사 일지: 편마다 3줄 이상, 빈 줄 없고 한 줄이 폰 세로
     for (const l of lines) {
       assert.ok(l.trim().length > 0, e.at + '명 편에 빈 줄');
       assert.ok(l.length <= 22, e.at + '명 편 줄이 김: ' + l);
+      // 한 줄 = 한 문장: 문장 중간에서 끊지 않는다(마침표·물음표·느낌표·닫는 따옴표로 끝나야 한다)
+      if (!l.startsWith('—')) assert.ok(/[.?!"”]$/.test(l), e.at + '명 편 줄이 문장 중간에서 끊김: ' + l);
     }
   }
 });
@@ -286,4 +288,31 @@ test('수사 일지: "써드"는 마지막 편에서야 처음 나온다', () =>
   const st = I.CASE.story, last = st[st.length - 1];
   st.slice(0, -1).forEach(e => assert.ok(!e.text.includes('써드'), e.at + '명 편에 써드가 먼저 나옴'));
   assert.ok(last.text.includes('써드'));
+});
+
+test('1분 수사비: 형사가 늘면 1명당 값은 그대로, 1분 수사비는 오른다 / 사기 충전이면 2배', () => {
+  const s = I.newSave(T0);
+  assert.equal(I.incomePerMin(s, T0), 60 / 150 * 15);        // 1명: 0.4명 × 15 = 6
+  s.detectives = 7; s.training = 3;
+  const per = I.payPerCatch(s);
+  assert.ok(Math.abs(I.incomePerMin(s, T0) - 7 * 1.75 * 60 / 150 * per) < 1e-9);
+  s.detectives = 8;
+  assert.equal(I.payPerCatch(s), per);
+  assert.ok(I.incomePerMin(s, T0) > 7 * 1.75 * 60 / 150 * per);
+  s.buffUntil = T0 + 60_000;
+  assert.ok(Math.abs(I.incomePerMin(s, T0) - 2 * 8 * 1.75 * 60 / 150 * per) < 1e-9);
+  s.detectives = 0;
+  assert.equal(I.incomePerMin(s, T0), 0);
+});
+
+test('검거 간격 1.5초 미만이면 "1초에 N명" 표시로 바뀐다(0초·무한대로 가지 않는다)', () => {
+  const s = I.newSave(T0);
+  assert.equal(I.catchInterval(s, T0), 150);
+  assert.equal(I.isStreaming(s, T0), false);
+  s.detectives = 100; s.training = 10;                       // 100 × 3.5 / 150 = 1초에 약 2.3명
+  assert.ok(I.catchInterval(s, T0) > 0 && I.catchInterval(s, T0) < 1.5);
+  assert.equal(I.isStreaming(s, T0), true);
+  s.detectives = 0;
+  assert.equal(I.catchInterval(s, T0), Infinity);
+  assert.equal(I.isStreaming(s, T0), false);
 });

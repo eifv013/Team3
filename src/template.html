@@ -20,7 +20,7 @@
   --hit:#FFD23F; --miss:#FF7A59; --ok:#7BD88F;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--ink);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;
+html,body{margin:0;height:100%;background:var(--ink);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty;
   font-family:'IBM Plex Sans KR',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 button{font-family:inherit;color:inherit;cursor:pointer}
 button:disabled{cursor:default;opacity:.45}
@@ -164,6 +164,11 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .next-bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:3px;transition:width 1s linear}
 .next-bar i.snap{transition:none}
 .next-bar.fast i{background:var(--ok)}
+/* 1초에 여러 명: 꽉 찬 막대에 빗금이 흐른다 */
+.next-bar.stream i{transition:none;background:repeating-linear-gradient(135deg,var(--acc) 0 8px,#e6b92a 8px 16px);background-size:22.6px 100%;animation:stream .6s linear infinite}
+.next-bar.stream.fast i{background:repeating-linear-gradient(135deg,var(--ok) 0 8px,#5fbf73 8px 16px);background-size:22.6px 100%}
+@keyframes stream{to{background-position:22.6px 0}}
+@media (prefers-reduced-motion:reduce){.next-bar.stream i{animation:none}}
 .money{font-family:'Black Han Sans',sans-serif;font-size:30px;line-height:1;color:var(--acc)}
 .rate{font-size:12px;color:var(--muted)}
 .buff{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:6px;background:var(--acc);color:var(--ink);font-size:11px;font-weight:700}
@@ -185,7 +190,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .item .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .item .tx b{font-size:15px}
 .item .tx small{font-size:12px;color:var(--muted);line-height:1.35}
-.buy{min-width:84px;height:44px;padding:0 10px;border:0;border-radius:10px;background:var(--acc);color:var(--ink);font-size:14px;font-weight:700}
+.buy{min-width:84px;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:44px;padding:0 10px;border:0;border-radius:10px;background:var(--acc);color:var(--ink);font-size:14px;font-weight:700}
 .buy.max{background:var(--panel2);color:var(--muted)}
 /* 현장 출동: 이 게임의 핵심 단추. 경광등 띠 + 빛줄기 + 누르면 꾹 들어감 */
 .go-btn{position:relative;overflow:hidden;flex:none;height:72px;border:0;border-radius:16px;background:var(--acc);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
