@@ -158,7 +158,9 @@ with sync_playwright() as p:
         if pg.locator('#h-leader i').count(): problems.append('이름 속 HTML 이 그대로 그려짐')
         pg.screenshot(path=SHOT + 'profile.png')
         # 출동 → 결과
-        pg.click('#h-go'); pg.clock.run_for(700)   # 경광등 0.45초 뒤 출동
+        pg.click('#h-go'); pg.clock.run_for(100)   # 평소 출동은 바로 출발(경광등 없음)
+        if 'on' in (pg.get_attribute('#siren', 'class') or ''): problems.append('평소 출동인데 경광등 효과가 나옴')
+        pg.clock.run_for(300)
         if not pg.locator('#s-play').is_visible(): problems.append('출동이 안 됨')
         if '출동' not in (pg.text_content('#stamp') or ''): problems.append('출동 시작 도장이 출동이 아님: ' + (pg.text_content('#stamp') or ''))
         play_checks(pg, 1, helper=True)

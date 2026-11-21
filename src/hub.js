@@ -252,12 +252,20 @@
 
   /* ---------- 출동 ---------- */
   /*
-   * 현장 출동: 누르면 경광등 소리 + 진동 + 화면 위 빨강·파랑 번쩍(0.45초) → 출동 화면.
+   * 현장 출동
+   *   평소: 바로 출발(출동 화면 전환만).
+   *   주범 조 출동(방치 한계 뒤 = 현장에서만 잡을 수 있을 때): 경광등 소리 + 진동 + 화면 위 빨강·파랑 번쩍(0.45초) → 출동.
    *   연타로 두 번 출동하지 않게 dispatching 동안은 무시한다.
    */
   var dispatching = false;
+  function startRunNow() {
+    I.advance(save, nowMs());
+    duringRun = { catches: 0, money: 0 };
+    UI.startRun(I.runOptions(save));
+  }
   function go() {
     if (dispatching) return;
+    if (!I.idleCapped(save)) { startRunNow(); return; }
     dispatching = true;
     try { UI.sfx.go(); } catch (e) { /* 소리 실패는 무시 */ }
     try { if (navigator.vibrate) navigator.vibrate([18, 40, 18]); } catch (e) { /* 진동 없는 기기 */ }
@@ -267,9 +275,7 @@
     setTimeout(function () {
       b.classList.remove('press');
       dispatching = false;
-      I.advance(save, nowMs());
-      duringRun = { catches: 0, money: 0 };
-      UI.startRun(I.runOptions(save));
+      startRunNow();
     }, 450);
     setTimeout(function () { sr.classList.remove('on'); }, 700);
   }
