@@ -112,6 +112,9 @@ with sync_playwright() as p:
         if pg.locator('#info-body details.pn').count():
             pg.locator('#info-body details.pn summary').first.click(); pg.clock.run_for(100)
             if not pg.locator('#info-body details.pn[open]').count(): problems.append('지난 패치노트를 눌러도 안 펼쳐짐')
+            pg.screenshot(path=SHOT + 'notes.png')
+            pg.locator('#info-body details.pn[open] .pn-body').first.click(); pg.clock.run_for(100)
+            if pg.locator('#info-body details.pn[open]').count(): problems.append('펼친 패치노트 내용을 눌러도 안 접힘')
         pg.screenshot(path=SHOT + 'notes.png')
         pg.click('#info-ok'); pg.clock.run_for(100)
         if pg.locator('#h-version .new').count(): problems.append('패치노트를 읽었는데 NEW 가 남음')

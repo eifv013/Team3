@@ -381,6 +381,11 @@
   }
 
   $('h-version').addEventListener('click', showVersionInfo);
+  // 펼친 지난 패치노트는 제목줄뿐 아니라 내용 어디를 눌러도 접힌다
+  $('info-body').addEventListener('click', function (e) {
+    var body = e.target.closest && e.target.closest('details.pn .pn-body');
+    if (body && body.parentNode.open) body.parentNode.open = false;
+  });
   $('up-go').addEventListener('click', doUpdate);
   window.Team3CheckUpdate = function () { checkUpdate(true); };   // 화면 시험용
   // 안드로이드 앱이 꺼지기 직전에 부른다(뒤로 단추 두 번): 팀이 일한 몫까지 반영해 저장

@@ -202,7 +202,7 @@ details.pn summary::-webkit-details-marker{display:none}
 details.pn summary b{color:var(--text)}
 details.pn summary::after{content:'';margin-left:auto;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s}
 details.pn[open] summary::after{transform:rotate(-135deg)}
-details.pn .pn-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:6px}
+details.pn .pn-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer}
 details.pn .pn-body p{color:var(--muted)}
 .pn-past{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 @media (prefers-reduced-motion:reduce){.pn-new{animation:none;box-shadow:0 0 14px rgba(255,210,63,.35)}}
@@ -2417,6 +2417,11 @@ details.pn .pn-body p{color:var(--muted)}
   }
 
   $('h-version').addEventListener('click', showVersionInfo);
+  // 펼친 지난 패치노트는 제목줄뿐 아니라 내용 어디를 눌러도 접힌다
+  $('info-body').addEventListener('click', function (e) {
+    var body = e.target.closest && e.target.closest('details.pn .pn-body');
+    if (body && body.parentNode.open) body.parentNode.open = false;
+  });
   $('up-go').addEventListener('click', doUpdate);
   window.Team3CheckUpdate = function () { checkUpdate(true); };   // 화면 시험용
   // 안드로이드 앱이 꺼지기 직전에 부른다(뒤로 단추 두 번): 팀이 일한 몫까지 반영해 저장
