@@ -2253,7 +2253,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   // 큰 값은 만·억·조로 줄인다(단추·수사비가 화면을 넘지 않게). 1,000만 아래는 그대로 쉼표
   function fmtShort(n) {
     n = Math.floor(n);
-    if (!isFinite(n)) return '∞';
+    if (!isFinite(n) || n >= 1e20) return '9,999경+';   // 이 이상은 사실상 닿지 않는 값
     if (n < 1e7) return fmt(n);
     var units = [[1e16, '경'], [1e12, '조'], [1e8, '억'], [1e4, '만']];
     for (var i = 0; i < units.length; i++) {
@@ -2311,7 +2311,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     fill.parentNode.classList.toggle('stream', stream);
     if (stream) {
       fill.style.width = '100%';
-      $('h-next').textContent = '1초에 ' + perMin(1 / I.catchInterval(save, t)) + '명 검거 · +' + I.payPerCatch(save) + '씩';
+      $('h-next').textContent = '1초에 ' + perMin(1 / I.catchInterval(save, t)) + '명 · +' + I.payPerCatch(save) + '씩';   // 단추 옆 좁은 칸이라 짧게
       return;
     }
     var sec = Math.ceil(n.sec);
