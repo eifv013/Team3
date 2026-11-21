@@ -451,6 +451,11 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.2', date: '2026-11-21', title: '뒤로 단추 두 번이면 종료',
+      items: [
+        '안드로이드: 사무실에서 뒤로 단추를 누르면 "한 번 더 누르면 종료돼요"가 뜨고, 2초 안에 한 번 더 누르면 앱이 꺼져요. 꺼지기 전에 저장해요.',
+        '이 기능은 앱(APK)을 새로 받아야 들어가요.'
+      ] },
     { ver: '0.1.1', date: '2026-11-21', title: '업데이트는 꼭 받기',
       items: [
         '새 버전이 나오면 사무실에 업데이트 창이 떠요. "나중에" 없이 업데이트를 눌러야 계속할 수 있어요. 진행은 저장돼요.',
@@ -2370,6 +2375,8 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
   $('h-version').addEventListener('click', showVersionInfo);
   $('up-go').addEventListener('click', doUpdate);
   window.Team3CheckUpdate = function () { checkUpdate(true); };   // 화면 시험용
+  // 안드로이드 앱이 꺼지기 직전에 부른다(뒤로 단추 두 번): 팀이 일한 몫까지 반영해 저장
+  window.Team3Save = function () { I.advance(save, nowMs()); persist(); return 'ok'; };
 
   // 안드로이드 앱의 뒤로 단추: 바꾸는 중이면 그대로, 안내 창이 떠 있으면 닫고, 아니면 화면 쪽(ui.js)에 맡긴다
   window.Team3Back = function () {

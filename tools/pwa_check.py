@@ -58,6 +58,7 @@ with sync_playwright() as p:
     # 뒤로 가기: 사무실 → exit, 튜토리얼 → 사무실, 출동 → 멈춤 창 → 닫힘
     pg.wait_for_timeout(4500)
     if pg.locator('#info-sheet').is_visible(): pg.click('#info-cancel'); pg.wait_for_timeout(200)
+    if pg.evaluate('Team3Save()') != 'ok': problems.append('끄기 직전 저장(Team3Save)이 안 됨')
     if pg.evaluate('Team3Back()') != 'exit': problems.append('사무실에서 뒤로가 exit 가 아님')
     pg.click('#h-tutorial'); pg.wait_for_timeout(200)
     if pg.evaluate('Team3Back()') != 'stay' or not pg.locator('#s-hub').is_visible(): problems.append('튜토리얼에서 뒤로가 사무실로 안 감')

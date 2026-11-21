@@ -362,6 +362,8 @@
   $('h-version').addEventListener('click', showVersionInfo);
   $('up-go').addEventListener('click', doUpdate);
   window.Team3CheckUpdate = function () { checkUpdate(true); };   // 화면 시험용
+  // 안드로이드 앱이 꺼지기 직전에 부른다(뒤로 단추 두 번): 팀이 일한 몫까지 반영해 저장
+  window.Team3Save = function () { I.advance(save, nowMs()); persist(); return 'ok'; };
 
   // 안드로이드 앱의 뒤로 단추: 바꾸는 중이면 그대로, 안내 창이 떠 있으면 닫고, 아니면 화면 쪽(ui.js)에 맡긴다
   window.Team3Back = function () {

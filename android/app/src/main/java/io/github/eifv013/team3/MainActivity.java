@@ -12,6 +12,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 /**
  * 수사 3팀 — 안드로이드 껍데기.
@@ -26,6 +27,9 @@ import android.webkit.WebViewClient;
  */
 public class MainActivity extends Activity {
     private WebView web;
+    /** 뒤로 단추를 두 번 눌러 끄기: 첫 번째 누른 시각(밀리초). 이 시간 안에 한 번 더 누르면 끈다. */
+    private long backArmedAt = 0;
+    static final long BACK_EXIT_WINDOW_MS = 2000;
 
     @Override
     protected void onCreate(Bundle saved) {
@@ -121,25 +125,53 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * 뒤로 가기: 먼저 게임에게 묻는다(window.Team3Back). 게임이 창을 닫거나 화면을 옮겼으면("stay") 그대로 있고,
-     * 더 물러날 곳이 없다고 하면("exit") 앱을 끝내지 않고 뒤로 보낸다(실수로 눌러도 처음부터 다시 열리지 않게).
-     * 게임이 아직 뜨지 않았으면 바로 뒤로 보낸다.
+     * 뒤로 가기(1.1): 먼저 게임에게 묻는다(window.Team3Back). 게임이 창을 닫거나 화면을 옮겼으면("stay") 그대로 있는다.
+     * 더 물러날 곳이 없으면("exit", 사무실) 두 번 눌러 끈다:
+     *   첫 번째 → "한 번 더 누르면 종료돼요" 알림, 2초 안에 두 번째 → 게임에 저장을 시키고(window.Team3Save) 앱을 끈다.
+     * 게임이 아직 뜨지 않았으면 같은 규칙으로 바로 두 번 눌러 끈다.
      */
     @Override
     public void onBackPressed() {
-        if (web == null) { moveTaskToBack(true); return; }
+        if (web == null) { exitOrArm(); return; }
         try {
             web.evaluateJavascript(
                 "(function(){try{return window.Team3Back?String(window.Team3Back()):'exit'}catch(e){return 'exit'}})()",
                 new ValueCallback<String>() {
                     @Override
                     public void onReceiveValue(String value) {
-                        if (value == null || !value.contains("stay")) moveTaskToBack(true);
+                        if (value != null && value.contains("stay")) { backArmedAt = 0; return; }   // 게임이 처리했으면 두 번 누르기는 처음부터
+                        exitOrArm();
                     }
                 });
         } catch (Exception e) {
-            moveTaskToBack(true);
+            exitOrArm();
         }
+    }
+
+    /** 두 번 눌러 끄기의 판단. 규칙은 BackExit(순수 자바, 단위 테스트 있음)에 있다. */
+    private void exitOrArm() {
+        long now = android.os.SystemClock.elapsedRealtime();
+        if (BackExit.shouldExit(backArmedAt, now, BACK_EXIT_WINDOW_MS)) {
+            backArmedAt = 0;
+            saveThenFinish();
+        } else {
+            backArmedAt = now;
+            try { Toast.makeText(this, "한 번 더 누르면 종료돼요", Toast.LENGTH_SHORT).show(); } catch (Exception e) { /* 알림을 못 띄워도 다음 누름은 끈다 */ }
+        }
+    }
+
+    /** 게임에게 저장을 시키고 끈다. 게임이 대답하지 않아도 0.5초 뒤에는 끈다(멈춘 채 남지 않게). */
+    private void saveThenFinish() {
+        if (web == null) { finish(); return; }
+        final boolean[] done = { false };
+        Runnable close = () -> { if (!done[0]) { done[0] = true; finish(); } };
+        try {
+            web.evaluateJavascript("(function(){try{window.Team3Save&&window.Team3Save()}catch(e){}return 'ok'})()", v -> close.run());
+        } catch (Exception e) {
+            close.run();
+            return;
+        }
+        web.postDelayed(close, 500);
     }
 
     @Override
