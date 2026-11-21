@@ -116,7 +116,7 @@ test('출동 결과: 점수만큼 수사비, 검거만큼 진척, 최고 기록'
 
 test('목표(3000명)에 닿으면 사건 종결(한 번만), 이야기는 단계마다 열린다', () => {
   assert.equal(I.CASE.goal, 3000);
-  assert.deepEqual(I.CASE.story.map(e => e.at), [0, 300, 750, 1500, 2250, 3000]);
+  assert.deepEqual(I.CASE.story.map(e => e.at), [0, 300, 1000, 1500, 2500, 3000]);
   const s = I.newSave(T0);
   I.applyRun(s, { score: 0, hits: 300 }, T0);
   assert.equal(I.storyUnlocked(s).length, 2);
@@ -315,4 +315,10 @@ test('검거 간격 1.5초 미만이면 "1초에 N명" 표시로 바뀐다(0초�
   s.detectives = 0;
   assert.equal(I.catchInterval(s, T0), Infinity);
   assert.equal(I.isStreaming(s, T0), false);
+});
+
+test('수사 일지: 사무실 편은 방치 한계(idleCap)에서 열린다 — 팀이 멈추는 이유를 이야기로 알려 준다', () => {
+  const e = I.CASE.story.find(x => x.at === I.CASE.idleCap);
+  assert.ok(e, 'idleCap 에 열리는 편이 없음');
+  assert.ok(e.text.includes('책상에서 기다려서는 잡을 수 없다'));
 });
