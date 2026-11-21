@@ -223,6 +223,7 @@
     UI.show('s-hub');
     if (duringRun && duringRun.catches) showGain(duringRun, '출동하는 동안');
     duringRun = null;
+    applyIfSafe();
     if (pendingClose) showCaseClosed();
   }
 
@@ -281,36 +282,54 @@
   });
   window.addEventListener('pagehide', persist);
 
-  /* ---------- 새 버전(설치된 판) ----------
+  /* ---------- 새 버전(설치된 판): 강제 업데이트(0.1.1) ----------
    * GitHub Pages 에서 열렸을 때만 한다(Claude 페이지 안에서는 서버가 없고, 페이지는 다시 게시하면 바로 바뀐다).
-   *   켤 때, 30분마다, 화면으로 돌아올 때 version.json 을 확인한다. 새 버전이면 사무실 위에 띠를 띄운다.
-   *   "지금 업데이트": 저장하고 새 파일로 다시 연다. "나중에": 그 버전은 다시 묻지 않는다(다음에 켤 때 자동으로 바뀐다).
+   *   켤 때, 30분마다, 화면으로 돌아올 때 version.json 을 확인한다.
+   *   새 버전이면 사무실을 덮는 업데이트 창을 띄운다. 단추는 "업데이트" 하나뿐(나중에·닫기 없음).
+   *   누르면 저장 → 새 파일로 다시 열기. 출동·튜토리얼·결과 중이면 사무실로 돌아올 때 띄운다(판을 날리지 않게).
    *   다시 열린 뒤 버전이 바뀌었으면 한 번 알려 준다.
    */
   var N = window.SuspectsNotes || [], U = window.Updater;
   var VERSION = N.length ? N[0].ver : '0.0.0';
-  var DISMISS_KEY = 'guar.suspects3.dismiss', SEEN_KEY = 'guar.suspects3.seenVersion';
+  var SEEN_KEY = 'guar.suspects3.seenVersion';
   var installed = /^https:$/.test(location.protocol) && /\.github\.io$/i.test(location.hostname);
-  var lastCheck = 0;
+  var lastCheck = 0, pendingUpdate = null, updating = false;
 
   function lsGet(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
   function lsSet(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* 저장 불가 */ } }
 
   function checkUpdate(force) {
-    if (!installed || !U) return;
+    if (!installed || !U || updating) return;
     var t = nowMs();
     if (!force && t - lastCheck < 60 * 1000) return;   // 화면을 자주 오가도 1분에 한 번만
     lastCheck = t;
     U.checkRemote(window.fetch.bind(window), './version.json', VERSION).then(function (r) {
-      if (!r.available || lsGet(DISMISS_KEY) === r.info.version) return;
-      $('up-title').textContent = '새 버전 ' + r.info.version + '이 나왔어요';
-      $('up-sub').textContent = r.info.title || (r.info.items[0] || '');
-      $('update-bar').hidden = false;
-      $('update-bar').setAttribute('data-ver', r.info.version);
+      if (!r.available) return;
+      pendingUpdate = r.info;
+      applyIfSafe();
     });
   }
 
-  function applyUpdate() {
+  // 사무실이 보일 때만 업데이트 창을 띄운다(출동·튜토리얼·결과 중이면 사무실로 돌아올 때).
+  // 창에는 "업데이트" 단추 하나뿐이고 닫을 수 없다. 누르면 저장하고 새 파일로 다시 연다.
+  function applyIfSafe() {
+    if (!pendingUpdate || updating || !$('s-hub').classList.contains('on')) return;
+    updating = true;
+    I.advance(save, nowMs());
+    persist();
+    $('up-title').textContent = '새 버전 ' + pendingUpdate.version + '이 나왔어요';
+    var notes = $('up-notes');
+    notes.textContent = '';
+    (pendingUpdate.items.length ? pendingUpdate.items : [pendingUpdate.title]).slice(0, 4).forEach(function (t) {
+      var line = document.createElement('span');
+      line.textContent = '· ' + t;          // 서버에서 온 글이라 textContent 로만 넣는다
+      notes.appendChild(line);
+    });
+    $('updating').hidden = false;
+    $('up-go').focus();
+  }
+
+  function doUpdate() {
     I.advance(save, nowMs());
     persist();
     $('up-go').disabled = true;
@@ -340,15 +359,13 @@
     openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body || p('기록이 없어요') });
   }
 
-  $('up-go').addEventListener('click', applyUpdate);
-  $('up-later').addEventListener('click', function () {
-    lsSet(DISMISS_KEY, $('update-bar').getAttribute('data-ver') || '');
-    $('update-bar').hidden = true;
-  });
   $('h-version').addEventListener('click', showVersionInfo);
+  $('up-go').addEventListener('click', doUpdate);
+  window.Team3CheckUpdate = function () { checkUpdate(true); };   // 화면 시험용
 
-  // 안드로이드 앱의 뒤로 단추: 안내 창이 떠 있으면 닫고, 아니면 화면 쪽(ui.js)에 맡긴다
+  // 안드로이드 앱의 뒤로 단추: 바꾸는 중이면 그대로, 안내 창이 떠 있으면 닫고, 아니면 화면 쪽(ui.js)에 맡긴다
   window.Team3Back = function () {
+    if (updating) return 'stay';
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }
     return UI.back();
   };
@@ -388,7 +405,7 @@
   // 버전 표시 · 업데이트 뒤 첫 실행 알림 · 새 버전 확인
   $('h-version').textContent = '수사 3팀 ' + VERSION + ' · 바뀐 점 보기';
   var seen = lsGet(SEEN_KEY);
-  if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요. 아래 버전을 누르면 바뀐 점을 볼 수 있어요'); }, 3200);
+  if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요 · 맨 아래에서 바뀐 점 보기'); }, 3200);
   lsSet(SEEN_KEY, VERSION);
   registerSW();
   setTimeout(function () { checkUpdate(true); }, 3000);

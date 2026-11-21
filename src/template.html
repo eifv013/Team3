@@ -185,12 +185,9 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .sheet{width:100%;max-height:100%;overflow-y:auto;background:var(--panel);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
 .sheet p{margin:0;font-size:14px;line-height:1.55}
 @keyframes up{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}
-.update-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--acc);color:var(--ink);animation:up .25s ease-out}
-.update-bar .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-.update-bar b{font-size:14px}
-.update-bar small{font-size:12px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.up-go{height:40px;padding:0 12px;border:0;border-radius:10px;background:var(--ink);color:var(--acc);font-size:13px;font-weight:700;white-space:nowrap}
-.up-later{height:40px;padding:0 6px;border:0;background:none;color:var(--ink);font-size:12px;font-weight:600;opacity:.75}
+.updating{position:absolute;inset:0;z-index:15;background:rgba(12,14,19,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center}
+.updating b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:26px;color:var(--acc)}
+.up-notes{max-width:300px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.5;color:var(--text);text-align:left}
 .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:6;padding:10px 14px;border-radius:10px;background:var(--panel2);font-size:13px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 
 /* ===== 로딩 화면: 제목과 라인업 → 로딩 줄, 아래에 작게 제작자 Guar =====
@@ -239,12 +236,6 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 <body>
 <div class="app">
 
-  <!-- 새 버전 띠(설치된 판에서만): 사무실 맨 위에 붙는다 -->
-  <div class="update-bar" id="update-bar" role="status" hidden>
-    <div class="tx"><b id="up-title">새 버전이 나왔어요</b><small id="up-sub"></small></div>
-    <button class="up-go" id="up-go">지금 업데이트</button>
-    <button class="up-later" id="up-later" aria-label="나중에">나중에</button>
-  </div>
 
   <!-- 사무실(방치형) -->
   <section class="screen scroll" id="s-hub" aria-label="3팀 사무실">
@@ -415,6 +406,15 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
     </div>
   </div>
   <div class="toast" id="toast" hidden role="status"></div>
+
+  <!-- 필수 업데이트(설치된 판에서만): 새 버전이 확인되면 사무실에서 화면을 덮는다. "나중에"는 없다. -->
+  <div class="updating" id="updating" role="alertdialog" aria-modal="true" aria-labelledby="up-title" hidden>
+    <span class="label">업데이트</span>
+    <b id="up-title">새 버전이 나왔어요</b>
+    <div class="up-notes" id="up-notes"></div>
+    <button class="primary" id="up-go" style="width:100%;max-width:300px">업데이트</button>
+    <span class="muted" style="font-size:12px" id="up-foot">진행은 저장돼요</span>
+  </div>
 
   <!-- 로딩 화면 -->
   <div class="splash" id="splash" role="img" aria-label="Guar 의 수사 3팀, 불러오는 중">
