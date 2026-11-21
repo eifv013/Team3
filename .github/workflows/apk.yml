@@ -36,10 +36,26 @@ jobs:
         with:
           gradle-version: '8.14.3'
 
+      # 정식 서명 키: 저장소 Settings → Secrets and variables → Actions 의 두 값으로 키 파일을 만든다.
+      #   KEYSTORE_B64 = 키 파일(team3-release.keystore)의 base64, KEYSTORE_PASSWORD = 비밀번호
+      #   둘 중 하나라도 없으면 여기서 멈춘다(다른 키로 서명된 APK 가 나가지 않게).
+      - name: 서명 키 풀기
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          set -e
+          if [ -z "$KEYSTORE_B64" ]; then echo "::error::KEYSTORE_B64 비밀값이 없다"; exit 1; fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+
       - name: 단위 테스트
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: gradle -p android testReleaseUnitTest --no-daemon
 
       - name: APK 만들기(서명 포함)
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: gradle -p android assembleRelease --no-daemon
 
       - name: 서명 확인
@@ -48,6 +64,9 @@ jobs:
           cp android/app/build/outputs/apk/release/app-release.apk team3.apk
           APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
           "$APKSIGNER" verify --print-certs team3.apk | head -3
+          # 정식 키 지문과 같아야 한다(다른 키로 나가는 것을 막는 두 번째 확인)
+          "$APKSIGNER" verify --print-certs team3.apk | grep -qi "SHA-256 digest: 8f718ecfca1e8264c1380cd3544787ea60d3921807c1b5683535ef5a92394f94" \
+            || { echo "::error::정식 서명 키 지문이 아니다"; exit 1; }
           ls -la team3.apk
 
       - uses: actions/upload-artifact@v4
@@ -59,6 +78,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          rm -f "$RUNNER_TEMP/release.keystore"
           # 항상 같은 이름(apk)으로 갈아 끼운다. 받는 주소가 바뀌지 않게 하기 위해서다.
           gh release delete apk --yes --cleanup-tag || true
           gh release create apk team3.apk --target "$GITHUB_SHA" \

@@ -47,4 +47,4 @@
 
 ## 서명 키
 
-`android/app/alpha.keystore` 는 공개 저장소에 든 알파 테스트용 키입니다. 정식 배포 전에 GitHub Secrets 의 키(`KEYSTORE_FILE`, `KEYSTORE_PASSWORD`)로 바꿔야 하고, 그때는 앱을 지우고 다시 깔아야 합니다.
+APK 는 GitHub Secrets 의 정식 키(`KEYSTORE_B64`, `KEYSTORE_PASSWORD`)로만 서명합니다(1.2부터). 키 파일은 저장소에 없고 Guar 가 따로 보관합니다. 키를 잃으면 앱을 업데이트할 수 없습니다. 알파 키(1.1까지)로 설치한 앱은 지우고 다시 설치해야 합니다(설정 → 백업 코드로 진행을 옮김).
