@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수사 3팀 · 마스코트 시안</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/*
+ * 마스코트 시안 — A 수사견(코기 · 시바) · B 사무실 고양이(랙돌 · 샴) · C 잠복 너구리.
+ * 게임 카드와 같은 그림 말투(단순한 면, 하늘색 소품, 종이 바탕)로 그렸다. 의상은 퍼즐 특징(비니·중절모·안경·마스크)을 그대로 쓴다.
+ * 모두 이 시안을 위해 새로 그린 캐릭터다. 배포판에는 들어가지 않는다.
+ */
+:root{--ink:#12151C;--panel:#1C212B;--panel2:#232937;--line:#2E3542;--text:#F3F0E8;--muted:#A3ACBA;--acc:#FFD23F;--sky:#9CD3F2}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--text);font-family:'IBM Plex Sans KR',system-ui,sans-serif;word-break:keep-all}
+button{font-family:inherit;color:inherit;cursor:pointer}
+.app{max-width:430px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:18px}
+h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
+.label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+.muted{color:var(--muted)}
+.card{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card h2{font-size:24px}
+.card p{margin:0;font-size:14px;line-height:1.6}
+.hero{display:flex;justify-content:center;align-items:flex-end;height:240px;padding-bottom:10px;border-radius:14px;background:radial-gradient(ellipse at 50% 30%,#FFF6E0 0%,#F3E3C2 45%,#E6CFA4 100%)}
+.hero svg{width:215px;height:215px;overflow:visible}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:14px;background:linear-gradient(180deg,#FBF7EE,#EFE6D2)}
+.tile svg{width:100%;height:auto;aspect-ratio:1/1;overflow:visible}
+.tile span{font-size:11px;font-weight:700;color:#1B1E24}
+.tile.dark{background:linear-gradient(180deg,#3A4256,#283041)}.tile.dark span{color:#EDE7D9}
+.tile.dusk{background:linear-gradient(180deg,#F2BE92,#DE9A68)}
+.money{display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.5;color:#C9CED6}
+.money b{color:var(--acc)}
+.icons{display:flex;gap:10px;align-items:center}
+.appicon{width:64px;height:64px;border-radius:15px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#FFF6E0,#E6CFA4);box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.appicon svg{width:100%;height:100%}
+.noti{flex:1;display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:14px;background:#2A303B;font-size:12px;line-height:1.4}
+.noti .mini{width:34px;height:34px;flex:none;border-radius:9px;background:#F4EFE2;overflow:hidden}
+.noti .mini svg{width:100%;height:100%}
+.pick{display:flex;gap:6px}
+.eff{display:grid;grid-template-columns:1fr 1fr;gap:8px}.eb{display:flex;flex-direction:column;gap:3px;padding:10px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}.eb em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted)}.eb b{font-size:14px;line-height:1.35}.eb small{font-size:11px;color:var(--muted)}.eb.own b{color:#9CD3F2}.eb.eq b{color:var(--acc)}
+.st{width:100%;border-collapse:collapse;font-size:12px}.st th,.st td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}.st th{color:var(--muted);font-weight:600}.st td:first-child{color:var(--acc);white-space:nowrap}
+.rk{display:flex;justify-content:space-between;align-items:baseline;margin:6px 2px 4px;font-weight:700;font-size:14px}.rk em{font-style:normal;font-size:11px;color:var(--muted);font-weight:500}
+.dxg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.dx{display:flex;flex-direction:column;align-items:center;padding:4px 2px 6px;border-radius:12px;border:2px solid var(--rc);background:linear-gradient(180deg,#FBF7EE,#EFE6D2)}
+.dx svg{width:100%;height:auto;aspect-ratio:1/1;overflow:visible}.dx span{font-size:10.5px;font-weight:700;color:#1B1E24;white-space:nowrap}.dx.on{box-shadow:0 0 0 3px var(--acc)}
+.names{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.names .label{width:100%}.names b{font-size:13px;padding:5px 10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+.pick button{flex:1;min-width:0;height:44px;font-size:13px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel2);font-weight:700}
+/* 움직임: 눈 깜빡임 · 꼬리 · 갸웃 · 기쁨 점프 */
+.blink{animation:blink 4s infinite;transform-origin:center;transform-box:fill-box}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.wag{animation:wag .5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 100%}
+@keyframes wag{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}
+.sway{animation:sway 2.4s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 100%}
+@keyframes sway{from{transform:rotate(-8deg)}to{transform:rotate(10deg)}}
+.tilt{animation:tilt 1.6s ease-in-out infinite alternate;transform-box:view-box;transform-origin:100px 150px}
+@keyframes tilt{from{transform:rotate(0)}to{transform:rotate(-12deg)}}
+.hop{animation:hop .6s ease-in-out infinite;transform-box:view-box;transform-origin:100px 190px}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-10px) scaleY(1.03)}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div>
+    <span class="label">수사 3팀 · 마스코트 시안 (게임엔 아직 안 넣음)</span>
+    <h1 style="font-size:28px;margin-top:4px">말랑 동물 20종 · 뽑기 도감</h1>
+    <p class="muted" style="margin:6px 0 0;font-size:13px;line-height:1.5">모은 동물은 사무실에 함께 있고, 하나를 골라 대표(앱 아이콘 · 알림 얼굴)로 써요. 이름 · 등급 · 확률은 모두 초안이에요.</p>
+  </div>
+  <div class="card">
+    <span class="label">뽑기 도감 (초안) · 누르면 아래에 자세히</span>
+    <div id="dex"></div>
+    <div class="money">
+      <span class="label">뽑기 규칙 (초안)</span>
+      <span>· <b>보유 효과</b>: 갖고만 있어도 항상 켜짐. 일반 1% · 희귀 2% · 영웅 3% · 전설 5%(오프라인 한도는 10 · 20 · 30 · 60분). 20종 다 모으면 수입이 크게 오름</span>
+      <span>· <b>장착 효과</b>: 파트너로 고른 1마리만. 동물마다 다른 큰 능력</span>
+      <span>· <b>별</b>: 같은 동물이 또 나오면 ★가 오르고 두 효과 모두 ★마다 +25%(★5 = 2배)</span>
+      <span>· ⚡ 퍼즐 도움은 영웅 · 전설만, 일일 특별 출동에서는 꺼짐(기록 경쟁 공정)</span>
+      <span>· 뽑기권: 보석으로 사거나, 일일 특별 출동 · 메달 · 사건 해결 보상으로 무료 지급</span>
+      <span>· ★5 뒤에 또 나오면 <b>간식</b>으로 바뀜 → 간식으로 의상 · 원하는 동물 교환</span>
+      <span>· 천장: 50번 안에 전설이 안 나오면 50번째는 전설(판다 · 호랑이 중 하나) 확정 (횟수는 화면에 표시)</span>
+      <span>· 확률은 뽑기 화면에 항상 공개</span>
+    </div>
+  </div>
+  <div id="list" style="display:flex;flex-direction:column;gap:18px"></div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var SKY = '#9CD3F2', SKY_D = '#4F86A8', INK = '#1B1E24';
+
+  /* ---------- 의상: 머리 위 기준점(cx, top)과 머리 너비(w)에 맞춰 그린다 ---------- */
+  function beanie(cx, top, w, c) {
+    var h = w * 0.5, s = '<g>';
+    s += '<path d="M' + (cx - w / 2) + ' ' + (top + h) + 'c0-' + (h * 1.1) + ' ' + (w * 0.2) + '-' + (h * 1.35) + ' ' + (w / 2) + '-' + (h * 1.35) + 's' + (w / 2) + ' ' + (h * 0.25) + ' ' + (w / 2) + ' ' + (h * 1.35) + 'z" fill="' + c + '"/>';
+    s += '<rect x="' + (cx - w / 2 - 3) + '" y="' + (top + h - 8) + '" width="' + (w + 6) + '" height="13" rx="5" fill="' + c + '" stroke="#F4EFE2" stroke-width="2"/>';
+    for (var x = cx - w / 2 + 4; x < cx + w / 2; x += 8) s += '<line x1="' + x + '" y1="' + (top + h - 6) + '" x2="' + x + '" y2="' + (top + h + 3) + '" stroke="#F4EFE2" stroke-width="1.3"/>';
+    s += '<circle cx="' + cx + '" cy="' + (top - h * 0.38) + '" r="9" fill="#F0525A"/><circle cx="' + (cx - 3) + '" cy="' + (top - h * 0.38 - 3) + '" r="3" fill="#fff" opacity=".5"/></g>';
+    return s;
+  }
+  function fedora(cx, top, w, c) {
+    return '<g><path d="M' + (cx - w * 0.36) + ' ' + (top + 2) + 'l6-' + (w * 0.36) + 'q' + (w * 0.15) + '-8 ' + (w * 0.3) + ' 0q' + (w * 0.15) + '-8 ' + (w * 0.3) + ' 0l6 ' + (w * 0.36) + 'z" fill="' + c + '"/>' +
+      '<path d="M' + (cx - w * 0.36) + ' ' + (top - 6) + 'h' + (w * 0.72) + '" stroke="#F4EFE2" stroke-width="4"/>' +
+      '<path d="M' + (cx - w * 0.75) + ' ' + (top + 4) + 'h' + (w * 1.5) + '" stroke="' + c + '" stroke-width="9" stroke-linecap="round"/></g>';
+  }
+  function glasses(cx, ey, gap, r) {
+    return '<g><circle cx="' + (cx - gap) + '" cy="' + ey + '" r="' + r + '" fill="' + SKY + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<circle cx="' + (cx + gap) + '" cy="' + ey + '" r="' + r + '" fill="' + SKY + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<line x1="' + (cx - gap + r) + '" y1="' + ey + '" x2="' + (cx + gap - r) + '" y2="' + ey + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<circle cx="' + (cx - gap) + '" cy="' + ey + '" r="3" fill="' + INK + '"/><circle cx="' + (cx + gap) + '" cy="' + ey + '" r="3" fill="' + INK + '"/></g>';
+  }
+  function mask(cx, y, w) {
+    return '<g><path d="M' + (cx - w / 2) + ' ' + y + 'h' + w + 'v10c0 10-' + (w * 0.22) + ' 16-' + (w / 2) + ' 16s-' + (w / 2) + '-6-' + (w / 2) + '-16z" fill="' + SKY + '" stroke="' + INK + '" stroke-width="1.6"/>' +
+      '<path d="M' + (cx - w * 0.38) + ' ' + (y + 7) + 'h' + (w * 0.76) + 'M' + (cx - w * 0.34) + ' ' + (y + 13) + 'h' + (w * 0.68) + '" stroke="' + SKY_D + '" stroke-width="2" stroke-linecap="round"/></g>';
+  }
+
+  /*
+   * 0.3 시안: 머리와 몸을 한 덩어리로 잇는다.
+   *  - 머리와 몸이 같은 그라디언트(userSpaceOnUse: 그림 전체에 빛 하나)를 써서 겹치는 곳에 이음매가 생기지 않는다.
+   *  - 목줄처럼 가로로 끊는 띠는 없앴다. 대신 주둥이 → 가슴으로 이어지는 흰 털(턱받이)이 머리와 몸을 이어 준다.
+   *  - 고양이(랙돌)는 목 갈기, 너구리는 밝은 배 털이 같은 역할을 한다.
+   */
+  function rg(id, a, b, c) {
+    return '<radialGradient id="' + id + '" gradientUnits="userSpaceOnUse" cx="82" cy="52" r="165"><stop offset="0" stop-color="' + a + '"/><stop offset=".55" stop-color="' + b + '"/><stop offset="1" stop-color="' + c + '"/></radialGradient>';
+  }
+  var DEFS = '<defs>' +
+    rg('gCorgi', '#F4B66C', '#E0913F', '#B96A26') + rg('gShiba', '#F0A766', '#D27A35', '#A65A22') +
+    rg('gCream', '#FFFDF7', '#F6ECDA', '#DCCBAE') + rg('gRag', '#FFFCF5', '#F1E6D4', '#D5C3A6') + rg('gSiam', '#FBF1DF', '#EBD9BB', '#CDB48F') +
+    rg('gPoint', '#8C6A52', '#5E4433', '#3E2C22') + rg('gRagPt', '#9C8778', '#76645A', '#54463F') + rg('gRac', '#B5BAC2', '#8E949E', '#6A707A') +
+    rg('gRacBelly', '#F3EEE4', '#E1D9CA', '#C5BBA8') + rg('gDark', '#4A4C55', '#2C2E35', '#1C1D22') +
+    '<radialGradient id="gBlue" cx="50%" cy="35%" r="65%"><stop offset="0" stop-color="#BFE8FF"/><stop offset=".6" stop-color="#5BB2E8"/><stop offset="1" stop-color="#2F7CC0"/></radialGradient>' +
+    '<radialGradient id="gNose" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#4A4F5C"/><stop offset="1" stop-color="#14171D"/></radialGradient>' +
+    '<radialGradient id="gShadow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="rgba(0,0,0,.32)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient>' +
+    '<linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE48A"/><stop offset="1" stop-color="#D9A51E"/></linearGradient>' +
+    '<linearGradient id="gCoat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE066"/><stop offset="1" stop-color="#E0B21E"/></linearGradient>' +
+    '<radialGradient id="gPtSoft"><stop offset="0" stop-color="#9C8170" stop-opacity=".75"/><stop offset=".7" stop-color="#B39A88" stop-opacity=".45"/><stop offset="1" stop-color="#B39A88" stop-opacity="0"/></radialGradient>' +
+    '<radialGradient id="gPtSoftD"><stop offset="0" stop-color="#5E4233" stop-opacity=".95"/><stop offset=".65" stop-color="#7A5A46" stop-opacity=".7"/><stop offset="1" stop-color="#7A5A46" stop-opacity="0"/></radialGradient>' +
+    '</defs>';
+  // 큰 눈: 짙은 눈동자 + 큰 반짝임 + 작은 반짝임
+  function eye(x, y, rx, ry) {
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="#1B1E24"/>' +
+      '<ellipse cx="' + (x - rx * 0.3) + '" cy="' + (y - ry * 0.35) + '" rx="' + (rx * 0.42) + '" ry="' + (ry * 0.36) + '" fill="#fff"/>' +
+      '<circle cx="' + (x + rx * 0.35) + '" cy="' + (y + ry * 0.35) + '" r="' + (rx * 0.18) + '" fill="#fff" opacity=".85"/>';
+  }
+  // 파란 눈(랙돌 · 샴): 홍채 + 세로 동공 + 반짝임
+  function blueEye(x, y, rx, ry) {
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="url(#gBlue)"/>' +
+      '<ellipse cx="' + x + '" cy="' + (y + 1) + '" rx="' + (rx * 0.45) + '" ry="' + (ry * 0.78) + '" fill="#1B1E24"/>' +
+      '<ellipse cx="' + (x - rx * 0.32) + '" cy="' + (y - ry * 0.4) + '" rx="' + (rx * 0.36) + '" ry="' + (ry * 0.28) + '" fill="#fff"/>' +
+      '<circle cx="' + (x + rx * 0.35) + '" cy="' + (y + ry * 0.38) + '" r="' + (rx * 0.16) + '" fill="#fff" opacity=".85"/>';
+  }
+  function happyEye(x, y, w, c) { return '<path d="M' + (x - w) + ' ' + y + ' q' + w + '-' + (w * 1.1) + ' ' + (w * 2) + ' 0" stroke="' + (c || '#1B1E24') + '" stroke-width="4" fill="none" stroke-linecap="round"/>'; }
+  function blush(x, y) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="5.5" fill="#FF8A8A" opacity=".45"/>'; }
+  function shadow() { return '<ellipse cx="100" cy="194" rx="58" ry="7" fill="url(#gShadow)"/>'; }
+  function wrap(o, inner) {
+    return '<svg viewBox="0 0 200 200" aria-hidden="true">' + DEFS + shadow() + '<g class="' + (o.mood === 'happy' ? 'hop' : o.mood === 'huh' ? 'tilt' : '') + '">' + inner + '</g></svg>';
+  }
+  function huhMark() { return '<g><circle cx="162" cy="40" r="15" fill="#FFD23F"/><text x="162" y="47" font-size="20" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="IBM Plex Sans KR">?</text></g>'; }
+  function sparkle(x, y) { return '<path d="M' + x + ' ' + (y - 9) + ' l2.6 6.4 6.4 2.6-6.4 2.6-2.6 6.4-2.6-6.4-6.4-2.6 6.4-2.6z" fill="#FFE27A"/>'; }
+  // 가슴의 3팀 배지(별 모양 경찰 배지). 띠 없이 털에 달려 있어 머리와 몸을 끊지 않는다.
+  function badge(x, y) {
+    return '<path d="M' + x + ' ' + (y - 11) + ' l3.3 6.6 7.3 1-5.3 5.2 1.3 7.2-6.6-3.5-6.6 3.5 1.3-7.2-5.3-5.2 7.3-1z" fill="url(#gGold)"/>' +
+      '<text x="' + x + '" y="' + (y + 4) + '" font-size="8" font-weight="700" text-anchor="middle" fill="#6B4E00" font-family="IBM Plex Sans KR">3</text>';
+  }
+  function mouth(o, y) {
+    if (o.outfit === 'mask') return '';
+    if (o.mood === 'happy') return '<path d="M88 ' + y + ' q12 12 24 0" fill="#7A2C34"/><path d="M95 ' + (y + 4) + ' q5 10 10 0z" fill="#FF8C95"/>';
+    if (o.mood === 'huh') return '<path d="M94 ' + (y + 3) + ' q6-3 12 0" stroke="#1B1E24" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return '<path d="M100 ' + (y - 6) + ' v4 M100 ' + (y - 2) + ' q-6 6-11 2 M100 ' + (y - 2) + ' q6 6 11 2" stroke="#1B1E24" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+  }
+  function extras(o, hat, eyeY, maskY, maskW, glassesOk) {
+    var s = '';
+    if (o.mood === 'huh') s += huhMark();
+    if (o.mood === 'happy') s += sparkle(36, 52) + sparkle(166, 42);
+    if (o.outfit === 'raincoat') s += '<path d="M46 72 q54-58 108 0 l4 12 q-58-28-116 0z" fill="url(#gCoat)"/>';
+    if (o.outfit === 'beanie') s += beanie(100, hat, 100, '#2F3646');
+    if (o.outfit === 'fedora') s += fedora(100, hat + 4, 88, '#3A2A1E');
+    if (glassesOk && (o.outfit === 'glasses' || o.outfit === 'fedora')) s += glasses(100, eyeY, 22, 14);
+    if (o.outfit === 'mask') s += mask(100, maskY, maskW);
+    return s;
+  }
+  // 공통 몸통: 어깨가 머리 뒤에서 시작해 아래로 넓어진다(머리와 같은 색이라 이음매가 안 보인다).
+  var BODY = 'M56 192 q-8-58 44-76 q52 18 44 76z';
+  var HEAD = 'M100 30 c38 0 60 22 60 56 c0 32-26 54-60 54 c-34 0-60-22-60-54 c0-34 22-56 60-56z';
+
+  /* ---------- A 수사견 (코기 / 시바) ---------- */
+  function dog(o, breed) {
+    o = o || {};
+    var shiba = breed === 'shiba', F = shiba ? 'url(#gShiba)' : 'url(#gCorgi)', s = '';
+    // 꼬리: 시바는 등 위로 말린 꼬리, 코기는 작은 솜꼬리
+    if (shiba) s += '<g class="' + (o.anim ? 'wag' : '') + '"><path d="M136 170 q30 2 30-24 q0-18-16-16 q-12 2-8 14 q6 0 6 6 q-2 12-16 10z" fill="' + F + '"/><path d="M150 132 q-10 2-6 12 q5 0 5 5" fill="url(#gCream)"/></g>';
+    else s += '<g class="' + (o.anim ? 'wag' : '') + '"><ellipse cx="146" cy="168" rx="14" ry="11" fill="' + F + '"/><ellipse cx="150" cy="165" rx="7" ry="5" fill="url(#gCream)"/></g>';
+    s += '<path d="' + BODY + '" fill="' + F + '"/>';
+    // 귀: 코기는 크고 뾰족, 시바는 작고 도톰
+    if (shiba) s += '<path d="M50 62 q-4-30 6-36 q10 4 28 22z" fill="' + F + '"/><path d="M150 62 q4-30-6-36 q-10 4-28 22z" fill="' + F + '"/><path d="M56 54 q-1-16 3-20 q6 3 16 14z" fill="#F6C9B8"/><path d="M144 54 q1-16-3-20 q-6 3-16 14z" fill="#F6C9B8"/>';
+    else s += '<path d="M44 66 q-12-46 4-54 q14 2 40 34z" fill="' + F + '"/><path d="M156 66 q12-46-4-54 q-14 2-40 34z" fill="' + F + '"/><path d="M52 56 q-6-30 2-36 q10 4 26 26z" fill="#F6C9B8"/><path d="M148 56 q6-30-2-36 q-10 4-26 26z" fill="#F6C9B8"/>';
+    s += '<path d="' + HEAD + '" fill="' + F + '"/>';
+    // 흰 털: 주둥이 → 턱 → 가슴 → 배까지 한 줄기로 이어진다(머리와 몸을 잇는 핵심)
+    s += '<path d="M100 ' + (shiba ? 92 : 46) + ' q' + (shiba ? '10 4 12 14' : '8 24 6 50') + ' c20 2 30 12 30 24 c0 8-6 14-14 18 q20 18 6 58 h-68 q-14-40 6-58 c-8-4-14-10-14-18 c0-12 10-22 30-24 q' + (shiba ? '2-10 12-14' : '-2-26 6-50') + 'z" fill="url(#gCream)"/>';
+    if (shiba) s += '<ellipse cx="62" cy="110" rx="14" ry="11" fill="url(#gCream)"/><ellipse cx="138" cy="110" rx="14" ry="11" fill="url(#gCream)"/><ellipse cx="78" cy="68" rx="6" ry="4" fill="url(#gCream)"/><ellipse cx="122" cy="68" rx="6" ry="4" fill="url(#gCream)"/>';
+    s += '<ellipse cx="80" cy="190" rx="13" ry="8" fill="url(#gCream)"/><ellipse cx="120" cy="190" rx="13" ry="8" fill="url(#gCream)"/>';
+    if (o.mood === 'happy') s += happyEye(76, 86, 9) + happyEye(124, 86, 9);
+    else s += '<g class="' + (o.anim ? 'blink' : '') + '">' + eye(76, 86, shiba ? 8 : 9, shiba ? 9.5 : 10.5) + eye(124, 86, shiba ? 8 : 9, shiba ? 9.5 : 10.5) + '</g>';
+    s += blush(62, 108) + blush(138, 108);
+    s += '<path d="M100 100 c8 0 12 3 12 7 c0 5-6 8-12 8 c-6 0-12-3-12-8 c0-4 4-7 12-7z" fill="url(#gNose)"/><ellipse cx="96" cy="103" rx="3" ry="1.6" fill="#fff" opacity=".6"/>';
+    s += mouth(o, 122);
+    if (o.outfit !== 'raincoat') s += badge(100, 162);
+    if (o.outfit === 'raincoat') s += '<path d="M60 192 q-4-46 40-56 q44 10 40 56z" fill="url(#gCoat)" opacity=".95"/><circle cx="100" cy="162" r="3" fill="#B8901C"/><circle cx="100" cy="176" r="3" fill="#B8901C"/>';
+    return wrap(o, s + extras(o, 36, 86, 108, 60, true));
+  }
+
+  /* ---------- B 고양이 (랙돌 / 샴) ---------- */
+  function cat(o, breed) {
+    o = o || {};
+    var rag = breed === 'ragdoll', B = rag ? 'url(#gRag)' : 'url(#gSiam)', P = rag ? 'url(#gRagPt)' : 'url(#gPoint)', s = '';
+    // 꼬리(포인트 색): 랙돌은 풍성, 샴은 가늘고 길게
+    s += '<g class="' + (o.anim ? 'sway' : '') + '">' + (rag
+      ? '<path d="M128 184 q40 4 40-40 q0-14 10-12 q16 46-40 62z" fill="' + P + '"/>'
+      : '<path d="M130 186 q38-2 36-40 q-1-10 6-9 q8 40-38 56z" fill="' + P + '"/>') + '</g>';
+    s += '<path d="' + BODY + '" fill="' + B + '"/>';
+    // 귀(포인트 색)
+    var ear = rag ? 'M50 64 l-6-34 q2-6 8-3 l30 24z' : 'M48 70 l-10-50 q2-7 9-3 l36 30z';
+    s += '<path d="' + ear + '" fill="' + P + '"/><path d="' + ear + '" transform="translate(200 0) scale(-1 1)" fill="' + P + '"/>';
+    s += '<path d="' + (rag ? 'M54 56 l-3-20 l18 14z' : 'M52 62 l-6-32 l22 20z') + '" fill="#E9B3B8"/><path d="' + (rag ? 'M146 56 l3-20 l-18 14z' : 'M148 62 l6-32 l-22 20z') + '" fill="#E9B3B8"/>';
+    s += '<path d="' + HEAD + '" fill="' + B + '"/>';
+    // 얼굴 포인트: 샴은 얼굴 가운데 둥근 가면, 랙돌은 눈가만 진하고 이마~코에 흰 줄(뒤집힌 V)
+    if (rag) s += '<path d="M60 82 q4-22 30-20 q10 2 10 14 q0-12 10-14 q26-2 30 20 q2 18-14 22 q-16 2-26-6 q-10 8-26 6 q-16-4-14-22z" fill="' + P + '" opacity=".9"/><path d="M100 50 q8 22 10 52 q-10 6-20 0 q2-30 10-52z" fill="url(#gRag)"/>';
+    else s += '<path d="M100 66 c26 0 40 14 40 34 c0 18-16 30-40 30 c-24 0-40-12-40-30 c0-20 14-34 40-34z" fill="' + P + '" opacity=".92"/>';
+    // 목 갈기(랙돌) / 밝은 가슴(샴): 턱 아래를 덮어 머리와 몸을 잇는다
+    if (rag) s += '<path d="M54 128 q6 10 14 6 q4 10 14 6 q6 10 18 4 q12 6 18-4 q10 4 14-6 q8 4 14-6 q4 22-14 38 q-16 30-32 32 q-16-2-32-32 q-18-16-14-38z" fill="url(#gCream)"/>';
+    else s += '<path d="M76 134 q24 10 48 0 q12 30 0 56 h-48 q-12-26 0-56z" fill="url(#gCream)" opacity=".85"/>';
+    // 발(포인트 색: 샴은 진한 발, 랙돌은 흰 장갑)
+    s += '<ellipse cx="80" cy="189" rx="12" ry="8" fill="' + (rag ? 'url(#gCream)' : P) + '"/><ellipse cx="120" cy="189" rx="12" ry="8" fill="' + (rag ? 'url(#gCream)' : P) + '"/>';
+    if (o.mood === 'happy') s += happyEye(76, 88, 10, '#fff') + happyEye(124, 88, 10, '#fff');
+    else s += '<g class="' + (o.anim ? 'blink' : '') + '">' + blueEye(76, 88, 11, rag ? 12.5 : 11) + blueEye(124, 88, 11, rag ? 12.5 : 11) + '</g>';
+    s += blush(60, 112) + blush(140, 112);
+    s += '<path d="M95 104 h10 l-5 6z" fill="' + (rag ? '#E58A98' : '#2A1C16') + '"/>';
+    if (o.outfit !== 'mask') s += o.mood === 'happy' ? '<path d="M91 112 q9 10 18 0" fill="#7A2C34"/>' : o.mood === 'huh' ? '<path d="M94 116 h12" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>' : '<path d="M100 110 q-5 7-11 3M100 110 q5 7 11 3" stroke="' + (rag ? '#1B1E24' : '#fff') + '" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M66 112 h-22M66 118 l-20 5M134 112 h22M134 118 l20 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".9"/>';
+    s += badge(100, 166);
+    return wrap(o, s + extras(o, 38, 88, 104, 56, true));
+  }
+
+  /* ---------- C 너구리 (밤 잠복 담당, 부엉이 대신) ---------- */
+  function raccoon(o) {
+    o = o || {};
+    var s = '';
+    // 줄무늬 꼬리
+    s += '<g class="' + (o.anim ? 'sway' : '') + '"><path d="M128 184 q42 0 42-40 q0-12 10-10 q14 44-44 58z" fill="url(#gRac)"/>' +
+      '<path d="M160 160 q8-4 12-14M166 146 q6-4 8-14" stroke="#2C2E35" stroke-width="7" stroke-linecap="round" fill="none"/><path d="M174 134 q4-4 6-6" stroke="#2C2E35" stroke-width="8" stroke-linecap="round"/></g>';
+    s += '<path d="' + BODY + '" fill="url(#gRac)"/>';
+    s += '<circle cx="54" cy="44" r="18" fill="url(#gRac)"/><circle cx="146" cy="44" r="18" fill="url(#gRac)"/><circle cx="54" cy="46" r="10" fill="#2C2E35"/><circle cx="146" cy="46" r="10" fill="#2C2E35"/>';
+    s += '<path d="' + HEAD + '" fill="url(#gRac)"/>';
+    // 흰 얼굴 → 밝은 배: 한 줄기로 이어진다
+    s += '<path d="M100 56 c34 0 52 16 52 38 c0 16-12 26-28 30 q18 18 8 66 h-64 q-10-48 8-66 c-16-4-28-14-28-30 c0-22 18-38 52-38z" fill="url(#gRacBelly)"/>';
+    // 검은 눈가리개(변장 · 잠복의 상징)
+    s += '<path d="M48 92 q2-22 28-20 q16 2 24 12 q8-10 24-12 q26-2 28 20 q-2 16-24 16 q-18 0-28-10 q-10 10-28 10 q-22 0-24-16z" fill="url(#gDark)"/>';
+    s += '<path d="M100 60 q5 14 0 24 q-5-10 0-24z" fill="#8E949E"/>';
+    s += '<ellipse cx="80" cy="190" rx="12" ry="8" fill="#2C2E35"/><ellipse cx="120" cy="190" rx="12" ry="8" fill="#2C2E35"/>';
+    if (o.mood === 'happy') s += happyEye(76, 92, 9, '#fff') + happyEye(124, 92, 9, '#fff');
+    else s += '<g class="' + (o.anim ? 'blink' : '') + '">' + '<circle cx="76" cy="90" r="12" fill="#fff" opacity=".12"/><circle cx="124" cy="90" r="12" fill="#fff" opacity=".12"/>' + eye(76, 90, 8.5, 10) + eye(124, 90, 8.5, 10) + '</g>';
+    s += blush(56, 116) + blush(144, 116);
+    s += '<path d="M100 106 c7 0 11 3 11 6 c0 5-5 7-11 7 c-6 0-11-2-11-7 c0-3 4-6 11-6z" fill="url(#gNose)"/>';
+    s += mouth(o, 126);
+    // 손에 든 손전등(야간 잠복)
+    s += '<g transform="translate(118 150) rotate(-24)"><rect x="0" y="0" width="30" height="12" rx="4" fill="#3A4256"/><rect x="26" y="-3" width="9" height="18" rx="3" fill="#FFD23F"/>' + (o.anim ? '<path d="M35 -2 l40 -14 v44 l-40 -14z" fill="#FFE27A" opacity=".35"/>' : '') + '</g><ellipse cx="124" cy="158" rx="8" ry="7" fill="#2C2E35"/>';
+    s += badge(84, 160);
+    return wrap(o, s + extras(o, 40, 90, 108, 56, true));
+  }
+
+  /*
+   * 4차 "말랑" 스타일: 캐릭터 상품(스티커 · 인형) 말투.
+   *  - 머리와 몸을 처음부터 "한 개의 윤곽선"으로 그린다(찹쌀떡 모양). 이음매가 생길 수 없다.
+   *  - 머리가 전체의 2/3, 몸은 아래에 살짝만. 눈 · 코 · 입은 얼굴 아래쪽에 작게 모은다(아기 얼굴 비율).
+   *  - 몸 색보다 짙은 같은 계열 색의 테두리 선(3.5px)으로 스티커처럼 또렷하게.
+   */
+  var MOCHI = 'M100 26 C152 26 174 58 174 98 C174 124 162 140 148 148 C152 162 152 178 146 190 H54 C48 178 48 162 52 148 C38 140 26 124 26 98 C26 58 48 26 100 26 Z';
+  function k(fill, line) { return ' fill="' + fill + '" stroke="' + line + '" stroke-width="3.5" stroke-linejoin="round"'; }
+  function kEyes(o, y, blue) {
+    if (o.mood === 'happy') return happyEye(72, y + 2, 9, '#2A1E1A') + happyEye(128, y + 2, 9, '#2A1E1A');
+    var e = function (x) {
+      return blue
+        ? '<ellipse cx="' + x + '" cy="' + y + '" rx="10" ry="12" fill="url(#gBlue)" stroke="#2A1E1A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + (y + 1) + '" rx="5" ry="8" fill="#1B1E24"/>' +
+          '<ellipse cx="' + (x - 3.5) + '" cy="' + (y - 5) + '" rx="4" ry="3.6" fill="#fff"/><circle cx="' + (x + 4) + '" cy="' + (y + 5) + '" r="1.8" fill="#fff"/>'
+        : '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="11" fill="#2A1E1A"/><ellipse cx="' + (x - 3) + '" cy="' + (y - 4.5) + '" rx="4" ry="3.8" fill="#fff"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 4.5) + '" r="1.8" fill="#fff"/>';
+    };
+    return '<g class="' + (o.anim ? 'blink' : '') + '">' + e(72) + e(128) + '</g>';
+  }
+  function kFace(o, y, nose) {
+    var s = '<ellipse cx="56" cy="' + (y + 16) + '" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/><ellipse cx="144" cy="' + (y + 16) + '" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/>';
+    if (nose) s += '<ellipse cx="100" cy="' + (y + 10) + '" rx="5.5" ry="3.8" fill="' + nose + '"/>';
+    if (o.outfit === 'mask') return s;
+    if (o.mood === 'happy') s += '<path d="M92 ' + (y + 16) + ' q8 11 16 0z" fill="#B23A4C" stroke="#2A1E1A" stroke-width="2" stroke-linejoin="round"/>';
+    else if (o.mood === 'huh') s += '<path d="M95 ' + (y + 19) + ' q5-3 10 0" stroke="#2A1E1A" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    else s += '<path d="M92 ' + (y + 15) + ' q4 5 8 0 q4 5 8 0" stroke="#2A1E1A" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+    return s;
+  }
+  function kShine() { return '<ellipse cx="74" cy="46" rx="20" ry="8" fill="#fff" opacity=".35" transform="rotate(-18 74 46)"/>'; }
+  // 작은 두 손으로 가슴의 3팀 배지를 들고 있다 + 발
+  function kPaws(fill, line, foot) {
+    return badge(100, 164) +
+      '<ellipse cx="80" cy="166" rx="10" ry="8"' + k(fill, line) + '/><ellipse cx="120" cy="166" rx="10" ry="8"' + k(fill, line) + '/>' +
+      '<ellipse cx="74" cy="190" rx="13" ry="7"' + k(foot || fill, line) + '/><ellipse cx="126" cy="190" rx="13" ry="7"' + k(foot || fill, line) + '/>';
+  }
+  function kWrap(o, inner, eyeY) {
+    var s = inner;
+    if (o.mood === 'huh') s += huhMark();
+    if (o.mood === 'happy') s += sparkle(30, 48) + sparkle(170, 40);
+    if (o.outfit === 'raincoat') s += '<path d="M34 84 q66-82 132 0 l6 12 q-72-34-144 0z"' + k('url(#gCoat)', '#B8901C') + '/>';
+    if (o.outfit === 'beanie') s += beanie(100, 28, 112, '#2F3646');
+    if (o.outfit === 'fedora') s += fedora(100, 34, 94, '#3A2A1E');
+    if (o.outfit === 'glasses' || o.outfit === 'fedora') s += glasses(100, eyeY, 28, 15);
+    if (o.outfit === 'mask') s += mask(100, eyeY + 8, 66);
+    return wrap(o, s);
+  }
+
+  function kDog(o, breed) {
+    o = o || {};
+    var sh = breed === 'shiba', F = sh ? '#F0A25E' : '#F7B46E', L = sh ? '#A85F27' : '#B9722F', C = '#FFF7EA', s = '';
+    if (sh) s += '<path class="' + (o.anim ? 'wag' : '') + '" d="M146 172 q30 0 28-26 q-2-16-16-14 q-10 2-6 12 q6 2 4 8 q-4 8-14 8z"' + k(F, L) + '/>';
+    else s += '<ellipse class="' + (o.anim ? 'wag' : '') + '" cx="150" cy="176" rx="13" ry="10"' + k(C, L) + '/>';
+    // 귀: 코기는 크고 둥근 삼각, 시바는 작은 세모
+    var ear = sh ? 'M44 62 Q40 24 56 22 Q70 26 82 42 Z' : 'M40 70 Q26 12 52 12 Q72 18 86 44 Z';
+    var inn = sh ? 'M52 54 Q50 32 58 30 Q66 34 72 42 Z' : 'M50 58 Q42 24 56 24 Q66 28 76 44 Z';
+    s += '<path d="' + ear + '"' + k(F, L) + '/><path d="' + ear + '" transform="translate(200 0) scale(-1 1)"' + k(F, L) + '/>';
+    s += '<path d="' + inn + '" fill="#FFC2C2"/><path d="' + inn + '" transform="translate(200 0) scale(-1 1)" fill="#FFC2C2"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 흰 털: 아랫얼굴 + 배(코기는 이마 줄까지)
+    if (!sh) s += '<path d="M100 40 q7 0 8 26 q2 22 4 30 q-12 6-24 0 q2-8 4-30 q1-26 8-26z" fill="' + C + '"/>';
+    s += '<path d="M100 96 c30 0 54 12 54 30 c0 14-14 22-26 24 q8 20 6 40 h-68 q-2-20 6-40 c-12-2-26-10-26-24 c0-18 24-30 54-30z" fill="' + C + '"/>';
+    if (sh) s += '<ellipse cx="74" cy="84" rx="6" ry="4" fill="' + C + '"/><ellipse cx="126" cy="84" rx="6" ry="4" fill="' + C + '"/>';
+    s += kEyes(o, 104) + kFace(o, 106, '#2A1E1A') + kPaws(C, L);
+    return kWrap(o, s, 104);
+  }
+
+  function kCat(o, breed) {
+    o = o || {};
+    var rag = breed === 'ragdoll', F = rag ? '#FFFBF4' : '#FBF0DC', L = rag ? '#B8A28A' : '#A3835F', P = rag ? '#A98F7D' : '#6E5040', s = '';
+    s += '<path class="' + (o.anim ? 'sway' : '') + '" d="' + (rag ? 'M140 182 q40 2 38-38 q-1-14 10-12 q14 46-44 60z' : 'M142 184 q34-2 32-38 q0-10 7-9 q8 40-36 54z') + '"' + k(P, L) + '/>';
+    var ear = rag ? 'M38 72 L36 26 Q40 20 48 24 L84 44 Z' : 'M36 78 L30 16 Q34 10 42 14 L86 46 Z';
+    var inn = rag ? 'M46 60 L45 32 L72 46 Z' : 'M44 64 L40 26 L74 48 Z';
+    s += '<path d="' + ear + '"' + k(P, L) + '/><path d="' + ear + '" transform="translate(200 0) scale(-1 1)"' + k(P, L) + '/>';
+    s += '<path d="' + inn + '" fill="#F2B8BE"/><path d="' + inn + '" transform="translate(200 0) scale(-1 1)" fill="#F2B8BE"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 얼굴 포인트를 가장자리가 흐린 그라디언트로(부드럽게)
+    s += rag
+      ? '<ellipse cx="72" cy="102" rx="22" ry="18" fill="url(#gPtSoft)"/><ellipse cx="128" cy="102" rx="22" ry="18" fill="url(#gPtSoft)"/><path d="M100 60 q8 20 6 46 q-6 4-12 0 q-2-26 6-46z" fill="' + F + '"/>'
+      : '<ellipse cx="100" cy="110" rx="46" ry="34" fill="url(#gPtSoftD)"/>';
+    // 랙돌 목 갈기: 둥근 털 뭉치 선
+    if (rag) s += '<path d="M60 146 q8 8 16 2 q8 8 16 2 q8 8 16 2 q8 8 16 2 q8 8 16-2" stroke="' + L + '" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>';
+    s += kEyes(o, 104, true) + kFace(o, 104, rag ? '#F29AAA' : '#3A2A22');
+    s += '<path d="M44 114 h-16M44 121 l-14 4M156 114 h16M156 121 l14 4" stroke="' + L + '" stroke-width="2" stroke-linecap="round"/>';
+    s += kPaws(rag ? F : F, L, rag ? F : P);
+    return kWrap(o, s, 104);
+  }
+
+  function kRaccoon(o) {
+    o = o || {};
+    var F = '#C3C8D1', L = '#6B717D', D = '#3A3D46', W = '#FBF8F2', s = '';
+    s += '<g class="' + (o.anim ? 'sway' : '') + '"><path d="M140 184 q42 0 40-40 q0-12 10-10 q14 46-46 58z"' + k(F, L) + '/>' +
+      '<path d="M172 164 l12-8M176 148 l12-4" stroke="' + D + '" stroke-width="7" stroke-linecap="round"/></g>';
+    s += '<circle cx="50" cy="40" r="18"' + k(F, L) + '/><circle cx="150" cy="40" r="18"' + k(F, L) + '/><circle cx="50" cy="42" r="9" fill="' + D + '"/><circle cx="150" cy="42" r="9" fill="' + D + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 72 c38 0 62 16 62 38 c0 20-24 34-62 34 c-38 0-62-14-62-34 c0-22 24-38 62-38z" fill="' + W + '"/>';
+    s += '<path d="M100 150 q26 0 28 40 h-56 q2-40 28-40z" fill="' + W + '"/>';
+    // 둥근 눈가리개
+    s += '<path d="M40 104 q0-20 30-20 q18 0 30 12 q12-12 30-12 q30 0 30 20 q0 14-28 14 q-20 0-32-10 q-12 10-32 10 q-28 0-28-14z" fill="' + D + '"/>';
+    s += '<path d="M100 44 q6 16 0 30 q-6-14 0-30z" fill="' + L + '" opacity=".6"/>';
+    if (o.mood === 'happy') s += happyEye(72, 104, 9, '#fff') + happyEye(128, 104, 9, '#fff');
+    else s += '<g class="' + (o.anim ? 'blink' : '') + '"><ellipse cx="72" cy="102" rx="9" ry="10.5" fill="#fff"/><ellipse cx="128" cy="102" rx="9" ry="10.5" fill="#fff"/><ellipse cx="73" cy="104" rx="6.5" ry="8" fill="#2A1E1A"/><ellipse cx="127" cy="104" rx="6.5" ry="8" fill="#2A1E1A"/><circle cx="71" cy="100" r="2.6" fill="#fff"/><circle cx="125" cy="100" r="2.6" fill="#fff"/></g>';
+    s += kFace(o, 112, '#2A1E1A');
+    s += kPaws(F, L, D).replace(/<ellipse cx="(80|120)" cy="166" rx="10" ry="8" fill="#C3C8D1"/g, '<ellipse cx="$1" cy="166" rx="10" ry="8" fill="' + D + '"');
+    return kWrap(o, s, 102);
+  }
+
+  /* ---------- 뽑기용 추가 동물(같은 말랑 틀: MOCHI 윤곽 + 귀 + 얼굴 무늬) ---------- */
+  function mirror(d, attrs) { return '<path d="' + d + '"' + attrs + '/><path d="' + d + '" transform="translate(200 0) scale(-1 1)"' + attrs + '/>'; }
+  function beak(y, c) { return '<path d="M92 ' + y + ' q8-4 16 0 q-2 8-8 11 q-6-3-8-11z" fill="' + c + '" stroke="#A8601E" stroke-width="2" stroke-linejoin="round"/>'; }
+  function amberEyes(o, y) {
+    if (o.mood === 'happy') return happyEye(72, y + 2, 9, '#2A1E1A') + happyEye(128, y + 2, 9, '#2A1E1A');
+    var e = function (x) { return '<circle cx="' + x + '" cy="' + y + '" r="14" fill="#FFD66B" stroke="#A8762A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + y + '" rx="8" ry="9" fill="#2A1E1A"/><ellipse cx="' + (x - 3) + '" cy="' + (y - 4) + '" rx="3.6" ry="3.4" fill="#fff"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 4) + '" r="1.6" fill="#fff"/>'; };
+    return '<g class="' + (o.anim ? 'blink' : '') + '">' + e(72) + e(128) + '</g>';
+  }
+  function kOwl(o) {
+    o = o || {}; var F = '#B5875F', L = '#6E4A2E', C = '#FFF1DC', s = '';
+    s += mirror('M34 66 L30 22 Q34 16 42 22 L70 44 Z', k(F, L));
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<circle cx="72" cy="102" r="26" fill="' + C + '"/><circle cx="128" cy="102" r="26" fill="' + C + '"/>';
+    s += '<path d="M100 140 c26 0 34 18 32 50 h-64 c-2-32 6-50 32-50z" fill="' + C + '"/>';
+    for (var yy = 152; yy < 186; yy += 12) s += '<path d="M86 ' + yy + ' q4 5 8 0M106 ' + yy + ' q4 5 8 0" stroke="' + F + '" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    s += amberEyes(o, 102) + kFace(o, 112, null) + beak(112, '#F2A33A');
+    s += mirror('M30 120 q-10 30 18 52 q6-24-4-50z', k('#9B7049', L));
+    s += '<ellipse cx="80" cy="191" rx="11" ry="6"' + k('#F2A33A', '#A8601E') + '/><ellipse cx="120" cy="191" rx="11" ry="6"' + k('#F2A33A', '#A8601E') + '/>';
+    return kWrap(o, s, 102);
+  }
+  function kPanda(o) {
+    o = o || {}; var F = '#FFFFFF', L = '#4A4C55', D = '#2E3038', s = '';
+    s += '<circle cx="48" cy="40" r="19"' + k(D, D) + '/><circle cx="152" cy="40" r="19"' + k(D, D) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="70" cy="102" rx="17" ry="21" fill="' + D + '" transform="rotate(28 70 102)"/><ellipse cx="130" cy="102" rx="17" ry="21" fill="' + D + '" transform="rotate(-28 130 102)"/>';
+    if (o.mood === 'happy') s += happyEye(72, 104, 8, '#fff') + happyEye(128, 104, 8, '#fff');
+    else s += '<g class="' + (o.anim ? 'blink' : '') + '"><ellipse cx="73" cy="103" rx="7" ry="8.5" fill="#fff"/><ellipse cx="127" cy="103" rx="7" ry="8.5" fill="#fff"/><ellipse cx="74" cy="104" rx="5" ry="6.5" fill="#1B1E24"/><ellipse cx="126" cy="104" rx="5" ry="6.5" fill="#1B1E24"/><circle cx="72" cy="101" r="2" fill="#fff"/><circle cx="124" cy="101" r="2" fill="#fff"/></g>';
+    s += kFace(o, 108, D);
+    s += kPaws(D, D, D);
+    return kWrap(o, s, 103);
+  }
+  function kMonkey(o) {
+    o = o || {}; var F = '#B47B4F', L = '#6B4325', C = '#FFD9B8', s = '';
+    s += '<path class="' + (o.anim ? 'sway' : '') + '" d="M146 180 q36 4 34-30 q-2-18-18-14 q-10 4-4 12 q8-2 8 6 q-2 14-20 16z"' + k(F, L) + '/>';
+    s += '<circle cx="28" cy="98" r="20"' + k(F, L) + '/><circle cx="172" cy="98" r="20"' + k(F, L) + '/><circle cx="30" cy="98" r="11" fill="' + C + '"/><circle cx="170" cy="98" r="11" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 하트 모양 얼굴
+    s += '<path d="M100 84 c6-14 22-20 34-12 c14 10 12 26 4 34 c14 4 18 18 10 28 c-10 14-30 16-48 16 c-18 0-38-2-48-16 c-8-10-4-24 10-28 c-8-8-10-24 4-34 c12-8 28-2 34 12z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q22 0 24 40 h-48 q2-40 24-40z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 108, '#6B4325') + kPaws(F, L);
+    return kWrap(o, s, 102);
+  }
+  function kHamster(o) {
+    o = o || {}; var F = '#F6C58C', L = '#B9803F', C = '#FFF6E6', s = '';
+    s += '<circle cx="58" cy="40" r="14"' + k(F, L) + '/><circle cx="142" cy="40" r="14"' + k(F, L) + '/><circle cx="58" cy="41" r="7" fill="#FFB8B8"/><circle cx="142" cy="41" r="7" fill="#FFB8B8"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 92 c40 0 68 14 68 34 c0 16-14 22-30 24 q10 18 8 40 h-92 q-2-22 8-40 c-16-2-30-8-30-24 c0-20 28-34 68-34z" fill="' + C + '"/>';
+    s += '<ellipse cx="46" cy="122" rx="22" ry="18" fill="' + C + '"/><ellipse cx="154" cy="122" rx="22" ry="18" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 104, '#F08A9A') + kPaws(C, L, '#FFC4B0');
+    return kWrap(o, s, 102);
+  }
+  function kRabbit(o) {
+    o = o || {}; var F = '#FFFFFF', L = '#C49BA2', s = '';
+    s += mirror('M56 56 Q38 -10 58 -14 Q76 -12 76 46 Z', k(F, L)) + mirror('M60 46 Q48 0 60 -4 Q70 -2 70 42 Z', ' fill="#FFC9D2"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += kEyes(o, 104) + kFace(o, 104, '#F08A9A') + kPaws(F, L);
+    s += '<ellipse cx="150" cy="180" rx="12" ry="10"' + k(F, L) + '/>';
+    return kWrap(o, s, 104);
+  }
+  function kFox(o) {
+    o = o || {}; var F = '#F49447', L = '#A9521C', C = '#FFF8EE', D = '#4A2E22', s = '';
+    s += '<g class="' + (o.anim ? 'sway' : '') + '"><path d="M140 184 q46 2 44-42 q-2-20-14-18 q14 40-30 60z"' + k(F, L) + '/><path d="M170 124 q14 2 14 18 q-8-4-18-4z"' + k(C, L) + '/></g>';
+    s += mirror('M36 74 L30 14 Q34 8 42 12 L86 44 Z', k(F, L)) + mirror('M36 30 L34 14 L48 22 Z', ' fill="' + D + '"') + mirror('M44 62 L40 26 L72 46 Z', ' fill="#FFD3C2"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M28 104 q30 4 58 22 q6 8 14 8 q8 0 14-8 q28-18 58-22 q-4 34-36 44 q-18 6-36 6 q-18 0-36-6 q-32-10-36-44z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q22 0 24 40 h-48 q2-40 24-40z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 108, '#2A1E1A') + kPaws(F, L, D);
+    return kWrap(o, s, 102);
+  }
+  function kPenguin(o) {
+    o = o || {}; var F = '#3D4A63', L = '#222A3B', C = '#FFFFFF', s = '';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 64 c10-14 34-14 46 0 c16 18 14 44 6 60 c-6 14-14 22-14 30 c4 16 4 26 0 36 h-76 c-4-10-4-20 0-36 c0-8-8-16-14-30 c-8-16-10-42 6-60 c12-14 36-14 46 0z" fill="' + C + '"/>';
+    s += mirror('M30 120 q-14 24 4 50 q10-22 4-50z', k(F, L));
+    s += kEyes(o, 102) + kFace(o, 112, null) + beak(110, '#FFB23F');
+    s += '<ellipse cx="80" cy="191" rx="13" ry="6"' + k('#FFB23F', '#A8601E') + '/><ellipse cx="120" cy="191" rx="13" ry="6"' + k('#FFB23F', '#A8601E') + '/>' + badge(100, 166);
+    return kWrap(o, s, 102);
+  }
+  function kBear(o) {
+    o = o || {}; var F = '#A87650', L = '#62402A', C = '#F1D7B8', s = '';
+    s += '<circle cx="48" cy="42" r="18"' + k(F, L) + '/><circle cx="152" cy="42" r="18"' + k(F, L) + '/><circle cx="48" cy="44" r="9" fill="' + C + '"/><circle cx="152" cy="44" r="9" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="100" cy="120" rx="26" ry="19" fill="' + C + '"/><path d="M100 150 q24 0 26 40 h-52 q2-40 26-40z" fill="' + C + '"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#3A2418') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+
+  /* ---------- 2차 추가: 고슴도치 · 다람쥐 · 수달 · 오리 · 개구리 · 코알라 · 호랑이 ---------- */
+  function kHedgehog(o) {
+    o = o || {}; var F = '#9C7556', L = '#5E4330', C = '#FFEBD2', s = '';
+    // 가시: 머리 뒤로 톱니 테두리
+    var sp = '';
+    for (var a = -170; a <= -10; a += 16) {
+      var r1 = 70, r2 = 92, c = Math.PI / 180;
+      sp += (a === -170 ? 'M' : 'L') + (100 + r1 * Math.cos((a - 8) * c)).toFixed(1) + ' ' + (98 + r1 * Math.sin((a - 8) * c)).toFixed(1) +
+        'L' + (100 + r2 * Math.cos(a * c)).toFixed(1) + ' ' + (98 + r2 * Math.sin(a * c)).toFixed(1) +
+        'L' + (100 + r1 * Math.cos((a + 8) * c)).toFixed(1) + ' ' + (98 + r1 * Math.sin((a + 8) * c)).toFixed(1);
+    }
+    s += '<path d="' + sp + 'L100 120Z"' + k('#6E4E36', L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 74 c40 0 64 20 64 44 c0 18-16 28-34 32 q10 18 6 40 h-72 q-4-22 6-40 c-18-4-34-14-34-32 c0-24 24-44 64-44z" fill="' + C + '"/>';
+    s += '<circle cx="52" cy="70" r="9"' + k(C, L) + '/><circle cx="148" cy="70" r="9"' + k(C, L) + '/>';
+    s += kEyes(o, 106) + kFace(o, 106, '#2A1E1A') + kPaws(C, L, F);
+    return kWrap(o, s, 106);
+  }
+  function kSquirrel(o) {
+    o = o || {}; var F = '#DC8E50', L = '#97541F', C = '#FFF3E2', s = '';
+    s += '<path class="' + (o.anim ? 'sway' : '') + '" d="M128 190 q50 4 56-50 q4-40-26-52 q-26-8-30 14 q20-2 24 18 q4 28-24 70z"' + k(F, L) + '/>';
+    s += '<path d="M150 100 q14 4 16 18" stroke="' + C + '" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/>';
+    s += mirror('M44 60 L38 22 Q42 16 50 20 L74 42 Z', k(F, L)) + mirror('M40 24 L34 8 L46 16 Z', k(F, L)) + mirror('M48 52 L45 30 L64 44 Z', ' fill="#FFC9B8"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 38 q6 14 0 28 q-6-14 0-28z" fill="#8E4E1E" opacity=".55"/>';
+    s += '<path d="M100 98 c34 0 58 10 58 28 c0 14-14 22-30 24 q8 20 6 40 h-68 q-2-20 6-40 c-16-2-30-10-30-24 c0-18 24-28 58-28z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 106, '#3A2418');
+    s += kPaws(F, L).replace(/(<path d="M)/, '$1');
+    // 손에 도토리
+    s += '<ellipse cx="100" cy="168" rx="9" ry="11" fill="#B06A2E" stroke="' + L + '" stroke-width="2"/><path d="M90 160 q10-8 20 0 q-10 4-20 0z" fill="#6E4325"/>';
+    return kWrap(o, s, 102);
+  }
+  function kOtter(o) {
+    o = o || {}; var F = '#9C6B48', L = '#5A3B24', C = '#F4DFC6', s = '';
+    s += '<path class="' + (o.anim ? 'sway' : '') + '" d="M140 186 q36 2 40-30 q0-10 8-8 q4 40-48 46z"' + k(F, L) + '/>';
+    s += '<circle cx="40" cy="70" r="12"' + k(F, L) + '/><circle cx="160" cy="70" r="12"' + k(F, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 92 c34 0 54 10 54 26 c0 18-26 28-54 28 c-28 0-54-10-54-28 c0-16 20-26 54-26z" fill="' + C + '"/>';
+    s += '<path d="M100 148 q24 0 26 42 h-52 q2-42 26-42z" fill="' + C + '"/>';
+    s += kEyes(o, 98) + kFace(o, 106, '#2A1E1A');
+    s += '<g fill="' + L + '" opacity=".6"><circle cx="82" cy="120" r="1.6"/><circle cx="86" cy="126" r="1.6"/><circle cx="118" cy="120" r="1.6"/><circle cx="114" cy="126" r="1.6"/></g>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 98);
+  }
+  function kDuck(o) {
+    o = o || {}; var F = '#FFE06E', L = '#C3961C', s = '';
+    s += '<path d="M92 28 q6-18 14-8 q4-12 10 2" stroke="' + L + '" stroke-width="3" fill="' + F + '" stroke-linejoin="round"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += mirror('M30 124 q-14 26 8 48 q10-22 2-48z', k('#FFD24A', L));
+    s += kEyes(o, 98) + kFace(o, 116, null);
+    s += '<path d="M80 112 q20-10 40 0 q4 10-8 14 q-12 4-24 0 q-12-4-8-14z" fill="#FF9A3C" stroke="#B85E14" stroke-width="2.4" stroke-linejoin="round"/>';
+    s += badge(100, 160);
+    s += '<path d="M64 186 l10-6 l10 6 l-10 6z M116 186 l10-6 l10 6 l-10 6z" fill="#FF9A3C" stroke="#B85E14" stroke-width="2.4" stroke-linejoin="round"/>';
+    return kWrap(o, s, 98);
+  }
+  function kFrog(o) {
+    o = o || {}; var F = '#93D26D', L = '#4C8A30', C = '#E9F7D8', s = '';
+    s += '<circle cx="66" cy="44" r="24"' + k(F, L) + '/><circle cx="134" cy="44" r="24"' + k(F, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>';
+    s += '<circle cx="66" cy="44" r="21" fill="' + F + '"/><circle cx="134" cy="44" r="21" fill="' + F + '"/>';
+    if (o.mood === 'happy') s += happyEye(66, 48, 10, '#2A1E1A') + happyEye(134, 48, 10, '#2A1E1A');
+    else s += '<g class="' + (o.anim ? 'blink' : '') + '"><circle cx="66" cy="44" r="15" fill="#fff"/><circle cx="134" cy="44" r="15" fill="#fff"/><ellipse cx="67" cy="46" rx="9" ry="10" fill="#2A1E1A"/><ellipse cx="133" cy="46" rx="9" ry="10" fill="#2A1E1A"/><circle cx="64" cy="42" r="3.4" fill="#fff"/><circle cx="130" cy="42" r="3.4" fill="#fff"/></g>';
+    s += '<path d="M100 120 c30 0 48 8 48 24 c0 10-8 16-18 18 q6 14 4 28 h-68 q-2-14 4-28 c-10-2-18-8-18-18 c0-16 18-24 48-24z" fill="' + C + '"/>';
+    s += '<ellipse cx="52" cy="98" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/><ellipse cx="148" cy="98" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/>';
+    if (o.outfit !== 'mask') s += o.mood === 'huh' ? '<path d="M88 104 q12-6 24 0" stroke="#2A1E1A" stroke-width="2.6" fill="none" stroke-linecap="round"/>' : '<path d="M76 96 q24 18 48 0" stroke="#2A1E1A" stroke-width="2.8" fill="' + (o.mood === 'happy' ? '#B23A4C' : 'none') + '" stroke-linecap="round"/>';
+    s += '<circle cx="90" cy="80" r="1.8" fill="' + L + '"/><circle cx="110" cy="80" r="1.8" fill="' + L + '"/>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 44).replace('<g><circle cx="' , '<g><circle cx="');
+  }
+  function kKoala(o) {
+    o = o || {}; var F = '#AEB5BF', L = '#5E6570', C = '#F6F3EE', s = '';
+    s += '<circle cx="36" cy="64" r="28"' + k(F, L) + '/><circle cx="164" cy="64" r="28"' + k(F, L) + '/><circle cx="38" cy="66" r="17" fill="' + C + '"/><circle cx="162" cy="66" r="17" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 150 q26 0 28 40 h-56 q2-40 28-40z" fill="' + C + '"/>';
+    s += kEyes(o, 98) + kFace(o, 112, null);
+    s += '<path d="M100 96 c12 0 16 8 16 16 c0 10-6 14-16 14 c-10 0-16-4-16-14 c0-8 4-16 16-16z" fill="url(#gNose)"/><ellipse cx="95" cy="104" rx="4" ry="2.4" fill="#fff" opacity=".5"/>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 98);
+  }
+  function kTiger(o) {
+    o = o || {}; var F = '#F5A04A', L = '#A85A1C', C = '#FFF7EC', D = '#3B2A22', s = '';
+    s += '<path class="' + (o.anim ? 'sway' : '') + '" d="M140 186 q40 0 40-38 q0-12 9-10 q12 44-46 56z"' + k(F, L) + '/><path d="M172 160 l12-6M176 146 l10-6" stroke="' + D + '" stroke-width="5" stroke-linecap="round"/>';
+    s += '<circle cx="48" cy="44" r="17"' + k(F, L) + '/><circle cx="152" cy="44" r="17"' + k(F, L) + '/><circle cx="48" cy="46" r="8" fill="' + C + '"/><circle cx="152" cy="46" r="8" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M86 34 q6 10 4 22M100 30 v24M114 34 q-6 10-4 22" stroke="' + D + '" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M28 96 q12 2 20 8M28 110 q12 0 18 4M172 96 q-12 2-20 8M172 110 q-12 0-18 4" stroke="' + D + '" stroke-width="4.5" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M100 104 c26 0 44 8 44 22 c0 16-20 24-44 24 c-24 0-44-8-44-24 c0-14 18-22 44-22z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q24 0 26 40 h-52 q2-40 26-40z" fill="' + C + '"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#E46C7C') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+
+  var DRAW = {
+    corgi: function (o) { return kDog(o, 'corgi'); }, shiba: function (o) { return kDog(o, 'shiba'); },
+    ragdoll: function (o) { return kCat(o, 'ragdoll'); }, siamese: function (o) { return kCat(o, 'siamese'); },
+    raccoon: kRaccoon, owl: kOwl, panda: kPanda, monkey: kMonkey, hamster: kHamster, rabbit: kRabbit, fox: kFox, penguin: kPenguin, bear: kBear,
+    hedgehog: kHedgehog, squirrel: kSquirrel, otter: kOtter, duck: kDuck, frog: kFrog, koala: kKoala, tiger: kTiger
+  };
+  /*
+   * 뽑기 등급과 확률(초안). 합계 100%. 같은 등급 안에서는 똑같이 나눈다.
+   * 확률은 뽑기 화면과 홈페이지에 그대로 공개한다(게임산업법 · 구글 플레이 정책).
+   */
+  var RARITY = {
+    common: { name: '일반', pct: 64, color: '#A3ACBA' },
+    rare: { name: '희귀', pct: 28, color: '#5BB2E8' },
+    hero: { name: '영웅', pct: 6, color: '#B07CF0' },
+    legend: { name: '전설', pct: 2, color: '#FFD23F' }
+  };
+  // [종류, 이름 후보, 등급, 한 줄 소개]
+  var DEX = [
+    ['corgi', '단서', 'common', '웰시코기 · 큰 귀로 단서를 듣는 탐지견'],
+    ['shiba', '보리', 'common', '시바견 · 무뚝뚝한데 검거하면 꼬리가 바쁨'],
+    ['hamster', '도토리', 'common', '햄스터 · 볼주머니에 증거를 숨겨 옴'],
+    ['rabbit', '솜이', 'common', '토끼 · 긴 귀로 잠복 무전을 엿들음'],
+    ['bear', '곰돌 반장', 'common', '곰 · 든든한 현장 반장'],
+    ['hedgehog', '가시', 'common', '고슴도치 · 건드리면 따끔한 수비 담당'],
+    ['duck', '뒤뚱', 'common', '오리 · 뒤뚱뒤뚱 탐문 수사'],
+    ['frog', '풍덩', 'common', '개구리 · 비 오는 해무항 단골'],
+    ['ragdoll', '알리', 'rare', '랙돌 · 파란 눈, 안기면 축 늘어짐'],
+    ['siamese', '모카', 'rare', '샴 · 얼굴이 원래 변장 가면'],
+    ['fox', '노을', 'rare', '여우 · 거짓말을 귀신같이 알아챔'],
+    ['penguin', '펭경', 'rare', '펭귄 · 정복이 원래 몸에 붙어 있음'],
+    ['monkey', '망고', 'rare', '원숭이 · 높은 곳에서 망을 봄'],
+    ['squirrel', '도람', 'rare', '다람쥐 · 증거를 도토리처럼 모아 둠'],
+    ['koala', '코코', 'rare', '코알라 · 하루 20시간 잠복(사실은 잠)'],
+    ['raccoon', '몽이', 'hero', '너구리 · 타고난 검은 복면, 야간 잠복'],
+    ['owl', '새벽', 'hero', '부엉이 · 새벽 3시 CCTV 담당'],
+    ['otter', '달수', 'hero', '수달 · 해무항 물속 증거 수색'],
+    ['panda', '판돌', 'legend', '판다 · 3팀의 전설, 사건 하나에 한 번 나올까 말까'],
+    ['tiger', '범수', 'legend', '호랑이 · 범인 잡는 범, 3팀의 또 다른 전설']
+  ];
+
+  /*
+   * 효과(초안): 보유 효과 = 갖고만 있어도 항상 켜짐, 작고 모일수록 커짐(도감 수집 동기).
+   *             장착 효과 = 파트너로 고른 1마리만, 크고 동물마다 다름(뽑기 동기).
+   * 별(★1~5): 같은 동물이 또 나오면 별이 오르고, 두 효과 모두 ★마다 +25% (★5 = 2배).
+   * 퍼즐 도움(⚡)은 영웅 · 전설만, 일일 특별 출동에서는 꺼진다.
+   */
+  var OWN_KIND = {
+    pay: ['출동 수사비', '%'], idle: ['방치 수입', '%'], cap: ['오프라인 한도', '분'], gear: ['장비 가격 할인', '%'], prep: ['준비물 가격 할인', '%']
+  };
+  var OWN_VAL = { common: { pct: 1, min: 10 }, rare: { pct: 2, min: 20 }, hero: { pct: 3, min: 30 }, legend: { pct: 5, min: 60 } };
+  var EFFECT = {
+    corgi: ['pay', '출동 보상 수사비 +15%'],
+    shiba: ['pay', '사건 진행(검거 수) +10%'],
+    hamster: ['cap', '오프라인 수입 한도 +2시간'],
+    rabbit: ['idle', '팀 회식 지속 시간 +50%'],
+    bear: ['idle', '방치 수입 +15%'],
+    hedgehog: ['prep', '출동에 실패해도 수사비 50% 보전'],
+    duck: ['pay', '중복으로 받는 간식 +1'],
+    frog: ['idle', '사건 2(해무항)에서 모든 수입 +25%'],
+    ragdoll: ['prep', '하루 1번 준비물 1개 무료'],
+    siamese: ['prep', '준비물 가격 -20%'],
+    fox: ['gear', '장비 업그레이드 가격 -15%'],
+    penguin: ['pay', '일일 특별 출동 보상 +30%'],
+    monkey: ['cap', '야간 잠복조 지속 시간 +2시간'],
+    squirrel: ['idle', '오프라인 수입 +20%'],
+    koala: ['cap', '오프라인 수입 한도 +3시간'],
+    raccoon: ['gear', '⚡ 함정을 한 판에 1번 막아 줌'],
+    owl: ['idle', '밤(22시~6시)에 모든 수입 +40%'],
+    otter: ['pay', '⚡ 한 판의 첫 오답은 시간 감점 없음'],
+    panda: ['idle', '모든 수입 +25% · ⚡ 시작 시간 +3초'],
+    tiger: ['pay', '출동 수사비 +20% · ⚡ 콤보 상한 +1']
+  };
+  function ownText(m, r, star) {
+    var K = OWN_KIND[EFFECT[m][0]], v = OWN_VAL[r][K[1] === '분' ? 'min' : 'pct'] * (1 + 0.25 * ((star || 1) - 1));
+    return K[0] + ' +' + (Math.round(v * 10) / 10) + K[1];
+  }
+  function dexOf(m) { for (var n = 0; n < DEX.length; n++) if (DEX[n][0] === m) return DEX[n]; }
+  function pctOf(r) { var c = DEX.filter(function (d) { return d[2] === r; }).length; return Math.round(RARITY[r].pct / c * 100) / 100; }
+  var INFO = {};
+  DEX.forEach(function (d) {
+    var r = RARITY[d[2]];
+    INFO[d[0]] = { name: '"' + d[1] + '"', sub: '<b style="color:' + r.color + '">' + r.name + '</b> · ' + d[3] + ' · 뽑힐 확률 ' + pctOf(d[2]) + '%',
+      note: d[1] + '(이)가 잠복 보고를 물어 왔어요 · 3팀이 48명 검거', extra: d[0] === 'corgi' ? 'raincoat' : null };
+  });
+  function tile(m, o, label, cls) { return '<div class="tile ' + (cls || '') + '">' + DRAW[m](o) + '<span>' + label + '</span></div>'; }
+  function effTable(m) {
+    var d = dexOf(m), r = d[2], eq = EFFECT[m][1];
+    var rows = [1, 3, 5].map(function (st) {
+      var mul = 1 + 0.25 * (st - 1);
+      return '<tr><td>' + '★'.repeat(st) + '</td><td>' + ownText(m, r, st) + '</td><td>' + (st === 1 ? eq : '×' + mul + ' 강화') + '</td></tr>';
+    }).join('');
+    return '<div class="eff"><div class="eb own"><em>보유 효과</em><b>' + ownText(m, r, 1) + '</b><small>갖고만 있어도 항상 · 모일수록 커짐</small></div>' +
+      '<div class="eb eq"><em>장착 효과</em><b>' + eq + '</b><small>파트너 1마리만' + (eq.indexOf('⚡') >= 0 ? ' · ⚡는 일일 출동에서 꺼짐' : '') + '</small></div></div>' +
+      '<table class="st"><tr><th>별</th><th>보유</th><th>장착</th></tr>' + rows + '</table>';
+  }
+  function render(m) {
+    var i = INFO[m], d = DRAW[m];
+    document.querySelectorAll('#dex .dx').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-m') === m); });
+    var outfits = [['beanie', '비니'], ['fedora', '중절모 + 안경'], ['glasses', '안경'], ['mask', '마스크']];
+    var html = '<div class="card"><span class="label">' + i.sub + '</span><h2>' + i.name + '</h2>' +
+      '<div class="hero">' + d({ anim: true }) + '</div>' +
+      effTable(m) +
+      '<span class="label">의상 (퍼즐 특징 그대로 · 모든 동물 공용)</span><div class="row">' + outfits.map(function (x) { return tile(m, { outfit: x[0] }, x[1]); }).join('') + '</div>' +
+      '<span class="label">반응</span><div class="row">' +
+        tile(m, {}, '기본') + tile(m, { mood: 'happy' }, '검거!', 'dusk') + tile(m, { mood: 'huh' }, '함정에 갸웃', 'dark') +
+        (i.extra ? tile(m, { outfit: i.extra }, '해무항 한정') : tile(m, { outfit: 'beanie', mood: 'happy' }, '비니 + 기쁨', 'dusk')) + '</div>' +
+      '<span class="label">대표로 고르면: 앱 아이콘 · 알림</span><div class="icons"><div class="appicon">' + d({ outfit: 'fedora' }) + '</div>' +
+        '<div class="noti"><div class="mini">' + d({}) + '</div><div><b>수사 3팀</b><br>' + i.note + '</div></div></div></div>';
+    document.getElementById('list').innerHTML = html;
+  }
+  var cur = 'corgi';
+  (function dex() {
+    var html = '';
+    ['legend', 'hero', 'rare', 'common'].forEach(function (r) {
+      var R = RARITY[r], list = DEX.filter(function (d) { return d[2] === r; });
+      html += '<div class="rk"><span style="color:' + R.color + '">' + R.name + '</span><em>등급 합계 ' + R.pct + '% · 하나당 ' + pctOf(r) + '%</em></div><div class="dxg">' +
+        list.map(function (d) { return '<button class="dx" data-m="' + d[0] + '" style="--rc:' + R.color + '">' + DRAW[d[0]]({}) + '<span>' + d[1] + '</span></button>'; }).join('') + '</div>';
+    });
+    document.getElementById('dex').innerHTML = html;
+  })();
+  document.getElementById('dex').onclick = function (e) { var b = e.target.closest('.dx'); if (b) { render(cur = b.getAttribute('data-m')); document.getElementById('list').scrollIntoView({ behavior: 'smooth' }); } };
+  render('corgi');
+})();
+</script>
+</body>
+</html>

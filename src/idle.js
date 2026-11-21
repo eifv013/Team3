@@ -121,7 +121,22 @@
   function caseOf(save) { var n = save && save.caseNo; return CASES[(n >= 1 && n <= CASES.length ? n : 1) - 1]; }
 
   // 프로필(사무실 위에 보이는 내 자리). 게임 이름인 "수사 3팀"은 바꾸지 않고, 경찰서와 팀장 이름만 바꾼다.
-  var PROFILE = { stationMax: 8, leaderMax: 8, defaultStation: '중앙서', defaultLeader: '' };
+  /*
+   * 0.3.0 동물 효과(Team3Pets) 끌어오기. idle 은 pets 를 모른다: 화면 쪽에서 setBonus(fn) 로 꽂아 준다.
+   *   fn(save) → { pay, idle, speed, cap, off, gear, night, buff, ... }(퍼센트·분·초 숫자). 안 꽂으면 모두 0.
+   *   시험에서는 그냥 두면 예전과 똑같이 계산된다.
+   */
+  var NO_BONUS = { pay: 0, idle: 0, speed: 0, cap: 0, off: 0, gear: 0, night: 0, buff: 0 };
+  var bonusFn = null;
+  function setBonus(fn) { bonusFn = typeof fn === 'function' ? fn : null; }
+  function bonusOf(save) {
+    if (!bonusFn) return NO_BONUS;
+    try { var b = bonusFn(save); return b && typeof b === 'object' ? b : NO_BONUS; } catch (e) { return NO_BONUS; }   // 효과 계산이 깨져도 게임은 돈다
+  }
+  function pctOf(b, k) { var v = +b[k]; return isFinite(v) && v > 0 ? v / 100 : 0; }
+  function amtOf(b, k) { var v = +b[k]; return isFinite(v) && v > 0 ? v : 0; }
+
+  var PROFILE = { stationMax: 8, leaderMax: 8, defaultStation: '중앙서', defaultLeader: '', renameGems: 10 };   // 0.3.0: 첫 변경은 무료, 그 뒤로 배지 renameGems
 
   /*
    * 이름 다듬기: 앞뒤 공백·줄바꿈·제어 문자와 < > 를 빼고 길이를 자른다(글자 단위, 한글·이모지 안전).
@@ -174,7 +189,11 @@
       recent: [],          // 최근 출동 점수(최대 5개) — 상품 값의 기준
       prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
       prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
-      daily: { day: '', done: false, best: 0, tries: 0 }   // 오늘의 특별 출동
+      daily: { day: '', done: false, best: 0, tries: 0 },  // 오늘의 특별 출동
+      pets: null,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
+      profileEdits: 0,     // 0.3.0 프로필 이름을 바꾼 횟수(0 이면 다음 한 번은 무료)
+      ach: null,           // 0.3.0 업적 · 칭호(Team3Ach.clean)
+      nameTags: 0          // 0.3.0 이름표: 프로필·동물 이름 바꾸기 1번(배지 대신). 묶음으로 산다
     };
   }
 
@@ -251,6 +270,11 @@
       day: typeof dl.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dl.day) ? dl.day : '',
       done: dl.done === true, best: int(dl.best, 0, 0), tries: int(dl.tries, 0, 0, 99)
     };
+    s.profileEdits = int(data.profileEdits, 0, 0, 1e6);
+    s.nameTags = int(data.nameTags, 0, 0, 9999);
+    // 0.3.0: 동물 저장은 객체만 그대로 넘긴다(안쪽 검사는 Team3Pets.clean)
+    s.pets = data.pets && typeof data.pets === 'object' && !Array.isArray(data.pets) ? data.pets : null;
+    s.ach = data.ach && typeof data.ach === 'object' && !Array.isArray(data.ach) ? data.ach : null;   // 0.3.0 업적(검사는 Team3Ach.clean)
     return { save: s, reset: false };
   }
 
@@ -285,10 +309,10 @@
   /* ---------- 팀 ---------- */
   // 팀 전체가 1초에 잡는 수(사기 충전 제외)
   function teamRate(save) {
-    return save.detectives * (1 / TUNE.catchSec) * (1 + TUNE.trainSpeed * save.training);
+    return save.detectives * (1 / TUNE.catchSec) * (1 + TUNE.trainSpeed * save.training) * (1 + pctOf(bonusOf(save), 'speed'));
   }
   function payPerCatch(save) {
-    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training) * moneyMult(save) * caseOf(save).pay);
+    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training) * moneyMult(save) * caseOf(save).pay * (1 + pctOf(bonusOf(save), 'idle')));
   }
   // 팀이 2배로 일하는 끝 시각: 출동 뒤 사기 충전과 팀 회식 중 늦은 쪽(둘이 겹쳐도 곱하지 않는다)
   function boostUntil(save) { return Math.max(save.buffUntil || 0, save.partyUntil || 0); }
@@ -331,13 +355,15 @@
     save.lastSeen = now;
     if (!(dt > 0)) return { seconds: 0, catches: 0, money: 0, closedNow: false };
     // 야간 잠복조(0.1.19): 자리 비움이 nightMinSec 보다 길면 이번 한 번 한도를 늘리고 다 쓴 것으로 친다
-    var cap = TUNE.offlineCapSec, night = false;
-    if (offline && save.nightWatch && dt >= TUNE.nightMinSec) { cap = TUNE.nightCapSec; save.nightWatch = false; night = true; }
+    // 0.3.0: 동물 효과로 한도(+분)·야간 잠복조 한도(+분)·자리 비움 속도(+%p)가 늘 수 있다
+    var bn = bonusOf(save);
+    var cap = TUNE.offlineCapSec + amtOf(bn, 'cap') * 60, night = false;
+    if (offline && save.nightWatch && dt >= TUNE.nightMinSec) { cap = TUNE.nightCapSec + amtOf(bn, 'night') * 60; save.nightWatch = false; night = true; }
     dt = Math.min(dt, cap);
     var start = now - dt * 1000;
     var buffSec = Math.max(0, Math.min(boostUntil(save), now) - start) / 1000;
     buffSec = Math.min(buffSec, dt);
-    var effSec = ((dt - buffSec) + buffSec * TUNE.buffMult) * (offline ? TUNE.offlineRate : 1);
+    var effSec = ((dt - buffSec) + buffSec * TUNE.buffMult) * (offline ? Math.min(1, TUNE.offlineRate + pctOf(bn, 'off')) : 1);
     var total = save.frac + teamRate(save) * effSec;
     var whole = Math.floor(total);
     save.frac = total - whole;
@@ -348,7 +374,7 @@
     var counted = Math.min(whole, room);
     save.caught += counted;
     save.teamCaught += whole;
-    return { seconds: dt, offline: offline, night: night, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
+    return { seconds: dt, cap: cap, offline: offline, night: night, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 사기 ---------- */
@@ -358,7 +384,8 @@
     if (kind === 'train') return save.training >= TUNE.trainMax ? null : Math.round(TUNE.trainBase * Math.pow(TUNE.trainGrowth, save.training));
     var g = GEAR[kind];
     if (!g) throw IdleError('BAD_KIND', '모르는 항목: ' + kind);
-    return save.gear[kind] >= g.costs.length ? null : g.costs[save.gear[kind]];
+    if (save.gear[kind] >= g.costs.length) return null;
+    return Math.round(g.costs[save.gear[kind]] * (1 - Math.min(0.5, pctOf(bonusOf(save), 'gear'))));   // 0.3.0 여우 등: 장비 값 할인(최대 50%)
   }
 
   function buy(save, kind) {
@@ -401,7 +428,8 @@
     if (score < 0 || hits < 0) throw IdleError('BAD_RESULT', '점수·검거 수는 0 이상 정수');
     // 0.1.19: 수사비 = 점수 × 계급 배수 × (준비물 "언론 브리핑"이면 payMult). 점수 기록(최고·최근)은 점수 그대로
     var payMult = typeof result.payMult === 'number' && result.payMult >= 1 && result.payMult <= 3 ? result.payMult : 1;
-    var pay = Math.round(score * moneyMult(save) * payMult);
+    var bn = bonusOf(save);
+    var pay = Math.round(score * moneyMult(save) * payMult * (1 + pctOf(bn, 'pay')));   // 0.3.0: 동물 효과 출동 수사비 +%
     save.money += pay;
     save.recent = save.recent.concat([score]).slice(-5);
     save.caught += hits;
@@ -409,7 +437,7 @@
     save.runs += 1;
     var best = score > save.bestScore;
     if (best) save.bestScore = score;
-    save.buffUntil = now + TUNE.buffSec * 1000;
+    save.buffUntil = now + (TUNE.buffSec + amtOf(bn, 'buff')) * 1000;   // 0.3.0 고슴도치: 사기 충전 +초
     return { money: pay, caught: hits, best: best, closedNow: checkClose(save, now) };
   }
 
@@ -421,6 +449,38 @@
       leader: cleanName(leader, PROFILE.leaderMax, PROFILE.defaultLeader)
     };
     return save.profile;
+  }
+
+  /*
+   * 0.3.0 프로필 이름 바꾸기: 첫 한 번은 무료, 그 뒤로는 배지 PROFILE.renameGems 개.
+   *   바뀐 게 없으면 돈을 받지 않는다(SAME). 반환 { profile, paid }
+   */
+  function profileCost(save) { return (save.profileEdits || 0) > 0 ? PROFILE.renameGems : 0; }
+  /*
+   * 이름표(0.3.0): 이름 바꾸기 1번 = 이름표 1장(있으면 배지보다 먼저 쓴다). 묶음 NAME_TAGS.n 장에 배지 NAME_TAGS.gems 개.
+   *   payName(save, gems): 무료(0)면 그대로, 이름표가 있으면 1장, 없으면 배지. 반환 { w:'free'|'tag'|'gems', c }
+   */
+  var NAME_TAGS = { n: 3, gems: 12 };
+  function payName(save, gems) {
+    if (!(gems > 0)) return { w: 'free', c: 0 };
+    if ((save.nameTags || 0) > 0) { save.nameTags -= 1; return { w: 'tag', c: 1 }; }
+    if (save.gems < gems) throw IdleError('NOT_ENOUGH', '배지가 모자란다');
+    save.gems -= gems;
+    return { w: 'gems', c: gems };
+  }
+  function buyNameTags(save) {
+    if (save.gems < NAME_TAGS.gems) throw IdleError('NOT_ENOUGH', '배지가 모자란다');
+    save.gems -= NAME_TAGS.gems;
+    save.nameTags = (save.nameTags || 0) + NAME_TAGS.n;
+    return save.nameTags;
+  }
+  function changeProfile(save, station, leader) {
+    var st = cleanName(station, PROFILE.stationMax, PROFILE.defaultStation), ld = cleanName(leader, PROFILE.leaderMax, PROFILE.defaultLeader);
+    if (st === save.profile.station && ld === save.profile.leader) throw IdleError('SAME', '바뀐 이름이 없다');
+    var pay = payName(save, profileCost(save));
+    save.profile = { station: st, leader: ld };
+    save.profileEdits = (save.profileEdits || 0) + 1;
+    return { profile: save.profile, paid: pay.w === 'gems' ? pay.c : 0, tag: pay.w === 'tag' };
   }
 
   /* ---------- 사건 ---------- */
@@ -469,8 +529,8 @@
   return {
     VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
     RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
-    cleanName: cleanName, setProfile: setProfile,
-    newSave: newSave, load: load, serialize: serialize,
+    cleanName: cleanName, setProfile: setProfile, profileCost: profileCost, changeProfile: changeProfile, NAME_TAGS: NAME_TAGS, payName: payName, buyNameTags: buyNameTags,
+    newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
     idleCapped: idleCapped, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen

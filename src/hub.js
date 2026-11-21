@@ -8,6 +8,8 @@
 (function () {
   'use strict';
   var UI = window.SuspectsUI, I = window.SuspectsIdle, E = window.Team3Economy;   // E: 상품·메달·특별 출동(0.1.19)
+  var PT = window.Team3Pets, PUI = window.Team3PetsUI;   // 0.3.0 동물 뽑기(규칙 · 화면)
+  var H = window.Team3Ach, AUI = window.Team3AchUI;      // 0.3.0 업적 · 칭호(규칙 · 화면)
   if (!UI || !I) return;
   var $ = function (id) { return document.getElementById(id); };
   var nowMs = function () { return Date.now(); };
@@ -15,6 +17,31 @@
 
   var save = null, pendingClose = false, saveTick = 0;
   var duringRun = null;   // 출동하는 동안 팀이 번 것 { catches, money } — 사무실로 돌아올 때 보여 준다
+
+  /* ---------- 0.3.0 동물 효과 ---------- */
+  // 지금 켜진 동물 효과(사건 번호 · 기기 시각으로 개구리 · 부엉이 조건을 센다)
+  function petBonus(sv) { return PT ? PT.bonus(sv, { caseNo: sv.caseNo, hour: new Date().getHours() }) : null; }
+  if (PT) I.setBonus(petBonus);
+  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); }
+  /*
+   * 업적 확인(0.3.0). 사무실을 그릴 때마다(1초) 본다 — 조건이 20개 남짓이라 가볍다.
+   *   새로 달성하면 보상(배지 · 뽑기권)을 주고 저장, 사무실에서 차례로 알린다.
+   */
+  function checkAch() {
+    if (!H) return;
+    var got = H.check(save, PT ? PT.addTickets : null);
+    if (!got.length) return;
+    persist();
+    if (PUI) PUI.renderPartner();
+    if (AUI) AUI.notify(got);
+  }
+  // 뽑기권 보상(사무실 칸 빨간 점도 다시 그린다). 반환: 결과 화면에 붙일 문구
+  function giveTickets(n, why) {
+    if (!PT || !(n > 0)) return '';
+    PT.addTickets(save, n);
+    if (PUI) PUI.renderPartner();
+    return '뽑기권 +' + n + (why ? ' (' + why + ')' : '');
+  }
 
   /* ---------- 저장 ---------- */
   function persist() {
@@ -110,9 +137,12 @@
     var ld = $('h-leader');
     // 이름을 안 정했으면 "신임 팀장"(이번에 3팀을 맡은 사람). 사건 1 이야기와 이어진다.
     var rk = I.rankOf(save).name;   // 계급(0.1.19): 팀장은 경위부터
-    ld.textContent = rk + ' · ' + (save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기');
+    // 0.3.0 칭호는 팀장 이름 앞에(글은 모두 textContent 라 꺾쇠 걱정 없음)
+    var ttl = H ? H.leaderTitle(save) : '';
+    ld.textContent = rk + ' · ' + (ttl ? '「' + ttl + '」 ' : '') + (save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기');
     ld.classList.toggle('empty', !save.profile.leader);
     $('h-money').textContent = '수사비 ' + fmtShort(save.money);
+    checkAch();
     $('h-gems').textContent = '◆ ' + fmt(save.gems);
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
     // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
@@ -142,7 +172,8 @@
     renderStoryButton();
 
     var o = I.runOptions(save), pc = save.prep || {};
-    var dur = o.duration + (pc.coffee ? 15 : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
+    var zb = PT ? petBonus(save) : null;
+    var dur = o.duration + (pc.coffee ? 15 : 0) + (zb && zb.time ? Math.round(zb.time) : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
     $('h-go-sub').textContent = dur + '초' + (fh ? ' · 무료 단서 ' + fh : '') + (pc.press ? ' · 수사비 1.5배' : ' · 잡은 만큼 수사비');
     if (E) { renderPrep(t); renderDaily(t); renderSupport(t); }
 
@@ -282,11 +313,14 @@
     pendingClose = false;
     I.markStorySeen(save); persist(); renderStoryButton();   // 마지막 편을 이 창에서 보여 주므로 읽음
     var last = CS().story[CS().story.length - 1];
+    var gift = PT ? PT.giftOnce(save, 'case' + CS().no, 10) : 0;   // 0.3.0: 사건마다 한 번, 뽑기권 10장
+    if (gift) { persist(); if (PUI) PUI.renderPartner(); }
     UI.sfx.none(); UI.buzz([30, 60, 30, 60, 80]);
     openInfo({
       label: '사건 ' + CS().no + ' 종결',
       title: CS().title,
       body: p(last.text) +
+        (gift ? p('<b style="color:var(--acc)">사건 종결 보상: 뽑기권 ' + gift + '장</b>') : '') +
         p('<span class="muted">팀이 잡은 용의자 ' + fmt(save.teamCaught) + '명 · 내가 출동해 잡은 용의자 ' + fmt(save.runCaught) + '명 · 출동 ' + save.runs + '번 · 최고 점수 ' + fmt(save.bestScore) + '</span>'),
       ok: I.nextCase(save) ? ro(I.nextCase(save).city) + ' 파견' : '계속 수사하기 (다음 사건은 준비 중)',
       cancel: I.nextCase(save) ? '나중에' : '',
@@ -351,23 +385,41 @@
   }
 
   /* ---------- 프로필 바꾸기 ---------- */
-  function editProfile() {
-    var P = I.PROFILE;
+  /*
+   * 프로필(경찰서 · 팀장 이름). 0.3.0: 첫 변경은 무료, 그 뒤로는 배지 I.PROFILE.renameGems 개.
+   *   값이 모자라거나 바뀐 게 없으면 창을 다시 열어 고친 글을 그대로 둔다.
+   */
+  function editProfile(keep) {
+    var P = I.PROFILE, cost = I.profileCost(save), tags = save.nameTags || 0, NT = I.NAME_TAGS;
+    var costLine = cost === 0
+      ? '<b style="color:var(--acc)">첫 이름 바꾸기는 무료예요.</b> 그 뒤로는 한 번에 배지 ◆' + P.renameGems + '개 또는 이름표 1장이에요.'
+      : tags ? '이름표 1장을 써요. <span class="muted">(가진 이름표 ' + tags + '장)</span>'
+      : '이름 바꾸기는 배지 ◆' + cost + '개예요. <span class="muted">(가진 배지 ◆' + fmt(save.gems) + ')</span>';
+    var tagBtn = cost === 0 ? '' : '<button class="linkish" id="pf-tags"' + (save.gems < NT.gems ? ' disabled' : '') + '>이름표 ' + NT.n + '장 사기 · ◆' + NT.gems + ' (동물 이름에도 써요)</button>';
     openInfo({
       label: '내 프로필', title: '경찰서와 팀장 이름',
       body: '<label class="field">경찰서 이름 (최대 ' + P.stationMax + '자)<input id="pf-station" maxlength="' + (P.stationMax * 2) + '" autocomplete="off" placeholder="' + P.defaultStation + '"></label>' +
             '<label class="field">팀장 이름 (최대 ' + P.leaderMax + '자, 비워도 돼요)<input id="pf-leader" maxlength="' + (P.leaderMax * 2) + '" autocomplete="off" placeholder="예: 김형사"></label>' +
+            p(costLine) + tagBtn +
             p('<span class="muted">게임 이름인 수사 3팀은 그대로예요.</span>'),
-      ok: '저장', cancel: '취소',
+      ok: cost === 0 ? '무료로 저장' : tags ? '이름표로 저장' : '◆' + cost + '로 저장', cancel: '취소',
       onOk: function () {
-        var pf = I.setProfile(save, $('pf-station').value, $('pf-leader').value);
+        var st = $('pf-station').value, ld = $('pf-leader').value, r;
+        try { r = I.changeProfile(save, st, ld); }
+        catch (e) {
+          if (e.code === 'SAME') { UI.toast('바뀐 이름이 없어요'); return; }
+          UI.toast(e.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '바꿀 수 없어요');
+          editProfile({ station: st, leader: ld });
+          return;
+        }
         persist(); render();
-        UI.toast(pf.station + ' 수사 3팀' + (pf.leader ? ', 팀장 ' + pf.leader : ''));
+        if (r.paid || r.tag) UI.sfx.coin();
+        UI.toast(r.profile.station + ' 수사 3팀' + (r.profile.leader ? ', 팀장 ' + r.profile.leader : '') + (r.paid ? ' · ◆' + r.paid : r.tag ? ' · 이름표 1장' : ''));
       }
     });
     // 값은 속성이 아니라 .value 로 넣는다(따옴표 등이 HTML 을 깨지 않게)
-    $('pf-station').value = save.profile.station;
-    $('pf-leader').value = save.profile.leader;
+    $('pf-station').value = keep ? keep.station : save.profile.station;
+    $('pf-leader').value = keep ? keep.leader : save.profile.leader;
     $('pf-station').focus();
   }
 
@@ -400,9 +452,25 @@
       opts.used = opts.used.map(function (id) { return SHORT[id] || id; });
       persist();
     }
+    applyZap(opts);
     opts.boss = I.idleCapped(save);   // 주범 조 출동이면 배경 음악을 boss 곡으로(ui.js show)
     runCfg = opts;
     UI.startRun(opts);
+  }
+  /*
+   * 0.3.0 파트너의 ⚡ 퍼즐 도움(영웅·전설 일부). 평소 출동에만 — 특별 출동(goDaily)은 이 함수를 거치지 않는다.
+   *   shield: 오인 체포 벌점 면제 +번 / miss: 오인 벌점 −초(기본 5초) / combo: 연속 배수 상한 + / time: 출동 시간 +초
+   */
+  var BASE_MISS = 5, BASE_COMBO = 3;
+  function applyZap(opts) {
+    var b = PT && petBonus(save);
+    if (!b) return opts;
+    opts.mods = opts.mods || {};
+    if (b.shield) opts.mods.shield = Math.min(10, (opts.mods.shield || 0) + Math.round(b.shield));
+    if (b.miss) opts.mods.missPenalty = Math.max(0, BASE_MISS - b.miss);
+    if (b.combo) opts.mods.comboMax = BASE_COMBO + Math.round(b.combo);
+    if (b.time) opts.duration = (opts.duration || 90) + Math.round(b.time);
+    return opts;
   }
   // 하루 한 번 특별 출동: 준비물·장비 없이 그날 규칙으로. 오늘 보상을 받았으면 배지로 한 번 더
   function goDaily() {
@@ -451,12 +519,13 @@
     var r = I.applyRun(save, { score: g.score, hits: g.hits, payMult: cfg.payMult || 1 }, nowMs());
     if (E && cfg.daily) {
       var d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
+      if (H) H.noteDaily(save, d.medal);   // 0.3.0 업적용 기록
       extra += d.medal
-        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달 · 수사비 +' + fmt(d.money) + ' · ◆' + d.gems + '</span>'
+        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달 · 수사비 +' + fmt(d.money) + ' · ◆' + d.gems + (PT ? ' · ' + giveTickets(1) : '') + '</span>'
         : '<span class="muted">특별 출동: 동 메달(' + fmt(E.dailyRule(cfg.day || dayNow()).medals[0]) + '점)부터 보상이에요. 오늘 다시 도전할 수 있어요.</span>';
     } else if (E) {
       E.claimMedals(save, g.score, base).forEach(function (m) {
-        extra += '<span class="res-medal">첫 ' + m.name + ' 메달! 수사비 +' + fmt(m.money) + ' · ◆' + m.gems + '</span>';
+        extra += '<span class="res-medal">첫 ' + m.name + ' 메달! 수사비 +' + fmt(m.money) + ' · ◆' + m.gems + (PT ? ' · ' + giveTickets(2) : '') + '</span>';
       });
       if (g.score > best0 && best0 > 0) extra += '<span style="color:var(--acc);font-weight:700">최고 점수 경신! (전 기록 ' + fmt(best0) + ')</span>';
     }
@@ -476,10 +545,11 @@
     if (!got.length) return false;
     persist(); render();
     var last = got[got.length - 1], gems = got.reduce(function (a, x) { return a + x.gems; }, 0);
+    var tk = PT ? giveTickets(3 * got.length) : '';   // 0.3.0: 승진 한 계단마다 뽑기권 3장
     UI.sfx.none(); UI.buzz([30, 60, 30]);
     openInfo({ label: '승진', title: ro(last.name) + ' 승진했어요',
       body: p('현장에서 직접 잡은 용의자가 ' + fmt(save.runCaught) + '명이 되었어요.') +
-        p('수사비가 <b>+' + Math.round(I.rankOf(save).bonus * 100) + '%</b> 늘어요(팀·출동 모두). 승진 축하 배지 ◆' + gems + '개를 받았어요.') +
+        p('수사비가 <b>+' + Math.round(I.rankOf(save).bonus * 100) + '%</b> 늘어요(팀·출동 모두). 승진 축하 배지 ◆' + gems + '개를 받았어요.' + (tk ? ' ' + tk + '장도 함께!' : '')) +
         (I.rankOf(save).next ? p('<span class="muted">다음 계급 ' + I.rankOf(save).next.name + '까지 ' + fmt(I.rankOf(save).toNext) + '명</span>') : ''),
       readOnly: true });
     return true;
@@ -534,16 +604,24 @@
     var r = I.load(json, nowMs());
     if (r.reset) return { ok: false, message: '저장 내용이 올바르지 않아요' };
     save = r.save;
+    petsReady();
     save.lastSeen = nowMs();   // 코드를 만든 뒤 지난 시간은 '자리 비움'으로 치지 않는다(기기를 옮기는 사이 보상 받기 방지)
     persist();
     return { ok: true };
   };
   UI.hooks.resetSave = function () {
-    save = I.newSave(nowMs()); save.tutorialDone = true; persist();
+    save = I.newSave(nowMs()); save.tutorialDone = true; petsReady(); persist();
   };
 
   $('h-go').addEventListener('click', go);
-  $('h-profile').addEventListener('click', editProfile);
+  $('h-profile').addEventListener('click', function () { editProfile(); });
+  // 프로필 창 안의 "이름표 사기"(0.3.0): 사고 나면 적던 글을 그대로 둔 채 창을 다시 그린다
+  $('info-body').addEventListener('click', function (e) {
+    if (!e.target.closest('#pf-tags')) return;
+    var keep = { station: $('pf-station').value, leader: $('pf-leader').value };
+    try { I.buyNameTags(save); persist(); render(); UI.sfx.coin(); UI.toast('이름표 ' + I.NAME_TAGS.n + '장을 샀어요'); } catch (err) { UI.toast('배지가 모자라요'); }
+    editProfile(keep);
+  });
   $('h-hire').addEventListener('click', function () { tryBuy('hire'); });
   $('h-trainb').addEventListener('click', function () { tryBuy('train'); });
   $('h-gear').addEventListener('click', function (e) {
@@ -570,7 +648,12 @@
   $('info-cancel').addEventListener('click', function () { closeInfo('cancel'); });
   $('info-x').addEventListener('click', function () { closeInfo('cancel'); });
   $('info-sheet').addEventListener('click', function (e) { if (e.target === this) closeInfo('cancel'); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('info-sheet').hidden) closeInfo('cancel'); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!$('info-sheet').hidden) closeInfo('cancel');
+    else if (PUI && PUI.isOpen()) PUI.close();
+    else if (AUI && AUI.isOpen()) AUI.close();
+  });
   // 탭을 떠날 때·돌아올 때 저장과 반영
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { I.advance(save, nowMs()); persist(); }
@@ -701,14 +784,20 @@
     if (updating) return 'stay';
     if (dispatching) return 'stay';   // 출동 전환 중: 사무실에서 뒤로(=앱 종료)로 오해하지 않게 그냥 둔다
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }
+    if (PUI && PUI.isOpen()) { PUI.close(); return 'stay'; }
+    if (AUI && AUI.isOpen()) { AUI.close(); return 'stay'; }
     return UI.back();
   };
 
   /* ---------- 시작 ---------- */
   var loaded = loadSave();
   save = loaded.save;
+  petsReady();   // 동물 저장 검사는 자리 비움 계산(한도 효과) 전에
   var away = I.advance(save, nowMs(), { offline: true });   // 앱을 끈 사이 = 자리 비움(절반 속도, 4시간까지)
   persist();
+  // 창 모듈을 먼저 붙인다(첫 render 의 업적 확인이 알림을 띄울 수 있게)
+  if (PUI) PUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
+  if (AUI) AUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
   render();
   applyTheme();
   UI.show('s-hub');
@@ -721,8 +810,8 @@
       body: p('3팀이 용의자 <b style="color:var(--acc)">' + fmt(away.catches) + '명</b>을 잡았어요.') +
         p('수사비 <b style="color:var(--acc)">+' + fmt(away.money) + '</b>') +
         (away.night ? p('<span style="color:var(--acc);font-weight:700">야간 잠복조 투입: 이번엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 셌어요</span>') : '') +
-        p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + (I.TUNE.offlineCapSec / 3600) + '시간까지만 세요.' +
-          (!away.night && away.seconds >= I.TUNE.offlineCapSec ? ' 이번엔 꽉 찼어요. 지원의 야간 잠복조를 사 두면 다음엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 세요.' : '') + '</span>') +
+        p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + fmtDur(away.cap || I.TUNE.offlineCapSec) + '까지만 세요' + (away.cap > I.TUNE.offlineCapSec && !away.night ? '(동물 효과로 늘어남)' : '') + '.' +
+          (!away.night && away.seconds >= (away.cap || I.TUNE.offlineCapSec) ? ' 이번엔 꽉 찼어요. 지원의 야간 잠복조를 사 두면 다음엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 세요.' : '') + '</span>') +
         (away.counted < away.catches ? p('<span class="muted">남은 주범 조는 현장 출동으로만 잡을 수 있어요.</span>') : ''),
       ok: '좋아요',
       onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); else showPromotions(); }

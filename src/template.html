@@ -519,6 +519,104 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 @media (prefers-reduced-motion:reduce){.screen.in,#s-play.in{animation:none}}
 @media (prefers-reduced-motion:reduce){.float,.money.pop{animation-duration:.01s}.next-bar i{transition:none}}
 @media (prefers-reduced-motion:reduce){.card,.card.hit,.card.miss,.card.enter,.card.clue,.stamp.go{animation-duration:.01s}}
+
+/* ---------- 0.3.0 동물 · 뽑기 ---------- */
+.pet-card{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:16px;background:var(--panel);border:1px solid var(--line)}
+.pet-art{width:58px;height:58px;flex:none;border-radius:14px;border:2px solid var(--gc,var(--line));background:linear-gradient(180deg,#FBF7EE,#EFE6D2);padding:0;display:flex;align-items:center;justify-content:center;overflow:visible}
+.pet-art svg{width:100%;height:100%;overflow:visible}
+.pet-empty{font-family:'Black Han Sans',sans-serif;font-size:28px;color:#8A8F99}
+.pet-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pet-tx b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pet-tx small{font-size:12px;color:var(--muted);line-height:1.35}
+.pet-card .buy{position:relative;overflow:visible}
+.pet-dot{position:absolute;top:-6px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#E5484F;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pet-stars{color:var(--acc);font-size:11px;letter-spacing:-1px}.pet-stars i{font-style:normal;color:#4A5160}
+.sheet.pets{gap:10px}
+.pet-wallet{display:flex;gap:6px;flex-wrap:wrap}
+.pet-wallet span{flex:1;min-width:0;padding:6px 8px;border-radius:10px;background:var(--panel2);font-size:12px;color:var(--muted);text-align:center;white-space:nowrap}
+.pet-wallet b{color:var(--text);font-size:14px}
+.pet-tabs{display:flex;gap:6px}
+.pet-tabs button{flex:1;height:40px;border-radius:12px;border:1.5px solid var(--line);background:none;font-weight:700;font-size:14px;color:var(--muted)}
+.pet-tabs button.on{border-color:var(--acc);color:var(--acc)}
+.pet-draw{display:flex;flex-direction:column;gap:10px}
+.pet-result{min-height:150px;border-radius:14px;background:radial-gradient(ellipse at 50% 40%,#2B3242,#1A1F29 75%);padding:10px;display:grid;gap:6px;align-content:center;justify-items:center}
+.pet-result>p{font-size:13px}
+.pet-result.n1{grid-template-columns:1fr}
+.pet-result.n10{grid-template-columns:repeat(5,1fr)}
+.pet-result.best-l{box-shadow:inset 0 0 0 2px #FFD23F,0 0 24px rgba(255,210,63,.35)}
+.pet-got{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;padding:4px 2px;border-radius:12px;background:linear-gradient(180deg,#FBF7EE,#EFE6D2);border:2px solid var(--gc);animation:petflip .45s ease-out both}
+.pet-result.n1 .pet-got{max-width:180px;padding:8px}
+.pet-got svg{width:100%;height:auto;aspect-ratio:1/1;overflow:visible}
+.pet-got span{font-size:10px;font-weight:700;color:#1B1E24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pet-result.n1 .pet-got span{font-size:14px}
+.pet-got em{font-style:normal;font-size:10px;font-weight:700;color:#5A6170}.pet-got em.new{color:#E5484F}
+.pet-got.g-l{box-shadow:0 0 14px rgba(255,210,63,.8)}.pet-got.g-h{box-shadow:0 0 10px rgba(176,124,240,.6)}
+@keyframes petflip{0%{opacity:0;transform:rotateY(90deg) scale(.7)}60%{opacity:1;transform:rotateY(-10deg) scale(1.06)}100%{transform:none}}
+.pet-pity{font-size:13px;color:var(--muted);text-align:center}.pet-pity b{color:var(--acc)}
+.pet-btns{display:flex;gap:8px}
+.pet-btns button{flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:16px}
+.pet-btns small{font-size:11px;font-weight:600;opacity:.85}
+.pet-rate-box summary{font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;padding:4px 0}
+.pet-rate-box p{font-size:12px;line-height:1.5;margin:4px 0 0}
+.pet-rates{width:100%;border-collapse:collapse;font-size:13px}
+.pet-rates th,.pet-rates td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}.pet-rates th{color:var(--muted);font-weight:600}
+.pet-sum{display:flex;flex-direction:column;gap:3px;padding:10px;border-radius:12px;background:var(--panel2)}
+.pet-sum b{font-size:13px;color:#9CD3F2;line-height:1.45}
+.pet-dex{display:flex;flex-direction:column;gap:4px}
+.pet-dex-head,.pet-dex-row{display:grid;grid-template-columns:64px repeat(4,1fr);gap:5px;align-items:center}
+.pet-dex-head span{font-size:11px;font-weight:700;text-align:center}
+.pet-dex-name{display:flex;flex-direction:column;line-height:1.2}.pet-dex-name b{font-size:12px}.pet-dex-name small{font-size:10px;color:var(--muted)}
+.pet-cell{position:relative;aspect-ratio:1/1;padding:2px;border-radius:10px;border:1.5px solid var(--line);background:#2A303B}
+.pet-cell svg{width:100%;height:100%;filter:grayscale(1) brightness(.35);opacity:.6}
+.pet-cell.have{border-color:var(--gc);background:linear-gradient(180deg,#FBF7EE,#EFE6D2)}
+.pet-cell.have svg{filter:none;opacity:1}
+.pet-cell.eq{box-shadow:0 0 0 2px var(--acc)}
+.pet-cell i{position:absolute;right:2px;bottom:1px;font-style:normal;font-size:9px;font-weight:700;color:#7A5A00;background:rgba(255,255,255,.85);border-radius:5px;padding:0 3px}
+.pet-detail{position:relative;display:grid;grid-template-columns:110px 1fr;gap:10px;padding:12px;border-radius:14px;background:var(--panel2);border:2px solid var(--gc)}
+.pet-detail .pet-x{position:absolute;top:4px;right:6px;width:32px;height:32px;border:0;background:none;color:var(--muted);font-size:22px}
+.pet-big{width:110px;height:110px;border-radius:14px;background:linear-gradient(180deg,#FBF7EE,#EFE6D2);display:flex;align-items:center;justify-content:center}
+.pet-big svg{width:100%;height:100%;overflow:visible}.pet-big.locked svg{filter:grayscale(.7);opacity:.75}
+.pet-info{display:flex;flex-direction:column;gap:3px;min-width:0;padding-right:24px}.pet-info h3{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:22px}
+.pet-info small{font-size:12px;line-height:1.4}
+.pet-eff{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pet-eff>div{display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:10px;background:var(--panel)}
+.pet-eff em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted)}
+.pet-eff b{font-size:13px;line-height:1.35}.pet-eff b.own{color:#9CD3F2}.pet-eff b.eq{color:var(--acc)}
+.pet-eff small{font-size:11px;color:var(--muted);line-height:1.35}
+.pet-detail>p{grid-column:1/-1;margin:0}
+.pet-name{grid-column:1/-1;display:flex;gap:12px;align-items:center}
+.pet-name.on{gap:6px}.pet-name input{flex:1;min-width:0;height:42px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);padding:0 10px;font:inherit;font-size:15px}.pet-name button.primary,.pet-name button.ghost{height:42px;padding:0 12px;font-size:14px}
+.pet-acts{grid-column:1/-1;display:flex;gap:8px}.pet-acts button{flex:1;height:46px;font-size:15px}
+/* 말랑 동물 움직임(그림 안 class, 게임의 다른 이름과 겹치지 않게 pb-) */
+@media (prefers-reduced-motion:reduce){.pb-blink,.pb-wag,.pb-sway,.pb-tilt,.pb-hop,.pet-got{animation:none !important}}
+.pb-blink{animation:pbblink 4s infinite;transform-origin:center;transform-box:fill-box}
+@keyframes pbblink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.pb-wag{animation:pbwag .5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 100%}
+@keyframes pbwag{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}
+.pb-sway{animation:pbsway 2.4s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 100%}
+@keyframes pbsway{from{transform:rotate(-8deg)}to{transform:rotate(10deg)}}
+.pb-tilt{animation:pbtilt 1.6s ease-in-out infinite alternate;transform-box:view-box;transform-origin:100px 150px}
+@keyframes pbtilt{from{transform:rotate(0)}to{transform:rotate(-12deg)}}
+.pb-hop{animation:pbhop .6s ease-in-out infinite;transform-box:view-box;transform-origin:100px 190px}
+@keyframes pbhop{0%,100%{transform:translateY(0)}40%{transform:translateY(-10px) scaleY(1.03)}}
+
+/* ---------- 0.3.0 업적 · 칭호 ---------- */
+#h-ach{position:relative}
+.ach-dot{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:#E5484F}
+.ach-top{display:flex;align-items:baseline;gap:8px}.ach-top b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:28px;color:var(--acc)}
+.ach-pick{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.ach-pick span{flex:none}
+.ach-pick select{flex:1;min-width:0;height:42px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-size:14px;padding:0 8px}
+.ach-g{margin-top:6px}
+.ach-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--panel2)}
+.ach-row.done{box-shadow:inset 0 0 0 1.5px rgba(255,210,63,.6)}
+.ach-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ach-tx b{font-size:14px}.ach-row.done .ach-tx b{color:var(--acc)}
+.ach-tx small{font-size:11.5px;color:var(--muted);line-height:1.35}
+.ach-bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}.ach-bar i{display:block;height:100%;background:var(--acc)}
+.ach-n{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ttl{font-style:normal;font-size:.82em;font-weight:700;color:var(--acc);margin-right:3px}
+.ttl::before{content:'「'}.ttl::after{content:'」'}
 </style>
 </head>
 <body>
@@ -541,8 +639,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
           <span class="feed" id="h-feed" aria-live="polite"></span>
         </span>
       </div>
-      <div class="icon-pair"><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
+      <div class="icon-pair"><button class="icon-btn" id="h-ach" aria-label="업적과 칭호"></button><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
     </div>
+    <!-- 0.3.0 파트너 동물: 그림을 누르면 기뻐하고, 단추로 동물 · 뽑기 창 -->
+    <div class="pet-card" id="h-pet"></div>
 
     <div class="casebox">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
@@ -776,6 +876,33 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       <button class="primary" id="help-close" hidden>닫기</button>
     </div>
   </div>
+  <!-- 0.3.0 동물 · 뽑기 창(petsui.js 가 채운다). 확률표는 뽑기 탭에 늘 보인다 -->
+  <div class="sheet-back" id="pets-sheet" role="dialog" aria-modal="true" aria-labelledby="pets-title" hidden>
+    <div class="sheet pets">
+<button class="x-btn" id="pets-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="label">동물 · 뽑기</span>
+      <h2 id="pets-title" style="font-size:26px">말랑 수사대</h2>
+      <div class="pet-wallet" id="pets-wallet"></div>
+      <div class="pet-tabs" id="pets-tabs"><button data-tab="draw">뽑기</button><button data-tab="dex" id="pets-tab-dex">도감</button></div>
+      <div class="pet-detail" id="pets-detail" hidden></div>
+      <div id="pets-draw" class="pet-draw">
+        <div class="pet-result" id="pets-result"><p class="muted">뽑은 동물이 여기에 나와요</p></div>
+        <span class="pet-pity" id="pets-pity"></span>
+        <div class="pet-btns"><button class="ghost" id="pets-one"></button><button class="primary" id="pets-ten"></button></div>
+        <details class="pet-rate-box" open><summary>확률 공개 · 규칙</summary><div id="pets-rates"></div></details>
+      </div>
+      <div id="pets-dex" class="pet-dex" hidden></div>
+    </div>
+  </div>
+  <!-- 0.3.0 업적 · 칭호 창(achui.js 가 채운다) -->
+  <div class="sheet-back" id="ach-sheet" role="dialog" aria-modal="true" aria-labelledby="ach-title-h" hidden>
+    <div class="sheet">
+<button class="x-btn" id="ach-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="label">업적 · 칭호</span>
+      <h2 id="ach-title-h" style="font-size:26px">3팀 공적 기록</h2>
+      <div id="ach-body" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
   <div class="toast" id="toast" hidden role="status"></div>
 
   <!-- 필수 업데이트(설치된 판에서만): 새 버전이 확인되면 사무실에서 화면을 덮는다. "나중에"는 없다. -->
@@ -826,6 +953,15 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 /*ECONOMY*/
 </script>
 <script>
+/*PETS*/
+</script>
+<script>
+/*PETART*/
+</script>
+<script>
+/*ACH*/
+</script>
+<script>
 /*TRANSIT*/
 </script>
 <script>
@@ -851,6 +987,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 </script>
 <script>
 /*UI*/
+</script>
+<script>
+/*ACHUI*/
+</script>
+<script>
+/*PETSUI*/
 </script>
 <script>
 /*HUB*/

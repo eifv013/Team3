@@ -519,6 +519,104 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 @media (prefers-reduced-motion:reduce){.screen.in,#s-play.in{animation:none}}
 @media (prefers-reduced-motion:reduce){.float,.money.pop{animation-duration:.01s}.next-bar i{transition:none}}
 @media (prefers-reduced-motion:reduce){.card,.card.hit,.card.miss,.card.enter,.card.clue,.stamp.go{animation-duration:.01s}}
+
+/* ---------- 0.3.0 동물 · 뽑기 ---------- */
+.pet-card{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:16px;background:var(--panel);border:1px solid var(--line)}
+.pet-art{width:58px;height:58px;flex:none;border-radius:14px;border:2px solid var(--gc,var(--line));background:linear-gradient(180deg,#FBF7EE,#EFE6D2);padding:0;display:flex;align-items:center;justify-content:center;overflow:visible}
+.pet-art svg{width:100%;height:100%;overflow:visible}
+.pet-empty{font-family:'Black Han Sans',sans-serif;font-size:28px;color:#8A8F99}
+.pet-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pet-tx b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pet-tx small{font-size:12px;color:var(--muted);line-height:1.35}
+.pet-card .buy{position:relative;overflow:visible}
+.pet-dot{position:absolute;top:-6px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#E5484F;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pet-stars{color:var(--acc);font-size:11px;letter-spacing:-1px}.pet-stars i{font-style:normal;color:#4A5160}
+.sheet.pets{gap:10px}
+.pet-wallet{display:flex;gap:6px;flex-wrap:wrap}
+.pet-wallet span{flex:1;min-width:0;padding:6px 8px;border-radius:10px;background:var(--panel2);font-size:12px;color:var(--muted);text-align:center;white-space:nowrap}
+.pet-wallet b{color:var(--text);font-size:14px}
+.pet-tabs{display:flex;gap:6px}
+.pet-tabs button{flex:1;height:40px;border-radius:12px;border:1.5px solid var(--line);background:none;font-weight:700;font-size:14px;color:var(--muted)}
+.pet-tabs button.on{border-color:var(--acc);color:var(--acc)}
+.pet-draw{display:flex;flex-direction:column;gap:10px}
+.pet-result{min-height:150px;border-radius:14px;background:radial-gradient(ellipse at 50% 40%,#2B3242,#1A1F29 75%);padding:10px;display:grid;gap:6px;align-content:center;justify-items:center}
+.pet-result>p{font-size:13px}
+.pet-result.n1{grid-template-columns:1fr}
+.pet-result.n10{grid-template-columns:repeat(5,1fr)}
+.pet-result.best-l{box-shadow:inset 0 0 0 2px #FFD23F,0 0 24px rgba(255,210,63,.35)}
+.pet-got{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;padding:4px 2px;border-radius:12px;background:linear-gradient(180deg,#FBF7EE,#EFE6D2);border:2px solid var(--gc);animation:petflip .45s ease-out both}
+.pet-result.n1 .pet-got{max-width:180px;padding:8px}
+.pet-got svg{width:100%;height:auto;aspect-ratio:1/1;overflow:visible}
+.pet-got span{font-size:10px;font-weight:700;color:#1B1E24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pet-result.n1 .pet-got span{font-size:14px}
+.pet-got em{font-style:normal;font-size:10px;font-weight:700;color:#5A6170}.pet-got em.new{color:#E5484F}
+.pet-got.g-l{box-shadow:0 0 14px rgba(255,210,63,.8)}.pet-got.g-h{box-shadow:0 0 10px rgba(176,124,240,.6)}
+@keyframes petflip{0%{opacity:0;transform:rotateY(90deg) scale(.7)}60%{opacity:1;transform:rotateY(-10deg) scale(1.06)}100%{transform:none}}
+.pet-pity{font-size:13px;color:var(--muted);text-align:center}.pet-pity b{color:var(--acc)}
+.pet-btns{display:flex;gap:8px}
+.pet-btns button{flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:16px}
+.pet-btns small{font-size:11px;font-weight:600;opacity:.85}
+.pet-rate-box summary{font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;padding:4px 0}
+.pet-rate-box p{font-size:12px;line-height:1.5;margin:4px 0 0}
+.pet-rates{width:100%;border-collapse:collapse;font-size:13px}
+.pet-rates th,.pet-rates td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}.pet-rates th{color:var(--muted);font-weight:600}
+.pet-sum{display:flex;flex-direction:column;gap:3px;padding:10px;border-radius:12px;background:var(--panel2)}
+.pet-sum b{font-size:13px;color:#9CD3F2;line-height:1.45}
+.pet-dex{display:flex;flex-direction:column;gap:4px}
+.pet-dex-head,.pet-dex-row{display:grid;grid-template-columns:64px repeat(4,1fr);gap:5px;align-items:center}
+.pet-dex-head span{font-size:11px;font-weight:700;text-align:center}
+.pet-dex-name{display:flex;flex-direction:column;line-height:1.2}.pet-dex-name b{font-size:12px}.pet-dex-name small{font-size:10px;color:var(--muted)}
+.pet-cell{position:relative;aspect-ratio:1/1;padding:2px;border-radius:10px;border:1.5px solid var(--line);background:#2A303B}
+.pet-cell svg{width:100%;height:100%;filter:grayscale(1) brightness(.35);opacity:.6}
+.pet-cell.have{border-color:var(--gc);background:linear-gradient(180deg,#FBF7EE,#EFE6D2)}
+.pet-cell.have svg{filter:none;opacity:1}
+.pet-cell.eq{box-shadow:0 0 0 2px var(--acc)}
+.pet-cell i{position:absolute;right:2px;bottom:1px;font-style:normal;font-size:9px;font-weight:700;color:#7A5A00;background:rgba(255,255,255,.85);border-radius:5px;padding:0 3px}
+.pet-detail{position:relative;display:grid;grid-template-columns:110px 1fr;gap:10px;padding:12px;border-radius:14px;background:var(--panel2);border:2px solid var(--gc)}
+.pet-detail .pet-x{position:absolute;top:4px;right:6px;width:32px;height:32px;border:0;background:none;color:var(--muted);font-size:22px}
+.pet-big{width:110px;height:110px;border-radius:14px;background:linear-gradient(180deg,#FBF7EE,#EFE6D2);display:flex;align-items:center;justify-content:center}
+.pet-big svg{width:100%;height:100%;overflow:visible}.pet-big.locked svg{filter:grayscale(.7);opacity:.75}
+.pet-info{display:flex;flex-direction:column;gap:3px;min-width:0;padding-right:24px}.pet-info h3{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:22px}
+.pet-info small{font-size:12px;line-height:1.4}
+.pet-eff{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pet-eff>div{display:flex;flex-direction:column;gap:2px;padding:8px;border-radius:10px;background:var(--panel)}
+.pet-eff em{font-style:normal;font-size:11px;font-weight:700;color:var(--muted)}
+.pet-eff b{font-size:13px;line-height:1.35}.pet-eff b.own{color:#9CD3F2}.pet-eff b.eq{color:var(--acc)}
+.pet-eff small{font-size:11px;color:var(--muted);line-height:1.35}
+.pet-detail>p{grid-column:1/-1;margin:0}
+.pet-name{grid-column:1/-1;display:flex;gap:12px;align-items:center}
+.pet-name.on{gap:6px}.pet-name input{flex:1;min-width:0;height:42px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);color:var(--text);padding:0 10px;font:inherit;font-size:15px}.pet-name button.primary,.pet-name button.ghost{height:42px;padding:0 12px;font-size:14px}
+.pet-acts{grid-column:1/-1;display:flex;gap:8px}.pet-acts button{flex:1;height:46px;font-size:15px}
+/* 말랑 동물 움직임(그림 안 class, 게임의 다른 이름과 겹치지 않게 pb-) */
+@media (prefers-reduced-motion:reduce){.pb-blink,.pb-wag,.pb-sway,.pb-tilt,.pb-hop,.pet-got{animation:none !important}}
+.pb-blink{animation:pbblink 4s infinite;transform-origin:center;transform-box:fill-box}
+@keyframes pbblink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.pb-wag{animation:pbwag .5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 100%}
+@keyframes pbwag{from{transform:rotate(-14deg)}to{transform:rotate(16deg)}}
+.pb-sway{animation:pbsway 2.4s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 100%}
+@keyframes pbsway{from{transform:rotate(-8deg)}to{transform:rotate(10deg)}}
+.pb-tilt{animation:pbtilt 1.6s ease-in-out infinite alternate;transform-box:view-box;transform-origin:100px 150px}
+@keyframes pbtilt{from{transform:rotate(0)}to{transform:rotate(-12deg)}}
+.pb-hop{animation:pbhop .6s ease-in-out infinite;transform-box:view-box;transform-origin:100px 190px}
+@keyframes pbhop{0%,100%{transform:translateY(0)}40%{transform:translateY(-10px) scaleY(1.03)}}
+
+/* ---------- 0.3.0 업적 · 칭호 ---------- */
+#h-ach{position:relative}
+.ach-dot{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:#E5484F}
+.ach-top{display:flex;align-items:baseline;gap:8px}.ach-top b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:28px;color:var(--acc)}
+.ach-pick{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.ach-pick span{flex:none}
+.ach-pick select{flex:1;min-width:0;height:42px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-size:14px;padding:0 8px}
+.ach-g{margin-top:6px}
+.ach-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--panel2)}
+.ach-row.done{box-shadow:inset 0 0 0 1.5px rgba(255,210,63,.6)}
+.ach-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ach-tx b{font-size:14px}.ach-row.done .ach-tx b{color:var(--acc)}
+.ach-tx small{font-size:11.5px;color:var(--muted);line-height:1.35}
+.ach-bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}.ach-bar i{display:block;height:100%;background:var(--acc)}
+.ach-n{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ttl{font-style:normal;font-size:.82em;font-weight:700;color:var(--acc);margin-right:3px}
+.ttl::before{content:'「'}.ttl::after{content:'」'}
 </style>
 </head>
 <body>
@@ -541,8 +639,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
           <span class="feed" id="h-feed" aria-live="polite"></span>
         </span>
       </div>
-      <div class="icon-pair"><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
+      <div class="icon-pair"><button class="icon-btn" id="h-ach" aria-label="업적과 칭호"></button><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
     </div>
+    <!-- 0.3.0 파트너 동물: 그림을 누르면 기뻐하고, 단추로 동물 · 뽑기 창 -->
+    <div class="pet-card" id="h-pet"></div>
 
     <div class="casebox">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
@@ -776,6 +876,33 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       <button class="primary" id="help-close" hidden>닫기</button>
     </div>
   </div>
+  <!-- 0.3.0 동물 · 뽑기 창(petsui.js 가 채운다). 확률표는 뽑기 탭에 늘 보인다 -->
+  <div class="sheet-back" id="pets-sheet" role="dialog" aria-modal="true" aria-labelledby="pets-title" hidden>
+    <div class="sheet pets">
+<button class="x-btn" id="pets-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="label">동물 · 뽑기</span>
+      <h2 id="pets-title" style="font-size:26px">말랑 수사대</h2>
+      <div class="pet-wallet" id="pets-wallet"></div>
+      <div class="pet-tabs" id="pets-tabs"><button data-tab="draw">뽑기</button><button data-tab="dex" id="pets-tab-dex">도감</button></div>
+      <div class="pet-detail" id="pets-detail" hidden></div>
+      <div id="pets-draw" class="pet-draw">
+        <div class="pet-result" id="pets-result"><p class="muted">뽑은 동물이 여기에 나와요</p></div>
+        <span class="pet-pity" id="pets-pity"></span>
+        <div class="pet-btns"><button class="ghost" id="pets-one"></button><button class="primary" id="pets-ten"></button></div>
+        <details class="pet-rate-box" open><summary>확률 공개 · 규칙</summary><div id="pets-rates"></div></details>
+      </div>
+      <div id="pets-dex" class="pet-dex" hidden></div>
+    </div>
+  </div>
+  <!-- 0.3.0 업적 · 칭호 창(achui.js 가 채운다) -->
+  <div class="sheet-back" id="ach-sheet" role="dialog" aria-modal="true" aria-labelledby="ach-title-h" hidden>
+    <div class="sheet">
+<button class="x-btn" id="ach-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="label">업적 · 칭호</span>
+      <h2 id="ach-title-h" style="font-size:26px">3팀 공적 기록</h2>
+      <div id="ach-body" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
   <div class="toast" id="toast" hidden role="status"></div>
 
   <!-- 필수 업데이트(설치된 판에서만): 새 버전이 확인되면 사무실에서 화면을 덮는다. "나중에"는 없다. -->
@@ -822,6 +949,19 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.3.0', date: '2026-11-22', title: '말랑 수사대 (동물 뽑기)',
+      items: [
+        '3팀과 함께할 동물을 뽑아 모아요. 20종 × 일반·희귀·영웅·전설 네 등급, 모두 80마리예요.',
+        '보유 효과: 모은 동물 모두가 늘 조금씩 수사비·팀 수입·자리 비움 한도·할인을 올려 줘요.',
+        '장착 효과: 파트너로 고른 한 마리가 크게 도와요. 사무실에서 파트너를 누르면 기뻐해요.',
+        '같은 동물이 또 나오면 ★가 올라 효과가 세져요. ★5 뒤에는 간식이 되고, 간식으로 원하는 동물을 데려와요.',
+        '확률은 뽑기 창에 늘 공개돼요. 50번 안에 전설이 안 나오면 전설 확정, 10회 뽑기는 희귀 이상 1마리 보장.',
+        '처음 열면 뽑기권 5장을 드려요. 사건 종결·승진·메달·특별 출동·업적으로도 뽑기권을 받아요.',
+        '동물마다 이름을 지어 줄 수 있어요. 첫 한 번은 무료, 그 뒤로는 배지 ◆5 또는 이름표 1장이에요.',
+        '경찰서·팀장 이름 바꾸기도 첫 한 번은 무료, 그 뒤로는 배지 ◆10 또는 이름표 1장이에요. 이름표는 3장에 ◆12.',
+        '업적이 생겼어요(사무실 오른쪽 위 트로피). 달성하면 칭호와 뽑기권·배지를 받아요.',
+        '칭호는 팀장 이름 앞과 동물 이름 앞에 달 수 있어요. 배지로 사는 칭호도 있어요.'
+      ] },
     { ver: '0.2.1', date: '2026-11-22', title: '특별 출동: 위조된 한 패',
       items: [
         '오늘의 특별 출동에 새 퍼즐 "위조된 한 패"가 들어갔어요. 세 명씩 지은 줄 중 가짜 한 줄을 찾아요.',
@@ -1694,7 +1834,22 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   function caseOf(save) { var n = save && save.caseNo; return CASES[(n >= 1 && n <= CASES.length ? n : 1) - 1]; }
 
   // 프로필(사무실 위에 보이는 내 자리). 게임 이름인 "수사 3팀"은 바꾸지 않고, 경찰서와 팀장 이름만 바꾼다.
-  var PROFILE = { stationMax: 8, leaderMax: 8, defaultStation: '중앙서', defaultLeader: '' };
+  /*
+   * 0.3.0 동물 효과(Team3Pets) 끌어오기. idle 은 pets 를 모른다: 화면 쪽에서 setBonus(fn) 로 꽂아 준다.
+   *   fn(save) → { pay, idle, speed, cap, off, gear, night, buff, ... }(퍼센트·분·초 숫자). 안 꽂으면 모두 0.
+   *   시험에서는 그냥 두면 예전과 똑같이 계산된다.
+   */
+  var NO_BONUS = { pay: 0, idle: 0, speed: 0, cap: 0, off: 0, gear: 0, night: 0, buff: 0 };
+  var bonusFn = null;
+  function setBonus(fn) { bonusFn = typeof fn === 'function' ? fn : null; }
+  function bonusOf(save) {
+    if (!bonusFn) return NO_BONUS;
+    try { var b = bonusFn(save); return b && typeof b === 'object' ? b : NO_BONUS; } catch (e) { return NO_BONUS; }   // 효과 계산이 깨져도 게임은 돈다
+  }
+  function pctOf(b, k) { var v = +b[k]; return isFinite(v) && v > 0 ? v / 100 : 0; }
+  function amtOf(b, k) { var v = +b[k]; return isFinite(v) && v > 0 ? v : 0; }
+
+  var PROFILE = { stationMax: 8, leaderMax: 8, defaultStation: '중앙서', defaultLeader: '', renameGems: 10 };   // 0.3.0: 첫 변경은 무료, 그 뒤로 배지 renameGems
 
   /*
    * 이름 다듬기: 앞뒤 공백·줄바꿈·제어 문자와 < > 를 빼고 길이를 자른다(글자 단위, 한글·이모지 안전).
@@ -1747,7 +1902,11 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       recent: [],          // 최근 출동 점수(최대 5개) — 상품 값의 기준
       prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
       prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
-      daily: { day: '', done: false, best: 0, tries: 0 }   // 오늘의 특별 출동
+      daily: { day: '', done: false, best: 0, tries: 0 },  // 오늘의 특별 출동
+      pets: null,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
+      profileEdits: 0,     // 0.3.0 프로필 이름을 바꾼 횟수(0 이면 다음 한 번은 무료)
+      ach: null,           // 0.3.0 업적 · 칭호(Team3Ach.clean)
+      nameTags: 0          // 0.3.0 이름표: 프로필·동물 이름 바꾸기 1번(배지 대신). 묶음으로 산다
     };
   }
 
@@ -1824,6 +1983,11 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       day: typeof dl.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dl.day) ? dl.day : '',
       done: dl.done === true, best: int(dl.best, 0, 0), tries: int(dl.tries, 0, 0, 99)
     };
+    s.profileEdits = int(data.profileEdits, 0, 0, 1e6);
+    s.nameTags = int(data.nameTags, 0, 0, 9999);
+    // 0.3.0: 동물 저장은 객체만 그대로 넘긴다(안쪽 검사는 Team3Pets.clean)
+    s.pets = data.pets && typeof data.pets === 'object' && !Array.isArray(data.pets) ? data.pets : null;
+    s.ach = data.ach && typeof data.ach === 'object' && !Array.isArray(data.ach) ? data.ach : null;   // 0.3.0 업적(검사는 Team3Ach.clean)
     return { save: s, reset: false };
   }
 
@@ -1858,10 +2022,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   /* ---------- 팀 ---------- */
   // 팀 전체가 1초에 잡는 수(사기 충전 제외)
   function teamRate(save) {
-    return save.detectives * (1 / TUNE.catchSec) * (1 + TUNE.trainSpeed * save.training);
+    return save.detectives * (1 / TUNE.catchSec) * (1 + TUNE.trainSpeed * save.training) * (1 + pctOf(bonusOf(save), 'speed'));
   }
   function payPerCatch(save) {
-    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training) * moneyMult(save) * caseOf(save).pay);
+    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training) * moneyMult(save) * caseOf(save).pay * (1 + pctOf(bonusOf(save), 'idle')));
   }
   // 팀이 2배로 일하는 끝 시각: 출동 뒤 사기 충전과 팀 회식 중 늦은 쪽(둘이 겹쳐도 곱하지 않는다)
   function boostUntil(save) { return Math.max(save.buffUntil || 0, save.partyUntil || 0); }
@@ -1904,13 +2068,15 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     save.lastSeen = now;
     if (!(dt > 0)) return { seconds: 0, catches: 0, money: 0, closedNow: false };
     // 야간 잠복조(0.1.19): 자리 비움이 nightMinSec 보다 길면 이번 한 번 한도를 늘리고 다 쓴 것으로 친다
-    var cap = TUNE.offlineCapSec, night = false;
-    if (offline && save.nightWatch && dt >= TUNE.nightMinSec) { cap = TUNE.nightCapSec; save.nightWatch = false; night = true; }
+    // 0.3.0: 동물 효과로 한도(+분)·야간 잠복조 한도(+분)·자리 비움 속도(+%p)가 늘 수 있다
+    var bn = bonusOf(save);
+    var cap = TUNE.offlineCapSec + amtOf(bn, 'cap') * 60, night = false;
+    if (offline && save.nightWatch && dt >= TUNE.nightMinSec) { cap = TUNE.nightCapSec + amtOf(bn, 'night') * 60; save.nightWatch = false; night = true; }
     dt = Math.min(dt, cap);
     var start = now - dt * 1000;
     var buffSec = Math.max(0, Math.min(boostUntil(save), now) - start) / 1000;
     buffSec = Math.min(buffSec, dt);
-    var effSec = ((dt - buffSec) + buffSec * TUNE.buffMult) * (offline ? TUNE.offlineRate : 1);
+    var effSec = ((dt - buffSec) + buffSec * TUNE.buffMult) * (offline ? Math.min(1, TUNE.offlineRate + pctOf(bn, 'off')) : 1);
     var total = save.frac + teamRate(save) * effSec;
     var whole = Math.floor(total);
     save.frac = total - whole;
@@ -1921,7 +2087,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var counted = Math.min(whole, room);
     save.caught += counted;
     save.teamCaught += whole;
-    return { seconds: dt, offline: offline, night: night, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
+    return { seconds: dt, cap: cap, offline: offline, night: night, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 사기 ---------- */
@@ -1931,7 +2097,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (kind === 'train') return save.training >= TUNE.trainMax ? null : Math.round(TUNE.trainBase * Math.pow(TUNE.trainGrowth, save.training));
     var g = GEAR[kind];
     if (!g) throw IdleError('BAD_KIND', '모르는 항목: ' + kind);
-    return save.gear[kind] >= g.costs.length ? null : g.costs[save.gear[kind]];
+    if (save.gear[kind] >= g.costs.length) return null;
+    return Math.round(g.costs[save.gear[kind]] * (1 - Math.min(0.5, pctOf(bonusOf(save), 'gear'))));   // 0.3.0 여우 등: 장비 값 할인(최대 50%)
   }
 
   function buy(save, kind) {
@@ -1974,7 +2141,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (score < 0 || hits < 0) throw IdleError('BAD_RESULT', '점수·검거 수는 0 이상 정수');
     // 0.1.19: 수사비 = 점수 × 계급 배수 × (준비물 "언론 브리핑"이면 payMult). 점수 기록(최고·최근)은 점수 그대로
     var payMult = typeof result.payMult === 'number' && result.payMult >= 1 && result.payMult <= 3 ? result.payMult : 1;
-    var pay = Math.round(score * moneyMult(save) * payMult);
+    var bn = bonusOf(save);
+    var pay = Math.round(score * moneyMult(save) * payMult * (1 + pctOf(bn, 'pay')));   // 0.3.0: 동물 효과 출동 수사비 +%
     save.money += pay;
     save.recent = save.recent.concat([score]).slice(-5);
     save.caught += hits;
@@ -1982,7 +2150,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     save.runs += 1;
     var best = score > save.bestScore;
     if (best) save.bestScore = score;
-    save.buffUntil = now + TUNE.buffSec * 1000;
+    save.buffUntil = now + (TUNE.buffSec + amtOf(bn, 'buff')) * 1000;   // 0.3.0 고슴도치: 사기 충전 +초
     return { money: pay, caught: hits, best: best, closedNow: checkClose(save, now) };
   }
 
@@ -1994,6 +2162,38 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       leader: cleanName(leader, PROFILE.leaderMax, PROFILE.defaultLeader)
     };
     return save.profile;
+  }
+
+  /*
+   * 0.3.0 프로필 이름 바꾸기: 첫 한 번은 무료, 그 뒤로는 배지 PROFILE.renameGems 개.
+   *   바뀐 게 없으면 돈을 받지 않는다(SAME). 반환 { profile, paid }
+   */
+  function profileCost(save) { return (save.profileEdits || 0) > 0 ? PROFILE.renameGems : 0; }
+  /*
+   * 이름표(0.3.0): 이름 바꾸기 1번 = 이름표 1장(있으면 배지보다 먼저 쓴다). 묶음 NAME_TAGS.n 장에 배지 NAME_TAGS.gems 개.
+   *   payName(save, gems): 무료(0)면 그대로, 이름표가 있으면 1장, 없으면 배지. 반환 { w:'free'|'tag'|'gems', c }
+   */
+  var NAME_TAGS = { n: 3, gems: 12 };
+  function payName(save, gems) {
+    if (!(gems > 0)) return { w: 'free', c: 0 };
+    if ((save.nameTags || 0) > 0) { save.nameTags -= 1; return { w: 'tag', c: 1 }; }
+    if (save.gems < gems) throw IdleError('NOT_ENOUGH', '배지가 모자란다');
+    save.gems -= gems;
+    return { w: 'gems', c: gems };
+  }
+  function buyNameTags(save) {
+    if (save.gems < NAME_TAGS.gems) throw IdleError('NOT_ENOUGH', '배지가 모자란다');
+    save.gems -= NAME_TAGS.gems;
+    save.nameTags = (save.nameTags || 0) + NAME_TAGS.n;
+    return save.nameTags;
+  }
+  function changeProfile(save, station, leader) {
+    var st = cleanName(station, PROFILE.stationMax, PROFILE.defaultStation), ld = cleanName(leader, PROFILE.leaderMax, PROFILE.defaultLeader);
+    if (st === save.profile.station && ld === save.profile.leader) throw IdleError('SAME', '바뀐 이름이 없다');
+    var pay = payName(save, profileCost(save));
+    save.profile = { station: st, leader: ld };
+    save.profileEdits = (save.profileEdits || 0) + 1;
+    return { profile: save.profile, paid: pay.w === 'gems' ? pay.c : 0, tag: pay.w === 'tag' };
   }
 
   /* ---------- 사건 ---------- */
@@ -2042,8 +2242,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   return {
     VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
     RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
-    cleanName: cleanName, setProfile: setProfile,
-    newSave: newSave, load: load, serialize: serialize,
+    cleanName: cleanName, setProfile: setProfile, profileCost: profileCost, changeProfile: changeProfile, NAME_TAGS: NAME_TAGS, payName: payName, buyNameTags: buyNameTags,
+    newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
     idleCapped: idleCapped, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
@@ -2096,6 +2296,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   var PREP_IDS = ITEMS.filter(function (it) { return it.kind === 'prep'; }).map(function (it) { return it.id; });
 
   var MIN_BASE = 300;
+  // 0.3.0 동물 효과 한 갈래(없으면 0)
+  function bn(save, k) { var v = +((I.bonusOf ? I.bonusOf(save) : {})[k]); return isFinite(v) && v > 0 ? v : 0; }
 
   function baseValue(save) {
     var r = save.recent || [], avg = 0;
@@ -2120,6 +2322,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (currency !== 'money') return null;   // 'ad' · 'iap' 는 아직 없다
     var v = baseValue(save) * (it.price.base || 0);
     if (it.price.teamMin) v = Math.max(v, I.teamRate(save) * 60 * it.price.teamMin * I.payPerCatch(save));
+    // 0.3.0 샴 등: 준비물 값 할인(수사비만, 최대 50%)
+    if (it.kind === 'prep') v *= 1 - Math.min(0.5, bn(save, 'prep') / 100);
     return roundNice(v);
   }
 
@@ -2148,7 +2352,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (save[wallet] < c) throw EcoError('NOT_ENOUGH', currency === 'gems' ? '배지가 모자란다' : '수사비가 모자란다');
     save[wallet] -= c;
     if (it.kind === 'prep') { save.prep[id] = true; savePaid(save, id, wallet, c); }
-    else if (id === 'party') save.partyUntil = now + I.TUNE.partySec * 1000;
+    else if (id === 'party') save.partyUntil = now + I.TUNE.partySec * (1 + bn(save, 'party') / 100) * 1000;   // 0.3.0 토끼: 회식 시간 +%
     else if (id === 'night') save.nightWatch = true;
     return { id: id, currency: wallet, paid: c };
   }
@@ -2292,7 +2496,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var tier = -1;
     st.rule.medals.forEach(function (at, i) { if (score >= at) tier = i; });
     if (tier < 0) return { medal: null, money: 0, gems: 0, best: save.daily.best };
-    var money = roundNice(baseBefore * DAILY_BASE[tier]), gems = DAILY_GEMS[tier];
+    var money = roundNice(baseBefore * DAILY_BASE[tier] * (1 + bn(save, 'daily') / 100)), gems = DAILY_GEMS[tier];   // 0.3.0 펭귄: 특별 출동 수사비 +%
     save.money += money; save.gems += gems;
     save.daily.done = true;
     return { medal: ['동', '은', '금'][tier], money: money, gems: gems, best: save.daily.best };
@@ -2303,6 +2507,950 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     baseValue: baseValue, roundNice: roundNice, price: price, owned: owned, buy: buy, unprep: unprep, consumePrep: consumePrep,
     medalFor: medalFor, claimMedals: claimMedals,
     dayKey: dayKey, dailyRule: dailyRule, dailyStatus: dailyStatus, startDaily: startDaily, applyDaily: applyDaily
+  };
+});
+
+</script>
+<script>
+/*
+ * Team3Pets(0.3.0) — 말랑 동물 뽑기 · 도감 · 별 강화 · 보유/장착 효과.
+ *
+ * 구조
+ *   20종 × 4등급(일반 c · 희귀 r · 영웅 h · 전설 l) = 80마리. 한 마리의 열쇠는 'corgi:c' 처럼 "종류:등급".
+ *   저장은 save.pets 하나에 모은다(idle.load 는 객체만 넘겨주고, 검사는 여기 clean 이 한다).
+ *     own    { 'corgi:c': 별(1~5) }   가진 동물과 별
+ *     eq     '' | 'corgi:c'           장착(파트너) 1마리
+ *     pity   전설 없이 뽑은 횟수(천장)
+ *     treats 간식(★5 뒤 중복으로 받음 → 원하는 동물과 교환)
+ *     tickets 뽑기권(무료 보상으로 받음)
+ *     names  { 'corgi:c': '지어 준 이름' } · freeName 무료 이름 짓기를 썼는가(게임 전체 한 번)
+ *     pulls  지금까지 뽑은 횟수 · welcome 처음 선물 받음 · gifts 한 번만 주는 보상을 받은 표시 { 'case1': true }
+ *   DOM·시계·난수를 모른다(rng 는 밖에서 받는다) → node 시험에서 그대로 돈다.
+ *
+ * 뽑기
+ *   등급을 먼저 정하고(RATES), 그 등급 안의 20종 중 하나를 똑같은 확률로 고른다.
+ *   천장: PITY 번째까지 전설이 한 번도 안 나오면 그 번째는 전설 확정. 전설이 나오면 0 부터 다시 센다.
+ *   10연속: 희귀 이상이 하나도 없으면 마지막 한 마리를 희귀로 올린다(천장이 먼저).
+ *   확률·천장은 화면에 그대로 공개한다(게임산업법 · 구글 플레이 정책).
+ *
+ * 효과
+ *   보유 효과: 가진 동물 모두(80마리 각각), 작게, 늘 켜짐. 종류마다 하나의 갈래(OWN)로 쌓인다.
+ *   장착 효과: 파트너 1마리만, 크게. 등급 배수 GRADE_MUL × 별 배수(★마다 +25%).
+ *   ⚡ 퍼즐 도움: 영웅·전설 등급의 일부 종류만. 일일 특별 출동에서는 쓰지 않는다(밖에서 판단).
+ *   원칙: 돈으로 시간·편의를 산다. 퍼즐 도움은 작고, 기록을 겨루는 특별 출동에선 꺼진다.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Team3Pets = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  function PetError(code, message) { var e = new Error(message); e.name = 'PetError'; e.code = code; return e; }
+
+  /* ---------- 등급 ---------- */
+  var GRADES = ['c', 'r', 'h', 'l'];
+  var GRADE = {
+    c: { name: '일반', pct: 64, color: '#A3ACBA', treat: 1, swap: 20 },
+    r: { name: '희귀', pct: 28, color: '#5BB2E8', treat: 3, swap: 60 },
+    h: { name: '영웅', pct: 6, color: '#B07CF0', treat: 10, swap: 200 },
+    l: { name: '전설', pct: 2, color: '#FFD23F', treat: 30, swap: 600 }
+  };
+  var GRADE_MUL = { c: 1, r: 1.5, h: 2, l: 3 };   // 장착 효과 배수
+  var STAR_MAX = 5, STAR_STEP = 0.25;
+  var PITY = 50;
+  var COST = { one: 10, ten: 90 };   // 배지(◆)
+  var WELCOME = 5;                   // 처음 뽑기 창을 열면 주는 뽑기권
+  var NAME_MAX = 8, RENAME_GEMS = 5; // 0.3.0 동물 이름: 8자까지, 게임 전체 첫 한 번은 무료 · 그 뒤로 배지 5개
+
+  /*
+   * 종류(20). own: 보유 효과 갈래 / eq: 장착 효과(★1 · 일반 기준 값) / zap: 영웅 이상에서 열리는 ⚡ 퍼즐 도움
+   *   갈래(효과 키):
+   *     pay   출동 수사비 +%        idle  팀 수입 +%          speed 팀 검거 속도 +%
+   *     cap   자리 비움 한도 +분     off   자리 비움 속도 +%p   gear  장비 값 −%      prep 준비물 값 −%
+   *     party 팀 회식 시간 +%        night 야간 잠복조 한도 +분  daily 특별 출동 수사비 +%
+   *     buff  사기 충전 +초          treat 중복 간식 +개        case2 사건 2 수입 +%   owl 밤(22~6시) 수입 +%
+   */
+  var SPECIES = [
+    { id: 'corgi', kind: '웰시코기', name: '단서', own: 'pay', eq: { pay: 10 }, line: '큰 귀로 단서를 듣는 탐지견' },
+    { id: 'shiba', kind: '시바견', name: '보리', own: 'idle', eq: { speed: 8 }, line: '무뚝뚝한데 검거하면 꼬리가 바쁨' },
+    { id: 'hamster', kind: '햄스터', name: '도토리', own: 'cap', eq: { cap: 60 }, line: '볼주머니에 증거를 숨겨 옴' },
+    { id: 'rabbit', kind: '토끼', name: '솜이', own: 'idle', eq: { party: 30 }, line: '긴 귀로 잠복 무전을 엿들음' },
+    { id: 'bear', kind: '곰', name: '곰돌 반장', own: 'idle', eq: { idle: 10 }, line: '든든한 현장 반장' },
+    { id: 'hedgehog', kind: '고슴도치', name: '가시', own: 'pay', eq: { buff: 30 }, line: '건드리면 따끔한 수비 담당' },
+    { id: 'duck', kind: '오리', name: '뒤뚱', own: 'pay', eq: { treat: 1 }, line: '뒤뚱뒤뚱 탐문 수사' },
+    { id: 'frog', kind: '개구리', name: '풍덩', own: 'idle', eq: { case2: 15 }, line: '비 오는 해무항 단골' },
+    { id: 'ragdoll', kind: '랙돌', name: '알리', own: 'cap', eq: { off: 8 }, line: '파란 눈, 안기면 축 늘어짐' },
+    { id: 'siamese', kind: '샴', name: '모카', own: 'prep', eq: { prep: 10 }, line: '얼굴이 원래 변장 가면' },
+    { id: 'fox', kind: '여우', name: '노을', own: 'gear', eq: { gear: 8 }, line: '거짓말을 귀신같이 알아챔' },
+    { id: 'penguin', kind: '펭귄', name: '펭경', own: 'pay', eq: { daily: 20 }, line: '정복이 원래 몸에 붙어 있음' },
+    { id: 'monkey', kind: '원숭이', name: '망고', own: 'cap', eq: { night: 60 }, line: '높은 곳에서 망을 봄' },
+    { id: 'squirrel', kind: '다람쥐', name: '도람', own: 'idle', eq: { pay: 6, idle: 6 }, line: '증거를 도토리처럼 모아 둠' },
+    { id: 'koala', kind: '코알라', name: '코코', own: 'cap', eq: { cap: 90 }, line: '하루 20시간 잠복(사실은 잠)' },
+    { id: 'raccoon', kind: '너구리', name: '몽이', own: 'pay', eq: { pay: 8 }, zap: { shield: 1 }, line: '타고난 검은 복면, 야간 잠복' },
+    { id: 'owl', kind: '부엉이', name: '새벽', own: 'idle', eq: { owl: 25 }, line: '새벽 3시 CCTV 담당' },
+    { id: 'otter', kind: '수달', name: '달수', own: 'pay', eq: { speed: 5 }, zap: { miss: 2 }, line: '해무항 물속 증거 수색' },
+    { id: 'panda', kind: '판다', name: '판돌', own: 'idle', eq: { pay: 10, idle: 10 }, zap: { time: 3 }, line: '3팀의 전설, 보기 드문 손님' },
+    { id: 'tiger', kind: '호랑이', name: '범수', own: 'pay', eq: { pay: 12 }, zap: { combo: 1 }, line: '범인 잡는 범' }
+  ];
+  var BY_ID = {};
+  SPECIES.forEach(function (s) { BY_ID[s.id] = s; });
+
+  // 보유 효과: 한 마리(★1)가 주는 값. 퍼센트 갈래와 분 갈래
+  var OWN_VAL = { c: { pct: 0.5, min: 5 }, r: { pct: 1, min: 10 }, h: { pct: 2, min: 20 }, l: { pct: 3, min: 40 } };
+  var OWN_KIND = { pay: '출동 수사비', idle: '팀 수입', cap: '자리 비움 한도', gear: '장비 값 할인', prep: '준비물 값 할인' };
+  // 효과가 너무 커지지 않게 묶는 상한
+  var CAPS = { gear: 50, prep: 50, cap: 8 * 60, off: 30, night: 8 * 60, buff: 300, treat: 5, party: 300 };
+
+  var LABEL = {
+    pay: ['출동 수사비', '+', '%'], idle: ['팀 수입', '+', '%'], speed: ['팀 검거 속도', '+', '%'],
+    cap: ['자리 비움 한도', '+', '분'], off: ['자리 비움 중 팀 속도', '+', '%p'], gear: ['장비 값', '−', '%'], prep: ['준비물 값', '−', '%'],
+    party: ['팀 회식 시간', '+', '%'], night: ['야간 잠복조 한도', '+', '분'], daily: ['특별 출동 수사비', '+', '%'],
+    buff: ['출동 뒤 사기 충전', '+', '초'], treat: ['중복일 때 간식', '+', '개'], case2: ['해무항(사건 2) 수입', '+', '%'],
+    owl: ['밤(22~6시) 수입', '+', '%'],
+    shield: ['⚡ 오인 체포 벌점 면제', '', '번'], miss: ['⚡ 오인 체포 벌점', '−', '초'], time: ['⚡ 출동 시간', '+', '초'], combo: ['⚡ 연속 배수 상한', '+', '']
+  };
+
+  /* ---------- 저장 ---------- */
+  function key(id, g) { return id + ':' + g; }
+  function parse(k) {
+    var m = /^([a-z0-9]+):([crhl])$/.exec(k || '');
+    return m && BY_ID[m[1]] ? { id: m[1], g: m[2] } : null;
+  }
+  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false }; }
+  function int(v, def, min, max) {
+    if (typeof v !== 'number' || !isFinite(v)) return def;
+    v = Math.floor(v);
+    return v < min ? min : v > max ? max : v;
+  }
+  /** 저장 속 pets 를 검사해 깨끗한 값으로 바꾼다(없거나 깨졌으면 빈 값). save.pets 를 돌려준다 */
+  function clean(save) {
+    var d = save.pets && typeof save.pets === 'object' ? save.pets : {}, p = empty();
+    var own = d.own && typeof d.own === 'object' ? d.own : {};
+    Object.keys(own).forEach(function (k) { if (parse(k)) p.own[k] = int(own[k], 1, 1, STAR_MAX); });
+    p.eq = typeof d.eq === 'string' && p.own[d.eq] ? d.eq : '';
+    p.pity = int(d.pity, 0, 0, PITY - 1);
+    p.treats = int(d.treats, 0, 0, 1e7);
+    p.tickets = int(d.tickets, 0, 0, 1e5);
+    p.pulls = int(d.pulls, 0, 0, 1e8);
+    p.welcome = d.welcome === true;
+    var gf = d.gifts && typeof d.gifts === 'object' ? d.gifts : {};
+    Object.keys(gf).slice(0, 200).forEach(function (k) { if (gf[k] === true && /^[a-z0-9_-]{1,24}$/.test(k)) p.gifts[k] = true; });
+    var nm = d.names && typeof d.names === 'object' ? d.names : {};
+    Object.keys(nm).forEach(function (k) { var v = cleanText(nm[k]); if (parse(k) && v) p.names[k] = v; });
+    p.freeName = d.freeName === true;
+    save.pets = p;
+    return p;
+  }
+  function P(save) { return save.pets && save.pets.own ? save.pets : clean(save); }
+
+  /* ---------- 이름(0.3.0) ---------- */
+  // 줄바꿈·제어 문자·꺾쇠를 빼고 NAME_MAX 글자까지(이모지도 한 글자로 센다)
+  function cleanText(v) {
+    if (typeof v !== 'string') return '';
+    return Array.from(v.replace(/\s+/g, ' ').replace(/[\u0000-\u001f\u007f<>]/g, '').trim()).slice(0, NAME_MAX).join('');
+  }
+  /** 그 동물의 이름(지어 준 이름이 없으면 종류의 기본 이름) */
+  function nameOf(save, k) {
+    var x = parse(k), p = save && save.pets;
+    if (!x) return '';
+    return (p && p.names && p.names[k]) || BY_ID[x.id].name;
+  }
+  /** 다음 이름 바꾸기 값(배지). 게임 전체에서 첫 한 번은 0 */
+  function renameCost(save) { return P(save).freeName ? RENAME_GEMS : 0; }
+  /** 이름 짓기. 반환 { name, paid } */
+  function rename(save, k, name) {
+    var p = P(save), x = parse(k);
+    if (!x || !p.own[k]) throw PetError('NOT_OWNED', '없는 동물');
+    var v = cleanText(name);
+    if (!v) throw PetError('EMPTY', '이름이 비었다');
+    if (v === nameOf(save, k)) throw PetError('SAME', '같은 이름');
+    var c = renameCost(save), tag = false;
+    if (c === 0) p.freeName = true;
+    else if ((save.nameTags || 0) > 0) { save.nameTags -= 1; tag = true; c = 0; }   // 이름표가 있으면 배지 대신(idle.NAME_TAGS)
+    else if (!(save.gems >= c)) throw PetError('NOT_ENOUGH', '배지가 모자란다');
+    else save.gems -= c;
+    if (v === BY_ID[x.id].name) delete p.names[k]; else p.names[k] = v;
+    return { name: v, paid: c, tag: tag };
+  }
+  /** 기본 이름으로 되돌리기(무료) */
+  function resetName(save, k) { var p = P(save); delete p.names[k]; return nameOf(save, k); }
+
+  /* ---------- 확률 ---------- */
+  /** 등급 확률(%)과 한 마리 확률(%) — 화면에 공개하는 표 */
+  function rates() {
+    return GRADES.map(function (g) {
+      return { g: g, name: GRADE[g].name, pct: GRADE[g].pct, each: Math.round(GRADE[g].pct / SPECIES.length * 1000) / 1000 };
+    });
+  }
+  function rollGrade(rng) {
+    var x = rng() * 100, acc = 0;
+    for (var i = GRADES.length - 1; i >= 0; i--) {   // 전설부터 깎아 내려간다(경계값이 일반 쪽으로 가게)
+      acc += GRADE[GRADES[i]].pct;
+      if (x < acc) return GRADES[i];
+    }
+    return 'c';
+  }
+  function rollSpecies(rng) {
+    var i = Math.floor(rng() * SPECIES.length);
+    return SPECIES[Math.min(SPECIES.length - 1, Math.max(0, i))].id;
+  }
+
+  /* ---------- 받기(중복 → 별 → 간식) ---------- */
+  function treatBonus(save) { return Math.round(bonus(save).treat || 0); }
+  /** 한 마리를 넣는다. 반환 { key, id, g, isNew, star, treats } */
+  function grant(save, id, g) {
+    var p = P(save), k = key(id, g), r = { key: k, id: id, g: g, isNew: false, star: 0, treats: 0 };
+    if (!p.own[k]) { p.own[k] = 1; r.isNew = true; r.star = 1; }
+    else if (p.own[k] < STAR_MAX) { p.own[k] += 1; r.star = p.own[k]; }
+    else { r.treats = GRADE[g].treat + treatBonus(save); p.treats += r.treats; r.star = STAR_MAX; }
+    if (!p.eq) p.eq = k;   // 처음 가진 동물은 바로 파트너로
+    return r;
+  }
+
+  /**
+   * 뽑기. n = 1 | 10. pay = 'ticket' | 'gems'. rng 는 0 이상 1 미만.
+   * 반환: { results:[grant 결과], paid:{ w, c } }
+   */
+  function pull(save, n, pay, rng) {
+    if (n !== 1 && n !== 10) throw PetError('BAD_COUNT', '1회 또는 10회만');
+    if (typeof rng !== 'function') throw PetError('BAD_RNG', 'rng 는 함수');
+    var p = P(save), c;
+    if (pay === 'ticket') {
+      c = n;
+      if (p.tickets < c) throw PetError('NOT_ENOUGH', '뽑기권이 모자란다');
+      p.tickets -= c;
+    } else if (pay === 'gems') {
+      c = n === 10 ? COST.ten : COST.one;
+      if (!(save.gems >= c)) throw PetError('NOT_ENOUGH', '배지가 모자란다');
+      save.gems -= c;
+    } else throw PetError('BAD_PAY', '뽑기권 또는 배지');
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      var g;
+      if (p.pity >= PITY - 1) g = 'l';            // 천장
+      else g = rollGrade(rng);
+      if (n === 10 && i === n - 1 && g === 'c' && out.every(function (x) { return x.g === 'c'; })) g = 'r';   // 10연속 희귀 보장
+      p.pity = g === 'l' ? 0 : p.pity + 1;
+      p.pulls += 1;
+      out.push(grant(save, rollSpecies(rng), g));
+    }
+    return { results: out, paid: { w: pay, c: c } };
+  }
+
+  /** 간식으로 원하는 동물 받기. 반환: grant 결과 */
+  function swap(save, id, g) {
+    if (!BY_ID[id] || !GRADE[g]) throw PetError('BAD_PET', '모르는 동물');
+    var p = P(save), c = GRADE[g].swap;
+    if (p.own[key(id, g)] >= STAR_MAX) throw PetError('MAXED', '이미 ★5');
+    if (p.treats < c) throw PetError('NOT_ENOUGH', '간식이 모자란다');
+    p.treats -= c;
+    return grant(save, id, g);
+  }
+  function equip(save, k) {
+    var p = P(save);
+    if (!p.own[k]) throw PetError('NOT_OWNED', '없는 동물');
+    p.eq = k;
+    return k;
+  }
+  /** 무료 뽑기권 주기(보상) */
+  function addTickets(save, n) { var p = P(save); p.tickets += Math.max(0, Math.floor(n) || 0); return p.tickets; }
+  /** 한 번만 주는 뽑기권 보상(사건 종결 등). 이미 받았으면 0 */
+  function giftOnce(save, k, n) {
+    var p = P(save);
+    if (!/^[a-z0-9_-]{1,24}$/.test(k) || p.gifts[k]) return 0;
+    p.gifts[k] = true; p.tickets += n;
+    return n;
+  }
+  /** 처음 뽑기 창을 열 때 선물. 이미 받았으면 0 */
+  function claimWelcome(save) {
+    var p = P(save);
+    if (p.welcome) return 0;
+    p.welcome = true; p.tickets += WELCOME;
+    return WELCOME;
+  }
+
+  /* ---------- 효과 ---------- */
+  function starMul(star) { return 1 + STAR_STEP * ((star || 1) - 1); }
+  /** 한 마리의 보유 효과 { 갈래: 값 } */
+  function ownEffect(id, g, star) {
+    var s = BY_ID[id], v = OWN_VAL[g][s.own === 'cap' ? 'min' : 'pct'] * starMul(star), o = {};
+    o[s.own] = v;
+    return o;
+  }
+  /** 한 마리의 장착 효과 { 갈래: 값 }(⚡ 포함 — 영웅 이상만) */
+  function eqEffect(id, g, star) {
+    var s = BY_ID[id], m = GRADE_MUL[g] * starMul(star), o = {};
+    Object.keys(s.eq).forEach(function (k) { o[k] = s.eq[k] * m; });
+    if (s.zap && (g === 'h' || g === 'l')) Object.keys(s.zap).forEach(function (k) { o[k] = s.zap[k] + (g === 'l' && k === 'time' ? 2 : 0); });
+    return o;
+  }
+  function add(a, b) { Object.keys(b).forEach(function (k) { a[k] = (a[k] || 0) + b[k]; }); return a; }
+
+  /**
+   * 지금 켜진 효과의 합. opts.hour(0~23, 기기 시각)이 있으면 부엉이 밤 효과를 센다. opts.caseNo 로 개구리 효과를 센다.
+   * 반환(모두 숫자, 없으면 0): pay idle speed cap off gear prep party night daily buff treat shield miss time combo
+   *   pay·idle 에는 case2·owl 이 조건에 맞을 때 더해져 있다.
+   */
+  function bonus(save, opts) {
+    var p = save && save.pets && save.pets.own ? save.pets : null, b = {};
+    if (!p) return zero();
+    Object.keys(p.own).forEach(function (k) { var x = parse(k); if (x) add(b, ownEffect(x.id, x.g, p.own[k])); });
+    var e = parse(p.eq);
+    if (e && p.own[p.eq]) add(b, eqEffect(e.id, e.g, p.own[p.eq]));
+    opts = opts || {};
+    if (b.case2 && opts.caseNo === 2) { b.pay = (b.pay || 0) + b.case2; b.idle = (b.idle || 0) + b.case2; }
+    if (b.owl && typeof opts.hour === 'number' && (opts.hour >= 22 || opts.hour < 6)) { b.pay = (b.pay || 0) + b.owl; b.idle = (b.idle || 0) + b.owl; }
+    Object.keys(CAPS).forEach(function (k) { if (b[k] > CAPS[k]) b[k] = CAPS[k]; });
+    var z = zero();
+    Object.keys(z).forEach(function (k) { z[k] = b[k] || 0; });
+    return z;
+  }
+  function zero() { return { pay: 0, idle: 0, speed: 0, cap: 0, off: 0, gear: 0, prep: 0, party: 0, night: 0, daily: 0, buff: 0, treat: 0, case2: 0, owl: 0, shield: 0, miss: 0, time: 0, combo: 0 }; }
+
+  /** 효과 { 갈래: 값 } → 사람이 읽는 줄 목록 */
+  function describe(eff) {
+    return Object.keys(eff).map(function (k) {
+      var L = LABEL[k], v = L && L[2] === '%' || L && L[2] === '%p' ? Math.round(eff[k] * 10) / 10 : Math.round(eff[k]);   // 퍼센트는 소수 한 자리, 분·초·개는 정수
+      return L ? L[0] + ' ' + L[1] + v + L[2] : k + ' ' + v;
+    });
+  }
+  /** 도감 수집 현황 { have, total, byGrade:{c:n,...} } */
+  function progress(save) {
+    var p = P(save), by = { c: 0, r: 0, h: 0, l: 0 }, have = 0;
+    Object.keys(p.own).forEach(function (k) { var x = parse(k); if (x) { by[x.g] += 1; have += 1; } });
+    return { have: have, total: SPECIES.length * GRADES.length, byGrade: by };
+  }
+
+  return {
+    GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,
+    STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, WELCOME: WELCOME, CAPS: CAPS,
+    key: key, parse: parse, clean: clean, rates: rates, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,
+    addTickets: addTickets, claimWelcome: claimWelcome, giftOnce: giftOnce,
+    NAME_MAX: NAME_MAX, RENAME_GEMS: RENAME_GEMS, cleanText: cleanText, nameOf: nameOf, renameCost: renameCost, rename: rename, resetName: resetName, ownEffect: ownEffect, eqEffect: eqEffect, bonus: bonus, describe: describe,
+    starMul: starMul, progress: progress, zero: zero
+  };
+});
+
+</script>
+<script>
+/*
+ * Team3PetArt(0.3.0) — 말랑 동물 그림(SVG 문자열). 그림만 그린다(규칙·저장은 Team3Pets).
+ *   draw(id, { grade:'c'|'r'|'h'|'l', mood:'happy'|'huh', anim:bool, outfit }) → '<svg …>'
+ *   틀: 머리와 몸을 한 윤곽(MOCHI, 찹쌀떡)으로 그리고 같은 계열 진한 색 테두리. 눈·코·입은 얼굴 아래쪽에 작게.
+ *   등급 꾸밈: 일반 = 동 배지 / 희귀 = 경찰모 · 은 배지 / 영웅 = 경찰모 · 빨간 망토 · 금 배지 / 전설 = 금빛 후광 · 금 경찰모 · 반짝임.
+ *   proto/mascot.html 시안에서 옮겨 왔다(시안과 같은 그림).
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Team3PetArt = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+  var SKY = '#9CD3F2', SKY_D = '#4F86A8', INK = '#1B1E24';
+
+  /* ---------- 의상: 머리 위 기준점(cx, top)과 머리 너비(w)에 맞춰 그린다 ---------- */
+  function beanie(cx, top, w, c) {
+    var h = w * 0.5, s = '<g>';
+    s += '<path d="M' + (cx - w / 2) + ' ' + (top + h) + 'c0-' + (h * 1.1) + ' ' + (w * 0.2) + '-' + (h * 1.35) + ' ' + (w / 2) + '-' + (h * 1.35) + 's' + (w / 2) + ' ' + (h * 0.25) + ' ' + (w / 2) + ' ' + (h * 1.35) + 'z" fill="' + c + '"/>';
+    s += '<rect x="' + (cx - w / 2 - 3) + '" y="' + (top + h - 8) + '" width="' + (w + 6) + '" height="13" rx="5" fill="' + c + '" stroke="#F4EFE2" stroke-width="2"/>';
+    for (var x = cx - w / 2 + 4; x < cx + w / 2; x += 8) s += '<line x1="' + x + '" y1="' + (top + h - 6) + '" x2="' + x + '" y2="' + (top + h + 3) + '" stroke="#F4EFE2" stroke-width="1.3"/>';
+    s += '<circle cx="' + cx + '" cy="' + (top - h * 0.38) + '" r="9" fill="#F0525A"/><circle cx="' + (cx - 3) + '" cy="' + (top - h * 0.38 - 3) + '" r="3" fill="#fff" opacity=".5"/></g>';
+    return s;
+  }
+  function fedora(cx, top, w, c) {
+    return '<g><path d="M' + (cx - w * 0.36) + ' ' + (top + 2) + 'l6-' + (w * 0.36) + 'q' + (w * 0.15) + '-8 ' + (w * 0.3) + ' 0q' + (w * 0.15) + '-8 ' + (w * 0.3) + ' 0l6 ' + (w * 0.36) + 'z" fill="' + c + '"/>' +
+      '<path d="M' + (cx - w * 0.36) + ' ' + (top - 6) + 'h' + (w * 0.72) + '" stroke="#F4EFE2" stroke-width="4"/>' +
+      '<path d="M' + (cx - w * 0.75) + ' ' + (top + 4) + 'h' + (w * 1.5) + '" stroke="' + c + '" stroke-width="9" stroke-linecap="round"/></g>';
+  }
+  function glasses(cx, ey, gap, r) {
+    return '<g><circle cx="' + (cx - gap) + '" cy="' + ey + '" r="' + r + '" fill="' + SKY + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<circle cx="' + (cx + gap) + '" cy="' + ey + '" r="' + r + '" fill="' + SKY + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<line x1="' + (cx - gap + r) + '" y1="' + ey + '" x2="' + (cx + gap - r) + '" y2="' + ey + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<circle cx="' + (cx - gap) + '" cy="' + ey + '" r="3" fill="' + INK + '"/><circle cx="' + (cx + gap) + '" cy="' + ey + '" r="3" fill="' + INK + '"/></g>';
+  }
+  function mask(cx, y, w) {
+    return '<g><path d="M' + (cx - w / 2) + ' ' + y + 'h' + w + 'v10c0 10-' + (w * 0.22) + ' 16-' + (w / 2) + ' 16s-' + (w / 2) + '-6-' + (w / 2) + '-16z" fill="' + SKY + '" stroke="' + INK + '" stroke-width="1.6"/>' +
+      '<path d="M' + (cx - w * 0.38) + ' ' + (y + 7) + 'h' + (w * 0.76) + 'M' + (cx - w * 0.34) + ' ' + (y + 13) + 'h' + (w * 0.68) + '" stroke="' + SKY_D + '" stroke-width="2" stroke-linecap="round"/></g>';
+  }
+
+  /*
+   * 0.3 시안: 머리와 몸을 한 덩어리로 잇는다.
+   *  - 머리와 몸이 같은 그라디언트(userSpaceOnUse: 그림 전체에 빛 하나)를 써서 겹치는 곳에 이음매가 생기지 않는다.
+   *  - 목줄처럼 가로로 끊는 띠는 없앴다. 대신 주둥이 → 가슴으로 이어지는 흰 털(턱받이)이 머리와 몸을 이어 준다.
+   *  - 고양이(랙돌)는 목 갈기, 너구리는 밝은 배 털이 같은 역할을 한다.
+   */
+  function rg(id, a, b, c) {
+    return '<radialGradient id="' + id + '" gradientUnits="userSpaceOnUse" cx="82" cy="52" r="165"><stop offset="0" stop-color="' + a + '"/><stop offset=".55" stop-color="' + b + '"/><stop offset="1" stop-color="' + c + '"/></radialGradient>';
+  }
+  var DEFS = '<defs>' +
+    rg('gCorgi', '#F4B66C', '#E0913F', '#B96A26') + rg('gShiba', '#F0A766', '#D27A35', '#A65A22') +
+    rg('gCream', '#FFFDF7', '#F6ECDA', '#DCCBAE') + rg('gRag', '#FFFCF5', '#F1E6D4', '#D5C3A6') + rg('gSiam', '#FBF1DF', '#EBD9BB', '#CDB48F') +
+    rg('gPoint', '#8C6A52', '#5E4433', '#3E2C22') + rg('gRagPt', '#9C8778', '#76645A', '#54463F') + rg('gRac', '#B5BAC2', '#8E949E', '#6A707A') +
+    rg('gRacBelly', '#F3EEE4', '#E1D9CA', '#C5BBA8') + rg('gDark', '#4A4C55', '#2C2E35', '#1C1D22') +
+    '<radialGradient id="gBlue" cx="50%" cy="35%" r="65%"><stop offset="0" stop-color="#BFE8FF"/><stop offset=".6" stop-color="#5BB2E8"/><stop offset="1" stop-color="#2F7CC0"/></radialGradient>' +
+    '<radialGradient id="gNose" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#4A4F5C"/><stop offset="1" stop-color="#14171D"/></radialGradient>' +
+    '<radialGradient id="gShadow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="rgba(0,0,0,.32)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient>' +
+    '<linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE48A"/><stop offset="1" stop-color="#D9A51E"/></linearGradient>' +
+    '<linearGradient id="gCoat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE066"/><stop offset="1" stop-color="#E0B21E"/></linearGradient>' +
+    '<radialGradient id="gPtSoft"><stop offset="0" stop-color="#9C8170" stop-opacity=".75"/><stop offset=".7" stop-color="#B39A88" stop-opacity=".45"/><stop offset="1" stop-color="#B39A88" stop-opacity="0"/></radialGradient>' +
+    '<radialGradient id="gPtSoftD"><stop offset="0" stop-color="#5E4233" stop-opacity=".95"/><stop offset=".65" stop-color="#7A5A46" stop-opacity=".7"/><stop offset="1" stop-color="#7A5A46" stop-opacity="0"/></radialGradient>' +
+    '</defs>';
+  // 큰 눈: 짙은 눈동자 + 큰 반짝임 + 작은 반짝임
+  function eye(x, y, rx, ry) {
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="#1B1E24"/>' +
+      '<ellipse cx="' + (x - rx * 0.3) + '" cy="' + (y - ry * 0.35) + '" rx="' + (rx * 0.42) + '" ry="' + (ry * 0.36) + '" fill="#fff"/>' +
+      '<circle cx="' + (x + rx * 0.35) + '" cy="' + (y + ry * 0.35) + '" r="' + (rx * 0.18) + '" fill="#fff" opacity=".85"/>';
+  }
+  // 파란 눈(랙돌 · 샴): 홍채 + 세로 동공 + 반짝임
+  function blueEye(x, y, rx, ry) {
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="url(#gBlue)"/>' +
+      '<ellipse cx="' + x + '" cy="' + (y + 1) + '" rx="' + (rx * 0.45) + '" ry="' + (ry * 0.78) + '" fill="#1B1E24"/>' +
+      '<ellipse cx="' + (x - rx * 0.32) + '" cy="' + (y - ry * 0.4) + '" rx="' + (rx * 0.36) + '" ry="' + (ry * 0.28) + '" fill="#fff"/>' +
+      '<circle cx="' + (x + rx * 0.35) + '" cy="' + (y + ry * 0.38) + '" r="' + (rx * 0.16) + '" fill="#fff" opacity=".85"/>';
+  }
+  function happyEye(x, y, w, c) { return '<path d="M' + (x - w) + ' ' + y + ' q' + w + '-' + (w * 1.1) + ' ' + (w * 2) + ' 0" stroke="' + (c || '#1B1E24') + '" stroke-width="4" fill="none" stroke-linecap="round"/>'; }
+  function blush(x, y) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="5.5" fill="#FF8A8A" opacity=".45"/>'; }
+  function shadow() { return '<ellipse cx="100" cy="194" rx="58" ry="7" fill="url(#gShadow)"/>'; }
+  function wrap(o, inner) {
+    return '<svg viewBox="0 0 200 200" aria-hidden="true">' + DEFS + shadow() + '<g class="' + (o.mood === 'happy' ? 'pb-hop' : o.mood === 'huh' ? 'pb-tilt' : '') + '">' + inner + '</g></svg>';
+  }
+  function huhMark() { return '<g><circle cx="162" cy="40" r="15" fill="#FFD23F"/><text x="162" y="47" font-size="20" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="IBM Plex Sans KR">?</text></g>'; }
+  function sparkle(x, y) { return '<path d="M' + x + ' ' + (y - 9) + ' l2.6 6.4 6.4 2.6-6.4 2.6-2.6 6.4-2.6-6.4-6.4-2.6 6.4-2.6z" fill="#FFE27A"/>'; }
+  // 가슴의 3팀 배지(별 모양 경찰 배지). 띠 없이 털에 달려 있어 머리와 몸을 끊지 않는다.
+  function badge(x, y) {
+    return '<path d="M' + x + ' ' + (y - 11) + ' l3.3 6.6 7.3 1-5.3 5.2 1.3 7.2-6.6-3.5-6.6 3.5 1.3-7.2-5.3-5.2 7.3-1z" fill="url(#gGold)"/>' +
+      '<text x="' + x + '" y="' + (y + 4) + '" font-size="8" font-weight="700" text-anchor="middle" fill="#6B4E00" font-family="IBM Plex Sans KR">3</text>';
+  }
+  function mouth(o, y) {
+    if (o.outfit === 'mask') return '';
+    if (o.mood === 'happy') return '<path d="M88 ' + y + ' q12 12 24 0" fill="#7A2C34"/><path d="M95 ' + (y + 4) + ' q5 10 10 0z" fill="#FF8C95"/>';
+    if (o.mood === 'huh') return '<path d="M94 ' + (y + 3) + ' q6-3 12 0" stroke="#1B1E24" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return '<path d="M100 ' + (y - 6) + ' v4 M100 ' + (y - 2) + ' q-6 6-11 2 M100 ' + (y - 2) + ' q6 6 11 2" stroke="#1B1E24" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+  }
+  function extras(o, hat, eyeY, maskY, maskW, glassesOk) {
+    var s = '';
+    if (o.mood === 'huh') s += huhMark();
+    if (o.mood === 'happy') s += sparkle(36, 52) + sparkle(166, 42);
+    if (o.outfit === 'raincoat') s += '<path d="M46 72 q54-58 108 0 l4 12 q-58-28-116 0z" fill="url(#gCoat)"/>';
+    if (o.outfit === 'beanie') s += beanie(100, hat, 100, '#2F3646');
+    if (o.outfit === 'fedora') s += fedora(100, hat + 4, 88, '#3A2A1E');
+    if (glassesOk && (o.outfit === 'glasses' || o.outfit === 'fedora')) s += glasses(100, eyeY, 22, 14);
+    if (o.outfit === 'mask') s += mask(100, maskY, maskW);
+    return s;
+  }
+  // 공통 몸통: 어깨가 머리 뒤에서 시작해 아래로 넓어진다(머리와 같은 색이라 이음매가 안 보인다).
+  var BODY = 'M56 192 q-8-58 44-76 q52 18 44 76z';
+  var HEAD = 'M100 30 c38 0 60 22 60 56 c0 32-26 54-60 54 c-34 0-60-22-60-54 c0-34 22-56 60-56z';
+
+  /*
+   * 4차 "말랑" 스타일: 캐릭터 상품(스티커 · 인형) 말투.
+   *  - 머리와 몸을 처음부터 "한 개의 윤곽선"으로 그린다(찹쌀떡 모양). 이음매가 생길 수 없다.
+   *  - 머리가 전체의 2/3, 몸은 아래에 살짝만. 눈 · 코 · 입은 얼굴 아래쪽에 작게 모은다(아기 얼굴 비율).
+   *  - 몸 색보다 짙은 같은 계열 색의 테두리 선(3.5px)으로 스티커처럼 또렷하게.
+   */
+  var MOCHI = 'M100 26 C152 26 174 58 174 98 C174 124 162 140 148 148 C152 162 152 178 146 190 H54 C48 178 48 162 52 148 C38 140 26 124 26 98 C26 58 48 26 100 26 Z';
+  function k(fill, line) { return ' fill="' + fill + '" stroke="' + line + '" stroke-width="3.5" stroke-linejoin="round"'; }
+  function kEyes(o, y, blue) {
+    if (o.mood === 'happy') return happyEye(72, y + 2, 9, '#2A1E1A') + happyEye(128, y + 2, 9, '#2A1E1A');
+    var e = function (x) {
+      return blue
+        ? '<ellipse cx="' + x + '" cy="' + y + '" rx="10" ry="12" fill="url(#gBlue)" stroke="#2A1E1A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + (y + 1) + '" rx="5" ry="8" fill="#1B1E24"/>' +
+          '<ellipse cx="' + (x - 3.5) + '" cy="' + (y - 5) + '" rx="4" ry="3.6" fill="#fff"/><circle cx="' + (x + 4) + '" cy="' + (y + 5) + '" r="1.8" fill="#fff"/>'
+        : '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="11" fill="#2A1E1A"/><ellipse cx="' + (x - 3) + '" cy="' + (y - 4.5) + '" rx="4" ry="3.8" fill="#fff"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 4.5) + '" r="1.8" fill="#fff"/>';
+    };
+    return '<g class="' + (o.anim ? 'pb-blink' : '') + '">' + e(72) + e(128) + '</g>';
+  }
+  function kFace(o, y, nose) {
+    var s = '<ellipse cx="56" cy="' + (y + 16) + '" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/><ellipse cx="144" cy="' + (y + 16) + '" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/>';
+    if (nose) s += '<ellipse cx="100" cy="' + (y + 10) + '" rx="5.5" ry="3.8" fill="' + nose + '"/>';
+    if (o.outfit === 'mask') return s;
+    if (o.mood === 'happy') s += '<path d="M92 ' + (y + 16) + ' q8 11 16 0z" fill="#B23A4C" stroke="#2A1E1A" stroke-width="2" stroke-linejoin="round"/>';
+    else if (o.mood === 'huh') s += '<path d="M95 ' + (y + 19) + ' q5-3 10 0" stroke="#2A1E1A" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    else s += '<path d="M92 ' + (y + 15) + ' q4 5 8 0 q4 5 8 0" stroke="#2A1E1A" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+    return s;
+  }
+  function kShine() { return '<ellipse cx="74" cy="46" rx="20" ry="8" fill="#fff" opacity=".35" transform="rotate(-18 74 46)"/>'; }
+  // 작은 두 손으로 가슴의 3팀 배지를 들고 있다 + 발
+  function kPaws(fill, line, foot) {
+    return badge(100, 164) +
+      '<ellipse cx="80" cy="166" rx="10" ry="8"' + k(fill, line) + '/><ellipse cx="120" cy="166" rx="10" ry="8"' + k(fill, line) + '/>' +
+      '<ellipse cx="74" cy="190" rx="13" ry="7"' + k(foot || fill, line) + '/><ellipse cx="126" cy="190" rx="13" ry="7"' + k(foot || fill, line) + '/>';
+  }
+  function kWrap(o, inner, eyeY) {
+    var s = inner;
+    if (o.mood === 'huh') s += huhMark();
+    if (o.mood === 'happy') s += sparkle(30, 48) + sparkle(170, 40);
+    if (o.outfit === 'raincoat') s += '<path d="M34 84 q66-82 132 0 l6 12 q-72-34-144 0z"' + k('url(#gCoat)', '#B8901C') + '/>';
+    if (o.outfit === 'beanie') s += beanie(100, 28, 112, '#2F3646');
+    if (o.outfit === 'fedora') s += fedora(100, 34, 94, '#3A2A1E');
+    if (o.outfit === 'glasses' || o.outfit === 'fedora') s += glasses(100, eyeY, 28, 15);
+    if (o.outfit === 'mask') s += mask(100, eyeY + 8, 66);
+    return wrap(o, s);
+  }
+
+  function kDog(o, breed) {
+    o = o || {};
+    var sh = breed === 'shiba', F = sh ? '#F0A25E' : '#F7B46E', L = sh ? '#A85F27' : '#B9722F', C = '#FFF7EA', s = '';
+    if (sh) s += '<path class="' + (o.anim ? 'pb-wag' : '') + '" d="M146 172 q30 0 28-26 q-2-16-16-14 q-10 2-6 12 q6 2 4 8 q-4 8-14 8z"' + k(F, L) + '/>';
+    else s += '<ellipse class="' + (o.anim ? 'pb-wag' : '') + '" cx="150" cy="176" rx="13" ry="10"' + k(C, L) + '/>';
+    // 귀: 코기는 크고 둥근 삼각, 시바는 작은 세모
+    var ear = sh ? 'M44 62 Q40 24 56 22 Q70 26 82 42 Z' : 'M40 70 Q26 12 52 12 Q72 18 86 44 Z';
+    var inn = sh ? 'M52 54 Q50 32 58 30 Q66 34 72 42 Z' : 'M50 58 Q42 24 56 24 Q66 28 76 44 Z';
+    s += '<path d="' + ear + '"' + k(F, L) + '/><path d="' + ear + '" transform="translate(200 0) scale(-1 1)"' + k(F, L) + '/>';
+    s += '<path d="' + inn + '" fill="#FFC2C2"/><path d="' + inn + '" transform="translate(200 0) scale(-1 1)" fill="#FFC2C2"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 흰 털: 아랫얼굴 + 배(코기는 이마 줄까지)
+    if (!sh) s += '<path d="M100 40 q7 0 8 26 q2 22 4 30 q-12 6-24 0 q2-8 4-30 q1-26 8-26z" fill="' + C + '"/>';
+    s += '<path d="M100 96 c30 0 54 12 54 30 c0 14-14 22-26 24 q8 20 6 40 h-68 q-2-20 6-40 c-12-2-26-10-26-24 c0-18 24-30 54-30z" fill="' + C + '"/>';
+    if (sh) s += '<ellipse cx="74" cy="84" rx="6" ry="4" fill="' + C + '"/><ellipse cx="126" cy="84" rx="6" ry="4" fill="' + C + '"/>';
+    s += kEyes(o, 104) + kFace(o, 106, '#2A1E1A') + kPaws(C, L);
+    return kWrap(o, s, 104);
+  }
+
+  function kCat(o, breed) {
+    o = o || {};
+    var rag = breed === 'ragdoll', F = rag ? '#FFFBF4' : '#FBF0DC', L = rag ? '#B8A28A' : '#A3835F', P = rag ? '#A98F7D' : '#6E5040', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="' + (rag ? 'M140 182 q40 2 38-38 q-1-14 10-12 q14 46-44 60z' : 'M142 184 q34-2 32-38 q0-10 7-9 q8 40-36 54z') + '"' + k(P, L) + '/>';
+    var ear = rag ? 'M38 72 L36 26 Q40 20 48 24 L84 44 Z' : 'M36 78 L30 16 Q34 10 42 14 L86 46 Z';
+    var inn = rag ? 'M46 60 L45 32 L72 46 Z' : 'M44 64 L40 26 L74 48 Z';
+    s += '<path d="' + ear + '"' + k(P, L) + '/><path d="' + ear + '" transform="translate(200 0) scale(-1 1)"' + k(P, L) + '/>';
+    s += '<path d="' + inn + '" fill="#F2B8BE"/><path d="' + inn + '" transform="translate(200 0) scale(-1 1)" fill="#F2B8BE"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 얼굴 포인트를 가장자리가 흐린 그라디언트로(부드럽게)
+    s += rag
+      ? '<ellipse cx="72" cy="102" rx="22" ry="18" fill="url(#gPtSoft)"/><ellipse cx="128" cy="102" rx="22" ry="18" fill="url(#gPtSoft)"/><path d="M100 60 q8 20 6 46 q-6 4-12 0 q-2-26 6-46z" fill="' + F + '"/>'
+      : '<ellipse cx="100" cy="110" rx="46" ry="34" fill="url(#gPtSoftD)"/>';
+    // 랙돌 목 갈기: 둥근 털 뭉치 선
+    if (rag) s += '<path d="M60 146 q8 8 16 2 q8 8 16 2 q8 8 16 2 q8 8 16 2 q8 8 16-2" stroke="' + L + '" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>';
+    s += kEyes(o, 104, true) + kFace(o, 104, rag ? '#F29AAA' : '#3A2A22');
+    s += '<path d="M44 114 h-16M44 121 l-14 4M156 114 h16M156 121 l14 4" stroke="' + L + '" stroke-width="2" stroke-linecap="round"/>';
+    s += kPaws(rag ? F : F, L, rag ? F : P);
+    return kWrap(o, s, 104);
+  }
+
+  function kRaccoon(o) {
+    o = o || {};
+    var F = '#C3C8D1', L = '#6B717D', D = '#3A3D46', W = '#FBF8F2', s = '';
+    s += '<g class="' + (o.anim ? 'pb-sway' : '') + '"><path d="M140 184 q42 0 40-40 q0-12 10-10 q14 46-46 58z"' + k(F, L) + '/>' +
+      '<path d="M172 164 l12-8M176 148 l12-4" stroke="' + D + '" stroke-width="7" stroke-linecap="round"/></g>';
+    s += '<circle cx="50" cy="40" r="18"' + k(F, L) + '/><circle cx="150" cy="40" r="18"' + k(F, L) + '/><circle cx="50" cy="42" r="9" fill="' + D + '"/><circle cx="150" cy="42" r="9" fill="' + D + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 72 c38 0 62 16 62 38 c0 20-24 34-62 34 c-38 0-62-14-62-34 c0-22 24-38 62-38z" fill="' + W + '"/>';
+    s += '<path d="M100 150 q26 0 28 40 h-56 q2-40 28-40z" fill="' + W + '"/>';
+    // 둥근 눈가리개
+    s += '<path d="M40 104 q0-20 30-20 q18 0 30 12 q12-12 30-12 q30 0 30 20 q0 14-28 14 q-20 0-32-10 q-12 10-32 10 q-28 0-28-14z" fill="' + D + '"/>';
+    s += '<path d="M100 44 q6 16 0 30 q-6-14 0-30z" fill="' + L + '" opacity=".6"/>';
+    if (o.mood === 'happy') s += happyEye(72, 104, 9, '#fff') + happyEye(128, 104, 9, '#fff');
+    else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><ellipse cx="72" cy="102" rx="9" ry="10.5" fill="#fff"/><ellipse cx="128" cy="102" rx="9" ry="10.5" fill="#fff"/><ellipse cx="73" cy="104" rx="6.5" ry="8" fill="#2A1E1A"/><ellipse cx="127" cy="104" rx="6.5" ry="8" fill="#2A1E1A"/><circle cx="71" cy="100" r="2.6" fill="#fff"/><circle cx="125" cy="100" r="2.6" fill="#fff"/></g>';
+    s += kFace(o, 112, '#2A1E1A');
+    s += kPaws(F, L, D).replace(/<ellipse cx="(80|120)" cy="166" rx="10" ry="8" fill="#C3C8D1"/g, '<ellipse cx="$1" cy="166" rx="10" ry="8" fill="' + D + '"');
+    return kWrap(o, s, 102);
+  }
+
+  /* ---------- 뽑기용 추가 동물(같은 말랑 틀: MOCHI 윤곽 + 귀 + 얼굴 무늬) ---------- */
+  function mirror(d, attrs) { return '<path d="' + d + '"' + attrs + '/><path d="' + d + '" transform="translate(200 0) scale(-1 1)"' + attrs + '/>'; }
+  function beak(y, c) { return '<path d="M92 ' + y + ' q8-4 16 0 q-2 8-8 11 q-6-3-8-11z" fill="' + c + '" stroke="#A8601E" stroke-width="2" stroke-linejoin="round"/>'; }
+  function amberEyes(o, y) {
+    if (o.mood === 'happy') return happyEye(72, y + 2, 9, '#2A1E1A') + happyEye(128, y + 2, 9, '#2A1E1A');
+    var e = function (x) { return '<circle cx="' + x + '" cy="' + y + '" r="14" fill="#FFD66B" stroke="#A8762A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + y + '" rx="8" ry="9" fill="#2A1E1A"/><ellipse cx="' + (x - 3) + '" cy="' + (y - 4) + '" rx="3.6" ry="3.4" fill="#fff"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 4) + '" r="1.6" fill="#fff"/>'; };
+    return '<g class="' + (o.anim ? 'pb-blink' : '') + '">' + e(72) + e(128) + '</g>';
+  }
+  function kOwl(o) {
+    o = o || {}; var F = '#B5875F', L = '#6E4A2E', C = '#FFF1DC', s = '';
+    s += mirror('M34 66 L30 22 Q34 16 42 22 L70 44 Z', k(F, L));
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<circle cx="72" cy="102" r="26" fill="' + C + '"/><circle cx="128" cy="102" r="26" fill="' + C + '"/>';
+    s += '<path d="M100 140 c26 0 34 18 32 50 h-64 c-2-32 6-50 32-50z" fill="' + C + '"/>';
+    for (var yy = 152; yy < 186; yy += 12) s += '<path d="M86 ' + yy + ' q4 5 8 0M106 ' + yy + ' q4 5 8 0" stroke="' + F + '" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    s += amberEyes(o, 102) + kFace(o, 112, null) + beak(112, '#F2A33A');
+    s += mirror('M30 120 q-10 30 18 52 q6-24-4-50z', k('#9B7049', L));
+    s += '<ellipse cx="80" cy="191" rx="11" ry="6"' + k('#F2A33A', '#A8601E') + '/><ellipse cx="120" cy="191" rx="11" ry="6"' + k('#F2A33A', '#A8601E') + '/>';
+    return kWrap(o, s, 102);
+  }
+  function kPanda(o) {
+    o = o || {}; var F = '#FFFFFF', L = '#4A4C55', D = '#2E3038', s = '';
+    s += '<circle cx="48" cy="40" r="19"' + k(D, D) + '/><circle cx="152" cy="40" r="19"' + k(D, D) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="70" cy="102" rx="17" ry="21" fill="' + D + '" transform="rotate(28 70 102)"/><ellipse cx="130" cy="102" rx="17" ry="21" fill="' + D + '" transform="rotate(-28 130 102)"/>';
+    if (o.mood === 'happy') s += happyEye(72, 104, 8, '#fff') + happyEye(128, 104, 8, '#fff');
+    else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><ellipse cx="73" cy="103" rx="7" ry="8.5" fill="#fff"/><ellipse cx="127" cy="103" rx="7" ry="8.5" fill="#fff"/><ellipse cx="74" cy="104" rx="5" ry="6.5" fill="#1B1E24"/><ellipse cx="126" cy="104" rx="5" ry="6.5" fill="#1B1E24"/><circle cx="72" cy="101" r="2" fill="#fff"/><circle cx="124" cy="101" r="2" fill="#fff"/></g>';
+    s += kFace(o, 108, D);
+    s += kPaws(D, D, D);
+    return kWrap(o, s, 103);
+  }
+  function kMonkey(o) {
+    o = o || {}; var F = '#B47B4F', L = '#6B4325', C = '#FFD9B8', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M146 180 q36 4 34-30 q-2-18-18-14 q-10 4-4 12 q8-2 8 6 q-2 14-20 16z"' + k(F, L) + '/>';
+    s += '<circle cx="28" cy="98" r="20"' + k(F, L) + '/><circle cx="172" cy="98" r="20"' + k(F, L) + '/><circle cx="30" cy="98" r="11" fill="' + C + '"/><circle cx="170" cy="98" r="11" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 하트 모양 얼굴
+    s += '<path d="M100 84 c6-14 22-20 34-12 c14 10 12 26 4 34 c14 4 18 18 10 28 c-10 14-30 16-48 16 c-18 0-38-2-48-16 c-8-10-4-24 10-28 c-8-8-10-24 4-34 c12-8 28-2 34 12z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q22 0 24 40 h-48 q2-40 24-40z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 108, '#6B4325') + kPaws(F, L);
+    return kWrap(o, s, 102);
+  }
+  function kHamster(o) {
+    o = o || {}; var F = '#F6C58C', L = '#B9803F', C = '#FFF6E6', s = '';
+    s += '<circle cx="58" cy="40" r="14"' + k(F, L) + '/><circle cx="142" cy="40" r="14"' + k(F, L) + '/><circle cx="58" cy="41" r="7" fill="#FFB8B8"/><circle cx="142" cy="41" r="7" fill="#FFB8B8"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 92 c40 0 68 14 68 34 c0 16-14 22-30 24 q10 18 8 40 h-92 q-2-22 8-40 c-16-2-30-8-30-24 c0-20 28-34 68-34z" fill="' + C + '"/>';
+    s += '<ellipse cx="46" cy="122" rx="22" ry="18" fill="' + C + '"/><ellipse cx="154" cy="122" rx="22" ry="18" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 104, '#F08A9A') + kPaws(C, L, '#FFC4B0');
+    return kWrap(o, s, 102);
+  }
+  function kRabbit(o) {
+    o = o || {}; var F = '#FFFFFF', L = '#C49BA2', s = '';
+    s += mirror('M56 56 Q38 -10 58 -14 Q76 -12 76 46 Z', k(F, L)) + mirror('M60 46 Q48 0 60 -4 Q70 -2 70 42 Z', ' fill="#FFC9D2"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += kEyes(o, 104) + kFace(o, 104, '#F08A9A') + kPaws(F, L);
+    s += '<ellipse cx="150" cy="180" rx="12" ry="10"' + k(F, L) + '/>';
+    return kWrap(o, s, 104);
+  }
+  function kFox(o) {
+    o = o || {}; var F = '#F49447', L = '#A9521C', C = '#FFF8EE', D = '#4A2E22', s = '';
+    s += '<g class="' + (o.anim ? 'pb-sway' : '') + '"><path d="M140 184 q46 2 44-42 q-2-20-14-18 q14 40-30 60z"' + k(F, L) + '/><path d="M170 124 q14 2 14 18 q-8-4-18-4z"' + k(C, L) + '/></g>';
+    s += mirror('M36 74 L30 14 Q34 8 42 12 L86 44 Z', k(F, L)) + mirror('M36 30 L34 14 L48 22 Z', ' fill="' + D + '"') + mirror('M44 62 L40 26 L72 46 Z', ' fill="#FFD3C2"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M28 104 q30 4 58 22 q6 8 14 8 q8 0 14-8 q28-18 58-22 q-4 34-36 44 q-18 6-36 6 q-18 0-36-6 q-32-10-36-44z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q22 0 24 40 h-48 q2-40 24-40z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 108, '#2A1E1A') + kPaws(F, L, D);
+    return kWrap(o, s, 102);
+  }
+  function kPenguin(o) {
+    o = o || {}; var F = '#3D4A63', L = '#222A3B', C = '#FFFFFF', s = '';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 64 c10-14 34-14 46 0 c16 18 14 44 6 60 c-6 14-14 22-14 30 c4 16 4 26 0 36 h-76 c-4-10-4-20 0-36 c0-8-8-16-14-30 c-8-16-10-42 6-60 c12-14 36-14 46 0z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 112, null) + beak(110, '#FFB23F');
+    s += kPaws(F, L, '#FFB23F').replace(/stroke="#222A3B" stroke-width="3.5" stroke-linejoin="round"\/><ellipse cx="74" cy="190"/, 'stroke="#222A3B" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="74" cy="190"');
+    return kWrap(o, s, 102);
+  }
+  function kBear(o) {
+    o = o || {}; var F = '#A87650', L = '#62402A', C = '#F1D7B8', s = '';
+    s += '<circle cx="48" cy="42" r="18"' + k(F, L) + '/><circle cx="152" cy="42" r="18"' + k(F, L) + '/><circle cx="48" cy="44" r="9" fill="' + C + '"/><circle cx="152" cy="44" r="9" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="100" cy="120" rx="26" ry="19" fill="' + C + '"/><path d="M100 150 q24 0 26 40 h-52 q2-40 26-40z" fill="' + C + '"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#3A2418') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+
+  /* ---------- 2차 추가: 고슴도치 · 다람쥐 · 수달 · 오리 · 개구리 · 코알라 · 호랑이 ---------- */
+  function kHedgehog(o) {
+    o = o || {}; var F = '#9C7556', L = '#5E4330', C = '#FFEBD2', s = '';
+    // 가시: 머리 뒤로 톱니 테두리
+    var sp = '';
+    for (var a = -170; a <= -10; a += 16) {
+      var r1 = 70, r2 = 92, c = Math.PI / 180;
+      sp += (a === -170 ? 'M' : 'L') + (100 + r1 * Math.cos((a - 8) * c)).toFixed(1) + ' ' + (98 + r1 * Math.sin((a - 8) * c)).toFixed(1) +
+        'L' + (100 + r2 * Math.cos(a * c)).toFixed(1) + ' ' + (98 + r2 * Math.sin(a * c)).toFixed(1) +
+        'L' + (100 + r1 * Math.cos((a + 8) * c)).toFixed(1) + ' ' + (98 + r1 * Math.sin((a + 8) * c)).toFixed(1);
+    }
+    s += '<path d="' + sp + 'L100 120Z"' + k('#6E4E36', L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 74 c40 0 64 20 64 44 c0 18-16 28-34 32 q10 18 6 40 h-72 q-4-22 6-40 c-18-4-34-14-34-32 c0-24 24-44 64-44z" fill="' + C + '"/>';
+    s += '<circle cx="52" cy="70" r="9"' + k(C, L) + '/><circle cx="148" cy="70" r="9"' + k(C, L) + '/>';
+    s += kEyes(o, 106) + kFace(o, 106, '#2A1E1A') + kPaws(C, L, F);
+    return kWrap(o, s, 106);
+  }
+  function kSquirrel(o) {
+    o = o || {}; var F = '#DC8E50', L = '#97541F', C = '#FFF3E2', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M128 190 q50 4 56-50 q4-40-26-52 q-26-8-30 14 q20-2 24 18 q4 28-24 70z"' + k(F, L) + '/>';
+    s += '<path d="M150 100 q14 4 16 18" stroke="' + C + '" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/>';
+    s += mirror('M44 60 L38 22 Q42 16 50 20 L74 42 Z', k(F, L)) + mirror('M40 24 L34 8 L46 16 Z', k(F, L)) + mirror('M48 52 L45 30 L64 44 Z', ' fill="#FFC9B8"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 38 q6 14 0 28 q-6-14 0-28z" fill="#8E4E1E" opacity=".55"/>';
+    s += '<path d="M100 98 c34 0 58 10 58 28 c0 14-14 22-30 24 q8 20 6 40 h-68 q-2-20 6-40 c-16-2-30-10-30-24 c0-18 24-28 58-28z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 106, '#3A2418');
+    s += kPaws(F, L).replace(/(<path d="M)/, '$1');
+    // 손에 도토리
+    s += '<ellipse cx="100" cy="168" rx="9" ry="11" fill="#B06A2E" stroke="' + L + '" stroke-width="2"/><path d="M90 160 q10-8 20 0 q-10 4-20 0z" fill="#6E4325"/>';
+    return kWrap(o, s, 102);
+  }
+  function kOtter(o) {
+    o = o || {}; var F = '#9C6B48', L = '#5A3B24', C = '#F4DFC6', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M140 186 q36 2 40-30 q0-10 8-8 q4 40-48 46z"' + k(F, L) + '/>';
+    s += '<circle cx="40" cy="70" r="12"' + k(F, L) + '/><circle cx="160" cy="70" r="12"' + k(F, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 92 c34 0 54 10 54 26 c0 18-26 28-54 28 c-28 0-54-10-54-28 c0-16 20-26 54-26z" fill="' + C + '"/>';
+    s += '<path d="M100 148 q24 0 26 42 h-52 q2-42 26-42z" fill="' + C + '"/>';
+    s += kEyes(o, 98) + kFace(o, 106, '#2A1E1A');
+    s += '<g fill="' + L + '" opacity=".6"><circle cx="82" cy="120" r="1.6"/><circle cx="86" cy="126" r="1.6"/><circle cx="118" cy="120" r="1.6"/><circle cx="114" cy="126" r="1.6"/></g>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 98);
+  }
+  function kDuck(o) {
+    o = o || {}; var F = '#FFE06E', L = '#C3961C', s = '';
+    s += '<path d="M92 28 q6-18 14-8 q4-12 10 2" stroke="' + L + '" stroke-width="3" fill="' + F + '" stroke-linejoin="round"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += kEyes(o, 98) + kFace(o, 116, null);
+    s += '<path d="M80 112 q20-10 40 0 q4 10-8 14 q-12 4-24 0 q-12-4-8-14z" fill="#FF9A3C" stroke="#B85E14" stroke-width="2.4" stroke-linejoin="round"/>';
+    s += kPaws('#FFD24A', L, '#FF9A3C');
+    return kWrap(o, s, 98);
+  }
+  function kFrog(o) {
+    o = o || {}; var F = '#93D26D', L = '#4C8A30', C = '#E9F7D8', s = '';
+    s += '<circle cx="66" cy="44" r="24"' + k(F, L) + '/><circle cx="134" cy="44" r="24"' + k(F, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>';
+    s += '<circle cx="66" cy="44" r="21" fill="' + F + '"/><circle cx="134" cy="44" r="21" fill="' + F + '"/>';
+    if (o.mood === 'happy') s += happyEye(66, 48, 10, '#2A1E1A') + happyEye(134, 48, 10, '#2A1E1A');
+    else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><circle cx="66" cy="44" r="15" fill="#fff"/><circle cx="134" cy="44" r="15" fill="#fff"/><ellipse cx="67" cy="46" rx="9" ry="10" fill="#2A1E1A"/><ellipse cx="133" cy="46" rx="9" ry="10" fill="#2A1E1A"/><circle cx="64" cy="42" r="3.4" fill="#fff"/><circle cx="130" cy="42" r="3.4" fill="#fff"/></g>';
+    s += '<path d="M100 120 c30 0 48 8 48 24 c0 10-8 16-18 18 q6 14 4 28 h-68 q-2-14 4-28 c-10-2-18-8-18-18 c0-16 18-24 48-24z" fill="' + C + '"/>';
+    s += '<ellipse cx="52" cy="98" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/><ellipse cx="148" cy="98" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/>';
+    if (o.outfit !== 'mask') s += o.mood === 'huh' ? '<path d="M88 104 q12-6 24 0" stroke="#2A1E1A" stroke-width="2.6" fill="none" stroke-linecap="round"/>' : '<path d="M76 96 q24 18 48 0" stroke="#2A1E1A" stroke-width="2.8" fill="' + (o.mood === 'happy' ? '#B23A4C' : 'none') + '" stroke-linecap="round"/>';
+    s += '<circle cx="90" cy="80" r="1.8" fill="' + L + '"/><circle cx="110" cy="80" r="1.8" fill="' + L + '"/>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 44).replace('<g><circle cx="' , '<g><circle cx="');
+  }
+  function kKoala(o) {
+    o = o || {}; var F = '#AEB5BF', L = '#5E6570', C = '#F6F3EE', s = '';
+    s += '<circle cx="36" cy="64" r="28"' + k(F, L) + '/><circle cx="164" cy="64" r="28"' + k(F, L) + '/><circle cx="38" cy="66" r="17" fill="' + C + '"/><circle cx="162" cy="66" r="17" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 150 q26 0 28 40 h-56 q2-40 28-40z" fill="' + C + '"/>';
+    s += kEyes(o, 98) + kFace(o, 112, null);
+    s += '<path d="M100 96 c12 0 16 8 16 16 c0 10-6 14-16 14 c-10 0-16-4-16-14 c0-8 4-16 16-16z" fill="url(#gNose)"/><ellipse cx="95" cy="104" rx="4" ry="2.4" fill="#fff" opacity=".5"/>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 98);
+  }
+  function kTiger(o) {
+    o = o || {}; var F = '#F5A04A', L = '#A85A1C', C = '#FFF7EC', D = '#3B2A22', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M140 186 q40 0 40-38 q0-12 9-10 q12 44-46 56z"' + k(F, L) + '/><path d="M172 160 l12-6M176 146 l10-6" stroke="' + D + '" stroke-width="5" stroke-linecap="round"/>';
+    s += '<circle cx="48" cy="44" r="17"' + k(F, L) + '/><circle cx="152" cy="44" r="17"' + k(F, L) + '/><circle cx="48" cy="46" r="8" fill="' + C + '"/><circle cx="152" cy="46" r="8" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M86 34 q6 10 4 22M100 30 v24M114 34 q-6 10-4 22" stroke="' + D + '" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M28 96 q12 2 20 8M28 110 q12 0 18 4M172 96 q-12 2-20 8M172 110 q-12 0-18 4" stroke="' + D + '" stroke-width="4.5" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M100 104 c26 0 44 8 44 22 c0 16-20 24-44 24 c-24 0-44-8-44-24 c0-14 18-22 44-22z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q24 0 26 40 h-52 q2-40 26-40z" fill="' + C + '"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#E46C7C') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+
+
+  /* ---------- 등급 꾸밈 ---------- */
+  var GDEFS = '<defs>' +
+    '<linearGradient id="gBronze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C08A"/><stop offset="1" stop-color="#B07034"/></linearGradient>' +
+    '<linearGradient id="gSilver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FB"/><stop offset="1" stop-color="#A8B3C2"/></linearGradient>' +
+    '<linearGradient id="gCape" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5484F"/><stop offset="1" stop-color="#9E1F27"/></linearGradient>' +
+    '<radialGradient id="gAura"><stop offset="0" stop-color="#FFE48A" stop-opacity=".95"/><stop offset=".6" stop-color="#FFD23F" stop-opacity=".45"/><stop offset="1" stop-color="#FFD23F" stop-opacity="0"/></radialGradient>' +
+    '</defs>';
+  // 머리 위에 눈이 달린 개구리는 모자를 이마(눈 사이 아래)로 작게
+  var CAP_AT = { frog: 'translate(100 76) scale(.6) translate(-100 -44)' };
+  function cap(gold, id) {
+    var at = CAP_AT[id] ? '<g transform="' + CAP_AT[id] + '">' : '<g>';
+    return at + capInner(gold) + '</g>';
+  }
+  function capInner(gold) {
+    var body = gold ? 'url(#gGold)' : '#26324A', line = gold ? '#A87A10' : '#121826';
+    return '<g transform="rotate(-8 100 36)"><path d="M64 44 q36-30 72 0 l-4 10 q-32-9-64 0z" fill="' + body + '" stroke="' + line + '" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path d="M60 54 q40-11 80 0 l-3 8 q-37-9-74 0z" fill="' + (gold ? '#C99A1C' : '#121826') + '"/>' +
+      '<path d="M100 30 l3.4 6.6 7.2 1-5.2 5.2 1.2 7.2-6.6-3.4-6.6 3.4 1.2-7.2-5.2-5.2 7.2-1z" fill="' + (gold ? '#FFF6D0' : 'url(#gGold)') + '"/></g>';
+  }
+  var CAPE = '<path d="M30 108 q-28 52-8 86 h156 q20-34-8-86 q-70 32-140 0z" fill="url(#gCape)" stroke="#7A1219" stroke-width="3" stroke-linejoin="round"/>';
+  var AURA = '<circle cx="100" cy="104" r="98" fill="url(#gAura)"/>';
+  function decorate(svg, g, id) {
+    if (!g) return svg;
+    var badgeFill = { c: 'url(#gBronze)', r: 'url(#gSilver)', h: 'url(#gGold)', l: 'url(#gGold)' }[g] || 'url(#gGold)';
+    // 배지 색(별 모양 배지의 첫 path 만 gGold 를 쓴다 — 노란 우비 gCoat 등은 그대로)
+    svg = svg.replace(/(<path d="M[\d.]+ [\d.]+ l3\.3 6\.6[^"]*" fill=")url\(#gGold\)"/g, '$1' + badgeFill + '"');
+    var back = g === 'l' ? AURA : g === 'h' ? CAPE : '';
+    var front = g === 'r' || g === 'h' ? cap(false, id) : g === 'l' ? cap(true, id) + sparkle(28, 40) + sparkle(172, 62) + sparkle(160, 150) : '';
+    // 뒤: 그림자 다음(첫 <g class=…> 앞), 앞: 마지막 </g> 앞
+    var at = svg.indexOf('<g class=');
+    svg = svg.slice(0, at) + back + svg.slice(at);
+    var end = svg.lastIndexOf('</g></svg>');
+    svg = svg.slice(0, end) + front + svg.slice(end);
+    return svg.replace('<svg viewBox="0 0 200 200" aria-hidden="true">', '<svg viewBox="0 0 200 200" aria-hidden="true">' + GDEFS);
+  }
+
+  var DRAW = {
+    corgi: function (o) { return kDog(o, 'corgi'); }, shiba: function (o) { return kDog(o, 'shiba'); },
+    ragdoll: function (o) { return kCat(o, 'ragdoll'); }, siamese: function (o) { return kCat(o, 'siamese'); },
+    raccoon: kRaccoon, owl: kOwl, panda: kPanda, monkey: kMonkey, hamster: kHamster, rabbit: kRabbit, fox: kFox, penguin: kPenguin, bear: kBear,
+    hedgehog: kHedgehog, squirrel: kSquirrel, otter: kOtter, duck: kDuck, frog: kFrog, koala: kKoala, tiger: kTiger
+  };
+  /** 동물 그림. 모르는 종류면 빈 문자열 */
+  function draw(id, o) {
+    o = o || {};
+    var f = DRAW[id];
+    if (!f) return '';
+    return decorate(f({ mood: o.mood, anim: o.anim, outfit: o.outfit }), o.grade, id);
+  }
+  return { draw: draw, ids: Object.keys(DRAW) };
+});
+
+</script>
+<script>
+/*
+ * Team3Ach(0.3.0) — 업적과 칭호.
+ *
+ * 구조
+ *   업적(LIST)은 저장 값(save)만 보고 달성을 판단한다(DOM·시계를 모른다 → node 시험).
+ *   달성하면 칭호 하나와 보상(뽑기권 tickets · 배지 gems)을 바로 준다(따로 "받기" 단추 없음).
+ *   칭호는 팀장 이름 앞(save.ach.title)과 동물 이름 앞(save.ach.pet['corgi:c'])에 달 수 있다.
+ *   업적 말고 배지로 사는 칭호(SHOP)도 있다 — 꾸미기라 퍼즐 실력과 상관없다.
+ *
+ * 저장 save.ach
+ *   got   { 업적id: true }       달성한 업적(보상을 받았다)
+ *   bought{ 칭호id: true }       배지로 산 칭호
+ *   title ''|칭호id              팀장 칭호
+ *   pet   { 'corgi:c': 칭호id }  동물 칭호
+ *   stat  { dailyMedals, dailyGold } 저장에 따로 없는 기록(특별 출동 메달 수)
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Team3Ach = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  function AchError(code, message) { var e = new Error(message); e.name = 'AchError'; e.code = code; return e; }
+
+  function petCount(save, grade) {
+    var own = save.pets && save.pets.own || {}, n = 0;
+    Object.keys(own).forEach(function (k) { if (!grade || k.slice(-2) === ':' + grade) n += 1; });
+    return n;
+  }
+  function closed(save, no) {
+    if ((save.past || []).some(function (x) { return x.no === no; })) return 1;
+    return save.caseNo === no && save.closed ? 1 : 0;
+  }
+  function st(save, k) { return save.ach && save.ach.stat && save.ach.stat[k] || 0; }
+
+  /*
+   * 업적. need(save) → 지금 값, goal → 목표. title: 받는 칭호. tickets/gems: 보상.
+   * 묶음(group)은 화면에서 보기 좋게 나누는 데만 쓴다.
+   */
+  var LIST = [
+    { id: 'run1', group: '현장', name: '첫 출동', desc: '현장 출동 1번', need: function (s) { return s.runs; }, goal: 1, title: '새내기', tickets: 1 },
+    { id: 'run50', group: '현장', name: '출동이 일상', desc: '현장 출동 50번', need: function (s) { return s.runs; }, goal: 50, title: '출동 반장', tickets: 3 },
+    { id: 'run300', group: '현장', name: '현장에서 산다', desc: '현장 출동 300번', need: function (s) { return s.runs; }, goal: 300, title: '현장의 전설', tickets: 5, gems: 20 },
+    { id: 'catch100', group: '현장', name: '눈썰미', desc: '현장에서 직접 100명 검거', need: function (s) { return s.runCaught; }, goal: 100, title: '눈썰미', tickets: 2 },
+    { id: 'catch1000', group: '현장', name: '매의 눈', desc: '현장에서 직접 1,000명 검거', need: function (s) { return s.runCaught; }, goal: 1000, title: '매의 눈', tickets: 4 },
+    { id: 'catch5000', group: '현장', name: '걸어 다니는 CCTV', desc: '현장에서 직접 5,000명 검거', need: function (s) { return s.runCaught; }, goal: 5000, title: '인간 CCTV', tickets: 5, gems: 30 },
+    { id: 'score3k', group: '점수', name: '기대주', desc: '출동 점수 3,000', need: function (s) { return s.bestScore; }, goal: 3000, title: '기대주', tickets: 1 },
+    { id: 'score10k', group: '점수', name: '에이스', desc: '출동 점수 10,000', need: function (s) { return s.bestScore; }, goal: 10000, title: '에이스', tickets: 3 },
+    { id: 'score20k', group: '점수', name: '수사의 신', desc: '출동 점수 20,000', need: function (s) { return s.bestScore; }, goal: 20000, title: '수사의 신', tickets: 5, gems: 30 },
+    { id: 'daily5', group: '점수', name: '특별한 하루', desc: '특별 출동 메달 5번', need: function (s) { return st(s, 'dailyMedals'); }, goal: 5, title: '특출난 형사', tickets: 2 },
+    { id: 'gold3', group: '점수', name: '금빛 수사', desc: '특별 출동 금메달 3번', need: function (s) { return st(s, 'dailyGold'); }, goal: 3, title: '금메달 형사', tickets: 3, gems: 10 },
+    { id: 'det10', group: '사무실', name: '팀 빌더', desc: '형사 10명', need: function (s) { return s.detectives; }, goal: 10, title: '팀 빌더', tickets: 2 },
+    { id: 'det30', group: '사무실', name: '대부대', desc: '형사 30명', need: function (s) { return s.detectives; }, goal: 30, title: '대부대장', tickets: 4 },
+    { id: 'train10', group: '사무실', name: '지옥 훈련', desc: '합동 훈련 10단계', need: function (s) { return s.training; }, goal: 10, title: '훈련 교관', tickets: 3 },
+    { id: 'case1', group: '사건', name: '골목의 평화', desc: '사건 1 종결', need: function (s) { return closed(s, 1); }, goal: 1, title: '골목 해결사', tickets: 3 },
+    { id: 'case2', group: '사건', name: '안개가 걷히다', desc: '사건 2 종결', need: function (s) { return closed(s, 2); }, goal: 1, title: '해무항의 등대', tickets: 5 },
+    { id: 'pet10', group: '말랑 수사대', name: '동물 친구', desc: '동물 10마리 모으기', need: function (s) { return petCount(s); }, goal: 10, title: '동물 친구', tickets: 2 },
+    { id: 'pet40', group: '말랑 수사대', name: '말랑 수집가', desc: '동물 40마리 모으기', need: function (s) { return petCount(s); }, goal: 40, title: '말랑 수집가', tickets: 5 },
+    { id: 'pet80', group: '말랑 수사대', name: '도감 완성', desc: '동물 80마리 모두 모으기', need: function (s) { return petCount(s); }, goal: 80, title: '말랑 도감 완성', gems: 100 },
+    { id: 'legend1', group: '말랑 수사대', name: '전설을 만나다', desc: '전설 동물 1마리', need: function (s) { return petCount(s, 'l'); }, goal: 1, title: '전설을 만난 자', tickets: 3 },
+    { id: 'pull100', group: '말랑 수사대', name: '운명의 손', desc: '뽑기 100번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 100, title: '운명의 손', tickets: 5 }
+  ];
+  // 배지로 사는 칭호(꾸미기)
+  var SHOP = [
+    { id: 's-detective', title: '명탐정', gems: 30 },
+    { id: 's-night', title: '밤의 제왕', gems: 30 },
+    { id: 's-cute', title: '귀요미', gems: 20 },
+    { id: 's-boss', title: '3팀의 자랑', gems: 40 },
+    { id: 's-rookie', title: '아직은 신입', gems: 10 }
+  ];
+  var BY_ID = {}, SHOP_BY = {};
+  LIST.forEach(function (a) { BY_ID[a.id] = a; });
+  SHOP.forEach(function (t) { SHOP_BY[t.id] = t; });
+  var TITLE_MAX = 10;
+
+  function int(v, def, min, max) {
+    if (typeof v !== 'number' || !isFinite(v)) return def;
+    v = Math.floor(v);
+    return v < min ? min : v > max ? max : v;
+  }
+  function isTitle(id) { return !!(BY_ID[id] || SHOP_BY[id]); }
+  /** 저장 속 ach 를 검사해 깨끗하게(없으면 빈 값). save.ach 를 돌려준다 */
+  function clean(save) {
+    var d = save.ach && typeof save.ach === 'object' ? save.ach : {}, a = { got: {}, bought: {}, title: '', pet: {}, stat: { dailyMedals: 0, dailyGold: 0 } };
+    var got = d.got && typeof d.got === 'object' ? d.got : {};
+    Object.keys(got).forEach(function (k) { if (got[k] === true && BY_ID[k]) a.got[k] = true; });
+    var bo = d.bought && typeof d.bought === 'object' ? d.bought : {};
+    Object.keys(bo).forEach(function (k) { if (bo[k] === true && SHOP_BY[k]) a.bought[k] = true; });
+    var sd = d.stat && typeof d.stat === 'object' ? d.stat : {};
+    a.stat.dailyMedals = int(sd.dailyMedals, 0, 0, 1e6);
+    a.stat.dailyGold = int(sd.dailyGold, 0, 0, 1e6);
+    save.ach = a;
+    a.title = typeof d.title === 'string' && has(save, d.title) ? d.title : '';
+    var pt = d.pet && typeof d.pet === 'object' ? d.pet : {};
+    Object.keys(pt).slice(0, 200).forEach(function (k) { if (/^[a-z0-9]+:[crhl]$/.test(k) && has(save, pt[k])) a.pet[k] = pt[k]; });
+    return a;
+  }
+  function A(save) { return save.ach && save.ach.got ? save.ach : clean(save); }
+
+  /** 그 칭호를 쓸 수 있는가(업적 달성 또는 구매) */
+  function has(save, id) { var a = save.ach || {}; return !!((a.got && a.got[id] && BY_ID[id]) || (a.bought && a.bought[id] && SHOP_BY[id])); }
+  /** 칭호 글(없으면 '') */
+  function titleText(id) { return BY_ID[id] ? BY_ID[id].title : SHOP_BY[id] ? SHOP_BY[id].title : ''; }
+  /** 쓸 수 있는 칭호 [{ id, title }] */
+  function owned(save) {
+    A(save);
+    return LIST.filter(function (a) { return has(save, a.id); }).map(function (a) { return { id: a.id, title: a.title }; })
+      .concat(SHOP.filter(function (t) { return has(save, t.id); }).map(function (t) { return { id: t.id, title: t.title }; }));
+  }
+
+  /** 지금 값과 달성 여부 */
+  function status(save) {
+    var a = A(save);
+    return LIST.map(function (x) {
+      var v = 0;
+      try { v = +x.need(save) || 0; } catch (e) { v = 0; }
+      return { a: x, value: Math.min(v, x.goal), done: !!a.got[x.id], ready: !a.got[x.id] && v >= x.goal };
+    });
+  }
+  /**
+   * 새로 달성한 업적을 처리한다: 표시하고 보상을 준다(뽑기권은 addTickets 로, 동물 모듈이 없으면 건너뛴다).
+   * 반환: 새로 달성한 업적 목록
+   */
+  function check(save, addTickets) {
+    var a = A(save), out = [];
+    status(save).forEach(function (r) {
+      if (!r.ready) return;
+      a.got[r.a.id] = true;
+      if (r.a.gems) save.gems = (save.gems || 0) + r.a.gems;
+      if (r.a.tickets && typeof addTickets === 'function') addTickets(save, r.a.tickets);
+      out.push(r.a);
+    });
+    return out;
+  }
+  /** 특별 출동 메달 기록 */
+  function noteDaily(save, medal) {
+    var a = A(save);
+    if (!medal) return;
+    a.stat.dailyMedals += 1;
+    if (medal === '금') a.stat.dailyGold += 1;
+  }
+  /** 칭호 사기(배지) */
+  function buy(save, id) {
+    var t = SHOP_BY[id], a = A(save);
+    if (!t) throw AchError('BAD_TITLE', '모르는 칭호');
+    if (a.bought[id]) throw AchError('ALREADY', '이미 있다');
+    if (!(save.gems >= t.gems)) throw AchError('NOT_ENOUGH', '배지가 모자란다');
+    save.gems -= t.gems;
+    a.bought[id] = true;
+    return t;
+  }
+  /** 팀장 칭호 달기('' 이면 떼기) */
+  function setTitle(save, id) {
+    var a = A(save);
+    if (id && !has(save, id)) throw AchError('LOCKED', '아직 없는 칭호');
+    a.title = id || '';
+    return a.title;
+  }
+  /** 동물 칭호 달기('' 이면 떼기). 가진 동물만 */
+  function setPetTitle(save, key, id) {
+    var a = A(save);
+    if (!(save.pets && save.pets.own && save.pets.own[key])) throw AchError('NOT_OWNED', '없는 동물');
+    if (id && !has(save, id)) throw AchError('LOCKED', '아직 없는 칭호');
+    if (id) a.pet[key] = id; else delete a.pet[key];
+    return id || '';
+  }
+  function leaderTitle(save) { var a = save.ach; return a && a.title ? titleText(a.title) : ''; }
+  function petTitle(save, key) { var a = save.ach; return a && a.pet && a.pet[key] ? titleText(a.pet[key]) : ''; }
+  function progress(save) { var a = A(save); return { have: Object.keys(a.got).length, total: LIST.length }; }
+
+  return {
+    LIST: LIST, SHOP: SHOP, BY_ID: BY_ID, TITLE_MAX: TITLE_MAX,
+    clean: clean, status: status, check: check, noteDaily: noteDaily, buy: buy, has: has, owned: owned, titleText: titleText,
+    setTitle: setTitle, setPetTitle: setPetTitle, leaderTitle: leaderTitle, petTitle: petTitle, progress: progress
   };
 });
 
@@ -4183,7 +5331,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     raf = requestAnimationFrame(loop);
   }
 
-  function sheetOpen() { return !$('quit-sheet').hidden || !$('info-sheet').hidden || !$('settings-sheet').hidden || !$('help-sheet').hidden; }
+  function sheetOpen() { return !$('quit-sheet').hidden || !$('info-sheet').hidden || !$('settings-sheet').hidden || !$('help-sheet').hidden || ($('pets-sheet') && !$('pets-sheet').hidden) || ($('ach-sheet') && !$('ach-sheet').hidden); }
 
   function onCard(i) {
     if (!game || game.over || lock || sheetOpen()) return;
@@ -4716,6 +5864,21 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
         '<p><b>계급</b>은 현장에서 직접 잡은 수로 올라요(' + I.RANKS.map(function (r) { return r.name; }).join(' → ') + '). 한 계급마다 수사비 +' + Math.round(I.RANK_BONUS * 100) + '%.</p>' +
         '<p><b>배지 ◆</b>는 승진·메달·특별 출동으로 모아요. 수사비가 모자랄 때 상품을 사거나 특별 출동에 다시 도전할 때 써요.</p>');
     }
+    var PT = window.Team3Pets;   // 0.3.0 동물 뽑기
+    if (PT) {
+      out += item('말랑 수사대 (동물 뽑기)',
+        '<p>사무실 위쪽 <b>동물</b> 단추에서 뽑기와 도감을 봐요. 동물은 ' + PT.SPECIES.length + '종, 종류마다 <b>일반 · 희귀 · 영웅 · 전설</b> 네 등급이 있어요(모두 ' + (PT.SPECIES.length * 4) + '마리).</p>' +
+        '<p><b>보유 효과</b>: 모은 동물 모두가 늘 조금씩(수사비 · 팀 수입 · 자리 비움 한도 · 할인). <b>장착 효과</b>: 파트너로 고른 한 마리만 크게.</p>' +
+        '<p>같은 동물이 또 나오면 ★가 올라 효과가 세져요(★5까지). 그 뒤로는 <b>간식</b>이 되고, 간식으로 원하는 동물을 데려와요.</p>' +
+        '<p>확률은 뽑기 창에 늘 공개돼요. ' + PT.PITY + '번 안에 전설이 안 나오면 전설 확정. ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>' +
+        '<p>뽑기권은 처음 선물 ' + PT.WELCOME + '장 · 사건 종결 10장 · 승진 3장 · 첫 메달 2장 · 특별 출동 메달 1장. 배지로도 뽑을 수 있어요(1회 ◆' + PT.COST.one + ' · 10회 ◆' + PT.COST.ten + ').</p>');
+    }
+    if (window.Team3Ach) {
+      out += item('업적 · 칭호 · 이름',
+        '<p>사무실 오른쪽 위 <b>트로피</b>에서 업적을 봐요. 달성하면 바로 칭호와 보상(뽑기권 · 배지)을 받아요.</p>' +
+        '<p>칭호는 <b>팀장 이름 앞</b>(트로피 창)과 <b>동물 이름 앞</b>(동물 창 자세히)에 달 수 있어요. 배지로 사는 칭호도 있어요.</p>' +
+        '<p>경찰서·팀장 이름과 동물 이름 바꾸기는 <b>첫 한 번 무료</b>, 그 뒤로는 배지(팀장 ◆' + I.PROFILE.renameGems + ' · 동물 ◆' + (window.Team3Pets ? window.Team3Pets.RENAME_GEMS : 5) + ') 또는 <b>이름표</b> 1장이에요.</p>');
+    }
     out += item('수사 일지 · 설정 · 백업',
       '<p>사건이 고비를 넘을 때마다 <b>수사 일지</b>가 열려요. 사무실의 수사 일지 보기에서 다시 읽을 수 있어요.</p>' +
       '<p>톱니바퀴(<b>설정</b>)에서 음악·효과음 크기와 진동을 바꿔요. 사무실에서 열면 튜토리얼 다시 하기, 백업, 초기화도 있어요.</p>' +
@@ -4987,6 +6150,374 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 </script>
 <script>
 /*
+ * Team3AchUI(0.3.0) — 업적 창(트로피 단추)과 칭호 고르기.
+ *   규칙·저장은 Team3Ach(H). save 는 사무실(hub.js)이 들고 있어 mount 때 getSave/persist/render 를 받는다.
+ *   창: 달성 수 · 팀장 칭호 고르기 · 업적 목록(진행 막대, 보상) · 배지로 사는 칭호.
+ *   달성 알림: notify(목록) — 사무실에 있을 때 차례로 토스트.
+ */
+(function (root) {
+  'use strict';
+  var H = root.Team3Ach;
+  if (!H) return;
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
+  var ctx = null;
+  function S() { return ctx.getSave(); }
+  function toast(t) { try { ctx.UI.toast(t); } catch (e) { /* 없음 */ } }
+
+  var TROPHY = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4"/></svg>';
+
+  /** 칭호 고르기 <select> (쓸 수 있는 칭호 + 없음) */
+  function titleSelect(id, cur, label) {
+    var list = H.owned(S());
+    return '<label class="ach-pick"><span>' + label + '</span><select id="' + id + '"' + (list.length ? '' : ' disabled') + '>' +
+      '<option value="">' + (list.length ? '칭호 없음' : '아직 칭호가 없어요') + '</option>' +
+      list.map(function (t) { return '<option value="' + t.id + '"' + (t.id === cur ? ' selected' : '') + '>' + esc(t.title) + '</option>'; }).join('') + '</select></label>';
+  }
+  function reward(a) {
+    var r = [];
+    if (a.tickets) r.push('뽑기권 ' + a.tickets);
+    if (a.gems) r.push('◆' + a.gems);
+    return r.join(' · ');
+  }
+  function draw() {
+    var s = S(), pr = H.progress(s), rows = H.status(s), groups = {};
+    rows.forEach(function (r) { (groups[r.a.group] = groups[r.a.group] || []).push(r); });
+    var html = '<div class="ach-top"><b>' + pr.have + ' / ' + pr.total + '</b><span class="muted">달성한 업적</span></div>' +
+      titleSelect('ach-title', s.ach.title, '팀장 칭호') +
+      '<p class="muted" style="font-size:12px">칭호는 사무실 팀장 이름 앞에 붙어요. 동물 칭호는 동물 창의 자세히에서 달아요.</p>';
+    Object.keys(groups).forEach(function (g) {
+      html += '<span class="label ach-g">' + esc(g) + '</span>';
+      groups[g].forEach(function (r) {
+        var pct = Math.min(100, Math.round(r.value / r.a.goal * 100));
+        html += '<div class="ach-row' + (r.done ? ' done' : '') + '"><div class="ach-tx"><b>' + esc(r.a.name) + (r.done ? ' ✓' : '') + '</b>' +
+          '<small>' + esc(r.a.desc) + ' · 칭호 「' + esc(r.a.title) + '」 · ' + reward(r.a) + '</small>' +
+          '<div class="ach-bar"><i style="width:' + pct + '%"></i></div></div><span class="ach-n">' + fmt(r.value) + '/' + fmt(r.a.goal) + '</span></div>';
+      });
+    });
+    html += '<span class="label ach-g">배지로 사는 칭호</span>' + H.SHOP.map(function (t) {
+      var have = H.has(s, t.id);
+      return '<div class="ach-row shop"><div class="ach-tx"><b>「' + esc(t.title) + '」</b><small>꾸미기 칭호 · 퍼즐과 상관없어요</small></div>' +
+        '<button class="buy" data-buy="' + t.id + '"' + (have || s.gems < t.gems ? ' disabled' : '') + '>' + (have ? '보유' : '◆' + t.gems) + '</button></div>';
+    }).join('');
+    $('ach-body').innerHTML = html;
+  }
+  function isOpen() { return !$('ach-sheet').hidden; }
+  function open() { $('ach-sheet').hidden = false; draw(); $('ach-sheet').querySelector('.sheet').scrollTop = 0; }
+  function close() { $('ach-sheet').hidden = true; ctx.render(); }
+
+  /** 새로 달성한 업적 알림(사무실) */
+  function notify(list) {
+    var dot0 = $('h-ach-dot');
+    if (dot0 && list.length) dot0.hidden = false;
+    if (list.length > 3) {   // 업데이트 직후처럼 한꺼번에 많이 달성하면 한 줄로
+      var t = list.reduce(function (n, a) { return n + (a.tickets || 0); }, 0), g = list.reduce(function (n, a) { return n + (a.gems || 0); }, 0);
+      toast('업적 ' + list.length + '개 달성! 칭호 ' + list.length + '개' + (t ? ' · 뽑기권 ' + t : '') + (g ? ' · ◆' + g : '') + ' · 트로피에서 확인');
+      try { ctx.UI.sfx.none(); } catch (e) { /* 무시 */ }
+      return;
+    }
+    list.forEach(function (a, i) {
+      setTimeout(function () {
+        toast('업적 달성: ' + a.name + ' · 칭호 「' + a.title + '」' + (reward(a) ? ' · ' + reward(a) : ''));
+        try { if (i === 0) ctx.UI.sfx.none(); } catch (e) { /* 무시 */ }
+      }, i * 2600);
+    });
+  }
+
+  function mount(c) {
+    ctx = c;
+    var b = $('h-ach');
+    if (b) b.innerHTML = TROPHY + '<span class="ach-dot" id="h-ach-dot" hidden></span>';
+    b.addEventListener('click', function () { $('h-ach-dot').hidden = true; open(); });
+    $('ach-x').addEventListener('click', close);
+    $('ach-sheet').addEventListener('click', function (e) {
+      if (e.target === this) { close(); return; }
+      var t = e.target.closest('button[data-buy]');
+      if (!t) return;
+      try { var tt = H.buy(S(), t.getAttribute('data-buy')); ctx.persist(); toast('칭호 「' + tt.title + '」를 샀어요'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } }
+      catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '살 수 없어요'); }
+      draw();
+    });
+    $('ach-sheet').addEventListener('change', function (e) {
+      if (e.target.id !== 'ach-title') return;
+      try { H.setTitle(S(), e.target.value); ctx.persist(); ctx.render(); toast(e.target.value ? '칭호 「' + H.titleText(e.target.value) + '」를 달았어요' : '칭호를 뗐어요'); } catch (e2) { toast('달 수 없어요'); }
+    });
+  }
+
+  root.Team3AchUI = { mount: mount, open: open, close: close, isOpen: isOpen, notify: notify, titleSelect: function (id, cur, label) { return ctx ? titleSelect(id, cur, label) : ''; } };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Team3PetsUI(0.3.0) — 사무실의 파트너 칸과 "동물 · 뽑기" 창.
+ *
+ * 구조
+ *   규칙·저장은 Team3Pets(P), 그림은 Team3PetArt(A). 이 파일은 화면만 그린다.
+ *   save 는 사무실(hub.js)이 들고 있어서 mount 때 getSave/persist/render 를 받아 쓴다.
+ *
+ * 창(#pets-sheet)
+ *   뽑기 탭: 뽑기권·배지·간식, 천장까지 남은 횟수, 1회/10회 뽑기, 결과 카드(차례로 뒤집힘), 확률표(늘 공개)
+ *   도감 탭: 보유 효과 합계, 20종 × 4등급 칸. 칸을 누르면 위에 자세히(효과 · 파트너로 · 간식 교환)
+ *   사무실 칸(#h-pet): 파트너 그림을 누르면 기뻐하고, "동물" 단추로 창을 연다.
+ */
+(function (root) {
+  'use strict';
+  var P = root.Team3Pets, A = root.Team3PetArt;
+  if (!P || !A) return;
+  var $ = function (id) { return document.getElementById(id); };
+  function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  // 동물 칭호(0.3.0, Team3Ach) — 이름 앞에 작게
+  function ttl(k) { var H = root.Team3Ach, t = H ? H.petTitle(S(), k) : ''; return t ? '<i class="ttl">' + esc(t) + '</i>' : ''; }
+  function stars(n) { return '<span class="pet-stars">' + '★'.repeat(n) + '<i>' + '★'.repeat(P.STAR_MAX - n) + '</i></span>'; }
+
+  var ctx = null, tab = 'draw', detailKey = '', busy = false;
+
+  function S() { return ctx.getSave(); }
+  function pets() { return S().pets; }
+
+  /* ---------- 사무실 칸 ---------- */
+  function renderPartner() {
+    var box = $('h-pet');
+    if (!box) return;
+    var p = pets(), x = P.parse(p.eq), free = p.tickets;
+    var dot = free > 0 ? '<span class="pet-dot">' + (free > 99 ? '99+' : free) + '</span>' : '';
+    if (!x) {
+      box.innerHTML = '<div class="pet-art pet-empty" aria-hidden="true">?</div>' +
+        '<div class="pet-tx"><b>파트너 동물이 없어요</b><small>뽑기로 3팀과 함께할 동물을 데려와요' + (free ? ' · 뽑기권 ' + free + '장' : '') + '</small></div>' +
+        '<button class="buy" id="h-pet-open">뽑기' + dot + '</button>';
+      return;
+    }
+    var sp = P.BY_ID[x.id], g = P.GRADE[x.g], st = p.own[p.eq], nm = P.nameOf(S(), p.eq);
+    var eff = P.describe(P.eqEffect(x.id, x.g, st));
+    box.innerHTML = '<button class="pet-art" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기" style="--gc:' + g.color + '">' + A.draw(x.id, { grade: x.g, anim: true }) + '</button>' +
+      '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b><small>' + esc(eff.join(' · ')) + '</small></div>' +
+      '<button class="buy" id="h-pet-open">동물' + dot + '</button>';
+  }
+  function pat() {
+    var b = $('h-pet-art'), x = P.parse(pets().eq);
+    if (!b || !x) return;
+    b.innerHTML = A.draw(x.id, { grade: x.g, mood: 'happy', anim: true });
+    try { ctx.UI.sfx.pick(3); } catch (e) { /* 소리 실패는 무시 */ }
+    ctx.UI.buzz(8);
+    clearTimeout(pat.t);
+    pat.t = setTimeout(function () { var bb = $('h-pet-art'); if (bb) bb.innerHTML = A.draw(x.id, { grade: x.g, anim: true }); }, 1400);
+  }
+
+  /* ---------- 창 ---------- */
+  function isOpen() { return !$('pets-sheet').hidden; }
+  function open(which) {
+    var gift = P.claimWelcome(S());
+    if (gift) ctx.persist();
+    tab = which || tab;
+    detailKey = '';
+    $('pets-sheet').hidden = false;
+    draw();
+    $('pets-sheet').querySelector('.sheet').scrollTop = 0;
+    if (gift) toast('환영 선물: 뽑기권 ' + gift + '장!');
+  }
+  function close() {
+    if (busy) return;
+    $('pets-sheet').hidden = true;
+    ctx.render();
+  }
+  function toast(t) { try { ctx.UI.toast(t); } catch (e) { /* 없음 */ } }
+
+  function draw() {
+    var p = pets(), pr = P.progress(S());
+    document.querySelectorAll('#pets-tabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === tab); });
+    $('pets-tab-dex').textContent = '도감 ' + pr.have + '/' + pr.total;
+    $('pets-wallet').innerHTML = '<span>뽑기권 <b>' + fmt(p.tickets) + '</b></span><span>배지 <b>◆' + fmt(S().gems) + '</b></span><span>간식 <b>' + fmt(p.treats) + '</b></span>';
+    $('pets-draw').hidden = tab !== 'draw';
+    $('pets-dex').hidden = tab !== 'dex';
+    drawDetail();
+    if (tab === 'draw') drawDraw(); else drawDex();
+  }
+
+  function payLabel(n) {
+    var p = pets();
+    if (p.tickets >= n) return { pay: 'ticket', text: '뽑기권 ' + n + '장' };
+    return { pay: 'gems', text: '◆' + (n === 10 ? P.COST.ten : P.COST.one) };
+  }
+  function drawDraw() {
+    var p = pets(), one = payLabel(1), ten = payLabel(10);
+    $('pets-pity').innerHTML = '전설 확정까지 <b>' + (P.PITY - p.pity) + '번</b> · 지금까지 ' + fmt(p.pulls) + '번 뽑음';
+    $('pets-one').innerHTML = '1회 뽑기<small>' + one.text + '</small>';
+    $('pets-ten').innerHTML = '10회 뽑기<small>' + ten.text + ' · 희귀 이상 1마리 보장</small>';
+    $('pets-one').disabled = busy || (one.pay === 'gems' && S().gems < P.COST.one);
+    $('pets-ten').disabled = busy || (ten.pay === 'gems' && S().gems < P.COST.ten);
+    $('pets-rates').innerHTML = '<table class="pet-rates"><tr><th>등급</th><th>등급 확률</th><th>한 마리</th></tr>' +
+      P.rates().map(function (r) { return '<tr><td style="color:' + P.GRADE[r.g].color + '">' + r.name + '</td><td>' + r.pct + '%</td><td>' + r.each + '%</td></tr>'; }).join('') + '</table>' +
+      '<p class="muted">등급을 먼저 정하고, 그 등급의 ' + P.SPECIES.length + '종 중 하나가 같은 확률로 나와요.</p>' +
+      '<p class="muted">천장: ' + P.PITY + '번째까지 전설이 한 번도 안 나오면 그 번째는 전설 확정(전설이 나오면 다시 0부터).</p>' +
+      '<p class="muted">10회 뽑기에서 모두 일반이면 마지막 한 마리는 희귀.</p>' +
+      '<p class="muted">같은 동물이 또 나오면 ★가 올라요(★5까지, ★마다 효과 +25%). ★5 뒤에는 간식(일반 1 · 희귀 3 · 영웅 10 · 전설 30)으로 바뀌어요.</p>' +
+      '<p class="muted">뽑기권은 처음 선물 · 사건 종결 · 승진 · 메달 · 특별 출동으로 받아요. 동물은 퍼즐 실력을 대신하지 않아요: ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>';
+  }
+
+  function doPull(n) {
+    if (busy) return;
+    var c = payLabel(n), r;
+    try { r = P.pull(S(), n, c.pay, Math.random); } catch (e) { toast(e.code === 'NOT_ENOUGH' ? (c.pay === 'gems' ? '배지가 모자라요' : '뽑기권이 모자라요') : '뽑을 수 없어요'); return; }
+    ctx.persist();
+    busy = true;
+    var res = $('pets-result'), best = 'c';
+    r.results.forEach(function (x) { if (P.GRADES.indexOf(x.g) > P.GRADES.indexOf(best)) best = x.g; });
+    res.className = 'pet-result n' + n + ' best-' + best;
+    res.innerHTML = r.results.map(function (x, i) {
+      var sp = P.BY_ID[x.id], g = P.GRADE[x.g];
+      var tag = x.isNew ? '<em class="new">NEW</em>' : x.treats ? '<em>간식 +' + x.treats + '</em>' : '<em>★' + x.star + '</em>';
+      return '<div class="pet-got g-' + x.g + '" style="--gc:' + g.color + ';animation-delay:' + (i * (n === 10 ? 0.16 : 0)) + 's">' +
+        A.draw(x.id, { grade: x.g, mood: x.g === 'l' || x.g === 'h' ? 'happy' : null }) + '<span><b style="color:' + g.color + '">' + g.name + '</b> ' + esc(P.nameOf(S(), x.key) || sp.name) + '</span>' + tag + '</div>';
+    }).join('');
+    try { ctx.UI.sfx.coin(); } catch (e) { /* 무시 */ }
+    var wait = n === 10 ? 1800 : 400;
+    setTimeout(function () {
+      try { if (best === 'l' || best === 'h') ctx.UI.sfx.none(); } catch (e) { /* 무시 */ }
+      if (best === 'l') ctx.UI.buzz([30, 60, 30, 60, 80]);
+      busy = false;
+      draw();
+      renderPartner();
+    }, wait);
+    drawDraw();
+    $('pets-wallet').innerHTML = '<span>뽑기권 <b>' + fmt(pets().tickets) + '</b></span><span>배지 <b>◆' + fmt(S().gems) + '</b></span><span>간식 <b>' + fmt(pets().treats) + '</b></span>';
+  }
+
+  function ownSummary() {
+    var p = pets(), sum = {};
+    Object.keys(p.own).forEach(function (k) { var x = P.parse(k); if (!x) return; var e = P.ownEffect(x.id, x.g, p.own[k]); Object.keys(e).forEach(function (q) { sum[q] = (sum[q] || 0) + e[q]; }); });
+    Object.keys(sum).forEach(function (q) { if (P.CAPS[q] && sum[q] > P.CAPS[q]) sum[q] = P.CAPS[q]; });
+    var lines = P.describe(sum);
+    return lines.length ? lines.join(' · ') : '아직 없어요. 동물을 모으면 하나하나 쌓여요.';
+  }
+  function drawDex() {
+    var p = pets();
+    var html = '<div class="pet-sum"><span class="label">보유 효과 합계 (모은 동물 모두 · 늘 켜짐)</span><b>' + esc(ownSummary()) + '</b></div>' +
+      '<div class="pet-dex-head"><span></span>' + P.GRADES.map(function (g) { return '<span style="color:' + P.GRADE[g].color + '">' + P.GRADE[g].name + '</span>'; }).join('') + '</div>';
+    P.SPECIES.forEach(function (sp) {
+      html += '<div class="pet-dex-row"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + '</small></span>' +
+        P.GRADES.map(function (g) {
+          var k = P.key(sp.id, g), st = p.own[k];
+          return '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE[g].color + '" aria-label="' + P.GRADE[g].name + ' ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
+            A.draw(sp.id, { grade: g }) + (st ? '<i>' + st + '★</i>' : '') + '</button>';
+        }).join('') + '</div>';
+    });
+    $('pets-dex').innerHTML = html;
+  }
+
+  function drawDetail() {
+    var box = $('pets-detail'), x = P.parse(detailKey);
+    box.hidden = !x;
+    if (!x) { box.innerHTML = ''; return; }
+    var p = pets(), sp = P.BY_ID[x.id], g = P.GRADE[x.g], st = p.own[detailKey] || 0, shown = st || 1;
+    var own = P.describe(P.ownEffect(x.id, x.g, shown)), eq = P.describe(P.eqEffect(x.id, x.g, shown));
+    var zapLocked = sp.zap && x.g !== 'h' && x.g !== 'l' ? '<small class="muted">⚡ ' + esc(P.describe(sp.zap).join(' · ').replace(/⚡ /g, '')) + ' — 영웅 · 전설 등급에서 열려요</small>' : '';
+    var swapCost = g.swap, canSwap = st < P.STAR_MAX;
+    box.style.setProperty('--gc', g.color);
+    box.innerHTML = '<button class="pet-x" id="pets-detail-x" aria-label="자세히 닫기">×</button>' +
+      '<div class="pet-big' + (st ? '' : ' locked') + '">' + A.draw(x.id, { grade: x.g, anim: !!st }) + '</div>' +
+      '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' · ' + esc(sp.kind) + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
+        '<small class="muted">' + esc(sp.line) + '</small></div>' +
+      '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(' · ')) + '</b><small>갖고만 있어도 늘 켜짐</small></div>' +
+        '<div><em>장착 효과</em><b class="eq">' + esc(eq.join(' · ')) + '</b><small>파트너 1마리만' + (eq.join('').indexOf('⚡') >= 0 ? ' · ⚡는 특별 출동에서 꺼짐' : '') + '</small>' + zapLocked + '</div></div>' +
+      (st ? '' : '<p class="muted" style="font-size:12px">아직 없어서 ★1 기준으로 보여 줘요.</p>') +
+      (st ? nameRow() : '') +
+      (st && root.Team3AchUI ? '<div class="pet-name">' + root.Team3AchUI.titleSelect('pets-ttl', (S().ach && S().ach.pet[detailKey]) || '', '칭호') + '</div>' : '') +
+      '<div class="pet-acts">' +
+        (st ? (p.eq === detailKey ? '<button class="ghost" disabled>지금 파트너</button>' : '<button class="primary" id="pets-equip">파트너로</button>') : '') +
+        (canSwap ? '<button class="ghost" id="pets-swap"' + (p.treats < swapCost ? ' disabled' : '') + '>간식 ' + swapCost + '개로 ' + (st ? '★ 올리기' : '데려오기') + '</button>' : '') +
+      '</div>';
+  }
+  /* 이름 짓기(0.3.0): 게임 전체 첫 한 번은 무료, 그 뒤로 배지. 기본 이름으로 되돌리기는 무료 */
+  var naming = false;
+  function nameRow() {
+    var c = P.renameCost(S()), custom = !!(pets().names[detailKey]), tags = S().nameTags || 0, I = root.SuspectsIdle;
+    var price = !c ? '첫 한 번 무료' : tags ? '이름표 1장 (' + tags + '장)' : '◆' + c;
+    if (!naming) return '<div class="pet-name"><button class="linkish" id="pets-name">이름 짓기 · ' + price + '</button>' +
+      (custom ? '<button class="linkish muted" id="pets-name-reset">기본 이름으로</button>' : '') + '</div>' +
+      (c && !tags && I && I.NAME_TAGS ? '<div class="pet-name"><button class="linkish muted" id="pets-tags"' + (S().gems < I.NAME_TAGS.gems ? ' disabled' : '') + '>이름표 ' + I.NAME_TAGS.n + '장 · ◆' + I.NAME_TAGS.gems + ' (팀장 이름에도 써요)</button></div>' : '');
+    return '<div class="pet-name on"><input id="pets-name-in" maxlength="' + (P.NAME_MAX * 2) + '" autocomplete="off" placeholder="' + P.NAME_MAX + '자까지">' +
+      '<button class="primary" id="pets-name-ok">' + (!c ? '무료' : tags ? '이름표' : '◆' + c) + '</button><button class="ghost" id="pets-name-no">취소</button></div>';
+  }
+  function startNaming() {
+    naming = true; drawDetail();
+    var inp = $('pets-name-in');
+    if (inp) { inp.value = P.nameOf(S(), detailKey); try { inp.focus(); inp.select(); } catch (e) { /* 무시 */ } }
+  }
+  function saveName() {
+    var inp = $('pets-name-in'), r;
+    if (!inp) return;
+    try { r = P.rename(S(), detailKey, inp.value); }
+    catch (e) { toast({ EMPTY: '이름을 적어 주세요', SAME: '같은 이름이에요', NOT_ENOUGH: '배지가 모자라요' }[e.code] || '바꿀 수 없어요'); return; }
+    ctx.persist(); naming = false;
+    try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ }
+    toast('이제 이름은 "' + r.name + '"' + (r.paid ? ' · ◆' + r.paid : r.tag ? ' · 이름표 1장' : ''));
+    renderPartner(); draw(); ctx.render();
+  }
+  function showDetail(k) {
+    naming = false;
+    detailKey = k;
+    drawDetail();
+    $('pets-sheet').querySelector('.sheet').scrollTop = 0;
+  }
+
+  /* ---------- 연결 ---------- */
+  function mount(c) {
+    ctx = c;
+    $('pets-x').addEventListener('click', close);
+    $('pets-sheet').addEventListener('click', function (e) {
+      if (e.target === this) { close(); return; }
+      var t = e.target.closest('button');
+      if (!t) return;
+      if (t.id === 'pets-one') doPull(1);
+      else if (t.id === 'pets-ten') doPull(10);
+      else if (t.getAttribute('data-tab')) { tab = t.getAttribute('data-tab'); detailKey = ''; draw(); }
+      else if (t.classList.contains('pet-cell')) showDetail(t.getAttribute('data-k'));
+      else if (t.id === 'pets-detail-x') { detailKey = ''; naming = false; drawDetail(); }
+      else if (t.id === 'pets-name') startNaming();
+      else if (t.id === 'pets-tags') {
+        try { root.SuspectsIdle.buyNameTags(S()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } toast('이름표 ' + root.SuspectsIdle.NAME_TAGS.n + '장을 샀어요'); } catch (e5) { toast('배지가 모자라요'); }
+        draw(); ctx.render();
+      }
+      else if (t.id === 'pets-name-ok') saveName();
+      else if (t.id === 'pets-name-no') { naming = false; drawDetail(); }
+      else if (t.id === 'pets-name-reset') { P.resetName(S(), detailKey); ctx.persist(); renderPartner(); draw(); toast('기본 이름 "' + P.nameOf(S(), detailKey) + '"(으)로 돌렸어요'); }
+      else if (t.id === 'pets-equip') {
+        P.equip(S(), detailKey); ctx.persist(); renderPartner(); draw();
+        try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ }
+        toast(P.nameOf(S(), detailKey) + '(이)가 파트너가 됐어요');
+      } else if (t.id === 'pets-swap') {
+        var x = P.parse(detailKey);
+        try { var r = P.swap(S(), x.id, x.g); ctx.persist(); toast(r.isNew ? '새 동물이 왔어요!' : '★' + r.star + '로 올랐어요'); } catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '간식이 모자라요' : '바꿀 수 없어요'); }
+        renderPartner(); draw();
+      }
+    });
+    $('s-hub').addEventListener('click', function (e) {
+      var t = e.target.closest('button');
+      if (!t) return;
+      if (t.id === 'h-pet-open') open(pets().tickets > 0 || !Object.keys(pets().own).length ? 'draw' : 'dex');
+      else if (t.id === 'h-pet-art') pat();
+    });
+    $('pets-sheet').addEventListener('change', function (e) {
+      if (e.target.id !== 'pets-ttl' || !root.Team3Ach) return;
+      try { root.Team3Ach.setPetTitle(S(), detailKey, e.target.value); ctx.persist(); renderPartner(); drawDetail(); } catch (e2) { toast('달 수 없어요'); }
+    });
+    $('pets-sheet').addEventListener('keydown', function (e) {
+      if (e.target.id !== 'pets-name-in') return;
+      if (e.key === 'Enter') { e.preventDefault(); saveName(); }
+      else if (e.key === 'Escape') { e.stopPropagation(); naming = false; drawDetail(); }
+    });
+    renderPartner();
+  }
+
+  root.Team3PetsUI = { mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, isBusy: function () { return busy; } };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
  * 사무실 — 수사 3팀의 첫 화면(방치형, 사건 1). SuspectsIdle 의 저장을 들고 1초마다 팀의 일을 반영한다.
  *
  * 흐름: 켜면 저장을 읽고(깨졌으면 새로) → 자리를 비운 동안의 일(잠복 보고)을 보여 주고 → 사무실.
@@ -4996,6 +6527,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 (function () {
   'use strict';
   var UI = window.SuspectsUI, I = window.SuspectsIdle, E = window.Team3Economy;   // E: 상품·메달·특별 출동(0.1.19)
+  var PT = window.Team3Pets, PUI = window.Team3PetsUI;   // 0.3.0 동물 뽑기(규칙 · 화면)
+  var H = window.Team3Ach, AUI = window.Team3AchUI;      // 0.3.0 업적 · 칭호(규칙 · 화면)
   if (!UI || !I) return;
   var $ = function (id) { return document.getElementById(id); };
   var nowMs = function () { return Date.now(); };
@@ -5003,6 +6536,31 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
   var save = null, pendingClose = false, saveTick = 0;
   var duringRun = null;   // 출동하는 동안 팀이 번 것 { catches, money } — 사무실로 돌아올 때 보여 준다
+
+  /* ---------- 0.3.0 동물 효과 ---------- */
+  // 지금 켜진 동물 효과(사건 번호 · 기기 시각으로 개구리 · 부엉이 조건을 센다)
+  function petBonus(sv) { return PT ? PT.bonus(sv, { caseNo: sv.caseNo, hour: new Date().getHours() }) : null; }
+  if (PT) I.setBonus(petBonus);
+  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); }
+  /*
+   * 업적 확인(0.3.0). 사무실을 그릴 때마다(1초) 본다 — 조건이 20개 남짓이라 가볍다.
+   *   새로 달성하면 보상(배지 · 뽑기권)을 주고 저장, 사무실에서 차례로 알린다.
+   */
+  function checkAch() {
+    if (!H) return;
+    var got = H.check(save, PT ? PT.addTickets : null);
+    if (!got.length) return;
+    persist();
+    if (PUI) PUI.renderPartner();
+    if (AUI) AUI.notify(got);
+  }
+  // 뽑기권 보상(사무실 칸 빨간 점도 다시 그린다). 반환: 결과 화면에 붙일 문구
+  function giveTickets(n, why) {
+    if (!PT || !(n > 0)) return '';
+    PT.addTickets(save, n);
+    if (PUI) PUI.renderPartner();
+    return '뽑기권 +' + n + (why ? ' (' + why + ')' : '');
+  }
 
   /* ---------- 저장 ---------- */
   function persist() {
@@ -5098,9 +6656,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var ld = $('h-leader');
     // 이름을 안 정했으면 "신임 팀장"(이번에 3팀을 맡은 사람). 사건 1 이야기와 이어진다.
     var rk = I.rankOf(save).name;   // 계급(0.1.19): 팀장은 경위부터
-    ld.textContent = rk + ' · ' + (save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기');
+    // 0.3.0 칭호는 팀장 이름 앞에(글은 모두 textContent 라 꺾쇠 걱정 없음)
+    var ttl = H ? H.leaderTitle(save) : '';
+    ld.textContent = rk + ' · ' + (ttl ? '「' + ttl + '」 ' : '') + (save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기');
     ld.classList.toggle('empty', !save.profile.leader);
     $('h-money').textContent = '수사비 ' + fmtShort(save.money);
+    checkAch();
     $('h-gems').textContent = '◆ ' + fmt(save.gems);
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
     // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
@@ -5130,7 +6691,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     renderStoryButton();
 
     var o = I.runOptions(save), pc = save.prep || {};
-    var dur = o.duration + (pc.coffee ? 15 : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
+    var zb = PT ? petBonus(save) : null;
+    var dur = o.duration + (pc.coffee ? 15 : 0) + (zb && zb.time ? Math.round(zb.time) : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
     $('h-go-sub').textContent = dur + '초' + (fh ? ' · 무료 단서 ' + fh : '') + (pc.press ? ' · 수사비 1.5배' : ' · 잡은 만큼 수사비');
     if (E) { renderPrep(t); renderDaily(t); renderSupport(t); }
 
@@ -5270,11 +6832,14 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     pendingClose = false;
     I.markStorySeen(save); persist(); renderStoryButton();   // 마지막 편을 이 창에서 보여 주므로 읽음
     var last = CS().story[CS().story.length - 1];
+    var gift = PT ? PT.giftOnce(save, 'case' + CS().no, 10) : 0;   // 0.3.0: 사건마다 한 번, 뽑기권 10장
+    if (gift) { persist(); if (PUI) PUI.renderPartner(); }
     UI.sfx.none(); UI.buzz([30, 60, 30, 60, 80]);
     openInfo({
       label: '사건 ' + CS().no + ' 종결',
       title: CS().title,
       body: p(last.text) +
+        (gift ? p('<b style="color:var(--acc)">사건 종결 보상: 뽑기권 ' + gift + '장</b>') : '') +
         p('<span class="muted">팀이 잡은 용의자 ' + fmt(save.teamCaught) + '명 · 내가 출동해 잡은 용의자 ' + fmt(save.runCaught) + '명 · 출동 ' + save.runs + '번 · 최고 점수 ' + fmt(save.bestScore) + '</span>'),
       ok: I.nextCase(save) ? ro(I.nextCase(save).city) + ' 파견' : '계속 수사하기 (다음 사건은 준비 중)',
       cancel: I.nextCase(save) ? '나중에' : '',
@@ -5339,23 +6904,41 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   }
 
   /* ---------- 프로필 바꾸기 ---------- */
-  function editProfile() {
-    var P = I.PROFILE;
+  /*
+   * 프로필(경찰서 · 팀장 이름). 0.3.0: 첫 변경은 무료, 그 뒤로는 배지 I.PROFILE.renameGems 개.
+   *   값이 모자라거나 바뀐 게 없으면 창을 다시 열어 고친 글을 그대로 둔다.
+   */
+  function editProfile(keep) {
+    var P = I.PROFILE, cost = I.profileCost(save), tags = save.nameTags || 0, NT = I.NAME_TAGS;
+    var costLine = cost === 0
+      ? '<b style="color:var(--acc)">첫 이름 바꾸기는 무료예요.</b> 그 뒤로는 한 번에 배지 ◆' + P.renameGems + '개 또는 이름표 1장이에요.'
+      : tags ? '이름표 1장을 써요. <span class="muted">(가진 이름표 ' + tags + '장)</span>'
+      : '이름 바꾸기는 배지 ◆' + cost + '개예요. <span class="muted">(가진 배지 ◆' + fmt(save.gems) + ')</span>';
+    var tagBtn = cost === 0 ? '' : '<button class="linkish" id="pf-tags"' + (save.gems < NT.gems ? ' disabled' : '') + '>이름표 ' + NT.n + '장 사기 · ◆' + NT.gems + ' (동물 이름에도 써요)</button>';
     openInfo({
       label: '내 프로필', title: '경찰서와 팀장 이름',
       body: '<label class="field">경찰서 이름 (최대 ' + P.stationMax + '자)<input id="pf-station" maxlength="' + (P.stationMax * 2) + '" autocomplete="off" placeholder="' + P.defaultStation + '"></label>' +
             '<label class="field">팀장 이름 (최대 ' + P.leaderMax + '자, 비워도 돼요)<input id="pf-leader" maxlength="' + (P.leaderMax * 2) + '" autocomplete="off" placeholder="예: 김형사"></label>' +
+            p(costLine) + tagBtn +
             p('<span class="muted">게임 이름인 수사 3팀은 그대로예요.</span>'),
-      ok: '저장', cancel: '취소',
+      ok: cost === 0 ? '무료로 저장' : tags ? '이름표로 저장' : '◆' + cost + '로 저장', cancel: '취소',
       onOk: function () {
-        var pf = I.setProfile(save, $('pf-station').value, $('pf-leader').value);
+        var st = $('pf-station').value, ld = $('pf-leader').value, r;
+        try { r = I.changeProfile(save, st, ld); }
+        catch (e) {
+          if (e.code === 'SAME') { UI.toast('바뀐 이름이 없어요'); return; }
+          UI.toast(e.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '바꿀 수 없어요');
+          editProfile({ station: st, leader: ld });
+          return;
+        }
         persist(); render();
-        UI.toast(pf.station + ' 수사 3팀' + (pf.leader ? ', 팀장 ' + pf.leader : ''));
+        if (r.paid || r.tag) UI.sfx.coin();
+        UI.toast(r.profile.station + ' 수사 3팀' + (r.profile.leader ? ', 팀장 ' + r.profile.leader : '') + (r.paid ? ' · ◆' + r.paid : r.tag ? ' · 이름표 1장' : ''));
       }
     });
     // 값은 속성이 아니라 .value 로 넣는다(따옴표 등이 HTML 을 깨지 않게)
-    $('pf-station').value = save.profile.station;
-    $('pf-leader').value = save.profile.leader;
+    $('pf-station').value = keep ? keep.station : save.profile.station;
+    $('pf-leader').value = keep ? keep.leader : save.profile.leader;
     $('pf-station').focus();
   }
 
@@ -5388,9 +6971,25 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       opts.used = opts.used.map(function (id) { return SHORT[id] || id; });
       persist();
     }
+    applyZap(opts);
     opts.boss = I.idleCapped(save);   // 주범 조 출동이면 배경 음악을 boss 곡으로(ui.js show)
     runCfg = opts;
     UI.startRun(opts);
+  }
+  /*
+   * 0.3.0 파트너의 ⚡ 퍼즐 도움(영웅·전설 일부). 평소 출동에만 — 특별 출동(goDaily)은 이 함수를 거치지 않는다.
+   *   shield: 오인 체포 벌점 면제 +번 / miss: 오인 벌점 −초(기본 5초) / combo: 연속 배수 상한 + / time: 출동 시간 +초
+   */
+  var BASE_MISS = 5, BASE_COMBO = 3;
+  function applyZap(opts) {
+    var b = PT && petBonus(save);
+    if (!b) return opts;
+    opts.mods = opts.mods || {};
+    if (b.shield) opts.mods.shield = Math.min(10, (opts.mods.shield || 0) + Math.round(b.shield));
+    if (b.miss) opts.mods.missPenalty = Math.max(0, BASE_MISS - b.miss);
+    if (b.combo) opts.mods.comboMax = BASE_COMBO + Math.round(b.combo);
+    if (b.time) opts.duration = (opts.duration || 90) + Math.round(b.time);
+    return opts;
   }
   // 하루 한 번 특별 출동: 준비물·장비 없이 그날 규칙으로. 오늘 보상을 받았으면 배지로 한 번 더
   function goDaily() {
@@ -5439,12 +7038,13 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var r = I.applyRun(save, { score: g.score, hits: g.hits, payMult: cfg.payMult || 1 }, nowMs());
     if (E && cfg.daily) {
       var d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
+      if (H) H.noteDaily(save, d.medal);   // 0.3.0 업적용 기록
       extra += d.medal
-        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달 · 수사비 +' + fmt(d.money) + ' · ◆' + d.gems + '</span>'
+        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달 · 수사비 +' + fmt(d.money) + ' · ◆' + d.gems + (PT ? ' · ' + giveTickets(1) : '') + '</span>'
         : '<span class="muted">특별 출동: 동 메달(' + fmt(E.dailyRule(cfg.day || dayNow()).medals[0]) + '점)부터 보상이에요. 오늘 다시 도전할 수 있어요.</span>';
     } else if (E) {
       E.claimMedals(save, g.score, base).forEach(function (m) {
-        extra += '<span class="res-medal">첫 ' + m.name + ' 메달! 수사비 +' + fmt(m.money) + ' · ◆' + m.gems + '</span>';
+        extra += '<span class="res-medal">첫 ' + m.name + ' 메달! 수사비 +' + fmt(m.money) + ' · ◆' + m.gems + (PT ? ' · ' + giveTickets(2) : '') + '</span>';
       });
       if (g.score > best0 && best0 > 0) extra += '<span style="color:var(--acc);font-weight:700">최고 점수 경신! (전 기록 ' + fmt(best0) + ')</span>';
     }
@@ -5464,10 +7064,11 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (!got.length) return false;
     persist(); render();
     var last = got[got.length - 1], gems = got.reduce(function (a, x) { return a + x.gems; }, 0);
+    var tk = PT ? giveTickets(3 * got.length) : '';   // 0.3.0: 승진 한 계단마다 뽑기권 3장
     UI.sfx.none(); UI.buzz([30, 60, 30]);
     openInfo({ label: '승진', title: ro(last.name) + ' 승진했어요',
       body: p('현장에서 직접 잡은 용의자가 ' + fmt(save.runCaught) + '명이 되었어요.') +
-        p('수사비가 <b>+' + Math.round(I.rankOf(save).bonus * 100) + '%</b> 늘어요(팀·출동 모두). 승진 축하 배지 ◆' + gems + '개를 받았어요.') +
+        p('수사비가 <b>+' + Math.round(I.rankOf(save).bonus * 100) + '%</b> 늘어요(팀·출동 모두). 승진 축하 배지 ◆' + gems + '개를 받았어요.' + (tk ? ' ' + tk + '장도 함께!' : '')) +
         (I.rankOf(save).next ? p('<span class="muted">다음 계급 ' + I.rankOf(save).next.name + '까지 ' + fmt(I.rankOf(save).toNext) + '명</span>') : ''),
       readOnly: true });
     return true;
@@ -5522,16 +7123,24 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var r = I.load(json, nowMs());
     if (r.reset) return { ok: false, message: '저장 내용이 올바르지 않아요' };
     save = r.save;
+    petsReady();
     save.lastSeen = nowMs();   // 코드를 만든 뒤 지난 시간은 '자리 비움'으로 치지 않는다(기기를 옮기는 사이 보상 받기 방지)
     persist();
     return { ok: true };
   };
   UI.hooks.resetSave = function () {
-    save = I.newSave(nowMs()); save.tutorialDone = true; persist();
+    save = I.newSave(nowMs()); save.tutorialDone = true; petsReady(); persist();
   };
 
   $('h-go').addEventListener('click', go);
-  $('h-profile').addEventListener('click', editProfile);
+  $('h-profile').addEventListener('click', function () { editProfile(); });
+  // 프로필 창 안의 "이름표 사기"(0.3.0): 사고 나면 적던 글을 그대로 둔 채 창을 다시 그린다
+  $('info-body').addEventListener('click', function (e) {
+    if (!e.target.closest('#pf-tags')) return;
+    var keep = { station: $('pf-station').value, leader: $('pf-leader').value };
+    try { I.buyNameTags(save); persist(); render(); UI.sfx.coin(); UI.toast('이름표 ' + I.NAME_TAGS.n + '장을 샀어요'); } catch (err) { UI.toast('배지가 모자라요'); }
+    editProfile(keep);
+  });
   $('h-hire').addEventListener('click', function () { tryBuy('hire'); });
   $('h-trainb').addEventListener('click', function () { tryBuy('train'); });
   $('h-gear').addEventListener('click', function (e) {
@@ -5558,7 +7167,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   $('info-cancel').addEventListener('click', function () { closeInfo('cancel'); });
   $('info-x').addEventListener('click', function () { closeInfo('cancel'); });
   $('info-sheet').addEventListener('click', function (e) { if (e.target === this) closeInfo('cancel'); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('info-sheet').hidden) closeInfo('cancel'); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!$('info-sheet').hidden) closeInfo('cancel');
+    else if (PUI && PUI.isOpen()) PUI.close();
+    else if (AUI && AUI.isOpen()) AUI.close();
+  });
   // 탭을 떠날 때·돌아올 때 저장과 반영
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { I.advance(save, nowMs()); persist(); }
@@ -5689,14 +7303,20 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (updating) return 'stay';
     if (dispatching) return 'stay';   // 출동 전환 중: 사무실에서 뒤로(=앱 종료)로 오해하지 않게 그냥 둔다
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }
+    if (PUI && PUI.isOpen()) { PUI.close(); return 'stay'; }
+    if (AUI && AUI.isOpen()) { AUI.close(); return 'stay'; }
     return UI.back();
   };
 
   /* ---------- 시작 ---------- */
   var loaded = loadSave();
   save = loaded.save;
+  petsReady();   // 동물 저장 검사는 자리 비움 계산(한도 효과) 전에
   var away = I.advance(save, nowMs(), { offline: true });   // 앱을 끈 사이 = 자리 비움(절반 속도, 4시간까지)
   persist();
+  // 창 모듈을 먼저 붙인다(첫 render 의 업적 확인이 알림을 띄울 수 있게)
+  if (PUI) PUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
+  if (AUI) AUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
   render();
   applyTheme();
   UI.show('s-hub');
@@ -5709,8 +7329,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       body: p('3팀이 용의자 <b style="color:var(--acc)">' + fmt(away.catches) + '명</b>을 잡았어요.') +
         p('수사비 <b style="color:var(--acc)">+' + fmt(away.money) + '</b>') +
         (away.night ? p('<span style="color:var(--acc);font-weight:700">야간 잠복조 투입: 이번엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 셌어요</span>') : '') +
-        p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + (I.TUNE.offlineCapSec / 3600) + '시간까지만 세요.' +
-          (!away.night && away.seconds >= I.TUNE.offlineCapSec ? ' 이번엔 꽉 찼어요. 지원의 야간 잠복조를 사 두면 다음엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 세요.' : '') + '</span>') +
+        p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + fmtDur(away.cap || I.TUNE.offlineCapSec) + '까지만 세요' + (away.cap > I.TUNE.offlineCapSec && !away.night ? '(동물 효과로 늘어남)' : '') + '.' +
+          (!away.night && away.seconds >= (away.cap || I.TUNE.offlineCapSec) ? ' 이번엔 꽉 찼어요. 지원의 야간 잠복조를 사 두면 다음엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 세요.' : '') + '</span>') +
         (away.counted < away.catches ? p('<span class="muted">남은 주범 조는 현장 출동으로만 잡을 수 있어요.</span>') : ''),
       ok: '좋아요',
       onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); else showPromotions(); }

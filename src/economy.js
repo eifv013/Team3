@@ -42,6 +42,8 @@
   var PREP_IDS = ITEMS.filter(function (it) { return it.kind === 'prep'; }).map(function (it) { return it.id; });
 
   var MIN_BASE = 300;
+  // 0.3.0 동물 효과 한 갈래(없으면 0)
+  function bn(save, k) { var v = +((I.bonusOf ? I.bonusOf(save) : {})[k]); return isFinite(v) && v > 0 ? v : 0; }
 
   function baseValue(save) {
     var r = save.recent || [], avg = 0;
@@ -66,6 +68,8 @@
     if (currency !== 'money') return null;   // 'ad' · 'iap' 는 아직 없다
     var v = baseValue(save) * (it.price.base || 0);
     if (it.price.teamMin) v = Math.max(v, I.teamRate(save) * 60 * it.price.teamMin * I.payPerCatch(save));
+    // 0.3.0 샴 등: 준비물 값 할인(수사비만, 최대 50%)
+    if (it.kind === 'prep') v *= 1 - Math.min(0.5, bn(save, 'prep') / 100);
     return roundNice(v);
   }
 
@@ -94,7 +98,7 @@
     if (save[wallet] < c) throw EcoError('NOT_ENOUGH', currency === 'gems' ? '배지가 모자란다' : '수사비가 모자란다');
     save[wallet] -= c;
     if (it.kind === 'prep') { save.prep[id] = true; savePaid(save, id, wallet, c); }
-    else if (id === 'party') save.partyUntil = now + I.TUNE.partySec * 1000;
+    else if (id === 'party') save.partyUntil = now + I.TUNE.partySec * (1 + bn(save, 'party') / 100) * 1000;   // 0.3.0 토끼: 회식 시간 +%
     else if (id === 'night') save.nightWatch = true;
     return { id: id, currency: wallet, paid: c };
   }
@@ -238,7 +242,7 @@
     var tier = -1;
     st.rule.medals.forEach(function (at, i) { if (score >= at) tier = i; });
     if (tier < 0) return { medal: null, money: 0, gems: 0, best: save.daily.best };
-    var money = roundNice(baseBefore * DAILY_BASE[tier]), gems = DAILY_GEMS[tier];
+    var money = roundNice(baseBefore * DAILY_BASE[tier] * (1 + bn(save, 'daily') / 100)), gems = DAILY_GEMS[tier];   // 0.3.0 펭귄: 특별 출동 수사비 +%
     save.money += money; save.gems += gems;
     save.daily.done = true;
     return { medal: ['동', '은', '금'][tier], money: money, gems: gems, best: save.daily.best };
