@@ -127,8 +127,6 @@
     $('h-cap-note').classList.toggle('on', capped);
     if (capped) $('h-cap-text').textContent = '남은 ' + fmt(goal - save.caught) + '명은 주범 조 · 현장 출동으로만 잡을 수 있어요';
     $('h-go').classList.toggle('urgent', capped);
-    var st = I.storyUnlocked(save);
-    $('h-story').textContent = st[st.length - 1].text;
     renderStoryButton();
 
     var o = I.runOptions(save);

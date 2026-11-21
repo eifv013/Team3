@@ -181,7 +181,6 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .cap-note.on{display:flex}
 .cap-note i{width:8px;height:8px;flex:none;border-radius:50%;background:#ff5c5c;animation:blink 1s steps(2,start) infinite}
 @keyframes blink{to{visibility:hidden}}
-.casebox .story{margin:0;font-size:13px;line-height:1.6;color:var(--muted);white-space:pre-line}
 .linkish{border:0;background:none;padding:0;color:var(--acc);font-size:13px;font-weight:600;text-align:left}
 .section-t{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 .shop{display:flex;flex-direction:column;gap:8px}
@@ -336,7 +335,6 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       </div>
       <div class="bar"><span class="cap" id="h-cap"></span><i id="h-bar" style="width:0%"></i></div>
       <div class="cap-note" id="h-cap-note"><i></i><span id="h-cap-text">남은 주범 조는 현장 출동으로만 잡을 수 있어요</span></div>
-      <p class="story" id="h-story"></p>
       <button class="linkish" id="h-story-all">수사 일지 보기</button>
     </div>
 
@@ -2347,8 +2345,6 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     $('h-cap-note').classList.toggle('on', capped);
     if (capped) $('h-cap-text').textContent = '남은 ' + fmt(goal - save.caught) + '명은 주범 조 · 현장 출동으로만 잡을 수 있어요';
     $('h-go').classList.toggle('urgent', capped);
-    var st = I.storyUnlocked(save);
-    $('h-story').textContent = st[st.length - 1].text;
     renderStoryButton();
 
     var o = I.runOptions(save);
