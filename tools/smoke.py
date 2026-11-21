@@ -222,7 +222,7 @@ with sync_playwright() as p:
         pg.screenshot(path=SHOT + 'away.png')
         if pg.text_content('#h-station') != '강남서 · 수사 3팀': problems.append('다시 켰더니 경찰서 이름이 사라짐')
         pg.click('#info-ok'); pg.clock.run_for(100)
-        # 사건 종결: 창을 닫고, 다음 창이 뜨기 직전에 저장을 999명으로 바꿔 팀이 마지막 한 명을 잡게 한다.
+        # 사건 종결: 창을 닫고, 다음 창이 뜨기 직전에 저장을 2999명으로 바꿔 팀이 마지막 한 명을 잡게 한다.
         # (열린 창의 저장을 바꾸면 떠날 때 게임이 덮어쓰므로 창 사이에서 바꾼다)
         reopen_n = [0]
         def reopen(js):
@@ -236,8 +236,8 @@ with sync_playwright() as p:
             pg = ctx.new_page(); pg.on('pageerror', lambda e: errors.append(str(e)))
             pg.clock.set_system_time((t + 1000) / 1000)   # 시계는 이미 깔려 있다(초 단위)
             pg.goto(URL); pg.clock.run_for(4500)
-        reopen("const raw = localStorage.getItem('%s'); if (raw) { const d = JSON.parse(raw); d.caught = 999; d.frac = 0; d.detectives = 200; localStorage.setItem('%s', JSON.stringify(d)); } else { console.log('NO SAVE AT REOPEN'); }" % (KEY, KEY))
-        if '999' not in pg.text_content('#h-caught'): problems.append('저장 바꾸기 실패: ' + pg.text_content('#h-caught'))
+        reopen("const raw = localStorage.getItem('%s'); if (raw) { const d = JSON.parse(raw); d.caught = 2999; d.frac = 0; d.detectives = 200; localStorage.setItem('%s', JSON.stringify(d)); } else { console.log('NO SAVE AT REOPEN'); }" % (KEY, KEY))
+        if '2,999' not in pg.text_content('#h-caught'): problems.append('저장 바꾸기 실패: ' + pg.text_content('#h-caught'))
         # 형사 200명: 1초에 여러 명 → 막대 대신 "1초에 N명 검거" + 흐르는 막대
         if not pg.text_content('#h-next').startswith('1초에'): problems.append('아주 빠른데 "1초에 N명"이 아님: ' + pg.text_content('#h-next'))
         if 'stream' not in (pg.get_attribute('#h-next-fill', 'class') or '') + (pg.evaluate("() => document.getElementById('h-next-fill').parentNode.className")): problems.append('흐르는 막대가 아님')
@@ -263,25 +263,21 @@ with sync_playwright() as p:
         if pg.locator('#info-body details.log-d[open]').count(): problems.append('펼친 일지 글을 눌러도 안 접힘')
         # 일지 줄 정렬: 글 한 줄(\n)이 화면에서도 정확히 한 줄 — 문장이 두 줄로 꺾이지 않는다
         pg.set_viewport_size({'width': 360, 'height': 780}); pg.clock.run_for(50)   # 좁은 안드로이드 폭 기준
-        for d in pg.locator('#info-body details.log-d').all(): d.evaluate('e => e.open = true')   # 접힌 편도 펼쳐서 잰다
+        for d in pg.locator('#info-body details.log-d').all(): d.evaluate('e => e.open = true')   # 접힌 편도 펼쳐서 본다
         pg.clock.run_for(50)
-        wr = pg.evaluate('''() => [...document.querySelectorAll('#info-body .log p, #info-body details.log-d .pn-body p')].map(p => {
-            const lh = parseFloat(getComputedStyle(p).lineHeight), n = p.textContent.split(String.fromCharCode(10)).length;
-            return [n, Math.round(p.getBoundingClientRect().height / lh)]; })''')
-        if len(wr) < 5: problems.append('일지 글을 다 못 찾음: %d' % len(wr))
-        bad = [x for x in wr if x[1] != x[0]]
-        if bad: problems.append('수사 일지 줄이 화면에서 꺾임: %s' % bad)
+        over = pg.evaluate('''() => [...document.querySelectorAll('#info-body .log p, #info-body details.log-d .pn-body p')].filter(p => p.scrollWidth > p.clientWidth + 1).length''')
+        if over: problems.append('수사 일지 글이 칸 밖으로 넘침: %d편' % over)
         pg.screenshot(path=SHOT + 'story-360.png')
         for d in pg.locator('#info-body details.log-d').all(): d.evaluate('e => e.open = false')
         pg.set_viewport_size({'width': 390, 'height': 844}); pg.clock.run_for(50)
         pg.screenshot(path=SHOT + 'story-fold.png')
         pg.click('#info-ok'); pg.clock.run_for(100)
         if not pg.locator('#info-sheet').is_hidden(): pg.click('#info-ok'); pg.clock.run_for(100)
-        # 800명을 넘겼으니 팀(방치)은 더 못 올린다: 빨간 알림 줄 + 출동 단추 맥박, 70초 지나도 999 그대로
+        # 2500명을 넘겼으니 팀(방치)은 더 못 올린다: 빨간 알림 줄 + 출동 단추 맥박, 70초 지나도 2999 그대로
         if not pg.locator('#h-cap-note').is_visible(): problems.append('방치 상한인데 "현장 출동으로만" 알림이 없음')
         if 'urgent' not in (pg.get_attribute('#h-go', 'class') or ''): problems.append('방치 상한인데 출동 단추 강조가 없음')
         pg.clock.run_for(70_000)
-        if '999' not in pg.text_content('#h-caught'): problems.append('방치 상한을 넘어 팀이 사건을 올림: ' + pg.text_content('#h-caught'))
+        if '2,999' not in pg.text_content('#h-caught'): problems.append('방치 상한을 넘어 팀이 사건을 올림: ' + pg.text_content('#h-caught'))
         if not pg.locator('#info-sheet').is_hidden(): problems.append('팀(방치)만으로 사건이 종결됨')
         # 출동 단추가 눌려 납작해지지 않았는지(사무실은 세로로 쌓이는 칸이라 줄어들 수 있다)
         gh = pg.locator('#h-go').bounding_box()['height']

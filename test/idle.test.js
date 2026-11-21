@@ -114,19 +114,19 @@ test('출동 결과: 점수만큼 수사비, 검거만큼 진척, 최고 기록'
   }
 });
 
-test('목표(1000명)에 닿으면 사건 종결(한 번만), 이야기는 단계마다 열린다', () => {
-  assert.equal(I.CASE.goal, 1000);
-  assert.deepEqual(I.CASE.story.map(e => e.at), [0, 150, 300, 500, 750, 1000]);
+test('목표(3000명)에 닿으면 사건 종결(한 번만), 이야기는 단계마다 열린다', () => {
+  assert.equal(I.CASE.goal, 3000);
+  assert.deepEqual(I.CASE.story.map(e => e.at), [0, 300, 750, 1500, 2250, 3000]);
   const s = I.newSave(T0);
-  I.applyRun(s, { score: 0, hits: 150 }, T0);
+  I.applyRun(s, { score: 0, hits: 300 }, T0);
   assert.equal(I.storyUnlocked(s).length, 2);
-  const r1 = I.applyRun(s, { score: 0, hits: 849 }, T0);
+  const r1 = I.applyRun(s, { score: 0, hits: 2699 }, T0);
   assert.equal(r1.closedNow, false);
   assert.equal(I.storyUnlocked(s).length, 5);
-  // 800명을 넘긴 뒤로 팀(방치)은 사건 진척을 못 올린다 — 수사비만 번다
+  // 2500명을 넘긴 뒤로 팀(방치)은 사건 진척을 못 올린다 — 수사비만 번다
   const r2 = I.advance(s, T0 + 10 * MIN);
   assert.ok(r2.catches > 0 && r2.counted === 0 && r2.money > 0);
-  assert.equal(s.caught, 999);
+  assert.equal(s.caught, 2999);
   assert.equal(I.idleCapped(s), true);
   const r3 = I.applyRun(s, { score: 0, hits: 1 }, T0 + 10 * MIN);   // 마지막 한 명은 출동으로
   assert.equal(r3.closedNow, true);
@@ -137,19 +137,19 @@ test('목표(1000명)에 닿으면 사건 종결(한 번만), 이야기는 단�
   assert.equal(I.progress(s), 1);
 });
 
-test('방치 상한: 팀은 800명까지만 올리고, 넘친 몫은 버리되 수사비는 다 준다', () => {
-  assert.equal(I.CASE.idleCap, 800);
+test('방치 상한: 팀은 2500명까지만 올리고, 넘친 몫은 버리되 수사비는 다 준다', () => {
+  assert.equal(I.CASE.idleCap, 2500);
   const s = I.newSave(T0);
-  s.detectives = 20; s.caught = 790;
+  s.detectives = 20; s.caught = 2490;
   const r = I.advance(s, T0 + 10 * MIN);   // 20명 × 600초 / 150초 = 80명
   assert.equal(r.catches, 80);
   assert.equal(r.counted, 10);
-  assert.equal(s.caught, 800);
+  assert.equal(s.caught, 2500);
   assert.equal(s.teamCaught, 80);
   assert.equal(r.money, 80 * 15);
   assert.equal(I.idleCapped(s), true);
   assert.equal(I.advance(s, T0 + 20 * MIN).counted, 0);
-  assert.equal(s.caught, 800);
+  assert.equal(s.caught, 2500);
 });
 
 test('저장 왕복, 깨진 저장은 새로 시작, 이상한 값은 잘라 낸다', () => {
@@ -196,26 +196,27 @@ function greedyBuy(s) {
   }
 }
 
-test('밸런스 감: 방치만으로는 800명에서 멈추고(하루쯤), 끝은 출동으로만', () => {
+test('밸런스 감: 방치만으로는 2500명에서 멈추고(하루~사흘), 끝은 출동으로만', () => {
+  const CAP = I.CASE.idleCap;
   // 하루 2시간마다 들러 사기만 하는 사람(출동 없음, 밤 8시간은 비움)
-  const lazy = I.newSave(T0); let t = T0, hours800 = null;
-  for (let h = 0; h < 24 * 7; ) {
+  const lazy = I.newSave(T0); let t = T0, hoursCap = null;
+  for (let h = 0; h < 24 * 14; ) {
     t = T0 + h * HOUR; I.advance(lazy, t, { offline: true }); greedyBuy(lazy);
-    if (hours800 == null && lazy.caught >= 800) hours800 = h;
+    if (hoursCap == null && lazy.caught >= CAP) hoursCap = h;
     h += (h % 24) < 16 ? 2 : 8;
   }
-  console.log(`  방치만: 800명까지 약 ${hours800}시간, 일주일 뒤 검거 ${lazy.caught}/1000, 형사 ${lazy.detectives}명`);
-  assert.equal(lazy.caught, 800);
+  console.log(`  방치만: ${CAP}명까지 약 ${hoursCap}시간, 2주 뒤 검거 ${lazy.caught}/${I.CASE.goal}, 형사 ${lazy.detectives}명`);
+  assert.equal(lazy.caught, CAP);
   assert.equal(lazy.closed, false, '방치만으로는 사건이 안 끝난다');
-  assert.ok(hours800 >= 8 && hours800 <= 48, '800명까지 반나절~이틀: ' + hours800);
-  // 검거 간격이 0초 가까이로 무너지지 않는다(일주일 꽉 키워도 1초 이상)
+  assert.ok(hoursCap >= 12 && hoursCap <= 72, CAP + '명까지 하루~사흘: ' + hoursCap);
+  // 검거 간격이 0초 가까이로 무너지지 않는다(2주 꽉 키워도 1초 이상)
   assert.ok(1 / I.teamRate(lazy) >= 1, '검거 간격 ' + (1 / I.teamRate(lazy)).toFixed(2));
 
-  // 남은 200명은 출동(한 번에 약 12명)으로: 17번이면 끝
+  // 남은 500명은 출동(한 번에 약 12명)으로: 42번이면 끝
   let n = 0;
-  while (!lazy.closed && n < 30) { t += 3 * MIN; I.advance(lazy, t); I.applyRun(lazy, { score: 1500, hits: 12 }, t); n++; }
+  while (!lazy.closed && n < 60) { t += 3 * MIN; I.advance(lazy, t); I.applyRun(lazy, { score: 1500, hits: 12 }, t); n++; }
   console.log(`  그 뒤 출동 ${n}번에 종결`);
-  assert.ok(lazy.closed && n === 17);
+  assert.ok(lazy.closed && n === Math.ceil((I.CASE.goal - CAP) / 12));
 });
 
 test('프로필: 기본은 중앙서·팀장 없음, 바꾸면 다듬어서 저장', () => {
@@ -263,25 +264,24 @@ test('수사 일지: 새 편이 열리면 안 읽음, 읽으면 사라짐, 저�
   assert.equal(I.storyUnread(s), true);           // 시작 편
   I.markStorySeen(s);
   assert.equal(I.storyUnread(s), false);
-  I.applyRun(s, { score: 0, hits: 150 }, T0);
-  assert.equal(I.storyUnread(s), true);           // 150명 편
+  I.applyRun(s, { score: 0, hits: 300 }, T0);
+  assert.equal(I.storyUnread(s), true);           // 300명 편
   assert.equal(I.markStorySeen(s), 2);
   assert.equal(I.load(I.serialize(s), T0).save.storySeen, 2);
   assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 99 })), T0).save.storySeen, 6);
   assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 'x' })), T0).save.storySeen, 0);
 });
 
-test('수사 일지: 편마다 3줄 이상, 빈 줄 없고 한 줄이 폰 세로 화면 한 줄에 들어간다', () => {
-  for (const e of I.CASE.story) {
-    const lines = e.text.split('\n');
-    assert.ok(lines.length >= 3, e.at + '명 편이 3줄 미만');
-    for (const l of lines) {
-      assert.ok(l.trim().length > 0, e.at + '명 편에 빈 줄');
-      assert.ok(l.length <= 22, e.at + '명 편 줄이 김: ' + l);
-      // 한 줄 = 한 문장: 문장 중간에서 끊지 않는다(마침표·물음표·느낌표·닫는 따옴표로 끝나야 한다)
-      if (!l.startsWith('—')) assert.ok(/[.?!"”]$/.test(l), e.at + '명 편 줄이 문장 중간에서 끊김: ' + l);
-    }
-  }
+test('수사 일지: 편마다 문단 하나(억지 줄바꿈 없음), 너무 짧지 않고, 문장으로 끝난다', () => {
+  const st = I.CASE.story;
+  st.forEach((e, i) => {
+    const parts = e.text.split('\n');
+    // 줄바꿈은 마지막 편의 "— 사건 2에서 계속" 앞에만 허용
+    if (i === st.length - 1) { assert.equal(parts.length, 2); assert.ok(parts[1].startsWith('— 사건 2')); }
+    else assert.equal(parts.length, 1, e.at + '명 편에 억지 줄바꿈');
+    assert.ok(parts[0].length >= 60, e.at + '명 편이 너무 짧음(폰에서 3줄 이상): ' + parts[0].length);
+    assert.ok(/[.?!"”]$/.test(parts[0]), e.at + '명 편이 문장 중간에서 끝남');
+  });
 });
 
 test('수사 일지: "써드"는 마지막 편에서야 처음 나온다', () => {
