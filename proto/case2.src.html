@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수사 3팀 · 사건 2 퍼즐 시안</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 사건 2 퍼즐 시안 — 게임과 같은 카드 그림(core.js·ui.js 그림 부분)을 그대로 써서 세 후보를 직접 해 본다. 배포판에는 들어가지 않는다. */
+:root{--ink:#12151C;--panel:#1C212B;--panel2:#232937;--line:#2E3542;--text:#F3F0E8;--muted:#A3ACBA;--acc:#FFD23F;--ok:#7BD88F;--miss:#FF7A59}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--ink);color:var(--text);font-family:'IBM Plex Sans KR',system-ui,sans-serif;word-break:keep-all}
+button{font-family:inherit;color:inherit;cursor:pointer}
+.app{max-width:430px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:100vh}
+h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
+.label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+.muted{color:var(--muted)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tab{height:52px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel);font-size:13px;font-weight:700;line-height:1.2}
+.tab small{display:block;font-size:11px;font-weight:500;color:var(--muted)}
+.tab.on{border-color:var(--acc);background:rgba(255,210,63,.1)}
+.box{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.box p{margin:0;font-size:14px;line-height:1.6}
+.say{display:flex;flex-direction:column;gap:6px}
+.say div{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--panel2);font-size:15px;font-weight:600}
+.say div i{font-style:normal;width:22px;height:22px;border-radius:11px;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+.say div.lie{outline:2px solid var(--miss)}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.board.four{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.board.five{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.board.five .card .t,.board.five .card .m{width:22px;height:22px}
+.board.five .card .t svg,.board.five .card .m svg{width:14px;height:14px}
+.board.grid12{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.board.grid12 .card .t,.board.grid12 .card .m{width:24px;height:24px}
+.board.grid12 .card .t svg,.board.grid12 .card .m svg{width:15px;height:15px}
+.btn.okline{border-color:var(--ok)}.btn.badline{border-color:var(--miss)}
+.card{position:relative;aspect-ratio:4/5;padding:0;border:0;border-radius:12px;overflow:hidden;transition:transform .12s,box-shadow .12s;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.card svg{display:block}
+.card .no{position:absolute;top:7px;right:9px;font-size:11px;font-weight:700;opacity:.55}
+.card .t{position:absolute;top:6px;left:6px;width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center}
+.card .m{position:absolute;bottom:6px;right:6px;width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;z-index:1}
+.card .fig{position:absolute;left:50%;bottom:0;width:84%;transform:translateX(-50%)}
+.card .pick{display:none}
+.card.sel{transform:translateY(-3px) scale(1.03);box-shadow:0 0 0 3px var(--acc),0 8px 18px rgba(0,0,0,.4)}
+.card.right{box-shadow:0 0 0 4px var(--ok)}
+.card.wrong{box-shadow:0 0 0 4px var(--miss)}
+.place{position:absolute;left:0;right:0;bottom:0;padding:3px 0;background:rgba(18,21,28,.82);font-size:11px;font-weight:700;text-align:center;z-index:2}
+.result{min-height:48px;padding:10px 12px;border-radius:12px;background:var(--panel2);font-size:14px;line-height:1.5}
+.result.ok{color:var(--ok)}.result.bad{color:var(--miss)}
+.row{display:flex;gap:8px}
+.btn{flex:1;height:48px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:15px;font-weight:700}
+.btn.pri{background:var(--acc);color:var(--ink);border:0}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;height:36px;border:1.5px solid var(--line);border-radius:10px;background:var(--panel);font-size:12px;font-weight:700}
+.seg button.on{border-color:var(--acc);color:var(--acc)}
+.clues{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5}
+.rowbtn{display:grid;grid-template-columns:22px repeat(3,1fr);gap:8px;align-items:center;padding:8px;border:2px solid var(--line);border-radius:14px;background:var(--panel)}
+.rowbtn .rn{font-size:13px;font-weight:700;color:var(--muted)}
+.rowbtn.right{border-color:var(--ok)}.rowbtn.wrong{border-color:var(--miss)}
+.card.mini{display:block;aspect-ratio:1/1}
+.card.mini .t,.card.mini .m{width:24px;height:24px}
+.card.mini .t svg,.card.mini .m svg{width:15px;height:15px}
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px}
+.verdict div{padding:10px;border-radius:12px;background:var(--panel2);line-height:1.5}
+.verdict b{display:block;margin-bottom:2px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div>
+    <span class="label">수사 3팀 · 사건 2 퍼즐 시안</span>
+    <h1 style="font-size:28px;margin-top:4px">세 가지 후보 해 보기</h1>
+    <p class="muted" style="margin:6px 0 0;font-size:13px;line-height:1.5">게임과 같은 카드로 만든 시안이에요. 시간·점수·방치 연결은 없고, 퍼즐 규칙만 직접 해 볼 수 있어요. 아래 난이도를 바꿔 보세요(실제 게임은 출동 중에 쉬움 → 어려움으로 오르고, 90초 시간 제한이 있어요).</p>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-tab="a">A 목격자 진술<small>거짓 하나 찾기</small></button>
+    <button class="tab" data-tab="b">B 위조된 한 패<small>가짜 줄 찾기</small></button>
+    <button class="tab" data-tab="c">C 알리바이 표<small>짧은 추리</small></button>
+  </div>
+  <div class="seg" id="level"><button data-l="easy" class="on">쉬움</button><button data-l="normal">보통</button><button data-l="hard">어려움</button></div>
+  <div id="stage" style="display:flex;flex-direction:column;gap:12px"></div>
+  <div class="verdict">
+    <div><b>A</b>빠르고 바로 이해돼요. 출동 90초에 잘 맞아요.</div>
+    <div><b>B</b>사건 1 규칙을 그대로 써서 익힌 사람에게 좋아요. 써드 이야기와 맞아요.</div>
+    <div><b>C</b>추리 맛이 가장 커요. 한 문제가 느려요.</div>
+    <div><b>추천</b>A를 메인, B를 특별 출동 규칙으로.</div>
+  </div>
+</div>
+<script>
+/*CORE*/
+</script>
+<script>
+(function () {
+  'use strict';
+  var C = window.SuspectsCore, $ = function (id) { return document.getElementById(id); };
+/*DRAW*/
+  function rnd(n) { return Math.floor(Math.random() * n); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function cardHtml(id, i, extra) {
+    return '<button class="card" data-i="' + i + '" style="background:' + look(id).bg + '">' + cardInner(id) + (extra || '') + '</button>';
+  }
+  var NAMES = C.ATTRS.map(function (a) { return a.values; });   // [시간대, 모자, 얼굴, 흔적]
+  // 진술 문장: 속성 번호와 값 → 목격자 말투
+  function sayAttr(k, v) {
+    if (k === 0) return ['낮이었어요', '저녁이었어요', '밤이었어요'][v];
+    if (k === 1) return ['모자는 안 썼어요', '비니를 썼어요', '중절모를 썼어요'][v];
+    if (k === 2) return ['얼굴을 가리지 않았어요', '안경을 썼어요', '마스크를 썼어요'][v];
+    return ['지문이 남았어요', '유리 조각이 떨어져 있었어요', '타이어 자국이 있었어요'][v];
+  }
+  // 진술 하나 = { k: 속성, vals: [맞는 값들] }. 흐린 진술("모자를 썼어요")은 값이 둘
+  function sayText(x) {
+    if (x.vals.length === 1) return sayAttr(x.k, x.vals[0]);
+    if (x.k === 1) return '모자를 썼어요(어떤 모자인지는 못 봤어요)';
+    if (x.k === 2) return '얼굴에 뭔가 쓰고 있었어요';
+    return sayAttr(x.k, x.vals[0]);
+  }
+  function matches(id, says) { var v = C.decode(id); return says.filter(function (s) { return s.vals.indexOf(v[s.k]) >= 0; }).length; }
+
+  /* ---------- 난이도(시안) ----------
+   * 쉬움 = 규칙 익히기 / 보통 = 걸러 내기 어렵게 / 어려움 = 정보가 흐리거나 많게.
+   * 실제 게임에서는 출동 중에 단계가 오르며 이 장치들이 하나씩 켜진다.
+   */
+  var LEVEL = 'easy';
+  var LEVEL_NAME = { easy: '쉬움', normal: '보통', hard: '어려움' };
+
+  /* ---------- A 목격자 진술 ----------
+   *   쉬움  : 9명, 범인 아닌 사람은 진술과 0~2개 맞음, 함정(넷 다 맞음)은 가끔
+   *   보통  : 9명, 범인 아닌 사람 대부분이 딱 2개 맞음, 함정 늘 하나
+   *   어려움: 12명, 대부분 2개 맞음, 함정 하나, 진술 하나가 흐림("모자를 썼어요" — 비니인지 중절모인지 모름)
+   * 늘 지키는 것: 진술 넷 중 딱 셋과 맞는 사람은 판에 범인 하나뿐.
+   */
+  function makeA() {
+    var n = LEVEL === 'hard' ? 12 : 9;
+    for (var attempt = 0; attempt < 200; attempt++) {
+      var target = rnd(81), tv = C.decode(target), lie = rnd(4);
+      var says = [0, 1, 2, 3].map(function (k) { return { k: k, vals: [k === lie ? (tv[k] + 1 + rnd(2)) % 3 : tv[k]] }; });
+      if (LEVEL === 'hard') {
+        // 흐린 진술: 모자나 얼굴 중 "썼다(1·2)"로만 말한 것. 참일 수도 거짓일 수도 있다
+        // 모자·얼굴 중 "썼다(1·2)"고 말한 쪽을 흐리게(둘 다 "안 썼다"면 이 판은 흐린 진술 없이)
+        var cands = [1, 2].filter(function (k) { return says[k].vals[0] !== 0; });
+        if (cands.length) says[cands[rnd(cands.length)]].vals = [1, 2];
+        if (matches(target, says) !== 3) continue;   // 흐리게 해서 거짓이 참이 됐으면 다시
+      }
+      var board = [target], used = {}; used[target] = 1;
+      var wantTrap = LEVEL !== 'easy' || Math.random() < .6;
+      if (wantTrap) {
+        for (var g = 0; g < 400; g++) { var t = rnd(81); if (!used[t] && matches(t, says) === 4) { board.push(t); used[t] = 1; break; } }
+      }
+      var guard = 0;
+      while (board.length < n && guard++ < 20000) {
+        var id = rnd(81); if (used[id]) continue;
+        var m = matches(id, says);
+        if (m === 3 || m === 4) continue;
+        if (LEVEL === 'easy' && m < 1 && Math.random() < .5) continue;
+        if (LEVEL !== 'easy' && m !== 2 && Math.random() < .85) continue;   // 보통·어려움: 대부분 딱 2개 맞는 사람
+        board.push(id); used[id] = 1;
+      }
+      if (board.length === n) return { board: shuffle(board), target: target, says: says, lie: lie };
+    }
+  }
+  var A = null;
+  function renderA(done, pickedI) {
+    var s = A, html = '<div class="box"><span class="label">목격자 진술 · 하나는 잘못 봤어요</span><div class="say">' +
+      s.says.map(function (x, i) { return '<div class="' + (done && x.k === s.lie ? 'lie' : '') + '"><i>' + (i + 1) + '</i>' + sayText(x) + '</div>'; }).join('') +
+      '</div><p class="muted" style="font-size:13px">진술 넷 중 <b style="color:var(--acc)">딱 셋</b>과 맞는 사람이 범인이에요. 넷 다 맞는 사람은 함정이에요.</p></div>';
+    html += '<div class="board' + (s.board.length > 9 ? ' grid12' : '') + '" id="a-board">' + s.board.map(function (id, i) {
+      var cls = done ? (id === s.target ? ' right' : i === pickedI ? ' wrong' : '') : '';
+      return cardHtml(id, i).replace('class="card"', 'class="card' + cls + '"');
+    }).join('') + '</div>';
+    html += '<div class="result' + (done ? (s.board[pickedI] === s.target ? ' ok' : ' bad') : '') + '" id="a-res">' +
+      (done ? (s.board[pickedI] === s.target ? '검거! 빨간 테두리 진술이 거짓이었어요.' : '아니에요. 초록 테두리가 범인이에요(빨간 진술이 거짓).') : '범인이라고 생각하는 한 명을 누르세요.') + '</div>';
+    html += '<div class="row"><button class="btn pri" id="a-next">다음 문제</button></div>';
+    $('stage').innerHTML = html;
+    $('a-next').onclick = function () { A = makeA(); renderA(false); };
+    if (!done) $('a-board').onclick = function (e) { var c = e.target.closest('.card'); if (c) renderA(true, +c.getAttribute('data-i')); };
+  }
+
+  /* ---------- B 위조된 한 패 ----------
+   *   쉬움  : 네 줄, 모자·얼굴만 봄
+   *   보통  : 네 줄, 네 가지 다
+   *   어려움: 여섯 줄, 네 가지 다, 가짜는 뒤쪽 특징(시간대·흔적)에서만 틀림, 4판에 1판은 가짜가 없음("위조 없음")
+   * (처음 생각한 "둘만 같은 셋이 한 패" 규칙은 판에 한 패가 30개 넘게 생겨 너무 쉬워서 바꿨다)
+   */
+  var B = null;
+  function activeB() { return LEVEL === 'easy' ? [1, 2] : [0, 1, 2, 3]; }
+  function makeB() {
+    var act = activeB(), nRows = LEVEL === 'hard' ? 6 : 4, rows = [], used = {};
+    var noFake = LEVEL === 'hard' && Math.random() < .25;
+    var fake = noFake ? -1 : rnd(nRows);
+    var kinds = LEVEL === 'hard' ? [0, 3] : act, fakeK = kinds[rnd(kinds.length)];
+    for (var r = 0; r < nRows; r++) {
+      var a, b, c, guard = 0;
+      do {
+        a = rnd(81); b = rnd(81);
+        if (a === b) continue;
+        var va = C.decode(a), vb = C.decode(b), vc = C.decode(C.thirdCard(a, b));
+        [0, 1, 2, 3].forEach(function (k) { if (act.indexOf(k) < 0) vc[k] = rnd(3); });   // 보지 않는 특징은 아무 값
+        if (r === fake) vc[fakeK] = va[fakeK] !== vb[fakeK] ? va[fakeK] : (va[fakeK] + 1 + rnd(2)) % 3;
+        c = C.encode(vc);
+      } while ((a === b || a === c || b === c || used[a] || used[b] || used[c]) && guard++ < 300);
+      used[a] = used[b] = used[c] = 1;
+      rows.push(shuffle([a, b, c]));
+    }
+    return { rows: rows, fake: fake, fakeK: fakeK };
+  }
+  function renderB(done, picked) {
+    var act = activeB(), hard = LEVEL === 'hard';
+    var html = '<div class="box"><span class="label">써드가 위조한 한 패 · ' + (LEVEL === 'easy' ? '모자·얼굴만 봐요' : '네 가지 다 봐요') + '</span><p>' +
+      (hard ? '여러 줄 중 <b style="color:var(--acc)">많아야 한 줄</b>이 가짜예요. 가짜가 없으면 "위조 없음"을 누르세요.' : '네 줄 중 셋은 진짜 한 패예요. <b style="color:var(--acc)">한 줄만 가짜</b>예요. 가짜 줄을 누르세요.') + '</p></div>';
+    html += '<div id="b-rows" style="display:flex;flex-direction:column;gap:8px">' + B.rows.map(function (row, r) {
+      var cls = done ? (r === B.fake ? 'right' : r === picked ? 'wrong' : '') : '';
+      return '<button class="rowbtn ' + cls + '" data-r="' + r + '"><span class="rn">' + (r + 1) + '</span>' + row.map(function (id) {
+        return '<span class="card mini" style="background:' + look(id, act).bg + '">' + cardInner(id, 0, act) + '</span>';
+      }).join('') + '</button>';
+    }).join('') + '</div>';
+    if (hard) html += '<button class="btn' + (done && B.fake < 0 ? ' okline' : done && picked === -1 ? ' badline' : '') + '" id="b-none" style="flex:none">위조 없음</button>';
+    var ok = done && picked === B.fake;
+    var why = B.fake < 0 ? '이 판엔 가짜가 없었어요.' : (r2 = B.fake + 1) + '번 줄이 가짜, ' + C.ATTRS[B.fakeK].name + '이(가) 둘만 같아요.';
+    var r2;
+    html += '<div class="result' + (done ? (ok ? ' ok' : ' bad') : '') + '">' + (done ? (ok ? '맞아요! ' : '아니에요. ') + why : (hard ? '가짜 줄을 누르거나 위조 없음을 누르세요.' : '가짜 줄 하나를 누르세요.')) + '</div>';
+    html += '<div class="row"><button class="btn pri" id="b-next">다음 문제</button></div>';
+    $('stage').innerHTML = html;
+    $('b-next').onclick = function () { B = makeB(); renderB(false); };
+    if (!done) {
+      $('b-rows').onclick = function (e) { var r = e.target.closest('.rowbtn'); if (r) renderB(true, +r.getAttribute('data-r')); };
+      if (hard) $('b-none').onclick = function () { renderB(true, -1); };
+    }
+  }
+
+  /* ---------- C 알리바이 표 ----------
+   *   쉬움  : 넷 · 장소 넷 · 바로 알려 주는 단서("…에 있었다/없었다") 3~5줄
+   *   보통  : 넷 · "없었다" 단서 위주 4~6줄
+   *   어려움: 다섯 · 장소 다섯(길을 따라 한 줄) · "바로 옆 장소에 있었다/아니었다" 같은 관계 단서 섞어 4~7줄
+   * 늘 지키는 것: 단서만으로 범행 장소(부두)에 있던 사람이 하나로 정해진다. 새로 알려 주는 게 없는 단서는 넣지 않는다.
+   */
+  var PLACES4 = ['은행', '시장', '부두', '공원'], PLACES5 = ['은행', '시장', '부두', '공원', '역'], CRIME = 2;
+  function perms(n) { var out = [[]]; for (var i = 0; i < n; i++) { var nx = []; out.forEach(function (p) { for (var v = 0; v < n; v++) if (p.indexOf(v) < 0) nx.push(p.concat([v])); }); out = nx; } return out; }
+  var PERMS = { 4: perms(4), 5: perms(5) };
+  var ALLP = PERMS[4];
+  function places() { return LEVEL === 'hard' ? PLACES5 : PLACES4; }
+  // 단서가 이 배치(p[i] = i 번 사람의 장소)에서 참인가
+  function holds(cl, p) {
+    if (cl.type === 'at') return cl.neg ? p[cl.a.who] !== cl.place : p[cl.a.who] === cl.place;
+    var d = Math.abs(p[cl.a.who] - p[cl.b.who]) === 1;
+    return cl.neg ? !d : d;
+  }
+  function makeC() {
+    var n = LEVEL === 'hard' ? 5 : 4, P = PERMS[n];
+    var range = LEVEL === 'easy' ? [3, 5] : LEVEL === 'normal' ? [4, 6] : [4, 7];
+    var negP = LEVEL === 'easy' ? .65 : .85;
+    for (var tries = 0; tries < 400; tries++) {
+      var ids = [], used = {};
+      while (ids.length < n) { var id = rnd(81); if (!used[id]) { used[id] = 1; ids.push(id); } }
+      var truth = P[rnd(P.length)];
+      var refs = [];   // 특징 하나로 딱 한 명을 가리키는 표현
+      ids.forEach(function (id, i) {
+        var v = C.decode(id);
+        for (var k = 0; k < 4; k++) if (ids.filter(function (o) { return C.decode(o)[k] === v[k]; }).length === 1) refs.push({ who: i, k: k, v: v[k] });
+      });
+      var whoCovered = {}; refs.forEach(function (r) { whoCovered[r.who] = 1; });
+      if (Object.keys(whoCovered).length < n - 1) continue;
+      var clues = [], cand = P.slice(), guard = 0;
+      while (guard++ < 60) {
+        var cl;
+        if (LEVEL === 'hard' && Math.random() < .4) {
+          var a = refs[rnd(refs.length)], b = refs[rnd(refs.length)];
+          if (a.who === b.who) continue;
+          var adj = Math.abs(truth[a.who] - truth[b.who]) === 1;
+          cl = { type: 'next', a: a, b: b, neg: !adj, key: 'n' + Math.min(a.who, b.who) + Math.max(a.who, b.who) };
+        } else {
+          var r = refs[rnd(refs.length)], neg = Math.random() < negP;
+          var place = neg ? (truth[r.who] + 1 + rnd(n - 1)) % n : truth[r.who];
+          cl = { type: 'at', a: r, neg: neg, place: place, key: r.who + ':' + place };
+        }
+        if (clues.some(function (c) { return c.key === cl.key; })) continue;
+        var next = cand.filter(function (p) { return holds(cl, p); });
+        if (next.length === cand.length) continue;
+        clues.push(cl); cand = next;
+        var cul = {}; cand.forEach(function (p) { cul[p.indexOf(CRIME)] = 1; });
+        if (Object.keys(cul).length === 1) {
+          if (clues.length < range[0] || clues.length > range[1]) break;
+          return { ids: ids, truth: truth, clues: clues, culprit: truth.indexOf(CRIME), n: n };
+        }
+      }
+    }
+  }
+  function refText(r) {
+    if (r.k === 0) return ['낮', '저녁', '밤'][r.v] + '에 찍힌 사람';
+    if (r.k === 1) return ['모자를 안 쓴', '비니를 쓴', '중절모를 쓴'][r.v] + ' 사람';
+    if (r.k === 2) return ['얼굴을 안 가린', '안경을 쓴', '마스크를 쓴'][r.v] + ' 사람';
+    return ['지문', '유리 조각', '타이어 자국'][r.v] + '이 나온 사람';
+  }
+  function clueText(c, PL) {
+    if (c.type === 'at') return refText(c.a) + '은 ' + PL[c.place] + (c.neg ? '에 없었어요' : '에 있었어요');
+    return refText(c.a) + '과 ' + refText(c.b) + '은 ' + (c.neg ? '바로 옆 장소에 있지 않았어요' : '바로 옆 장소에 있었어요');
+  }
+  var Cc = null;
+  function renderC(done, pickedI) {
+    var PL = places();
+    var html = '<div class="box"><span class="label">그 시각, ' + Cc.n + '명은 서로 다른 곳에 있었다</span><p>장소(길을 따라 차례로): ' + PL.join(' — ') + '. 범행은 <b style="color:var(--acc)">' + PL[CRIME] + '</b>에서 일어났어요.</p>' +
+      '<ol class="clues">' + Cc.clues.map(function (c) { return '<li>' + clueText(c, PL) + '</li>'; }).join('') + '</ol></div>';
+    html += '<div class="board ' + (Cc.n === 5 ? 'five' : 'four') + '" id="c-board">' + Cc.ids.map(function (id, i) {
+      var cls = done ? (i === Cc.culprit ? ' right' : i === pickedI ? ' wrong' : '') : '';
+      return '<button class="card' + cls + '" data-i="' + i + '" style="background:' + look(id).bg + '">' + cardInner(id) + (done ? '<span class="place">' + PL[Cc.truth[i]] + '</span>' : '') + '</button>';
+    }).join('') + '</div>';
+    html += '<div class="result' + (done ? (pickedI === Cc.culprit ? ' ok' : ' bad') : '') + '">' + (done ? (pickedI === Cc.culprit ? '검거! 맞아요.' : '아니에요. 초록 테두리가 ' + PL[CRIME] + '에 있던 사람이에요.') : PL[CRIME] + '에 있던 사람을 누르세요.') + '</div>';
+    html += '<div class="row"><button class="btn pri" id="c-next">다음 문제</button></div>';
+    $('stage').innerHTML = html;
+    $('c-next').onclick = function () { Cc = makeC(); renderC(false); };
+    if (!done) $('c-board').onclick = function (e) { var c = e.target.closest('.card'); if (c) renderC(true, +c.getAttribute('data-i')); };
+  }
+
+  var tab = 'a';
+  function go(t) {
+    tab = t;
+    document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === t); });
+    if (t === 'a') { A = A || makeA(); renderA(false); }
+    if (t === 'b') { B = B || makeB(); renderB(false); }
+    if (t === 'c') { Cc = Cc || makeC(); renderC(false); }
+  }
+  document.querySelectorAll('.tab').forEach(function (b) { b.onclick = function () { go(b.getAttribute('data-tab')); }; });
+  // 난이도를 바꾸면 세 후보 모두 새 문제로
+  document.querySelectorAll('#level button').forEach(function (b) {
+    b.onclick = function () {
+      LEVEL = b.getAttribute('data-l');
+      document.querySelectorAll('#level button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      A = B = Cc = null; go(tab);
+    };
+  });
+  go('a');
+  window.__proto = { makeA: makeA, makeB: makeB, makeC: makeC, matches: matches, holds: holds, PERMS: PERMS, setLevel: function (l) { LEVEL = l; } };
+})();
+</script>
+</body>
+</html>

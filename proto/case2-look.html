@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수사 3팀 · 사건 2 미리보기</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Nanum+Myeongjo:wght@700&display=swap">
+<style>
+/*
+ * 사건 2 미리보기 — 이름·이야기·화면 효과를 한 페이지에서 본다. 게임과 같은 카드 그림(core.js·ui.js 그림 부분)을 쓴다.
+ * 배포판에는 들어가지 않는다. 효과는 단추로 하나씩 틀어 볼 수 있고, "출동 화면"에서는 함께 켜진 모습을 본다.
+ */
+:root{--ink:#0E1418;--panel:#172027;--panel2:#1D2932;--line:#2A3944;--text:#EEF2F0;--muted:#97A6AE;--acc:#FFD23F;--sea:#5FB7C9;--ok:#7BD88F;--miss:#FF6B5B}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--ink);color:var(--text);font-family:'IBM Plex Sans KR',system-ui,sans-serif;word-break:keep-all}
+button{font-family:inherit;color:inherit;cursor:pointer}
+.app{max-width:430px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
+.label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+.muted{color:var(--muted)}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec>h2{font-size:22px}
+.box{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.box p{margin:0;font-size:14px;line-height:1.65}
+.nav{position:sticky;top:0;z-index:20;display:flex;gap:6px;padding:8px 0;background:linear-gradient(var(--ink) 80%,rgba(14,20,24,0))}
+.nav a{flex:1;text-align:center;padding:8px 0;border-radius:10px;background:var(--panel);color:var(--text);text-decoration:none;font-size:12px;font-weight:700}
+
+/* ---- 사건 표지 ---- */
+.cover{position:relative;height:230px;border-radius:16px;overflow:hidden;background:linear-gradient(180deg,#1B2B33 0%,#0F1A20 70%,#0A1216 100%)}
+.cover .sea{position:absolute;left:-10%;right:-10%;bottom:0;height:70px;background:repeating-linear-gradient(90deg,rgba(95,183,201,.18) 0 40px,rgba(95,183,201,.06) 40px 80px);animation:waves 6s linear infinite;filter:blur(1px)}
+@keyframes waves{to{transform:translateX(80px)}}
+.cover .cranes{position:absolute;left:0;right:0;bottom:60px;height:90px}
+.cover .fogband{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 70%,rgba(220,230,232,.22),transparent 60%),radial-gradient(ellipse at 80% 60%,rgba(220,230,232,.18),transparent 55%);animation:fogmove 12s ease-in-out infinite alternate}
+@keyframes fogmove{to{transform:translateX(-30px)}}
+.cover .beam{position:absolute;left:78%;top:58px;width:420px;height:46px;transform-origin:0 50%;background:linear-gradient(90deg,rgba(255,236,170,.55),rgba(255,236,170,0));clip-path:polygon(0 45%,100% 0,100% 100%,0 55%);animation:beam 6s linear infinite}
+@keyframes beam{0%{transform:rotate(160deg);opacity:0}10%{opacity:1}50%{transform:rotate(200deg);opacity:1}60%,100%{transform:rotate(210deg);opacity:0}}
+.cover .tt{position:absolute;left:18px;bottom:18px;right:18px}
+.cover .tt small{display:block;font-size:12px;color:var(--sea);font-weight:700;letter-spacing:.1em}
+.cover .tt h1{font-size:34px;line-height:1.1;margin-top:4px}
+.cover .tt span{font-size:13px;color:#C7D3D8}
+
+/* ---- 효과 데모 무대 ---- */
+.demo{position:relative;height:300px;border-radius:16px;overflow:hidden;background:#16222A}
+.demo .grid{position:absolute;inset:14px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:8px}
+.demo .grid .card{aspect-ratio:auto;height:100%;width:100%}
+.demo{height:360px}
+.fx-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.fx-list button{min-height:50px;padding:6px 8px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel);text-align:left;font-size:13px;font-weight:700;line-height:1.3}
+.fx-list button small{display:block;font-size:11px;font-weight:500;color:var(--muted)}
+.fx-list button.on{border-color:var(--sea)}
+.fx-desc{min-height:44px;font-size:13px;line-height:1.55;color:#C7D3D8}
+
+/* 카드 그림(게임과 같은 규칙) */
+.card{position:relative;aspect-ratio:4/5;padding:0;border:0;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);transition:transform .12s,box-shadow .12s,filter .3s}
+.card svg{display:block}
+.card .no{display:none}
+.card .t{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.card .m{position:absolute;bottom:6px;right:6px;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;z-index:1}
+.card .t svg,.card .m svg{width:17px;height:17px}
+.card .fig{position:absolute;left:50%;bottom:0;width:84%;transform:translateX(-50%)}
+.card .pick{display:none}
+.card.right{box-shadow:0 0 0 4px var(--ok)}
+.card.wrong{box-shadow:0 0 0 4px var(--miss)}
+
+/* 1. 해무(안개): 판 위를 천천히 흐른다. 단계가 오를수록 짙다. 검거하면 잠깐 걷힌다 */
+.fog{position:absolute;inset:-20%;pointer-events:none;z-index:5;opacity:0;transition:opacity .8s;
+  background:radial-gradient(ellipse 40% 25% at 25% 35%,rgba(215,226,229,.55),transparent 70%),radial-gradient(ellipse 45% 30% at 70% 60%,rgba(215,226,229,.5),transparent 70%),radial-gradient(ellipse 35% 22% at 40% 85%,rgba(215,226,229,.45),transparent 70%);
+  animation:fogdrift 14s ease-in-out infinite alternate;filter:blur(6px)}
+.fog.on{opacity:1}.fog.thick{opacity:1;filter:blur(3px) contrast(1.1)}
+.fog.clear{opacity:.15 !important;transition:opacity .25s}
+@keyframes fogdrift{0%{transform:translate(0,0)}100%{transform:translate(12%,-6%)}}
+/* 2. 등대 빛: 몇 초마다 판을 쓸고 지나가며, 빛이 닿는 동안 안개 속 카드가 또렷해진다 */
+.light{position:absolute;inset:0;pointer-events:none;z-index:6;opacity:0;mix-blend-mode:screen;background:linear-gradient(100deg,transparent 30%,rgba(255,236,170,.35) 45%,rgba(255,236,170,.1) 55%,transparent 70%);background-size:300% 100%}
+.light.go{opacity:1;animation:sweep 2.2s ease-in-out}
+@keyframes sweep{0%{background-position:120% 0}100%{background-position:-20% 0}}
+/* 3. 진술서: 타자기처럼 한 글자씩. 4. 거짓 도장: 거짓 진술 위로 빨간 도장이 쾅 */
+.stmt{display:flex;flex-direction:column;gap:6px;font-family:'Nanum Myeongjo',serif}
+.stmt div{position:relative;display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:#EFE8D8;color:#1E1A14;font-size:15px;font-weight:700;min-height:38px}
+.stmt div i{font-style:normal;font-family:'IBM Plex Sans KR';width:20px;height:20px;border-radius:10px;background:#1E1A14;color:#EFE8D8;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+.stmt div .caret{display:inline-block;width:2px;height:16px;background:#1E1A14;margin-left:1px;animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.stmt div.lie span.txt{text-decoration:line-through;text-decoration-color:var(--miss);text-decoration-thickness:2px}
+.stamp{position:absolute;right:10px;top:50%;padding:2px 10px;border:3px solid var(--miss);border-radius:6px;color:var(--miss);font-family:'Black Han Sans';font-size:18px;transform:translateY(-50%) rotate(-12deg);opacity:0}
+.stamp.go{animation:stampIn .35s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes stampIn{0%{opacity:0;transform:translateY(-50%) rotate(-12deg) scale(2.4)}100%{opacity:.92;transform:translateY(-50%) rotate(-12deg) scale(1)}}
+/* 5. 무전 잡음: 흐린 진술은 글자가 지지직 흔들린다(어려움 단계) */
+.static{animation:static .18s steps(2) infinite}
+@keyframes static{0%{transform:translateX(0);filter:none}50%{transform:translateX(-1px);filter:blur(.6px)}100%{transform:translateX(1px)}}
+/* 6. 함정 체포: 카메라 플래시 + 화면 흔들림 + "함정!" */
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:9}
+.flash.go{animation:flash .5s ease-out}
+@keyframes flash{0%{opacity:.95}100%{opacity:0}}
+.shake{animation:shake .45s}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-8px) rotate(-1deg)}40%{transform:translateX(7px) rotate(1deg)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.big{position:absolute;left:50%;top:50%;z-index:10;transform:translate(-50%,-50%);font-family:'Black Han Sans';font-size:44px;white-space:nowrap;opacity:0;pointer-events:none;text-shadow:0 4px 20px rgba(0,0,0,.6)}
+.big.go{animation:bigIn 1.2s ease-out}
+@keyframes bigIn{0%{opacity:0;transform:translate(-50%,-50%) scale(1.8)}15%{opacity:1;transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0}}
+/* 7. 검거: 폴라로이드 증거 사진이 찰칵 찍혀 날아가 보드에 꽂힌다 */
+.polaroid{position:absolute;z-index:8;width:84px;padding:6px 6px 18px;background:#F4F1EA;border-radius:3px;box-shadow:0 8px 22px rgba(0,0,0,.45);opacity:0;pointer-events:none}
+.polaroid .card{width:100%}
+.polaroid.go{animation:pol 1.1s cubic-bezier(.3,.8,.3,1) forwards}
+@keyframes pol{0%{opacity:0;transform:scale(.6) rotate(0)}20%{opacity:1;transform:scale(1.15) rotate(-6deg)}60%{transform:scale(1) rotate(4deg)}100%{opacity:0;transform:translate(120px,-160px) scale(.4) rotate(18deg)}}
+/* 8. 주범 조: 뱃고동과 함께 안개 속을 지나가는 배 그림자 + 물에 비친 붉은 경광 */
+.ship{position:absolute;bottom:20px;left:-60%;width:60%;height:70px;z-index:7;opacity:0;pointer-events:none}
+.ship.go{animation:ship 4.5s linear}
+@keyframes ship{0%{left:-60%;opacity:0}15%{opacity:.85}85%{opacity:.85}100%{left:110%;opacity:0}}
+.redwater{position:absolute;left:0;right:0;bottom:0;height:40%;z-index:6;pointer-events:none;opacity:0;background:repeating-linear-gradient(180deg,rgba(255,60,60,.22) 0 3px,transparent 3px 9px);mix-blend-mode:screen}
+.redwater.go{animation:redw 1s ease-in-out 4 alternate}
+@keyframes redw{0%{opacity:0}100%{opacity:1}}
+/* 9. 파견 지도: 접힌 지도가 펼쳐지고, 핀이 해무항에 꽂히며 줌 */
+.map{position:absolute;inset:0;z-index:11;background:#D9CBA9;opacity:0;pointer-events:none;overflow:hidden}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.map.go{animation:mapIn 3s ease-in-out forwards}
+@keyframes mapIn{0%{opacity:0;transform:perspective(600px) rotateX(70deg)}20%{opacity:1;transform:none}75%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
+.map .pin{position:absolute;left:68%;top:58%;width:22px;height:22px;margin:-22px 0 0 -11px;opacity:0}
+.map.go .pin{animation:pin .4s cubic-bezier(.2,1.6,.4,1) .9s forwards}
+@keyframes pin{0%{opacity:0;transform:translateY(-40px)}100%{opacity:1;transform:none}}
+.map .mlabel{position:absolute;left:68%;top:58%;transform:translate(-50%,8px);font-family:'Black Han Sans';font-size:20px;color:#3A2A14;opacity:0}
+.map.go .mlabel{animation:fadein .3s 1.3s forwards}
+@keyframes fadein{to{opacity:1}}
+/* 10. 사무실: 창밖 비와 파도, 청록 색감 */
+.office{position:relative;height:150px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#1E2E36,#13202A)}
+.office .window{position:absolute;right:14px;top:14px;width:120px;height:90px;border-radius:6px;overflow:hidden;background:linear-gradient(180deg,#2B4550,#0F1F27);box-shadow:inset 0 0 0 3px #0B1318}
+.office .rain{position:absolute;inset:0;background-image:repeating-linear-gradient(105deg,rgba(200,230,240,.35) 0 1px,transparent 1px 9px);background-size:40px 40px;animation:rain .5s linear infinite}
+@keyframes rain{to{background-position:-12px 40px}}
+.office .wv{position:absolute;left:-20px;right:-20px;bottom:0;height:22px;background:repeating-linear-gradient(90deg,rgba(95,183,201,.5) 0 18px,rgba(95,183,201,.2) 18px 36px);animation:waves 3s linear infinite}
+.office .tx{position:absolute;left:16px;top:18px;right:150px}
+.office .tx b{font-family:'Black Han Sans';font-size:24px;color:var(--acc)}
+
+/* 출동 화면 시안 */
+.play{position:relative;border-radius:16px;overflow:hidden;background:#13202A;padding:12px;display:flex;flex-direction:column;gap:10px}
+.play .hud{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.play .bar{height:6px;border-radius:3px;background:#24333D;overflow:hidden}
+.play .bar i{display:block;height:100%;width:72%;background:var(--sea)}
+.play .bwrap{position:relative;border-radius:12px;overflow:hidden}
+.play .board{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.play .res{min-height:38px;font-size:13px;line-height:1.5;padding:8px 10px;border-radius:10px;background:var(--panel2)}
+.btn{height:46px;border:0;border-radius:12px;background:var(--acc);color:#141414;font-size:15px;font-weight:700}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.log{padding:12px 14px;border-radius:12px;background:var(--panel2);display:flex;flex-direction:column;gap:6px}
+.log .at{font-size:12px;font-weight:700;color:var(--sea)}
+.log p{margin:0;font-size:14px;line-height:1.7}
+.chip{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--panel2);font-size:12px;color:var(--sea);font-weight:700}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav"><a href="#s-name">이름</a><a href="#s-fx">화면 효과</a><a href="#s-play">출동 시안</a><a href="#s-story">수사 일지</a></div>
+
+  <!-- 1. 이름 -->
+  <div class="sec" id="s-name">
+    <span class="label">수사 3팀 · 사건 2 미리보기 (게임엔 아직 안 넣음)</span>
+    <div class="cover">
+      <div class="fogband"></div>
+      <svg class="cranes" viewBox="0 0 400 90" preserveAspectRatio="none" aria-hidden="true">
+        <g fill="#0B1418" opacity=".9">
+          <rect x="30" y="20" width="6" height="70"/><rect x="30" y="20" width="70" height="5"/><rect x="92" y="25" width="2" height="30"/>
+          <rect x="140" y="35" width="6" height="55"/><rect x="140" y="35" width="55" height="5"/><rect x="186" y="40" width="2" height="22"/>
+          <rect x="10" y="62" width="120" height="28"/><rect x="150" y="70" width="90" height="20"/><rect x="250" y="58" width="60" height="32"/>
+          <path d="M320 90 L326 34 L334 34 L340 90 Z"/><rect x="322" y="26" width="16" height="10"/>
+        </g>
+      </svg>
+      <div class="beam"></div>
+      <div class="sea"></div>
+      <div class="tt"><small>CASE 02 · 해무항</small><h1>안개 속 목격자들</h1><span>부두 창고 연쇄 밀수 · 목격자는 모두 한 줄씩 틀렸다</span></div>
+    </div>
+    <div class="box">
+      <p><b>도시: 해무항(海霧港)</b> — 1년의 절반이 바다 안개에 잠기는 항구 도시. 안개 속에서 본 것은 늘 조금씩 틀린다. 거짓 진술 퍼즐과 화면의 안개 효과가 한 이야기로 묶여요.</p>
+      <p><b>사건 제목: 안개 속 목격자들</b> — 목격자가 넷 중 한 줄씩 틀리게 말하는 이유가 사건의 수수께끼예요(그냥 잘못 본 걸까, 누가 시킨 걸까).</p>
+      <p class="muted" style="font-size:13px">다른 후보: "부두의 거짓말" · "등대 아래 증언" · 도시 이름 "무진항" · "서항"</p>
+    </div>
+  </div>
+
+  <!-- 2. 화면 효과 -->
+  <div class="sec" id="s-fx">
+    <h2>화면 효과</h2>
+    <p class="muted" style="margin:0;font-size:13px">누르면 아래 무대에서 그 효과가 나와요. 실제 게임에서는 상황에 맞춰 저절로 나와요.</p>
+    <div class="demo" id="demo">
+      <div class="grid" id="demo-grid"></div>
+      <div class="fog" id="fx-fog"></div>
+      <div class="light" id="fx-light"></div>
+      <div class="redwater" id="fx-red"></div>
+      <svg class="ship" id="fx-ship" viewBox="0 0 300 70" aria-hidden="true"><path d="M10 40 L290 40 L260 66 L40 66 Z" fill="#071015"/><rect x="90" y="18" width="90" height="22" fill="#071015"/><rect x="120" y="4" width="14" height="16" fill="#071015"/><circle cx="200" cy="30" r="3" fill="#FF4040"/></svg>
+      <div class="polaroid" id="fx-pol"></div>
+      <div class="flash" id="fx-flash"></div>
+      <div class="big" id="fx-big"></div>
+      <div class="map" id="fx-map">
+        <svg viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 0H400V300H0Z" fill="#E3D6B5"/>
+          <path d="M260 0 C250 60 300 90 280 140 C265 180 300 220 290 300 H400 V0Z" fill="#9FC3C9"/>
+          <path d="M0 150 H260 M120 0 V300 M0 70 H230 M200 140 V300" stroke="#C4B48F" stroke-width="2" fill="none"/>
+          <path d="M40 40 L110 60 L180 150 L270 175" stroke="#B0412E" stroke-width="3" stroke-dasharray="8 6" fill="none"/>
+          <text x="30" y="34" font-size="14" fill="#5C4A2B" font-family="IBM Plex Sans KR" font-weight="700">중앙서</text>
+        </svg>
+        <svg class="pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-7 7-12a7 7 0 0 0-14 0c0 5 7 12 7 12z" fill="#C1272D"/><circle cx="12" cy="10" r="2.6" fill="#fff"/></svg>
+        <div class="mlabel">해무항</div>
+      </div>
+    </div>
+    <div class="fx-desc" id="fx-desc">효과를 골라 보세요.</div>
+    <div class="fx-list" id="fx-list">
+      <button data-fx="map">파견 지도<small>사건 2를 처음 열 때</small></button>
+      <button data-fx="fog">해무(안개)<small>출동 판 위를 흐름</small></button>
+      <button data-fx="light">등대 빛<small>몇 초마다 판을 쓸고 감</small></button>
+      <button data-fx="pol">증거 사진<small>검거할 때</small></button>
+      <button data-fx="trap">함정 체포<small>넷 다 맞는 사람을 골랐을 때</small></button>
+      <button data-fx="ship">주범 조 출항<small>주범 조 출동</small></button>
+    </div>
+    <div class="box">
+      <span class="label">진술서 연출 (진술이 타자기처럼 찍히고, 답을 고르면 거짓 진술에 도장)</span>
+      <div class="stmt" id="fx-stmt"></div>
+      <div class="row"><button class="btn" id="fx-type" style="background:var(--panel2);color:var(--text)">진술 다시 찍기</button><button class="btn" id="fx-stampgo">거짓 도장</button></div>
+    </div>
+    <div class="box">
+      <span class="label">사무실 (해무항 파견 중)</span>
+      <div class="office"><div class="tx"><span class="chip">해무항 임시 사무실</span><br><b>수사비 48,200</b></div><div class="window"><div class="rain"></div><div class="wv"></div></div></div>
+      <p class="muted" style="font-size:13px">사건 2 동안 사무실 색이 청록으로 바뀌고, 창밖에 비와 파도가 보여요.</p>
+    </div>
+  </div>
+
+  <!-- 3. 출동 화면 시안 -->
+  <div class="sec" id="s-play">
+    <h2>출동 화면 시안</h2>
+    <p class="muted" style="margin:0;font-size:13px">안개 · 등대 빛 · 진술서 · 증거 사진 · 함정 · 거짓 도장이 함께 켜진 모습이에요. 진짜로 풀 수 있어요.</p>
+    <div class="play" id="play">
+      <div class="hud"><span>점수 <b style="color:var(--text);font-size:18px" id="p-score">0</b></span><span>연속 <b id="p-combo">0</b></span><span>남은 시간 1:12</span></div>
+      <div class="bar"><i></i></div>
+      <div class="stmt" id="p-stmt"></div>
+      <div class="bwrap">
+        <div class="board" id="p-board"></div>
+        <div class="fog on" id="p-fog"></div>
+        <div class="light" id="p-light"></div>
+      </div>
+      <div class="polaroid" id="p-pol"></div>
+      <div class="flash" id="p-flash"></div>
+      <div class="big" id="p-big"></div>
+      <div class="res" id="p-res">진술 넷 중 딱 셋과 맞는 사람이 범인이에요. 넷 다 맞으면 함정!</div>
+      <button class="btn" id="p-next">다음 목격자</button>
+    </div>
+  </div>
+
+  <!-- 4. 수사 일지 -->
+  <div class="sec" id="s-story">
+    <h2>수사 일지 초안 (6편)</h2>
+    <p class="muted" style="margin:0;font-size:13px">사건 1처럼 검거 수가 고비를 넘을 때마다 한 편씩 열려요. 써드의 진짜 이름은 아직 밝히지 않아요.</p>
+    <div id="story"></div>
+  </div>
+</div>
+
+<script>
+/*
+ * SuspectsCore — "수사 3팀" 퍼즐(현장 출동 한 판)의 규칙 계산. 화면과 무관한 순수 로직.
+ *
+ * 구조
+ *   카드(용의자) = 0~80 정수 id. 3진수 네 자리가 곧 네 속성(시간대·모자·얼굴·흔적)의 값이다.
+ *   검거 규칙   = 보는 속성마다 "두 명만 같으면 안 된다" ⇔ 세 값의 합이 3의 배수(모두 같음 또는 모두 다름).
+ *   단계(level) = 보는 속성의 수(1~4). 처음 하는 사람을 위해 모자 → 얼굴 → 시간대 → 흔적 순으로 하나씩 늘린다.
+ *                 안 보는 속성은 화면에 그리지 않고 판정에서도 뺀다(active 목록).
+ *   판(board)   = 서로 다른 카드 9장. 검거하면 그 세 자리만 새 카드로 채운다.
+ *   게임 상태   = 점수·연속·남은 시간(종료 시각)·단계·단서. submit / declareNone / hint 가 바꾼다.
+ *   튜토리얼    = makeLesson: 두 명을 주고 "셋째는 누구?"를 고르는 문제를 만든다.
+ *
+ * 화면(ui.js)은 이 모듈의 결과만 읽는다. 무작위는 rng 인자로 받아 테스트가 결과를 고정할 수 있다.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.SuspectsCore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var ATTRS = [
+    { key: 'time', name: '시간대', values: ['낮', '저녁', '밤'] },
+    { key: 'hat',  name: '모자',   values: ['맨머리', '비니', '중절모'] },   // 1.6: 캡 모자 → 비니(작게 보면 헬멧 같아서, 아이콘과 통일)
+    { key: 'face', name: '얼굴',   values: ['맨얼굴', '안경', '마스크'] },
+    { key: 'mark', name: '흔적',   values: ['지문', '유리 조각', '타이어 자국'] }
+  ];
+  var ALL = [0, 1, 2, 3];
+  // 단계마다 하나씩 늘어나는 속성 순서: 모자 → 얼굴 → 시간대 → 흔적 (눈에 잘 띄는 것부터)
+  var ORDER = [1, 2, 0, 3];
+  var DECK_SIZE = 81;   // 3^4
+  var BOARD_SIZE = 9;
+
+  // 한 판의 수치. 밸런스는 여기만 고치면 된다.
+  var RULES = {
+    duration: 90,          // 시작 시간(초)
+    base: 100,             // 검거 1건 기본 점수
+    noneBonus: 300,        // "검거 불가" 적중 기본 점수
+    hitTime: 2,            // 검거 성공 시 늘어나는 시간(초)
+    noneTime: 5,           // 검거 불가 적중 시 늘어나는 시간(초)
+    missPenalty: 5,        // 오인 체포 시 줄어드는 시간(초)
+    wrongNonePenalty: 10,  // 검거 불가 오판 시 줄어드는 시간(초)
+    comboStep: 0.5,        // 연속 검거 1회당 배수 증가
+    comboMax: 3,           // 배수 상한
+    hintPenalty: 3,        // 단서 한 번에 줄어드는 시간(초)
+    // 이 단계에 오르는 데 필요한 누적 검거 수(단계 1은 0). 2명→얼굴, 4명→시간대, 7명→흔적
+    levelAt: { 1: 0, 2: 2, 3: 4, 4: 7 }
+  };
+
+  /* ---------- 오류 ---------- */
+  // 화면이 code 로 분기할 수 있게 오류에 종류를 붙인다.
+  function GameError(code, message) {
+    var e = new Error(message);
+    e.name = 'GameError';
+    e.code = code;
+    return e;
+  }
+
+  /* ---------- 단계 ---------- */
+  function assertLevel(level) {
+    if (level !== 1 && level !== 2 && level !== 3 && level !== 4) throw GameError('BAD_LEVEL', '단계는 1~4: ' + level);
+  }
+  // 단계 → 보는 속성 번호 목록(ATTRS 순서로 정렬해서 화면 표시 순서가 늘 같게)
+  function activeFor(level) {
+    assertLevel(level);
+    return ORDER.slice(0, level).sort(function (a, b) { return a - b; });
+  }
+
+  /* ---------- 카드 ---------- */
+  function assertId(id) {
+    if (typeof id !== 'number' || !isFinite(id) || Math.floor(id) !== id || id < 0 || id >= DECK_SIZE) {
+      throw GameError('BAD_CARD', '카드 id 는 0~80 정수여야 한다: ' + id);
+    }
+  }
+
+  // id → [시간대, 모자, 얼굴, 흔적] 각 0~2
+  function decode(id) {
+    assertId(id);
+    return [id % 3, Math.floor(id / 3) % 3, Math.floor(id / 9) % 3, Math.floor(id / 27) % 3];
+  }
+
+  function encode(v) {
+    if (!Array.isArray(v) || v.length !== ATTRS.length) throw GameError('BAD_CARD', '속성은 4개여야 한다');
+    for (var i = 0; i < v.length; i++) {
+      if (v[i] !== 0 && v[i] !== 1 && v[i] !== 2) throw GameError('BAD_CARD', '속성 값은 0~2: ' + v[i]);
+    }
+    return v[0] + v[1] * 3 + v[2] * 9 + v[3] * 27;
+  }
+
+  // 보는 속성만 남긴 모양(안 보는 속성은 0). 화면은 이 값으로 그린다.
+  function project(id, active) {
+    var v = decode(id), a = active || ALL, out = [0, 0, 0, 0];
+    for (var i = 0; i < a.length; i++) out[a[i]] = v[a[i]];
+    return out;
+  }
+  function projKey(id, active) { return project(id, active).join(''); }
+
+  /*
+   * 세 장이 한 패인가(보는 속성만 따진다).
+   * 속성마다 (x+y+z) % 3 === 0 이면 "모두 같음" 또는 "모두 다름"이다(둘만 같으면 합이 3의 배수가 될 수 없다).
+   * 같은 카드를 두 번 고른 경우는 판 위 자리가 다르면 생기지 않지만, 방어적으로 막는다.
+   */
+  function isSet(a, b, c, active) {
+    if (a === b || b === c || a === c) return false;
+    var x = decode(a), y = decode(b), z = decode(c), act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n];
+      if ((x[i] + y[i] + z[i]) % 3 !== 0) return false;
+    }
+    return true;
+  }
+
+  /*
+   * 왜 틀렸는지: 규칙을 어긴 속성(= 둘만 같은 속성)과 그 값.
+   * 오인 체포 때 "모자: 비니 둘만 같아요"처럼 보여 줘서 규칙을 몸으로 익히게 한다.
+   */
+  function explain(a, b, c, active) {
+    var x = decode(a), y = decode(b), z = decode(c), out = [], act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n];
+      if ((x[i] + y[i] + z[i]) % 3 !== 0) {
+        var same = x[i] === y[i] ? x[i] : (y[i] === z[i] ? y[i] : x[i]);
+        out.push({ index: i, key: ATTRS[i].key, name: ATTRS[i].name, value: ATTRS[i].values[same] });
+      }
+    }
+    return out;
+  }
+
+  // 두 장이 정해지면 셋째 장은 하나로 정해진다(속성마다 (3 - (x+y)%3) % 3).
+  function thirdCard(a, b) {
+    if (a === b) throw GameError('SAME_CARD', '서로 다른 두 장이어야 한다');
+    var x = decode(a), y = decode(b), v = [];
+    for (var i = 0; i < ATTRS.length; i++) v.push((3 - (x[i] + y[i]) % 3) % 3);
+    return encode(v);
+  }
+
+  /*
+   * 두 장을 골랐을 때 셋째가 갖춰야 할 조건(보조 줄·튜토리얼 해설에 쓴다).
+   * 반환: [{ index, name, same, value }] — same=true 면 "둘이 같으니 셋째도 같게", false 면 "둘이 다르니 남은 하나로"
+   */
+  function needs(a, b, active) {
+    var x = decode(a), y = decode(b), out = [], act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n], same = x[i] === y[i];
+      var v = same ? x[i] : (3 - (x[i] + y[i]) % 3) % 3;
+      out.push({ index: i, key: ATTRS[i].key, name: ATTRS[i].name, same: same, value: ATTRS[i].values[v] });
+    }
+    return out;
+  }
+
+  // 판 위의 한 패를 모두 찾는다(9장 → 84개 조합, 충분히 가볍다).
+  function findSets(board, active) {
+    var out = [];
+    for (var i = 0; i < board.length; i++)
+      for (var j = i + 1; j < board.length; j++)
+        for (var k = j + 1; k < board.length; k++)
+          if (isSet(board[i], board[j], board[k], active)) out.push([i, j, k]);
+    return out;
+  }
+
+  /* ---------- 무작위 ---------- */
+  // 시드 고정 난수(mulberry32). 테스트와 공통 판에 쓴다.
+  function makeRng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () {
+      s = (s + 0x6D2B79F5) >>> 0;
+      var t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function assertRng(rng) {
+    if (typeof rng !== 'function') throw GameError('BAD_RNG', 'rng 는 0 이상 1 미만을 돌려주는 함수여야 한다');
+  }
+  // rng 가 범위를 벗어나도 판이 깨지지 않게 0~n-1 로 맞춘다
+  function pickIndex(rng, n) {
+    var r = rng();
+    if (!(r >= 0 && r < 1)) r = 0;
+    return Math.floor(r * n);
+  }
+
+  // exclude 에 없는 카드를 0 ~ limit-1 에서 count 장 뽑는다(서로 겹치지 않게). limit 기본 81.
+  function drawDistinct(rng, exclude, count, limit) {
+    assertRng(rng);
+    limit = limit == null ? DECK_SIZE : limit;
+    var used = {}, pool = [];
+    for (var i = 0; i < exclude.length; i++) used[exclude[i]] = true;
+    for (var id = 0; id < limit; id++) if (!used[id]) pool.push(id);
+    if (pool.length < count) throw GameError('DECK_EMPTY', '뽑을 카드가 모자란다');
+    var out = [];
+    for (var n = 0; n < count; n++) {
+      var pick = pickIndex(rng, pool.length);
+      out.push(pool[pick]);
+      pool.splice(pick, 1);
+    }
+    return out;
+  }
+
+  function newBoard(rng, limit) {
+    return drawDistinct(rng, [], BOARD_SIZE, limit);
+  }
+
+  // 검거한 세 자리만 새 카드로 바꾼 판(원본은 그대로). 판 전체를 제외해 방금 잡힌 카드가 바로 다시 나오지 않게 한다.
+  function refill(board, idxs, rng, limit) {
+    var fresh = drawDistinct(rng, board, idxs.length, limit);
+    var next = board.slice();
+    for (var i = 0; i < idxs.length; i++) next[idxs[i]] = fresh[i];
+    return next;
+  }
+
+  /*
+   * 단계에 맞춰 카드를 뽑는다: 화면에 보이는 모양(project)이 판 위에서 겹치지 않는 카드를 먼저 고른다.
+   * 모양 가짓수가 모자라면(1단계는 3가지뿐) 겹침을 허용한다. 1단계는 "같은 모자 셋"이 곧 한 패라 괜찮다.
+   */
+  function drawForLevel(rng, excludeIds, keepProj, count, level) {
+    assertRng(rng);
+    var active = activeFor(level), used = {}, seen = {}, out = [];
+    for (var i = 0; i < excludeIds.length; i++) used[excludeIds[i]] = true;
+    for (var j = 0; j < keepProj.length; j++) seen[keepProj[j]] = true;
+    var pool = [];
+    for (var id = 0; id < DECK_SIZE; id++) if (!used[id]) pool.push(id);
+    for (var n = 0; n < count; n++) {
+      var fresh = pool.filter(function (c) { return !seen[projKey(c, active)]; });
+      var from = fresh.length ? fresh : pool;
+      if (!from.length) throw GameError('DECK_EMPTY', '뽑을 카드가 모자란다');
+      var pick = from[pickIndex(rng, from.length)];
+      out.push(pick);
+      seen[projKey(pick, active)] = true;
+      pool.splice(pool.indexOf(pick), 1);
+    }
+    return out;
+  }
+
+  function dealBoard(rng, level) {
+    return drawForLevel(rng, [], [], BOARD_SIZE, level);
+  }
+
+  function refillBoard(board, idxs, rng, level) {
+    var active = activeFor(level), keep = [];
+    for (var i = 0; i < board.length; i++) if (idxs.indexOf(i) < 0) keep.push(projKey(board[i], active));
+    var fresh = drawForLevel(rng, board, keep, idxs.length, level);
+    var next = board.slice();
+    for (var k = 0; k < idxs.length; k++) next[idxs[k]] = fresh[k];
+    return next;
+  }
+
+  /* ---------- 게임 ---------- */
+  // 연속 검거 n 번째의 점수 배수: 1, 1.5, 2, 2.5, 3, 3, ...
+  // 연속 검거 배수(평소 규칙). 판의 상한이 다르면 multiplierFor 를 쓴다
+  //   (인자를 하나만 받는다: [..].map(multiplier) 처럼 써도 두 번째 인자가 끼어들지 않게)
+  function multiplier(combo) { return multiplierFor(combo, RULES.comboMax); }
+  function multiplierFor(combo, max) {
+    if (combo < 1) return 1;
+    return Math.min(max == null ? RULES.comboMax : max, 1 + RULES.comboStep * (combo - 1));
+  }
+
+  /*
+   * 판마다 바꿀 수 있는 규칙(0.1.19: 하루 한 번 특별 출동 · 출동 준비물).
+   *   scoreMult  점수 배수(기본 1)          comboMax  연속 배수 상한(기본 RULES.comboMax)
+   *   hitTime    검거 때 늘어나는 초          missPenalty 오인 체포 때 줄어드는 초
+   *   noneMult   검거 불가 적중 점수 배수      noHints   단서 못 씀
+   *   shield     오인 체포 벌점을 면제하는 횟수(준비물 "변호사 대기")
+   * 모르는 키는 버리고, 값이 이상하면 BAD_OPTION 을 던진다(판을 만들 때 한 번만 검사).
+   */
+  var MOD_DEFAULTS = { scoreMult: 1, comboMax: null, hitTime: null, missPenalty: null, noneMult: 1, noHints: false, shield: 0 };
+  function readMods(m) {
+    m = m && typeof m === 'object' ? m : {};
+    var out = {};
+    Object.keys(MOD_DEFAULTS).forEach(function (k) { out[k] = m[k] == null ? MOD_DEFAULTS[k] : m[k]; });
+    var num = function (v, min, max) { return typeof v === 'number' && isFinite(v) && v >= min && v <= max; };
+    if (!num(out.scoreMult, 0.1, 10) || !num(out.noneMult, 0.1, 10)) throw GameError('BAD_OPTION', '점수 배수는 0.1~10');
+    if (out.comboMax != null && !num(out.comboMax, 1, 20)) throw GameError('BAD_OPTION', '연속 배수 상한은 1~20');
+    if (out.hitTime != null && !num(out.hitTime, 0, 30)) throw GameError('BAD_OPTION', '검거 시간은 0~30초');
+    if (out.missPenalty != null && !num(out.missPenalty, 0, 60)) throw GameError('BAD_OPTION', '오인 벌점은 0~60초');
+    if (!num(out.shield, 0, 10) || Math.floor(out.shield) !== out.shield) throw GameError('BAD_OPTION', '면제 횟수는 0~10 정수');
+    out.noHints = out.noHints === true;
+    return out;
+  }
+
+  function assertNow(now) {
+    if (typeof now !== 'number' || !isFinite(now)) throw GameError('BAD_TIME', 'now 는 밀리초 숫자여야 한다');
+  }
+
+  /*
+   * 새 게임. opts:
+   *   rng, now(ms)        — 필수
+   *   duration(초)        — 기본 90 (사무실 장비 "수사 기간 연장"이 늘린다)
+   *   level               — 시작 단계 1~4, 기본 1. 노말은 4.
+   *   freeHints           — 시간이 줄지 않는 단서 횟수(장비 "베테랑 형사")
+   *   nonePenalty(초)     — 검거 불가 오판 벌점(장비 "증거 보관실"이 줄인다)
+   *   mods                — 판마다 바꾸는 규칙(readMods 참고). 없으면 평소 규칙
+   * 남은 시간은 "종료 시각(endAt)"으로 들고 있다. 매 프레임 깎지 않아도 되고, 탭을 떠나도 정확하다.
+   */
+  function createGame(opts) {
+    opts = opts || {};
+    assertRng(opts.rng);
+    assertNow(opts.now);
+    var duration = opts.duration == null ? RULES.duration : opts.duration;
+    if (!(duration > 0)) throw GameError('BAD_DURATION', '시간은 0보다 커야 한다');
+    var level = opts.level == null ? 1 : opts.level;
+    assertLevel(level);
+    var freeHints = opts.freeHints == null ? 0 : opts.freeHints;
+    var nonePenalty = opts.nonePenalty == null ? RULES.wrongNonePenalty : opts.nonePenalty;
+    if (!(freeHints >= 0) || !(nonePenalty >= 0)) throw GameError('BAD_OPTION', '단서·벌점 값은 0 이상');
+    var mods = readMods(opts.mods);
+    return {
+      mods: mods, shield: mods.shield, shieldUsed: 0,
+      rng: opts.rng,
+      level: level,
+      startLevel: level,
+      board: dealBoard(opts.rng, level),
+      clue: null,       // 단서: { set:[i,j,k], shown:n } — 판이 바뀌면 null
+      hints: 0, freeHints: freeHints, nonePenalty: nonePenalty,
+      score: 0, combo: 0, bestCombo: 0,
+      hits: 0, misses: 0, noneHits: 0, noneMisses: 0,
+      endAt: opts.now + duration * 1000,
+      pausedAt: null,   // 일시정지 중이면 멈춘 시각(ms), 아니면 null
+      over: false
+    };
+  }
+
+  function active(state) { return activeFor(state.level); }
+
+  // 일시정지 중에는 멈춘 시각 기준으로 남은 시간을 센다(시간이 흐르지 않는다)
+  function timeLeft(state, now) {
+    assertNow(now);
+    var at = state.pausedAt != null ? state.pausedAt : now;
+    return Math.max(0, (state.endAt - at) / 1000);
+  }
+
+  // "처음으로" 확인 창이 떠 있는 동안 시간을 멈춘다. 재개하면 멈춘 만큼 종료 시각을 뒤로 민다.
+  function pause(state, now) {
+    assertNow(now);
+    if (state.over) throw GameError('GAME_OVER', '이미 끝난 판이다');
+    if (state.pausedAt == null) state.pausedAt = now;
+  }
+
+  function resume(state, now) {
+    assertNow(now);
+    if (state.pausedAt == null) return;
+    state.endAt += Math.max(0, now - state.pausedAt);
+    state.pausedAt = null;
+  }
+
+  // 시간이 다 됐으면 끝낸다. 끝났는지 돌려준다.
+  function tick(state, now) {
+    if (state.pausedAt != null) return state.over;
+    if (!state.over && timeLeft(state, now) <= 0) state.over = true;
+    return state.over;
+  }
+
+  function guard(state, now, what) {
+    if (state.pausedAt != null) throw GameError('PAUSED', '멈춘 판에서는 ' + what + ' 수 없다');
+    if (tick(state, now)) throw GameError('GAME_OVER', '이미 끝난 판이다');
+  }
+
+  function addCombo(state) {
+    state.combo += 1;
+    if (state.combo > state.bestCombo) state.bestCombo = state.combo;
+    return multiplierFor(state.combo, state.mods ? state.mods.comboMax : null);
+  }
+
+  // 누적 검거 수로 다음 단계를 정한다(올라가기만 한다)
+  function levelForHits(startLevel, hits) {
+    var lv = startLevel;
+    for (var l = startLevel + 1; l <= 4; l++) if (hits >= RULES.levelAt[l]) lv = l;
+    return lv;
+  }
+
+  /*
+   * 검거 시도. idxs = 판 위의 자리 세 개(0~8, 서로 다름). state 를 직접 바꾼다.
+   * 반환: 성공 { ok:true, gain, combo, mult, replaced, levelUp? }, 실패 { ok:false, reasons, penalty }
+   */
+  function submit(state, idxs, now) {
+    guard(state, now, '고를');
+    if (!Array.isArray(idxs) || idxs.length !== 3) throw GameError('BAD_PICK', '세 명을 골라야 한다');
+    for (var i = 0; i < 3; i++) {
+      var v = idxs[i];
+      if (typeof v !== 'number' || Math.floor(v) !== v || v < 0 || v >= state.board.length) {
+        throw GameError('BAD_PICK', '판에 없는 자리: ' + v);
+      }
+    }
+    if (idxs[0] === idxs[1] || idxs[1] === idxs[2] || idxs[0] === idxs[2]) throw GameError('BAD_PICK', '같은 자리를 두 번 골랐다');
+
+    var act = active(state);
+    var a = state.board[idxs[0]], b = state.board[idxs[1]], c = state.board[idxs[2]];
+    if (isSet(a, b, c, act)) {
+      var mult = addCombo(state);
+      var md = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.base * mult * md.scoreMult);
+      state.score += gain;
+      state.hits += 1;
+      state.endAt += (md.hitTime == null ? RULES.hitTime : md.hitTime) * 1000;
+      state.clue = null;
+      var next = levelForHits(state.startLevel, state.hits);
+      if (next !== state.level) {
+        // 새 속성이 열리는 순간: 판 전체를 새 단계에 맞춰 깐다
+        state.level = next;
+        state.board = dealBoard(state.rng, next);
+        return { ok: true, gain: gain, combo: state.combo, mult: mult, levelUp: next, replaced: [0, 1, 2, 3, 4, 5, 6, 7, 8] };
+      }
+      state.board = refillBoard(state.board, idxs, state.rng, state.level);
+      return { ok: true, gain: gain, combo: state.combo, mult: mult, replaced: idxs.slice() };
+    }
+    state.combo = 0;
+    state.misses += 1;
+    // 변호사 대기(준비물): 남은 면제 횟수가 있으면 시간을 깎지 않는다(연속은 끊긴다)
+    var md2 = state.mods || MOD_DEFAULTS, pen = md2.missPenalty == null ? RULES.missPenalty : md2.missPenalty, shielded = false;
+    if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
+    state.endAt -= pen * 1000;
+    tick(state, now);
+    return { ok: false, reasons: explain(a, b, c, act), penalty: pen, shielded: shielded };
+  }
+
+  /*
+   * "검거 불가" 선언. 판에 한 패가 없으면 적중: 큰 점수 + 판 전체를 새로 깐다.
+   * 하나라도 있으면 오판: 시간이 크게 줄고 연속이 끊긴다(몇 패 남았는지만 알려 준다).
+   */
+  function declareNone(state, now) {
+    guard(state, now, '선언할');
+    var sets = findSets(state.board, active(state));
+    if (sets.length === 0) {
+      var mult = addCombo(state);
+      var mdn = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.noneBonus * mult * mdn.scoreMult * mdn.noneMult);
+      state.score += gain;
+      state.noneHits += 1;
+      state.endAt += RULES.noneTime * 1000;
+      state.board = dealBoard(state.rng, state.level);
+      state.clue = null;
+      return { ok: true, gain: gain, combo: state.combo, mult: mult };
+    }
+    state.combo = 0;
+    state.noneMisses += 1;
+    state.endAt -= state.nonePenalty * 1000;
+    tick(state, now);
+    return { ok: false, remaining: sets.length, penalty: state.nonePenalty };
+  }
+
+  // 단서 한 번의 값: 무료 단서가 남았으면 0초, 아니면 hintPenalty 초
+  function chargeHint(state, now) {
+    var p = 0;
+    if (state.freeHints > 0) state.freeHints -= 1;
+    else { p = RULES.hintPenalty; state.endAt -= p * 1000; }
+    state.hints += 1;
+    tick(state, now);
+    return p;
+  }
+
+  /*
+   * 단서: 누를 때마다 한 패의 한 명씩, 최대 두 명까지 짚어 준다.
+   *   두 명이 보이면 셋째는 하나로 정해지므로 직접 찾게 둔다(규칙을 익히는 연습).
+   *   판에 한 패가 없으면 그 사실을 알려 준다(검거 불가를 누르라는 뜻).
+   *   이미 두 명을 보여 줬으면 다시 눌러도 깎지 않고 같은 두 명을 돌려준다.
+   * 반환: { none:true, penalty } 또는 { indices:[...], penalty }
+   */
+  function hint(state, now) {
+    guard(state, now, '단서를 볼');
+    if (state.mods && state.mods.noHints) throw GameError('NO_HINTS', '이 출동은 단서를 쓸 수 없다');
+    if (!state.clue) {
+      var sets = findSets(state.board, active(state));
+      if (sets.length === 0) return { none: true, penalty: chargeHint(state, now) };
+      state.clue = { set: sets[pickIndex(state.rng, sets.length)], shown: 0 };
+    }
+    var penalty = 0;
+    if (state.clue.shown < 2) {
+      state.clue.shown += 1;
+      penalty = chargeHint(state, now);
+    }
+    return { indices: state.clue.set.slice(0, state.clue.shown), penalty: penalty };
+  }
+
+  /* ---------- 튜토리얼 ---------- */
+  function shuffle(rng, arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = pickIndex(rng, i + 1), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /*
+   * "두 명의 한 패, 셋째는 누구?" 문제 하나.
+   *   a, b       : 주어진 두 명(안 보는 속성은 0 으로 맞춰 그림이 단순하다)
+   *   answer     : 정답(셋째)
+   *   options    : 정답 + 오답들을 섞은 것. 오답은 정답에서 속성 하나만 바꾼 "아깝게 틀린" 사람이라
+   *                고르면 explain() 으로 정확히 한 가지 이유가 나온다.
+   *   2단계 이상은 "같은 속성"과 "다른 속성"이 적어도 하나씩 섞이게 만들어 두 요령을 다 보게 한다.
+   */
+  function makeLesson(rng, level) {
+    assertRng(rng);
+    var act = activeFor(level);
+    var a, b, x, y, sameN, diffN;
+    for (var guardN = 0; guardN < 500; guardN++) {
+      x = [0, 0, 0, 0]; y = [0, 0, 0, 0];
+      for (var n = 0; n < act.length; n++) { x[act[n]] = pickIndex(rng, 3); y[act[n]] = pickIndex(rng, 3); }
+      sameN = 0; diffN = 0;
+      for (var m = 0; m < act.length; m++) { if (x[act[m]] === y[act[m]]) sameN++; else diffN++; }
+      if (diffN === 0) continue;                    // 두 명이 똑같으면 문제가 아니다
+      if (act.length >= 2 && sameN === 0) continue;  // 같은 것도 하나는 있게
+      break;
+    }
+    a = encode(x); b = encode(y);
+    var answer = thirdCard(a, b);
+    var ans = decode(answer), wrong = [];
+    for (var k = 0; k < act.length; k++) {
+      var i = act[k];
+      for (var v = 0; v < 3; v++) {
+        if (v === ans[i]) continue;
+        var d = ans.slice(); d[i] = v;
+        var id = encode(d);
+        // 1단계는 모자 3가지뿐이라 오답이 주어진 두 명과 똑같은 카드가 된다.
+        // 안 보는 흔적 자리만 바꿔 다른 id 로 만든다(그림은 같고 "둘만 같다"는 이유로 틀린다).
+        if (id === a || id === b) {
+          if (act.indexOf(3) >= 0) continue;
+          d[3] = id === a ? 1 : 2;
+          id = encode(d);
+        }
+        wrong.push(id);
+      }
+    }
+    wrong = shuffle(rng, wrong).slice(0, act.length === 1 ? 2 : 3);
+    return { level: level, active: act, a: a, b: b, answer: answer, options: shuffle(rng, [answer].concat(wrong)) };
+  }
+
+  return {
+    ATTRS: ATTRS, ORDER: ORDER, DECK_SIZE: DECK_SIZE, BOARD_SIZE: BOARD_SIZE, RULES: RULES,
+    activeFor: activeFor, decode: decode, encode: encode, project: project,
+    isSet: isSet, explain: explain, thirdCard: thirdCard, needs: needs, findSets: findSets,
+    makeRng: makeRng, drawDistinct: drawDistinct, newBoard: newBoard, refill: refill,
+    dealBoard: dealBoard, refillBoard: refillBoard,
+    multiplier: multiplier, multiplierFor: multiplierFor, readMods: readMods, MOD_DEFAULTS: MOD_DEFAULTS, createGame: createGame, active: active, timeLeft: timeLeft, tick: tick,
+    pause: pause, resume: resume, submit: submit, declareNone: declareNone, hint: hint,
+    makeLesson: makeLesson
+  };
+});
+
+</script>
+<script>
+(function () {
+  'use strict';
+  var C = window.SuspectsCore, $ = function (id) { return document.getElementById(id); };
+  /* ---------- 용의자 그림 ----------
+   * 네 속성이 각각 다른 자리에 있어 따로 눈에 들어온다.
+   *   시간대 = 카드 바탕 + 왼쪽 위 칩 / 모자 = 머리 / 얼굴 = 얼굴 소품(하늘색) / 흔적 = 오른쪽 아래 원
+   * 아직 안 보는 속성(active 에 없음)은 그리지 않는다: 시간대는 무늬 없는 회색 바탕, 흔적 원은 없음,
+   * 모자·얼굴은 맨머리·맨얼굴. 색만으로 구분하지 않도록 모든 속성은 모양이 다르다.
+   */
+  var BG = ['#F4EFE2', '#E4A97C', '#2F3646'], FG = ['#1B1E24', '#1B1E24', '#EDE7D9'];
+  var PLAIN_BG = '#D9D6CE';
+  var TIME_CHIP = ['rgba(255,255,255,.7)', 'rgba(255,255,255,.45)', 'rgba(255,255,255,.1)'];
+  var TIME_INK = ['#C46A00', '#9A2E12', '#F3E2A0'];
+  var SKY = '#9CD3F2', SKY_DARK = '#4F86A8';
+
+  function timeIcon(t) {
+    if (t === 0) {
+      var rays = '';
+      for (var a = 0; a < 360; a += 45) rays += '<line x1="12" y1="1.8" x2="12" y2="4.6" transform="rotate(' + a + ' 12 12)"/>';
+      return '<circle cx="12" cy="12" r="4.4" fill="currentColor"/>' + rays;
+    }
+    if (t === 1) {
+      return '<path d="M5.5 16a6.5 6.5 0 0 1 13 0z" fill="currentColor"/><line x1="2" y1="16" x2="22" y2="16"/>' +
+        '<line x1="12" y1="5" x2="12" y2="7.2"/><line x1="4.6" y1="8.6" x2="6.2" y2="10.2"/><line x1="19.4" y1="8.6" x2="17.8" y2="10.2"/>' +
+        '<line x1="6" y1="19.5" x2="18" y2="19.5" opacity=".55"/>';
+    }
+    return '<path d="M16.5 15.5A7 7 0 1 1 10 4.5a5.5 5.5 0 0 0 6.5 11z" fill="currentColor"/>' +
+      '<path d="M18.5 4.5l.7 1.5 1.5.7-1.5.7-.7 1.5-.7-1.5-1.5-.7 1.5-.7z" fill="currentColor" stroke="none"/>';
+  }
+  function markIcon(m) {
+    if (m === 0) return '<path d="M7 17c-1-1.6-1.5-3.3-1.5-5a6.5 6.5 0 0 1 13 0c0 1.3-.2 2.6-.6 3.8"/><path d="M9.5 18.5c-.9-1.9-1.4-3.8-1.4-6a3.9 3.9 0 0 1 7.8 0c0 2.6-.5 4.6-1.4 6.6"/><path d="M12 12.3v1.2c0 2.2.5 4 1.3 5.5"/>';
+    if (m === 1) return '<path d="M5 19L9.5 4l3 7.5-2.5 1z" fill="currentColor"/><path d="M13.5 20l2-8 4 3.5z" fill="currentColor"/>';
+    return '<path d="M5 8l3.5-3 3.5 3 3.5-3L19 8"/><path d="M5 13.5l3.5-3 3.5 3 3.5-3 3.5 3"/><path d="M5 19l3.5-3 3.5 3 3.5-3 3.5 3"/>';
+  }
+  // 사람 실루엣(100×100). fg = 실루엣 색, bg = 카드 바탕(파낸 부분)
+  function figure(h, f, fg, bg) {
+    var s = '<path d="M14 100c0-21 15-31 36-31s36 10 36 31z" fill="' + fg + '"/>' +
+            '<circle cx="50" cy="48" r="19" fill="' + fg + '"/>';
+    if (f !== 1) s += '<circle cx="43" cy="46.5" r="2.8" fill="' + bg + '"/><circle cx="57" cy="46.5" r="2.8" fill="' + bg + '"/>';
+    if (f === 0) s += '<path d="M44.5 56q5.5 3.5 11 0" fill="none" stroke="' + bg + '" stroke-width="2.4" stroke-linecap="round"/>';
+    if (f === 1) {
+      s += '<circle cx="42" cy="47" r="7" fill="' + SKY + '" stroke="' + bg + '" stroke-width="3"/>' +
+           '<circle cx="58" cy="47" r="7" fill="' + SKY + '" stroke="' + bg + '" stroke-width="3"/>' +
+           '<line x1="49" y1="47" x2="51" y2="47" stroke="' + bg + '" stroke-width="3"/>' +
+           '<path d="M45 57q5 2.5 10 0" fill="none" stroke="' + bg + '" stroke-width="2.4" stroke-linecap="round"/>';
+    }
+    if (f === 2) {
+      s += '<path d="M34 52.5l-4.5-5.5M66 52.5l4.5-5.5" stroke="' + SKY + '" stroke-width="2.4" stroke-linecap="round"/>' +
+           '<path d="M33.5 51h33v6.5c0 6.5-7.5 10-16.5 10s-16.5-3.5-16.5-10z" fill="' + SKY + '" stroke="#1B1E24" stroke-width="1.4"/>' +
+           '<path d="M37 56h26M38 60.5h24" stroke="' + SKY_DARK + '" stroke-width="1.6" stroke-linecap="round"/>';
+    }
+    // 모자: 아래끝이 y≈40 을 넘지 않게 해서 안경(위끝 y=40)을 가리지 않는다
+    if (h === 1) {
+      // 비니(1.6, 예전 캡 모자): 둥근 몸통 + 골지 단 + 방울. 맨머리·중절모와 윤곽이 확실히 다르다
+      s += '<path d="M31 38c0-13 8.5-21 19-21s19 8 19 21z" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>' +
+           '<rect x="29.5" y="33" width="41" height="7.5" rx="3" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>';
+      for (var r = 35; r <= 65; r += 6) s += '<line x1="' + r + '" y1="34.6" x2="' + r + '" y2="38.9" stroke="' + bg + '" stroke-width="1.4"/>';
+      s += '<circle cx="50" cy="15" r="5" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>';
+    }
+    if (h === 2) {
+      s += '<path d="M33.5 36l3.5-17.5q6.5-3 13 0q6.5-3 13 0L66.5 36z" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.5"/>' +
+           '<path d="M35 31.5h30" stroke="' + bg + '" stroke-width="3"/>' +
+           '<path d="M16 37h68" stroke="' + fg + '" stroke-width="6.5" stroke-linecap="round"/>';
+    }
+    return s;
+  }
+
+  var ALL = [0, 1, 2, 3];
+  // 그릴 때 필요한 것: 보는 속성만 남긴 값과 바탕·글자 색
+  function look(id, active) {
+    var act = active || ALL, v = C.project(id, act);
+    var showTime = act.indexOf(0) >= 0, showMark = act.indexOf(3) >= 0;
+    return { v: v, showTime: showTime, showMark: showMark, bg: showTime ? BG[v[0]] : PLAIN_BG, fg: showTime ? FG[v[0]] : FG[0] };
+  }
+  function describe(id, active) {
+    var act = active || ALL, v = C.decode(id);
+    return act.map(function (i) { return C.ATTRS[i].values[v[i]]; }).join(', ');
+  }
+  // 카드 한 장의 속 내용(번호는 판 위에서만)
+  function cardInner(id, no, active) {
+    var L = look(id, active), v = L.v;
+    var stroke = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+    return (L.showTime ? '<span class="t" style="background:' + TIME_CHIP[v[0]] + ';color:' + TIME_INK[v[0]] + '"><svg width="20" height="20" viewBox="0 0 24 24" ' + stroke + '>' + timeIcon(v[0]) + '</svg></span>' : '') +
+      (no ? '<span class="no" style="color:' + L.fg + '">' + no + '</span>' : '') +
+      '<svg class="fig" viewBox="0 0 100 100" aria-hidden="true">' + figure(v[1], v[2], L.fg, L.bg) + '</svg>' +
+      (L.showMark ? '<span class="m" style="background:' + L.fg + ';color:' + L.bg + ';box-shadow:0 0 0 2px ' + L.bg + '"><svg width="19" height="19" viewBox="0 0 24 24" ' + stroke + '>' + markIcon(v[3]) + '</svg></span>' : '') +
+      '<span class="pick"></span>';
+  }
+
+  function rnd(n) { return Math.floor(Math.random() * n); }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = rnd(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function card(id, cls, i) { return '<button class="card ' + (cls || '') + '"' + (i != null ? ' data-i="' + i + '"' : '') + ' style="background:' + look(id).bg + '">' + cardInner(id) + '</button>'; }
+  function replay(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+  /* ---------- 목격자 진술 문제(시안 A 의 "보통") ---------- */
+  function sayAttr(k, v) {
+    if (k === 0) return ['낮이었어요', '저녁이었어요', '밤이었어요'][v];
+    if (k === 1) return ['모자는 안 썼어요', '비니를 썼어요', '중절모를 썼어요'][v];
+    if (k === 2) return ['얼굴을 가리지 않았어요', '안경을 썼어요', '마스크를 썼어요'][v];
+    return ['지문이 남았어요', '유리 조각이 떨어져 있었어요', '타이어 자국이 있었어요'][v];
+  }
+  function matches(id, says) { var v = C.decode(id); return says.filter(function (s) { return s.vals.indexOf(v[s.k]) >= 0; }).length; }
+  function makeA() {
+    for (var t0 = 0; t0 < 200; t0++) {
+      var target = rnd(81), tv = C.decode(target), lie = rnd(4);
+      var says = [0, 1, 2, 3].map(function (k) { return { k: k, vals: [k === lie ? (tv[k] + 1 + rnd(2)) % 3 : tv[k]] }; });
+      var board = [target], used = {}; used[target] = 1;
+      var trap = C.encode(says.map(function (s) { return s.vals[0]; })); board.push(trap); used[trap] = 1;
+      var g = 0;
+      while (board.length < 9 && g++ < 20000) {
+        var id = rnd(81); if (used[id]) continue;
+        var m = matches(id, says); if (m >= 3) continue;
+        if (m !== 2 && Math.random() < .85) continue;
+        board.push(id); used[id] = 1;
+      }
+      if (board.length === 9) return { board: shuffle(board), target: target, trap: trap, says: says, lie: lie };
+    }
+  }
+
+  // 진술서: 한 줄씩 타자기처럼(줄마다 약 0.35초)
+  var typeTimer = 0;
+  function typeStatements(el, says, done) {
+    clearTimeout(typeTimer);
+    el.innerHTML = says.map(function (s, i) { return '<div data-k="' + s.k + '"><i>' + (i + 1) + '</i><span class="txt"></span><span class="stamp">거짓</span></div>'; }).join('');
+    var rows = el.querySelectorAll('div'), line = 0, ch = 0;
+    function step() {
+      if (line >= rows.length) { if (done) done(); return; }
+      var txt = sayAttr(says[line].k, says[line].vals[0]), span = rows[line].querySelector('.txt');
+      ch++;
+      span.innerHTML = txt.slice(0, ch) + (ch < txt.length ? '<span class="caret"></span>' : '');
+      if (ch >= txt.length) { line++; ch = 0; typeTimer = setTimeout(step, 120); }
+      else typeTimer = setTimeout(step, 22);
+    }
+    step();
+  }
+  function stampLie(el, lieK) {
+    var row = el.querySelector('div[data-k="' + lieK + '"]'); if (!row) return;
+    row.classList.add('lie'); replay(row.querySelector('.stamp'), 'go');
+  }
+
+  /* ---------- 화면 효과 데모 ---------- */
+  var demoBoard = shuffle(Array.from({ length: 81 }, function (_, i) { return i; })).slice(0, 9);
+  $('demo-grid').innerHTML = demoBoard.map(function (id) { return card(id); }).join('');
+  var DESC = {
+    map: '사건 2를 처음 열 때: 접힌 지도가 펼쳐지고, 중앙서에서 해무항까지 붉은 점선이 이어진 뒤 핀이 꽂히며 그 자리로 다가가요.',
+    fog: '출동 판 위로 바다 안개가 천천히 흘러요. 출동이 어려워질수록 짙어지고, 검거하는 순간 잠깐 걷혀요. 카드를 가리지는 않고 흐리게만 해요.',
+    light: '몇 초마다 등대 빛이 판을 쓸고 지나가요. 빛이 닿는 동안은 안개 속 카드가 또렷해져요(그때 보면 유리해요).',
+    pol: '검거하면 범인이 폴라로이드 증거 사진으로 찰칵 찍혀 날아가 사건 보드에 꽂혀요.',
+    trap: '넷 다 맞는 "함정"을 고르면 카메라 플래시 + 화면 흔들림 + "함정!" — 목격자 말을 그대로 믿으면 안 된다는 걸 몸으로 알게 해요.',
+    ship: '주범 조 출동: 뱃고동과 함께 안개 속을 배 그림자가 지나가고, 물에 붉은 경광이 일렁여요.'
+  };
+  var fogTimer = 0;
+  function playFx(fx) {
+    $('fx-desc').textContent = DESC[fx];
+    document.querySelectorAll('#fx-list button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-fx') === fx); });
+    var fog = $('fx-fog');
+    if (fx === 'map') replay($('fx-map'), 'go');
+    if (fx === 'fog') { fog.classList.add('on'); clearTimeout(fogTimer); fogTimer = setTimeout(function () { fog.classList.add('thick'); }, 1500); }
+    if (fx === 'light') { fog.classList.add('on'); replay($('fx-light'), 'go'); }
+    if (fx === 'pol') {
+      var id = demoBoard[4], p = $('fx-pol');
+      p.innerHTML = card(id); p.style.left = '38%'; p.style.top = '28%';
+      fog.classList.add('clear'); setTimeout(function () { fog.classList.remove('clear'); }, 600);
+      replay($('fx-flash'), 'go'); replay(p, 'go');
+    }
+    if (fx === 'trap') { replay($('fx-flash'), 'go'); replay($('demo'), 'shake'); var b = $('fx-big'); b.textContent = '함정!'; b.style.color = 'var(--miss)'; replay(b, 'go'); }
+    if (fx === 'ship') { fog.classList.add('on'); replay($('fx-ship'), 'go'); replay($('fx-red'), 'go'); var b2 = $('fx-big'); b2.textContent = '주범 조 출항'; b2.style.color = '#fff'; replay(b2, 'go'); }
+  }
+  $('fx-list').onclick = function (e) { var b = e.target.closest('button'); if (b) playFx(b.getAttribute('data-fx')); };
+
+  var demoQ = makeA();
+  function retype() { $('fx-stmt').querySelectorAll('.lie').forEach(function (r) { r.classList.remove('lie'); }); typeStatements($('fx-stmt'), demoQ.says); }
+  $('fx-type').onclick = function () { demoQ = makeA(); retype(); };
+  $('fx-stampgo').onclick = function () { stampLie($('fx-stmt'), demoQ.lie); };
+  retype();
+
+  /* ---------- 출동 화면 시안(풀 수 있음) ---------- */
+  var Q = null, score = 0, combo = 0, lock = false, lightTimer = 0;
+  function newQ() {
+    Q = makeA(); lock = true;
+    $('p-board').innerHTML = Q.board.map(function (id, i) { return card(id, '', i); }).join('');
+    $('p-res').textContent = '목격자 진술을 받는 중…';
+    typeStatements($('p-stmt'), Q.says, function () { lock = false; $('p-res').textContent = '진술 넷 중 딱 셋과 맞는 사람이 범인이에요. 넷 다 맞으면 함정!'; });
+  }
+  function sweep() { replay($('p-light'), 'go'); lightTimer = setTimeout(sweep, 5500 + rnd(2500)); }
+  $('p-board').onclick = function (e) {
+    var c = e.target.closest('.card'); if (!c || lock) return;
+    lock = true;
+    var i = +c.getAttribute('data-i'), id = Q.board[i], fog = $('p-fog');
+    stampLie($('p-stmt'), Q.lie);
+    if (id === Q.target) {
+      combo++; score += 100 * Math.min(3, 1 + .5 * (combo - 1));
+      c.classList.add('right');
+      var p = $('p-pol'); p.innerHTML = card(id); var r0 = c.getBoundingClientRect(), r1 = $('play').getBoundingClientRect(); p.style.left = (r0.left - r1.left) + 'px'; p.style.top = (r0.top - r1.top) + 'px';
+      replay($('p-flash'), 'go'); replay(p, 'go');
+      fog.classList.add('clear'); setTimeout(function () { fog.classList.remove('clear'); }, 700);
+      $('p-res').innerHTML = '<b style="color:var(--ok)">검거!</b> 빨간 도장이 찍힌 진술이 거짓이었어요.';
+    } else if (id === Q.trap) {
+      combo = 0; c.classList.add('wrong');
+      replay($('p-flash'), 'go'); replay($('play'), 'shake');
+      var b = $('p-big'); b.textContent = '함정!'; b.style.color = 'var(--miss)'; replay(b, 'go');
+      $('p-res').innerHTML = '<b style="color:var(--miss)">함정이에요.</b> 진술 넷이 다 맞는 사람은 범인이 아니에요(하나는 거짓이니까).';
+      Q.board.forEach(function (x, k) { if (x === Q.target) $('p-board').children[k].classList.add('right'); });
+    } else {
+      combo = 0; c.classList.add('wrong'); replay($('play'), 'shake');
+      $('p-res').innerHTML = '<b style="color:var(--miss)">오인 체포.</b> 이 사람은 진술과 ' + matches(id, Q.says) + '개만 맞아요.';
+      Q.board.forEach(function (x, k) { if (x === Q.target) $('p-board').children[k].classList.add('right'); });
+    }
+    $('p-score').textContent = Math.round(score).toLocaleString('ko-KR'); $('p-combo').textContent = combo;
+  };
+  $('p-next').onclick = newQ;
+  newQ(); sweep();
+
+  /* ---------- 수사 일지 초안 ---------- */
+  var STORY = [
+    { at: '파견 · 시작', text: '써드가 남긴 지도의 붉은 점은 해무항 부두를 가리키고 있었다. 1년의 절반이 바다 안개에 잠기는 도시. 우리가 도착한 날에도 창고 여섯 동이 털렸고, 목격자는 넘쳐났다. 문제는 그들의 말이 하나같이 조금씩 어긋난다는 것이었다. 서장 대신 이번엔 해무항 경찰서장이 우리를 맞았다. "안개 속에서 본 건 다 반쯤 거짓말이오. 그걸 가려내는 게 당신들 일이지."' },
+    { at: '검거 500명', text: '목격자들은 모두 넷 중 한 가지만 틀렸다. 모자를 맞히면 얼굴을 틀리고, 얼굴을 맞히면 시간을 틀렸다. 두 가지를 틀린 사람도, 다 맞힌 사람도 없었다. 안개 탓이라기엔 지나치게 고른 실수였다. 누군가 실수의 개수까지 정해 두고 있었다.' },
+    { at: '검거 1,500명', text: '부두 노동자 하나가 결국 털어놓았다. 진술하기 전날 밤, 문틈으로 쪽지가 들어왔다고 했다. "본 대로 말하되, 한 가지만 다르게." 쪽지에는 돈이 끼워져 있었다. 손글씨를 보는 순간 등이 서늘해졌다. 사건 1의 낡은 사무실 벽에서 본 그 글씨였다. 써드는 범인들만이 아니라 목격자까지 판에 올려놓고 있었다.' },
+    { at: '검거 2,500명', text: '압수한 밀수 상자를 처음으로 열었다. 안에 든 것은 마약도 무기도 아니었다. 빈 신분증 수백 장, 그리고 몽타주처럼 그려진 얼굴 사진들. 맨 위의 사진 세 장은 우리 3팀 형사들의 얼굴이었다. 모자와 안경과 마스크가 하나씩 다르게 덧그려져 있었다. 써드는 우리를 한 패로 묶어 보고 있었다.' },
+    { at: '검거 4,000명', text: '창고 쪽 조직은 거의 무너졌다. 남은 자들은 배 위에 있다. 밤마다 안개를 타고 들어왔다 나가는 운반선, 등대가 꺼지는 십 분 동안만 부두에 닿는 배. 책상에서 기다리는 팀으로는 닿을 수 없는 곳이다. 이제부터는 현장에서, 등대 빛이 지나가는 그 짧은 순간에 잡아야 한다.' },
+    { at: '검거 5,000명 · 종결', text: '마지막 운반선의 선실은 비어 있었다. 탁자 위에 쪽지 한 장과, 오래된 경찰 배지 하나. 배지 번호의 앞자리는 우리 서의 것이었고, 소속 칸에는 "수사 3팀"이라고 새겨져 있었다. 쪽지에는 늘 그렇듯 짧게 적혀 있었다. "목격자는 늘 하나를 틀린다. 너희 팀도 그렇다. — 써드" 3팀에 있었던 사람. 아니면 3팀을 아주 잘 아는 사람. 안개가 걷힌 부두에서, 우리는 처음으로 서로의 얼굴을 오래 보았다.\n— 사건 3에서 계속' }
+  ];
+  $('story').innerHTML = STORY.map(function (e) {
+    return '<div class="log" style="margin-bottom:8px"><span class="at">' + e.at + '</span><p>' + e.text.replace(/</g, '&lt;').replace(/\n/g, '<br>') + '</p></div>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

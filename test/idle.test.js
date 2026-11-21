@@ -96,9 +96,9 @@ test('장비: 단계마다 값, 끝까지 사면 MAXED, 모르는 항목은 BAD_
 
 test('장비가 출동 옵션을 바꾼다', () => {
   const s = I.newSave(T0);
-  assert.deepEqual(I.runOptions(s), { duration: 90, freeHints: 0, nonePenalty: 10, level: 1, helperAtFull: false });
-  s.gear = { time: 2, veteran: 1, lab: 1, vault: 1 };
-  assert.deepEqual(I.runOptions(s), { duration: 110, freeHints: 1, nonePenalty: 5, level: 1, helperAtFull: true });
+  assert.deepEqual(I.runOptions(s), { duration: 90, freeHints: 0, nonePenalty: 10, level: 1, helperAtFull: false, mode: 'set', trapPenalty: 8, hitBonus: 0, beamLie: false });
+  s.gear = { time: 2, veteran: 1, lab: 1, vault: 1, recorder: 0, keeper: 0, informant: 0 };
+  assert.deepEqual(I.runOptions(s), { duration: 110, freeHints: 1, nonePenalty: 5, level: 1, helperAtFull: true, mode: 'set', trapPenalty: 8, hitBonus: 0, beamLie: false });
 });
 
 test('출동 결과: 점수만큼 수사비, 검거만큼 진척, 최고 기록', () => {
@@ -321,4 +321,52 @@ test('수사 일지: 사무실 편은 방치 한계(idleCap)에서 열린다 —
   const e = I.CASE.story.find(x => x.at === I.CASE.idleCap);
   assert.ok(e, 'idleCap 에 열리는 편이 없음');
   assert.ok(e.text.includes('책상에서 기다려서는 잡을 수 없다'));
+});
+
+/* ---------- 0.2.0: 사건 2 ---------- */
+test('사건 2 파견: 사건 1을 끝내야 하고, 진척만 새로 시작하고 나머지는 이어 간다', () => {
+  const s = I.newSave(T0);
+  assert.throws(() => I.moveToNextCase(s, T0), (e) => e.code === 'NOT_CLOSED');
+  s.money = 777; s.detectives = 5; s.gems = 9; s.runCaught = 600;
+  s.caught = 3000; I.advance(s, T0 + 1000);   // 종결 처리
+  s.closed = true; s.closedAt = T0 + 1000; s.storySeen = 6;
+  assert.equal(I.nextCase(s).title, '안개 속 목격자들');
+  const nx = I.moveToNextCase(s, T0 + 2000);
+  assert.equal(nx.no, 2); assert.equal(s.caseNo, 2);
+  assert.equal(s.caught, 0); assert.equal(s.closed, false); assert.equal(s.storySeen, 0);
+  assert.deepEqual(s.past, [{ no: 1, caught: 3000, closedAt: T0 + 1000 }]);
+  assert.equal(s.money, 777); assert.equal(s.detectives, 5); assert.equal(s.gems, 9); assert.equal(s.runCaught, 600);
+  assert.equal(I.caseOf(s).city, '해무항');
+  assert.equal(I.runOptions(s).mode, 'witness');
+  assert.equal(I.storyUnlocked(s).length, 1);
+  s.caught = 5000; s.closed = true;
+  assert.throws(() => I.moveToNextCase(s, T0), (e) => e.code === 'NO_NEXT');
+});
+
+test('사건 2: 팀 수사비 3배, 팀은 4000명까지만 진척, 저장을 되읽어도 사건 2', () => {
+  const a = I.newSave(T0), b = I.newSave(T0);
+  b.caseNo = 2;
+  assert.equal(I.payPerCatch(b), I.payPerCatch(a) * 3);
+  b.caught = 3999; b.detectives = 500;
+  I.advance(b, T0 + 3600_000);
+  assert.equal(b.caught, 4000); assert.ok(I.idleCapped(b));
+  const back = I.load(I.serialize(b), T0).save;
+  assert.equal(back.caseNo, 2); assert.equal(back.caught, 4000);
+  assert.equal(I.load(JSON.stringify({ v: 1, caseNo: 9 }), T0).save.caseNo, 2, '없는 사건 번호는 범위 안으로');
+  assert.equal(I.load(JSON.stringify({ v: 1 }), T0).save.caseNo, 1, '예전 저장은 사건 1');
+});
+
+test('사건 2 장비: 사건 2에서만 보이고 살 수 있고, 목격자 출동 설정을 바꾼다', () => {
+  const s = I.newSave(T0); s.money = 1e9;
+  assert.deepEqual(I.gearFor(s), ['time', 'veteran', 'lab', 'vault']);
+  assert.throws(() => I.buy(s, 'recorder'), (e) => e.code === 'OTHER_CASE');
+  s.caseNo = 2;
+  assert.deepEqual(I.gearFor(s), ['time', 'veteran', 'recorder', 'keeper', 'informant']);
+  assert.throws(() => I.buy(s, 'lab'), (e) => e.code === 'OTHER_CASE');
+  I.buy(s, 'recorder'); I.buy(s, 'recorder'); I.buy(s, 'keeper'); I.buy(s, 'informant'); I.buy(s, 'informant');
+  assert.throws(() => I.buy(s, 'recorder'), (e) => e.code === 'MAXED');
+  const o = I.runOptions(s);
+  assert.equal(o.trapPenalty, 2); assert.equal(o.hitBonus, 2); assert.equal(o.beamLie, true);
+  const back = I.load(I.serialize(s), T0).save;
+  assert.equal(back.gear.informant, 2); assert.equal(back.gear.keeper, 1);
 });

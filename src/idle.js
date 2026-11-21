@@ -51,18 +51,30 @@
   var RANK_BONUS = 0.05;
 
   // 출동을 돕는 장비. lvMax 까지 살 수 있고 단계마다 값이 다르다.
+  /*
+   * case: 그 사건의 퍼즐에서만 쓰는 장비(사무실에서도 그 사건일 때만 보인다). 없으면 모든 사건 공용.
+   *   0.2.0: 사건 2(목격자 진술) 장비 셋 — 녹음기·등대지기·부두 정보원.
+   */
   var GEAR = {
     time:    { name: '수사 기간 연장', desc: '현장 출동 시간 +10초', costs: [800, 2400, 7200] },
     veteran: { name: '베테랑 형사',   desc: '출동마다 무료 단서 +1번', costs: [1500, 6000] },
-    lab:     { name: '감식반',       desc: '네 가지일 때도 셋째 조건 표시', costs: [3000] },
-    vault:   { name: '증거 보관실',   desc: '검거 불가 오판 벌점 10초 → 5초', costs: [4000] }
+    lab:     { name: '감식반',       desc: '네 가지일 때도 셋째 조건 표시', costs: [3000], case: 1 },
+    vault:   { name: '증거 보관실',   desc: '검거 불가 오판 벌점 10초 → 5초', costs: [4000], case: 1 },
+    recorder:  { name: '진술 녹음기',  desc: '함정 체포 벌점 8초 → 5초 → 2초', costs: [6000, 18000], case: 2 },
+    keeper:    { name: '등대지기',     desc: '등대 빛이 지나갈 때 거짓 진술이 잠깐 빛나요', costs: [25000], case: 2 },
+    informant: { name: '부두 정보원',  desc: '검거하면 시간 +1초씩 더(최대 +3초)', costs: [9000, 27000, 81000], case: 2 }
   };
-  var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault'];
+  var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault', 'recorder', 'keeper', 'informant'];
+  // 이 사건에서 보이는(쓸 수 있는) 장비
+  function gearFor(save) { var n = caseOf(save).no; return GEAR_KEYS.filter(function (k) { return !GEAR[k].case || GEAR[k].case === n; }); }
 
   // 사건 1. 이야기는 누적 검거가 at 에 닿을 때마다 하나씩 열린다.
   var CASE = {
     no: 1,
     title: '골목길 연쇄 절도',
+    city: '중앙서',      // 0.2.0: 사건마다 무대(사무실 머리말·파견 연출)
+    mode: 'set',         // 0.2.0: 현장 출동 퍼즐 — set = 한 패 찾기(core.js)
+    pay: 1,              // 0.2.0: 팀 수사비 배수(사건이 바뀌면 커져 영입·훈련에 다시 쓸 곳이 생긴다)
     goal: 3000,          // 0.1.3: 300 → 1000, 0.1.8: 1000 → 3000(3팀의 3. 이야기는 6편)
     idleCap: 2500,       // 0.1.6: 팀(방치)이 올릴 수 있는 사건 진척은 여기까지(0.1.8: 800 → 2500). 나머지(주범 조)는 현장 출동으로만 잡는다
     // 0.1.9: 여는 시점마다 뜻이 있다 — 300 = 100번째 조, 1000 = 첫 천 명, 1500 = 절반,
@@ -81,6 +93,32 @@
 
 
   };
+
+  /*
+   * 사건 2 "안개 속 목격자들"(0.2.0) — 무대는 해무항. 현장 출동 퍼즐은 목격자 진술(witness.js).
+   *   여는 시점: 0 = 파견, 500 = 고른 실수, 1500 = 쪽지, 2500 = 밀수 상자, 4000 = 팀 한계(남은 건 배 위 주범 조), 5000 = 종결.
+   *   써드의 진짜 이름은 아직 밝히지 않는다(3팀과 관련된 사람이라는 단서만). 패치노트에 이야기를 적지 않는다.
+   */
+  var CASE2 = {
+    no: 2,
+    title: '안개 속 목격자들',
+    city: '해무항',
+    mode: 'witness',
+    pay: 3,
+    goal: 5000,
+    idleCap: 4000,
+    story: [
+      { at: 0, text: '써드가 남긴 지도의 붉은 점은 해무항 부두를 가리키고 있었다. 1년의 절반이 바다 안개에 잠기는 도시. 우리가 도착한 날에도 창고 여섯 동이 털렸고, 목격자는 넘쳐났다. 문제는 그들의 말이 하나같이 조금씩 어긋난다는 것이었다. 해무항 경찰서장이 우리를 맞으며 말했다. "안개 속에서 본 건 다 반쯤 거짓말이오. 그걸 가려내는 게 당신들 일이지."' },
+      { at: 500, text: '목격자들은 모두 넷 중 한 가지만 틀렸다. 모자를 맞히면 얼굴을 틀리고, 얼굴을 맞히면 시간을 틀렸다. 두 가지를 틀린 사람도, 다 맞힌 사람도 없었다. 안개 탓이라기엔 지나치게 고른 실수였다. 누군가 실수의 개수까지 정해 두고 있었다.' },
+      { at: 1500, text: '부두 노동자 하나가 결국 털어놓았다. 진술하기 전날 밤, 문틈으로 쪽지가 들어왔다고 했다. "본 대로 말하되, 한 가지만 다르게." 쪽지에는 돈이 끼워져 있었다. 손글씨를 보는 순간 등이 서늘해졌다. 골목길 사건의 낡은 사무실 벽에서 본 그 글씨였다. 써드는 범인들만이 아니라 목격자까지 판에 올려놓고 있었다.' },
+      { at: 2500, text: '압수한 밀수 상자를 처음으로 열었다. 안에 든 것은 마약도 무기도 아니었다. 빈 신분증 수백 장, 그리고 몽타주처럼 그려진 얼굴 사진들. 맨 위의 사진 세 장은 우리 3팀 형사들의 얼굴이었다. 모자와 안경과 마스크가 하나씩 다르게 덧그려져 있었다. 써드는 우리를 한 패로 묶어 보고 있었다.' },
+      { at: 4000, text: '창고 쪽 조직은 거의 무너졌다. 남은 자들은 배 위에 있다. 밤마다 안개를 타고 들어왔다 나가는 운반선, 등대가 꺼지는 십 분 동안만 부두에 닿는 배. 책상에서 기다리는 팀으로는 닿을 수 없는 곳이다. 이제부터는 현장에서, 등대 빛이 지나가는 그 짧은 순간에 잡아야 한다.' },
+      { at: 5000, text: '마지막 운반선의 선실은 비어 있었다. 탁자 위에 쪽지 한 장과, 오래된 경찰 배지 하나. 배지 번호의 앞자리는 우리 서의 것이었고, 소속 칸에는 "수사 3팀"이라고 새겨져 있었다. 쪽지에는 늘 그렇듯 짧게 적혀 있었다. "목격자는 늘 하나를 틀린다. 너희 팀도 그렇다. — 써드" 3팀에 있었던 사람. 아니면 3팀을 아주 잘 아는 사람. 안개가 걷힌 부두에서, 우리는 처음으로 서로의 얼굴을 오래 보았다.\n— 사건 3에서 계속' }
+    ]
+  };
+  var CASES = [CASE, CASE2];
+  /** 지금 맡은 사건(save.caseNo, 1부터) */
+  function caseOf(save) { var n = save && save.caseNo; return CASES[(n >= 1 && n <= CASES.length ? n : 1) - 1]; }
 
   // 프로필(사무실 위에 보이는 내 자리). 게임 이름인 "수사 3팀"은 바꾸지 않고, 경찰서와 팀장 이름만 바꾼다.
   var PROFILE = { stationMax: 8, leaderMax: 8, defaultStation: '중앙서', defaultLeader: '' };
@@ -112,12 +150,14 @@
     assertNow(now);
     return {
       v: VERSION,
+      caseNo: 1,           // 0.2.0: 지금 맡은 사건. caught·closed·storySeen 은 이 사건의 값
+      past: [],            // 0.2.0: 끝낸 사건 기록 [{ no, caught, closedAt }]
       money: 0,
       caught: 0,           // 사건 1 누적 검거(팀 + 출동)
       frac: 0,             // 팀이 잡다 만 몫(0~1)
       detectives: 1,       // 처음부터 1명(나 말고 동료 한 명)
       training: 0,
-      gear: { time: 0, veteran: 0, lab: 0, vault: 0 },
+      gear: { time: 0, veteran: 0, lab: 0, vault: 0, recorder: 0, keeper: 0, informant: 0 },
       lastSeen: now,
       buffUntil: 0,
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
@@ -174,10 +214,14 @@
     s.runCaught = int(data.runCaught, 0, 0);
     s.teamCaught = int(data.teamCaught, 0, 0);
     // 목표가 늘어난 뒤(0.1.3, 300 → 1000) 예전에 300명으로 종결된 저장은 다시 진행 중으로 돌린다
-    s.closed = data.closed === true && s.caught >= CASE.goal;
+    s.caseNo = int(data.caseNo, 1, 1, CASES.length);
+    s.past = Array.isArray(data.past) ? data.past.filter(function (x) { return x && typeof x === 'object'; }).slice(0, 20).map(function (x) {
+      return { no: int(x.no, 1, 1, 99), caught: int(x.caught, 0, 0), closedAt: num(x.closedAt, 0, 0) };
+    }) : [];
+    s.closed = data.closed === true && s.caught >= caseOf(s).goal;
     s.closedAt = num(data.closedAt, 0, 0);
     s.tutorialDone = data.tutorialDone === true;
-    s.storySeen = int(data.storySeen, 0, 0, CASE.story.length);
+    s.storySeen = int(data.storySeen, 0, 0, caseOf(s).story.length);
     var pf = data.profile && typeof data.profile === 'object' ? data.profile : {};
     s.profile = {
       station: cleanName(pf.station, PROFILE.stationMax, PROFILE.defaultStation),
@@ -244,7 +288,7 @@
     return save.detectives * (1 / TUNE.catchSec) * (1 + TUNE.trainSpeed * save.training);
   }
   function payPerCatch(save) {
-    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training) * moneyMult(save));
+    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training) * moneyMult(save) * caseOf(save).pay);
   }
   // 팀이 2배로 일하는 끝 시각: 출동 뒤 사기 충전과 팀 회식 중 늦은 쪽(둘이 겹쳐도 곱하지 않는다)
   function boostUntil(save) { return Math.max(save.buffUntil || 0, save.partyUntil || 0); }
@@ -264,7 +308,7 @@
   }
 
   function checkClose(save, now) {
-    if (!save.closed && save.caught >= CASE.goal) {
+    if (!save.closed && save.caught >= caseOf(save).goal) {
       save.closed = true;
       save.closedAt = now;
       return true;
@@ -300,7 +344,7 @@
     var money = whole * payPerCatch(save);
     save.money += money;                       // 수사비는 상한과 상관없이 잡은 만큼 다 들어온다
     // 사건 진척은 idleCap 까지만(이미 넘었으면 0). 출동으로 넘긴 몫은 깎지 않는다
-    var room = Math.max(0, CASE.idleCap - save.caught);
+    var room = Math.max(0, caseOf(save).idleCap - save.caught);
     var counted = Math.min(whole, room);
     save.caught += counted;
     save.teamCaught += whole;
@@ -319,6 +363,7 @@
 
   function buy(save, kind) {
     var c = cost(save, kind);
+    if (GEAR[kind] && GEAR[kind].case && GEAR[kind].case !== caseOf(save).no) throw IdleError('OTHER_CASE', '이 사건에서는 쓸 수 없는 장비: ' + kind);
     if (c == null) throw IdleError('MAXED', '더 살 수 없다: ' + kind);
     if (save.money < c) throw IdleError('NOT_ENOUGH', '수사비가 모자란다');
     save.money -= c;
@@ -336,7 +381,12 @@
       freeHints: save.gear.veteran,
       nonePenalty: save.gear.vault ? 5 : 10,
       level: 1,
-      helperAtFull: save.gear.lab > 0
+      helperAtFull: save.gear.lab > 0,
+      mode: caseOf(save).mode,  // 0.2.0: set(사건 1) | witness(사건 2)
+      // 사건 2 장비(목격자 출동에서만 쓰인다)
+      trapPenalty: [8, 5, 2][save.gear.recorder] != null ? [8, 5, 2][save.gear.recorder] : 8,
+      hitBonus: save.gear.informant,
+      beamLie: save.gear.keeper > 0
     };
   }
 
@@ -375,9 +425,9 @@
 
   /* ---------- 사건 ---------- */
   function storyUnlocked(save) {
-    return CASE.story.filter(function (e) { return save.caught >= e.at; });
+    return caseOf(save).story.filter(function (e) { return save.caught >= e.at; });
   }
-  function progress(save) { return Math.min(1, save.caught / CASE.goal); }
+  function progress(save) { return Math.min(1, save.caught / caseOf(save).goal); }
   /*
    * 지금 팀이 1분에 버는 수사비(사기 충전 중이면 그 배수까지). 자리 비움 절반은 넣지 않는다(켜 둔 화면에 쓰는 값).
    *   형사가 늘면 1명당 값은 그대로지만 잡는 수가 늘어 이 값이 오른다 — 화면에서 이걸 보여 줘야 덜 헷갈린다.
@@ -395,13 +445,29 @@
   function isStreaming(save, now) { return catchInterval(save, now) < FAST_SEC; }
 
   // 팀(방치)으로는 더 못 올리고 출동으로만 남은 걸 잡을 수 있는 상태인가
-  function idleCapped(save) { return !save.closed && save.caught >= CASE.idleCap; }
+  function idleCapped(save) { return !save.closed && save.caught >= caseOf(save).idleCap; }
+  /** 다음 사건이 있는가(지금 사건을 끝냈고, 다음이 준비돼 있을 때만 파견할 수 있다) */
+  function nextCase(save) { return save.closed ? (CASES[save.caseNo] || null) : null; }
+  /**
+   * 다음 사건으로 파견(0.2.0). 지금 사건을 past 에 적고 사건 진척(caught·frac·closed·storySeen)만 새로 시작한다.
+   *   형사·훈련·장비·수사비·계급·배지·메달은 그대로 이어 간다.
+   */
+  function moveToNextCase(save, now) {
+    assertNow(now);
+    var nx = nextCase(save);
+    if (!nx) throw IdleError(save.closed ? 'NO_NEXT' : 'NOT_CLOSED', save.closed ? '다음 사건이 아직 없다' : '지금 사건을 먼저 끝내야 한다');
+    save.past = save.past.concat([{ no: save.caseNo, caught: save.caught, closedAt: save.closedAt }]).slice(-20);
+    save.caseNo = nx.no;
+    save.caught = 0; save.frac = 0; save.closed = false; save.closedAt = 0; save.storySeen = 0;
+    save.lastSeen = now;
+    return nx;
+  }
   // 열렸지만 아직 안 읽은 편이 있는가 / 지금 열린 편까지 읽었다고 적기
   function storyUnread(save) { return storyUnlocked(save).length > save.storySeen; }
   function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
 
   return {
-    VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, CASE: CASE, PROFILE: PROFILE,
+    VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
     RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
     cleanName: cleanName, setProfile: setProfile,
     newSave: newSave, load: load, serialize: serialize,
