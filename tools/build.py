@@ -8,7 +8,7 @@ import json, pathlib, re, shutil, subprocess, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / 'dist'
 SCRIPTS = (('/*NOTES*/', 'notes.js'), ('/*UPDATE*/', 'update.js'), ('/*CORE*/', 'core.js'),
-           ('/*IDLE*/', 'idle.js'), ('/*TRANSIT*/', 'transit.js'), ('/*SOUNDS*/', 'sounds.js'), ('/*UI*/', 'ui.js'), ('/*HUB*/', 'hub.js'))
+           ('/*IDLE*/', 'idle.js'), ('/*TRANSIT*/', 'transit.js'), ('/*SOUNDS*/', 'sounds.js'), ('/*MUSIC*/', 'music.js'), ('/*BGM*/', 'bgm.js'), ('/*UI*/', 'ui.js'), ('/*HUB*/', 'hub.js'))
 ICONS = ('icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png',
          'apple-touch-icon.png', 'favicon-32.png', 'favicon-64.png')
 
@@ -23,6 +23,24 @@ def latest_note():
         sys.exit('notes.js 맨 위 ver 형식이 틀렸다(숫자와 점만): ' + repr(note.get('ver')))
     return note
 
+def copy_music(dest):
+    """배경 음악(assets/music/*.mp3, tools/make_music.py 결과)을 dest/music/ 로. music.js 가 가리키는 파일이 다 있어야 한다."""
+    out = subprocess.run(['node', '-e', "process.stdout.write(JSON.stringify(require('./src/music.js')))"],
+                         cwd=ROOT, capture_output=True, text=True)
+    if out.returncode != 0:
+        sys.exit('music.js 를 읽지 못했다: ' + out.stderr)
+    files = [m['file'] for m in json.loads(out.stdout).values()]
+    d = dest / 'music'
+    if d.exists():
+        shutil.rmtree(d)
+    d.mkdir(parents=True)
+    for f in files:
+        src = ROOT / 'assets' / f
+        if not src.exists():
+            sys.exit('배경 음악 파일이 없다(tools/make_music.py 를 돌릴 것): ' + f)
+        shutil.copy(src, dest / f)
+    return files
+
 def build():
     tpl = (ROOT / 'src/template.html').read_text(encoding='utf-8')
     for mark, name in SCRIPTS:
@@ -34,6 +52,7 @@ def build():
         tpl = tpl.replace(mark, code)
     DIST.mkdir(exist_ok=True)
     (DIST / 'index.html').write_text(tpl, encoding='utf-8')
+    copy_music(DIST)
     # 출동 전환 미리보기: 게임과 같은 transit.js 를 넣은 단독 페이지(배포 폴더에는 넣지 않는다)
     prev = (ROOT / 'src/transit-preview.html').read_text(encoding='utf-8')
     if prev.count('/*TRANSIT*/') != 1:
@@ -46,6 +65,7 @@ def build():
         shutil.rmtree(pwa)
     pwa.mkdir()
     (pwa / 'index.html').write_text(tpl, encoding='utf-8')
+    copy_music(pwa)
     for f in ('manifest.webmanifest', '설치방법.txt'):
         shutil.copy(ROOT / 'pwa-src' / f, pwa / f)
     sw = (ROOT / 'pwa-src/sw.js').read_text(encoding='utf-8')

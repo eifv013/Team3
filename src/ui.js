@@ -62,6 +62,24 @@
     } catch (e) { /* 소리 실패는 게임에 영향 없음 */ }
   }
   /*
+   * 배경 음악(0.1.16, bgm.js). 효과음 리미터를 거치지 않고 따로 스피커로 간다(음악이 효과음을 눌러 출렁이지 않게).
+   *   BGM_GAIN: 효과음 아래에 깔리는 크기. 곡 크기는 tools/make_music.py 에서 LUFS 로 맞춰 두었다.
+   *   사람이 화면을 누를 때마다 wake → 막혀 있던 첫 곡이 이때 나온다(브라우저 자동 재생 정책).
+   */
+  var BGM_GAIN = 0.55;
+  var music = window.Team3Bgm
+    ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN })
+    : { want: function () {}, wake: function () {}, setMuted: function () {}, state: function () { return {}; } };
+  document.addEventListener('pointerdown', function () { try { music.wake(); } catch (e) { /* 무시 */ } }, true);
+  // 앱을 내리거나 다른 탭을 보는 동안은 소리 장치를 쉬게 한다(배경에서 음악이 계속 나오지 않게)
+  document.addEventListener('visibilitychange', function () {
+    try {
+      if (!ac) return;
+      if (document.hidden) ac.suspend(); else if (!muted) ac.resume();
+    } catch (e) { /* 무시 */ }
+  });
+
+  /*
    * 녹음된 효과음(sounds.js 의 data URI). 처음 소리를 깨울 때 한 번만 풀어 둔다.
    *   못 풀면(오래된 기기·형식 미지원) buffers 가 비어 있고, 쓰는 쪽은 합성음으로 대신한다.
    */
@@ -127,7 +145,11 @@
     // 출동 끝: 마림바로 도-미-솔-도 올라가며 끝맺는다(보상 화면과 어울리게). 예전 삼각파 솔-미-도를 바꿨다.
     end: function () { [0, 4, 7, 12].forEach(function (n, i) { tone(C4 * semi(n), i === 3 ? 0.9 : 0.35, 'sine', 0.2, i * 0.1, null, 0.004); tone(C4 * semi(n) * 4, 0.08, 'sine', 0.05, i * 0.1, null, 0.002); }); },
     // 현장 출동: 마림바 경광등(높은 솔-도를 두 번 번갈아) — 출동 단추를 누르는 순간
-    go: function () { [12, 7, 12, 7].forEach(function (n, i) { mallet(C4 * semi(n + 7), 0.26, i * 0.11); }); mallet(C4 * semi(-5), 0.3, 0); },
+    // 주범 조 출동(0.1.16): 녹음 사이렌(3.5초, 서서히 들어와 멀어짐). 못 풀었으면 예전 마림바 경보로 대신
+    go: function () {
+      if (sample('siren', 0.5)) return;
+      [12, 7, 12, 7].forEach(function (n, i) { mallet(C4 * semi(n + 7), 0.26, i * 0.11); }); mallet(C4 * semi(-5), 0.3, 0);
+    },
     coin: function () { mallet(C4 * semi(7), 0.18, 0); mallet(C4 * semi(12), 0.16, 0.07); },
     tickLow: function () { tone(880, 0.05, 'sine', 0.07); },
     // 시계 초침(0.1.14): 녹음된 "톡-틱-틱" 1초. 마지막 3초는 조금 크게. 녹음을 못 쓰면 예전 짧은 "삑"(5초 안쪽에서만)
@@ -238,6 +260,8 @@
   /* ---------- 화면 전환 ---------- */
   var SCREENS = ['s-hub', 's-tutorial', 's-play', 's-result'];
   function show(id) {
+    // 화면마다 배경 음악: 출동 = 평소 field / 주범 조 boss, 그 밖(사무실·튜토리얼·결과) = office
+    try { music.want(id === 's-play' ? (cfg && cfg.boss ? 'boss' : 'field') : 'office'); } catch (e) { /* 음악 실패는 무시 */ }
     SCREENS.forEach(function (s) {
       var el = $(s), on = s === id;
       el.classList.toggle('on', on);
@@ -662,6 +686,7 @@
     muted = !muted;
     store.set(MUTE_KEY, muted ? '1' : '0');
     renderSound();
+    try { music.setMuted(muted); } catch (e) { /* 무시 */ }
     if (!muted) sfx.pick(1);
   }
 
@@ -748,7 +773,7 @@
 
   window.SuspectsUI = {
     hooks: hooks, show: show, back: back, startRun: startRun, goHome: goHome,
-    openTutorial: openTutorial, toast: toast, sfx: sfx, buzz: buzz, store: store, renderSound: renderSound
+    openTutorial: openTutorial, toast: toast, sfx: sfx, buzz: buzz, store: store, renderSound: renderSound, music: music
   };
 
   renderSound();

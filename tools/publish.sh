@@ -20,5 +20,5 @@ rm -rf docs && mkdir docs && cp -r dist/pwa/. docs/
 
 git add -A
 if git diff --cached --quiet; then echo "바뀐 것이 없다."; exit 0; fi
-git commit -q -m "수사 3팀 $VERSION" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -m "Claude-Session: https://claude.ai/code/session_01LfK2SFJRZzfYa6uvyKrUx6"
+git commit -q -m "수사 3팀 $VERSION" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" -m "Claude-Session: https://claude.ai/code/session_01LfK2SGcT4ntMTtkJoDtznQ"
 echo "커밋: 수사 3팀 $VERSION ($(git rev-parse --short HEAD))"

@@ -34,6 +34,8 @@
 | `src/idle.js` | 방치 층(형사·수사비·장비·잠복·사건·프로필·저장 검사) |
 | `src/ui.js` | 출동·튜토리얼 화면, 그림, 소리, 로딩 화면 |
 | `src/hub.js` | 사무실, 저장, 새 버전 확인, 안드로이드 뒤로 가기 |
+| `src/bgm.js` · `src/music.js` | 배경 음악 재생기(화면별 곡, 끊김 없는 되풀이, 넘기기) · 곡 정보(`tools/make_music.py` 가 만든다) |
+| `assets/music/` | 게임용 배경 음악(해시 이름 mp3)과 원곡(`src/`) |
 | `src/notes.js` · `src/update.js` | 패치노트 · 버전 비교 |
 | `src/template.html` | 화면 틀과 스타일 |
 | `pwa-src/` | 홈 화면 설치용 manifest · 서비스 워커 · 설치방법 |
