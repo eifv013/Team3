@@ -26,6 +26,8 @@
     return I.load(raw, nowMs());
   }
 
+  // 글 넣기 전 꺾쇠 바꾸기(패치노트·일지)
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   /* ---------- 표시 도우미 ---------- */
   function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
   function fmtDur(sec) {
@@ -97,9 +99,10 @@
     $('h-bar').style.width = (I.progress(save) * 100).toFixed(1) + '%';
     var st = I.storyUnlocked(save);
     $('h-story').textContent = st[st.length - 1].text;
+    renderStoryButton();
 
     var o = I.runOptions(save);
-    $('h-go-sub').textContent = o.duration + '초' + (o.freeHints ? ' · 공짜 단서 ' + o.freeHints : '') + ' · 잡은 만큼 수사비';
+    $('h-go-sub').textContent = o.duration + '초' + (o.freeHints ? ' · 무료 단서 ' + o.freeHints : '') + ' · 잡은 만큼 수사비';
 
     $('h-det').textContent = save.detectives;
     renderNext(t, false);
@@ -112,14 +115,14 @@
       return '<div class="item"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + GEAR_ICON[k] + '</svg></div>' +
         '<div class="tx"><b>' + g.name + (max > 1 ? ' ' + lv + '/' + max : '') + '</b><small>' + g.desc + '</small></div>' +
         '<button class="buy' + (c == null ? ' max' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
-        ' aria-label="' + g.name + (c == null ? ' 다 갖춤' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '갖춤' : fmt(c)) + '</button></div>';
+        ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '배치 완료' : fmt(c)) + '</button></div>';
     }).join('');
   }
 
   function setBuy(btn, c, word) {
     btn.classList.toggle('max', c == null);
     btn.disabled = c == null || save.money < c;
-    btn.textContent = c == null ? '최고' : word + ' ' + fmt(c);
+    btn.textContent = c == null ? '최고 단계' : word + ' ' + fmt(c);
   }
 
   /* ---------- 안내 창 ---------- */
@@ -147,6 +150,7 @@
 
   function showCaseClosed() {
     pendingClose = false;
+    I.markStorySeen(save); persist(); renderStoryButton();   // 마지막 편을 이 창에서 보여 주므로 읽음
     var last = I.CASE.story[I.CASE.story.length - 1];
     UI.sfx.none(); UI.buzz([30, 60, 30, 60, 80]);
     openInfo({
@@ -158,13 +162,27 @@
     });
   }
 
+  /*
+   * 사건 일지: 편마다 위에 "시작 / 검거 100명" 줄, 아래에 글. 안 열린 편은 점선 칸에 "검거 300명에 열려요".
+   * 새로 열려 아직 안 읽은 편에는 NEW 를 달고, 열어 보면 읽음으로 적는다(사무실의 "사건 일지 보기" NEW 도 사라진다).
+   */
   function showStory() {
-    var body = I.CASE.story.map(function (e) {
-      return save.caught >= e.at
-        ? p((e.at ? '<b style="color:var(--acc)">검거 ' + e.at + '명</b> · ' : '<b style="color:var(--acc)">시작</b> · ') + e.text)
-        : p('<span class="muted">검거 ' + e.at + '명에 열려요</span>');
+    var unlocked = I.storyUnlocked(save).length, seen = save.storySeen;
+    var body = I.CASE.story.map(function (e, i) {
+      var at = e.at ? '검거 ' + e.at + '명' : '시작';
+      if (i >= unlocked) return '<div class="log locked"><span class="log-at"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' + at + '에 열려요</span></div>';
+      var fresh = i >= seen;
+      return '<div class="log' + (fresh ? ' fresh' : '') + '"><span class="log-at">' + (fresh ? '<span class="new">NEW</span>' : '') + at + '</span><p>' + esc(e.text) + '</p></div>';
     }).join('');
     openInfo({ label: '사건 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body });
+    I.markStorySeen(save);
+    persist();
+    renderStoryButton();
+  }
+
+  // "사건 일지 보기" 옆 NEW
+  function renderStoryButton() {
+    $('h-story-all').innerHTML = '사건 일지 보기' + (I.storyUnread(save) ? ' <span class="new" style="height:18px;font-size:10px;margin-left:6px">NEW</span>' : '');
   }
 
   /* ---------- 프로필 바꾸기 ---------- */
@@ -195,7 +213,7 @@
       UI.sfx.coin(); UI.buzz(10);
       persist(); render();
     } catch (e) {
-      UI.toast(e.code === 'NOT_ENOUGH' ? '수사비가 모자라요' : e.code === 'MAXED' ? '이미 다 갖췄어요' : '살 수 없어요: ' + e.message);
+      UI.toast(e.code === 'NOT_ENOUGH' ? '수사비가 모자라요' : e.code === 'MAXED' ? '이미 배치를 마쳤어요' : '살 수 없어요: ' + e.message);
     }
   }
 
@@ -357,7 +375,6 @@
    * 패치노트 글은 우리가 쓴 notes.js 라 HTML 로 넣지만, 꺾쇠는 미리 바꿔 둔다.
    */
   var NOTES_SEEN_KEY = 'guar.suspects3.notesSeen';
-  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function lines(items) { return items.map(function (t) { return '<p>· ' + esc(t) + '</p>'; }).join(''); }
 
   function showVersionInfo() {
@@ -418,7 +435,8 @@
       onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); }
     });
   } else if (!save.tutorialDone && save.runs === 0) {
-    // 처음 켬: 사건 소개 + 튜토리얼 권유
+    // 처음 켬: 사건 소개 + 튜토리얼 권유(시작 편을 보여 주므로 읽음으로 친다)
+    I.markStorySeen(save); persist(); renderStoryButton();
     openInfo({
       label: '사건 ' + I.CASE.no, title: I.CASE.title,
       body: p(I.CASE.story[0].text) + p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),

@@ -393,7 +393,7 @@ test('makeLesson: 정답은 한 패, 오답은 정확히 한 가지 이유로 �
   }
 });
 
-test('공짜 단서는 시간을 깎지 않는다, 증거 보관실은 오판 벌점을 줄인다', () => {
+test('무료 단서는 시간을 깎지 않는다, 증거 보관실은 오판 벌점을 줄인다', () => {
   const g = C.createGame({ rng: C.makeRng(9), now: T0, level: 4, freeHints: 1, nonePenalty: 5 });
   g.board = findBoard(false);
   const end0 = g.endAt;

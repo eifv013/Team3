@@ -20,13 +20,18 @@
   --hit:#FFD23F; --miss:#FF7A59; --ok:#7BD88F;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--ink);color:var(--text);
+html,body{margin:0;height:100%;background:var(--ink);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;
   font-family:'IBM Plex Sans KR',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 button{font-family:inherit;color:inherit;cursor:pointer}
 button:disabled{cursor:default;opacity:.45}
 .app{position:relative;max-width:430px;height:100vh;height:100dvh;margin:0 auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
 .screen{display:none;flex:1;flex-direction:column;gap:12px;min-height:0}
 .screen.on{display:flex}
+/* 화면 전환: 사무실·튜토리얼·결과는 살짝 올라오며, 출동은 확 다가오며 들어온다 */
+.screen.in{animation:scrIn .28s cubic-bezier(.2,.8,.3,1)}
+#s-play.in{animation:scrGo .34s cubic-bezier(.2,1.2,.4,1)}
+@keyframes scrIn{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:none}}
+@keyframes scrGo{0%{opacity:0;transform:scale(1.06)}100%{opacity:1;transform:none}}
 /* 길어질 수 있는 화면은 스크롤된다(iOS 앱 안 등 화면이 낮은 곳). 아래 버튼(.cta)은 붙어 있어서 늘 보인다. */
 .scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
 .cta{position:sticky;bottom:0;margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:16px;background:linear-gradient(rgba(18,21,28,0),var(--ink) 18px)}
@@ -204,6 +209,12 @@ details.pn summary::after{content:'';margin-left:auto;width:8px;height:8px;borde
 details.pn[open] summary::after{transform:rotate(-135deg)}
 details.pn .pn-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer}
 details.pn .pn-body p{color:var(--muted)}
+.log{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;background:var(--panel2)}
+.log-at{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--acc)}
+.log p{margin:0;font-size:14px;line-height:1.65}
+.log.locked{background:none;border:1.5px dashed var(--line)}
+.log.locked .log-at{color:var(--muted);font-weight:600}
+.log.fresh{border:1.5px solid var(--acc)}
 .pn-past{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 @media (prefers-reduced-motion:reduce){.pn-new{animation:none;box-shadow:0 0 14px rgba(255,210,63,.35)}}
 .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:6;padding:10px 14px;border-radius:10px;background:var(--panel2);font-size:13px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.4)}
@@ -247,6 +258,7 @@ details.pn .pn-body p{color:var(--muted)}
   .board{gap:8px}.actions .none,.sq,.primary{height:50px}
   .sq{width:50px}.assist{min-height:40px}
 }
+@media (prefers-reduced-motion:reduce){.screen.in,#s-play.in{animation:none}}
 @media (prefers-reduced-motion:reduce){.float,.money.pop{animation-duration:.01s}.next-bar i{transition:none}}
 @media (prefers-reduced-motion:reduce){.card,.card.hit,.card.miss,.card.enter,.card.clue,.stamp.go{animation-duration:.01s}}
 </style>

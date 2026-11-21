@@ -34,7 +34,7 @@
   // 출동을 돕는 장비. lvMax 까지 살 수 있고 단계마다 값이 다르다.
   var GEAR = {
     time:    { name: '수사 기간 연장', desc: '현장 출동 시간 +10초', costs: [800, 2400, 7200] },
-    veteran: { name: '베테랑 형사',   desc: '출동마다 공짜 단서 +1번', costs: [1500, 6000] },
+    veteran: { name: '베테랑 형사',   desc: '출동마다 무료 단서 +1번', costs: [1500, 6000] },
     lab:     { name: '감식반',       desc: '네 가지가 된 뒤에도 셋째 조건을 보여 줌', costs: [3000] },
     vault:   { name: '증거 보관실',   desc: '검거 불가 오판 벌점 10초 → 5초', costs: [4000] }
   };
@@ -94,6 +94,7 @@
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
       closed: false, closedAt: 0,
       tutorialDone: false,
+      storySeen: 0,        // 사건 일지에서 읽은 편 수(새 편이 열리면 "사건 일지 보기"에 NEW)
       profile: { station: PROFILE.defaultStation, leader: PROFILE.defaultLeader }
     };
   }
@@ -136,6 +137,7 @@
     s.closed = data.closed === true;
     s.closedAt = num(data.closedAt, 0, 0);
     s.tutorialDone = data.tutorialDone === true;
+    s.storySeen = int(data.storySeen, 0, 0, CASE.story.length);
     var pf = data.profile && typeof data.profile === 'object' ? data.profile : {};
     s.profile = {
       station: cleanName(pf.station, PROFILE.stationMax, PROFILE.defaultStation),
@@ -271,6 +273,9 @@
     return CASE.story.filter(function (e) { return save.caught >= e.at; });
   }
   function progress(save) { return Math.min(1, save.caught / CASE.goal); }
+  // 열렸지만 아직 안 읽은 편이 있는가 / 지금 열린 편까지 읽었다고 적기
+  function storyUnread(save) { return storyUnlocked(save).length > save.storySeen; }
+  function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
 
   return {
     VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, CASE: CASE, PROFILE: PROFILE,
@@ -278,6 +283,6 @@
     newSave: newSave, load: load, serialize: serialize,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
     cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
-    storyUnlocked: storyUnlocked, progress: progress
+    storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
   };
 });

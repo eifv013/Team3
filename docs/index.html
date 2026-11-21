@@ -20,13 +20,18 @@
   --hit:#FFD23F; --miss:#FF7A59; --ok:#7BD88F;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--ink);color:var(--text);
+html,body{margin:0;height:100%;background:var(--ink);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;
   font-family:'IBM Plex Sans KR',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 button{font-family:inherit;color:inherit;cursor:pointer}
 button:disabled{cursor:default;opacity:.45}
 .app{position:relative;max-width:430px;height:100vh;height:100dvh;margin:0 auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
 .screen{display:none;flex:1;flex-direction:column;gap:12px;min-height:0}
 .screen.on{display:flex}
+/* 화면 전환: 사무실·튜토리얼·결과는 살짝 올라오며, 출동은 확 다가오며 들어온다 */
+.screen.in{animation:scrIn .28s cubic-bezier(.2,.8,.3,1)}
+#s-play.in{animation:scrGo .34s cubic-bezier(.2,1.2,.4,1)}
+@keyframes scrIn{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:none}}
+@keyframes scrGo{0%{opacity:0;transform:scale(1.06)}100%{opacity:1;transform:none}}
 /* 길어질 수 있는 화면은 스크롤된다(iOS 앱 안 등 화면이 낮은 곳). 아래 버튼(.cta)은 붙어 있어서 늘 보인다. */
 .scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
 .cta{position:sticky;bottom:0;margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:16px;background:linear-gradient(rgba(18,21,28,0),var(--ink) 18px)}
@@ -204,6 +209,12 @@ details.pn summary::after{content:'';margin-left:auto;width:8px;height:8px;borde
 details.pn[open] summary::after{transform:rotate(-135deg)}
 details.pn .pn-body{padding:0 14px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer}
 details.pn .pn-body p{color:var(--muted)}
+.log{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:12px;background:var(--panel2)}
+.log-at{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--acc)}
+.log p{margin:0;font-size:14px;line-height:1.65}
+.log.locked{background:none;border:1.5px dashed var(--line)}
+.log.locked .log-at{color:var(--muted);font-weight:600}
+.log.fresh{border:1.5px solid var(--acc)}
 .pn-past{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 @media (prefers-reduced-motion:reduce){.pn-new{animation:none;box-shadow:0 0 14px rgba(255,210,63,.35)}}
 .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:6;padding:10px 14px;border-radius:10px;background:var(--panel2);font-size:13px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.4)}
@@ -247,6 +258,7 @@ details.pn .pn-body p{color:var(--muted)}
   .board{gap:8px}.actions .none,.sq,.primary{height:50px}
   .sq{width:50px}.assist{min-height:40px}
 }
+@media (prefers-reduced-motion:reduce){.screen.in,#s-play.in{animation:none}}
 @media (prefers-reduced-motion:reduce){.float,.money.pop{animation-duration:.01s}.next-bar i{transition:none}}
 @media (prefers-reduced-motion:reduce){.card,.card.hit,.card.miss,.card.enter,.card.clue,.stamp.go{animation-duration:.01s}}
 </style>
@@ -956,7 +968,7 @@ details.pn .pn-body p{color:var(--muted)}
     return { ok: false, remaining: sets.length, penalty: state.nonePenalty };
   }
 
-  // 단서 한 번의 값: 공짜 단서가 남았으면 0초, 아니면 hintPenalty 초
+  // 단서 한 번의 값: 무료 단서가 남았으면 0초, 아니면 hintPenalty 초
   function chargeHint(state, now) {
     var p = 0;
     if (state.freeHints > 0) state.freeHints -= 1;
@@ -1091,7 +1103,7 @@ details.pn .pn-body p{color:var(--muted)}
   // 출동을 돕는 장비. lvMax 까지 살 수 있고 단계마다 값이 다르다.
   var GEAR = {
     time:    { name: '수사 기간 연장', desc: '현장 출동 시간 +10초', costs: [800, 2400, 7200] },
-    veteran: { name: '베테랑 형사',   desc: '출동마다 공짜 단서 +1번', costs: [1500, 6000] },
+    veteran: { name: '베테랑 형사',   desc: '출동마다 무료 단서 +1번', costs: [1500, 6000] },
     lab:     { name: '감식반',       desc: '네 가지가 된 뒤에도 셋째 조건을 보여 줌', costs: [3000] },
     vault:   { name: '증거 보관실',   desc: '검거 불가 오판 벌점 10초 → 5초', costs: [4000] }
   };
@@ -1151,6 +1163,7 @@ details.pn .pn-body p{color:var(--muted)}
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
       closed: false, closedAt: 0,
       tutorialDone: false,
+      storySeen: 0,        // 사건 일지에서 읽은 편 수(새 편이 열리면 "사건 일지 보기"에 NEW)
       profile: { station: PROFILE.defaultStation, leader: PROFILE.defaultLeader }
     };
   }
@@ -1193,6 +1206,7 @@ details.pn .pn-body p{color:var(--muted)}
     s.closed = data.closed === true;
     s.closedAt = num(data.closedAt, 0, 0);
     s.tutorialDone = data.tutorialDone === true;
+    s.storySeen = int(data.storySeen, 0, 0, CASE.story.length);
     var pf = data.profile && typeof data.profile === 'object' ? data.profile : {};
     s.profile = {
       station: cleanName(pf.station, PROFILE.stationMax, PROFILE.defaultStation),
@@ -1328,6 +1342,9 @@ details.pn .pn-body p{color:var(--muted)}
     return CASE.story.filter(function (e) { return save.caught >= e.at; });
   }
   function progress(save) { return Math.min(1, save.caught / CASE.goal); }
+  // 열렸지만 아직 안 읽은 편이 있는가 / 지금 열린 편까지 읽었다고 적기
+  function storyUnread(save) { return storyUnlocked(save).length > save.storySeen; }
+  function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
 
   return {
     VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, CASE: CASE, PROFILE: PROFILE,
@@ -1335,7 +1352,7 @@ details.pn .pn-body p{color:var(--muted)}
     newSave: newSave, load: load, serialize: serialize,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
     cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
-    storyUnlocked: storyUnlocked, progress: progress
+    storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
   };
 });
 
@@ -1367,13 +1384,25 @@ details.pn .pn-body p{color:var(--muted)}
 
   /* ---------- 소리: 파일 없이 WebAudio 로 합성 ---------- */
   var muted = store.get(MUTE_KEY) === '1';
-  var ac = null;
+  /*
+   * 모든 소리는 master 를 거쳐 나간다(0.1.2): 전체 크기 2배(MASTER_GAIN) → 리미터(컴프레서) → 스피커.
+   *   소리가 작다는 의견으로 전체를 두 배로 키웠다. 여러 소리가 겹쳐도 찢어지지 않게 리미터로 위를 눌러 둔다.
+   */
+  var MASTER_GAIN = 2;
+  var ac = null, master = null;
   function audio() {
     if (muted) return null;
     try {
-      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        var g = ac.createGain(), lim = ac.createDynamicsCompressor();
+        g.gain.value = MASTER_GAIN;
+        lim.threshold.value = -6; lim.knee.value = 4; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.12;
+        g.connect(lim); lim.connect(ac.destination);
+        master = g;
+      }
       if (ac.state === 'suspended') ac.resume();
-    } catch (e) { ac = null; }
+    } catch (e) { ac = null; master = null; }
     return ac;
   }
   function tone(freq, dur, type, vol, delay, slideTo, attack) {
@@ -1387,7 +1416,7 @@ details.pn .pn-body p{color:var(--muted)}
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(vol || 0.2, t + (attack || 0.008));
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(a.destination);
+      o.connect(g); g.connect(master || a.destination);
       o.start(t); o.stop(t + dur + 0.02);
     } catch (e) { /* 소리 실패는 게임에 영향 없음 */ }
   }
@@ -1530,7 +1559,11 @@ details.pn .pn-body p{color:var(--muted)}
   /* ---------- 화면 전환 ---------- */
   var SCREENS = ['s-hub', 's-tutorial', 's-play', 's-result'];
   function show(id) {
-    SCREENS.forEach(function (s) { $(s).classList.toggle('on', s === id); });
+    SCREENS.forEach(function (s) {
+      var el = $(s), on = s === id;
+      el.classList.toggle('on', on);
+      if (on) { el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); }   // 들어오는 효과를 매번 다시 재생
+    });
     var el = $(id);
     if (el && el.scrollTo) el.scrollTo(0, 0);
   }
@@ -1629,7 +1662,7 @@ details.pn .pn-body p{color:var(--muted)}
     var f = $('free-n');
     f.hidden = !(game.freeHints > 0);
     f.textContent = String(game.freeHints);
-    $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (공짜 ' + game.freeHints + '번)' : '단서 보기 (3초 줄어듦)');
+    $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (무료 ' + game.freeHints + '번)' : '단서 보기 (3초 줄어듦)');
     $('stat-line').textContent = '검거 ' + game.hits + ' · 불가 적중 ' + game.noneHits + ' · 실수 ' + (game.misses + game.noneMisses);
   }
 
@@ -1669,10 +1702,15 @@ details.pn .pn-body p{color:var(--muted)}
       return;
     }
     sel = []; lock = false; lastSec = -1;
+    // 지난 출동의 마지막 도장(예: "검거!")이 남아 있으면 화면이 다시 보일 때 애니메이션이 또 재생된다 → 먼저 지운다
+    var st = $('stamp');
+    st.classList.remove('go', 'bad');
+    st.innerHTML = '';
     show('s-play');
     setHint(game.level < 4 ? '먼저 모자만 보세요. 셋 다 같거나, 셋 다 다르면 한 패' : '한 패인 세 명을 고르세요', game.level < 4 ? 'good' : '', game.level < 4 ? 4000 : 0);
     renderBoard(game.board.map(function (_, i) { return i; }));
     updateHud();
+    popStamp('출동!', cfg.duration + '초 · 한 패를 찾아라');
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
   }
@@ -1765,7 +1803,7 @@ details.pn .pn-body p{color:var(--muted)}
     var r;
     try { r = C.hint(game, now()); }
     catch (e) { if (e.code === 'GAME_OVER') finish(); else setHint('단서 오류: ' + e.message, 'bad', 2000); return; }
-    var cost = r.penalty ? ' (−' + r.penalty + '초)' : ' (공짜)';
+    var cost = r.penalty ? ' (−' + r.penalty + '초)' : ' (무료)';
     if (r.penalty) flashTimer();
     sfx.pick(0);
     updateHud();
@@ -2062,6 +2100,8 @@ details.pn .pn-body p{color:var(--muted)}
     return I.load(raw, nowMs());
   }
 
+  // 글 넣기 전 꺾쇠 바꾸기(패치노트·일지)
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   /* ---------- 표시 도우미 ---------- */
   function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
   function fmtDur(sec) {
@@ -2133,9 +2173,10 @@ details.pn .pn-body p{color:var(--muted)}
     $('h-bar').style.width = (I.progress(save) * 100).toFixed(1) + '%';
     var st = I.storyUnlocked(save);
     $('h-story').textContent = st[st.length - 1].text;
+    renderStoryButton();
 
     var o = I.runOptions(save);
-    $('h-go-sub').textContent = o.duration + '초' + (o.freeHints ? ' · 공짜 단서 ' + o.freeHints : '') + ' · 잡은 만큼 수사비';
+    $('h-go-sub').textContent = o.duration + '초' + (o.freeHints ? ' · 무료 단서 ' + o.freeHints : '') + ' · 잡은 만큼 수사비';
 
     $('h-det').textContent = save.detectives;
     renderNext(t, false);
@@ -2148,14 +2189,14 @@ details.pn .pn-body p{color:var(--muted)}
       return '<div class="item"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + GEAR_ICON[k] + '</svg></div>' +
         '<div class="tx"><b>' + g.name + (max > 1 ? ' ' + lv + '/' + max : '') + '</b><small>' + g.desc + '</small></div>' +
         '<button class="buy' + (c == null ? ' max' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
-        ' aria-label="' + g.name + (c == null ? ' 다 갖춤' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '갖춤' : fmt(c)) + '</button></div>';
+        ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '배치 완료' : fmt(c)) + '</button></div>';
     }).join('');
   }
 
   function setBuy(btn, c, word) {
     btn.classList.toggle('max', c == null);
     btn.disabled = c == null || save.money < c;
-    btn.textContent = c == null ? '최고' : word + ' ' + fmt(c);
+    btn.textContent = c == null ? '최고 단계' : word + ' ' + fmt(c);
   }
 
   /* ---------- 안내 창 ---------- */
@@ -2183,6 +2224,7 @@ details.pn .pn-body p{color:var(--muted)}
 
   function showCaseClosed() {
     pendingClose = false;
+    I.markStorySeen(save); persist(); renderStoryButton();   // 마지막 편을 이 창에서 보여 주므로 읽음
     var last = I.CASE.story[I.CASE.story.length - 1];
     UI.sfx.none(); UI.buzz([30, 60, 30, 60, 80]);
     openInfo({
@@ -2194,13 +2236,27 @@ details.pn .pn-body p{color:var(--muted)}
     });
   }
 
+  /*
+   * 사건 일지: 편마다 위에 "시작 / 검거 100명" 줄, 아래에 글. 안 열린 편은 점선 칸에 "검거 300명에 열려요".
+   * 새로 열려 아직 안 읽은 편에는 NEW 를 달고, 열어 보면 읽음으로 적는다(사무실의 "사건 일지 보기" NEW 도 사라진다).
+   */
   function showStory() {
-    var body = I.CASE.story.map(function (e) {
-      return save.caught >= e.at
-        ? p((e.at ? '<b style="color:var(--acc)">검거 ' + e.at + '명</b> · ' : '<b style="color:var(--acc)">시작</b> · ') + e.text)
-        : p('<span class="muted">검거 ' + e.at + '명에 열려요</span>');
+    var unlocked = I.storyUnlocked(save).length, seen = save.storySeen;
+    var body = I.CASE.story.map(function (e, i) {
+      var at = e.at ? '검거 ' + e.at + '명' : '시작';
+      if (i >= unlocked) return '<div class="log locked"><span class="log-at"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' + at + '에 열려요</span></div>';
+      var fresh = i >= seen;
+      return '<div class="log' + (fresh ? ' fresh' : '') + '"><span class="log-at">' + (fresh ? '<span class="new">NEW</span>' : '') + at + '</span><p>' + esc(e.text) + '</p></div>';
     }).join('');
     openInfo({ label: '사건 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body });
+    I.markStorySeen(save);
+    persist();
+    renderStoryButton();
+  }
+
+  // "사건 일지 보기" 옆 NEW
+  function renderStoryButton() {
+    $('h-story-all').innerHTML = '사건 일지 보기' + (I.storyUnread(save) ? ' <span class="new" style="height:18px;font-size:10px;margin-left:6px">NEW</span>' : '');
   }
 
   /* ---------- 프로필 바꾸기 ---------- */
@@ -2231,7 +2287,7 @@ details.pn .pn-body p{color:var(--muted)}
       UI.sfx.coin(); UI.buzz(10);
       persist(); render();
     } catch (e) {
-      UI.toast(e.code === 'NOT_ENOUGH' ? '수사비가 모자라요' : e.code === 'MAXED' ? '이미 다 갖췄어요' : '살 수 없어요: ' + e.message);
+      UI.toast(e.code === 'NOT_ENOUGH' ? '수사비가 모자라요' : e.code === 'MAXED' ? '이미 배치를 마쳤어요' : '살 수 없어요: ' + e.message);
     }
   }
 
@@ -2393,7 +2449,6 @@ details.pn .pn-body p{color:var(--muted)}
    * 패치노트 글은 우리가 쓴 notes.js 라 HTML 로 넣지만, 꺾쇠는 미리 바꿔 둔다.
    */
   var NOTES_SEEN_KEY = 'guar.suspects3.notesSeen';
-  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function lines(items) { return items.map(function (t) { return '<p>· ' + esc(t) + '</p>'; }).join(''); }
 
   function showVersionInfo() {
@@ -2454,7 +2509,8 @@ details.pn .pn-body p{color:var(--muted)}
       onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); }
     });
   } else if (!save.tutorialDone && save.runs === 0) {
-    // 처음 켬: 사건 소개 + 튜토리얼 권유
+    // 처음 켬: 사건 소개 + 튜토리얼 권유(시작 편을 보여 주므로 읽음으로 친다)
+    I.markStorySeen(save); persist(); renderStoryButton();
     openInfo({
       label: '사건 ' + I.CASE.no, title: I.CASE.title,
       body: p(I.CASE.story[0].text) + p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),

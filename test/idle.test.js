@@ -194,3 +194,16 @@ test('다음 검거까지: 보통·사기 충전·충전이 중간에 끝나는 
   s.detectives = 0;
   assert.equal(I.nextCatch(s, T0).sec, Infinity);
 });
+
+test('사건 일지: 새 편이 열리면 안 읽음, 읽으면 사라짐, 저장 왕복', () => {
+  const s = I.newSave(T0);
+  assert.equal(I.storyUnread(s), true);           // 시작 편
+  I.markStorySeen(s);
+  assert.equal(I.storyUnread(s), false);
+  I.applyRun(s, { score: 0, hits: 100 }, T0);
+  assert.equal(I.storyUnread(s), true);           // 100명 편
+  assert.equal(I.markStorySeen(s), 2);
+  assert.equal(I.load(I.serialize(s), T0).save.storySeen, 2);
+  assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 99 })), T0).save.storySeen, 4);
+  assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 'x' })), T0).save.storySeen, 0);
+});

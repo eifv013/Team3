@@ -24,13 +24,25 @@
 
   /* ---------- 소리: 파일 없이 WebAudio 로 합성 ---------- */
   var muted = store.get(MUTE_KEY) === '1';
-  var ac = null;
+  /*
+   * 모든 소리는 master 를 거쳐 나간다(0.1.2): 전체 크기 2배(MASTER_GAIN) → 리미터(컴프레서) → 스피커.
+   *   소리가 작다는 의견으로 전체를 두 배로 키웠다. 여러 소리가 겹쳐도 찢어지지 않게 리미터로 위를 눌러 둔다.
+   */
+  var MASTER_GAIN = 2;
+  var ac = null, master = null;
   function audio() {
     if (muted) return null;
     try {
-      if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+      if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        var g = ac.createGain(), lim = ac.createDynamicsCompressor();
+        g.gain.value = MASTER_GAIN;
+        lim.threshold.value = -6; lim.knee.value = 4; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.12;
+        g.connect(lim); lim.connect(ac.destination);
+        master = g;
+      }
       if (ac.state === 'suspended') ac.resume();
-    } catch (e) { ac = null; }
+    } catch (e) { ac = null; master = null; }
     return ac;
   }
   function tone(freq, dur, type, vol, delay, slideTo, attack) {
@@ -44,7 +56,7 @@
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(vol || 0.2, t + (attack || 0.008));
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(a.destination);
+      o.connect(g); g.connect(master || a.destination);
       o.start(t); o.stop(t + dur + 0.02);
     } catch (e) { /* 소리 실패는 게임에 영향 없음 */ }
   }
@@ -187,7 +199,11 @@
   /* ---------- 화면 전환 ---------- */
   var SCREENS = ['s-hub', 's-tutorial', 's-play', 's-result'];
   function show(id) {
-    SCREENS.forEach(function (s) { $(s).classList.toggle('on', s === id); });
+    SCREENS.forEach(function (s) {
+      var el = $(s), on = s === id;
+      el.classList.toggle('on', on);
+      if (on) { el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); }   // 들어오는 효과를 매번 다시 재생
+    });
     var el = $(id);
     if (el && el.scrollTo) el.scrollTo(0, 0);
   }
@@ -286,7 +302,7 @@
     var f = $('free-n');
     f.hidden = !(game.freeHints > 0);
     f.textContent = String(game.freeHints);
-    $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (공짜 ' + game.freeHints + '번)' : '단서 보기 (3초 줄어듦)');
+    $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (무료 ' + game.freeHints + '번)' : '단서 보기 (3초 줄어듦)');
     $('stat-line').textContent = '검거 ' + game.hits + ' · 불가 적중 ' + game.noneHits + ' · 실수 ' + (game.misses + game.noneMisses);
   }
 
@@ -326,10 +342,15 @@
       return;
     }
     sel = []; lock = false; lastSec = -1;
+    // 지난 출동의 마지막 도장(예: "검거!")이 남아 있으면 화면이 다시 보일 때 애니메이션이 또 재생된다 → 먼저 지운다
+    var st = $('stamp');
+    st.classList.remove('go', 'bad');
+    st.innerHTML = '';
     show('s-play');
     setHint(game.level < 4 ? '먼저 모자만 보세요. 셋 다 같거나, 셋 다 다르면 한 패' : '한 패인 세 명을 고르세요', game.level < 4 ? 'good' : '', game.level < 4 ? 4000 : 0);
     renderBoard(game.board.map(function (_, i) { return i; }));
     updateHud();
+    popStamp('출동!', cfg.duration + '초 · 한 패를 찾아라');
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
   }
@@ -422,7 +443,7 @@
     var r;
     try { r = C.hint(game, now()); }
     catch (e) { if (e.code === 'GAME_OVER') finish(); else setHint('단서 오류: ' + e.message, 'bad', 2000); return; }
-    var cost = r.penalty ? ' (−' + r.penalty + '초)' : ' (공짜)';
+    var cost = r.penalty ? ' (−' + r.penalty + '초)' : ' (무료)';
     if (r.penalty) flashTimer();
     sfx.pick(0);
     updateHud();

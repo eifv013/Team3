@@ -404,7 +404,7 @@
     return { ok: false, remaining: sets.length, penalty: state.nonePenalty };
   }
 
-  // 단서 한 번의 값: 공짜 단서가 남았으면 0초, 아니면 hintPenalty 초
+  // 단서 한 번의 값: 무료 단서가 남았으면 0초, 아니면 hintPenalty 초
   function chargeHint(state, now) {
     var p = 0;
     if (state.freeHints > 0) state.freeHints -= 1;

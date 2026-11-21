@@ -104,6 +104,8 @@ with sync_playwright() as p:
         pg.click('#tut-home'); pg.clock.run_for(200)
         if not pg.locator('#s-hub').is_visible(): problems.append('튜토리얼 뒤 사무실로가 안 됨')
         pg.screenshot(path=SHOT + 'hub.png', full_page=True)
+        # 사건 일지: 첫 안내에서 시작 편을 봤으니 NEW 없음
+        if pg.locator('#h-story-all .new').count(): problems.append('시작 편을 봤는데 사건 일지에 NEW 가 있음')
         # 패치노트: 맨 아래 NEW → 열면 지금 버전 NEW·빛나는 테두리, 지난 것은 접힘 → 닫으면 맨 아래 NEW 가 사라짐
         if not pg.locator('#h-version .new').count(): problems.append('안 읽은 패치노트에 NEW 가 없음')
         pg.click('#h-version'); pg.clock.run_for(200)
@@ -149,6 +151,7 @@ with sync_playwright() as p:
         # 출동 → 결과
         pg.click('#h-go'); pg.clock.run_for(400)
         if not pg.locator('#s-play').is_visible(): problems.append('출동이 안 됨')
+        if '출동' not in (pg.text_content('#stamp') or ''): problems.append('출동 시작 도장이 출동이 아님: ' + (pg.text_content('#stamp') or ''))
         play_checks(pg, 1, helper=True)
         # 잡을수록 단계가 오른다: 2명→얼굴, 4명→시간대, 7명→흔적
         seen = {pg.evaluate(LEVEL)}
@@ -179,9 +182,19 @@ with sync_playwright() as p:
         txt = pg.text_content('#r-idle') or ''
         if '수사비' not in txt or '사건 진척' not in txt: problems.append('출동 결과에 수사비·진척이 없음: ' + txt)
         pg.screenshot(path=SHOT + 'result.png')
-        pg.click('#btn-home'); pg.clock.run_for(300)
+        pg.click('#btn-again'); pg.clock.run_for(300)
+        if '검거' in (pg.text_content('#stamp') or '') or '출동' not in (pg.text_content('#stamp') or ''): problems.append('다시 출동했는데 지난 도장이 남음: ' + (pg.text_content('#stamp') or ''))
+        pg.click('#btn-quit'); pg.clock.run_for(200); pg.click('#btn-quit-yes'); pg.clock.run_for(300)
         if not pg.locator('#s-hub').is_visible(): problems.append('사무실로가 안 됨')
         caught = pg.text_content('#h-caught')
+        # 300명 종결 전이라 100명을 넘었는지는 출동 결과에 따라 다르므로, 열린 편 수로 확인한다
+        unread = pg.evaluate("() => !!document.querySelector('#h-story-all .new')")
+        pg.click('#h-story-all'); pg.clock.run_for(150)
+        if pg.locator('#info-body .log').count() != 4: problems.append('사건 일지 칸이 4개가 아님')
+        if unread and not pg.locator('#info-body .log.fresh .new').count(): problems.append('NEW 였는데 일지 안에 새 편 표시가 없음')
+        pg.screenshot(path=SHOT + 'story.png')
+        pg.click('#info-ok'); pg.clock.run_for(100)
+        if pg.locator('#h-story-all .new').count(): problems.append('일지를 읽었는데 NEW 가 남음')
         if caught.startswith('0 '): problems.append('출동했는데 사건 진척이 0: ' + caught)
         if pg.locator('#h-buff').is_hidden(): problems.append('출동 뒤 사기 충전 표시가 없음')
         if pg.locator('#h-hire').is_enabled():
@@ -214,7 +227,7 @@ with sync_playwright() as p:
             pg = ctx.new_page(); pg.on('pageerror', lambda e: errors.append(str(e)))
             pg.clock.set_system_time((t + 1000) / 1000)   # 시계는 이미 깔려 있다(초 단위)
             pg.goto(URL); pg.clock.run_for(4500)
-        reopen("const d = JSON.parse(localStorage.getItem('%s')); d.caught = 299; d.frac = 0; localStorage.setItem('%s', JSON.stringify(d));" % (KEY, KEY))
+        reopen("const raw = localStorage.getItem('%s'); if (raw) { const d = JSON.parse(raw); d.caught = 299; d.frac = 0; localStorage.setItem('%s', JSON.stringify(d)); } else { console.log('NO SAVE AT REOPEN'); }" % (KEY, KEY))
         if '299' not in pg.text_content('#h-caught'): problems.append('저장 바꾸기 실패: ' + pg.text_content('#h-caught'))
         if not pg.locator('#info-sheet').is_hidden(): pg.click('#info-ok'); pg.clock.run_for(100)
         pg.clock.run_for(70_000)
