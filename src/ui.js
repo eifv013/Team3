@@ -42,6 +42,7 @@
         master = g;
       }
       if (ac.state === 'suspended') ac.resume();
+      loadSamples();
     } catch (e) { ac = null; master = null; }
     return ac;
   }
@@ -60,6 +61,35 @@
       o.start(t); o.stop(t + dur + 0.02);
     } catch (e) { /* 소리 실패는 게임에 영향 없음 */ }
   }
+  /*
+   * 녹음된 효과음(sounds.js 의 data URI). 처음 소리를 깨울 때 한 번만 풀어 둔다.
+   *   못 풀면(오래된 기기·형식 미지원) buffers 가 비어 있고, 쓰는 쪽은 합성음으로 대신한다.
+   */
+  var buffers = {}, samplesAsked = false;
+  function loadSamples() {
+    if (samplesAsked || !ac || !window.Team3Sounds) return;
+    samplesAsked = true;
+    Object.keys(window.Team3Sounds).forEach(function (name) {
+      try {
+        var b64 = window.Team3Sounds[name].split(',')[1], bin = atob(b64), arr = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        // 옛 사파리는 decodeAudioData 가 Promise 를 안 돌려준다 → 콜백 방식으로 쓴다
+        ac.decodeAudioData(arr.buffer, function (buf) { buffers[name] = buf; }, function () { /* 못 풀면 합성음 */ });
+      } catch (e) { /* 무시: 합성음으로 대신 */ }
+    });
+  }
+  // 녹음 효과음 한 번 재생. 성공하면 true(없거나 실패하면 false → 합성음으로 대신)
+  function sample(name, vol) {
+    var a = audio(); if (!a || !buffers[name]) return false;
+    try {
+      var s = a.createBufferSource(), g = a.createGain();
+      s.buffer = buffers[name]; g.gain.value = vol;
+      s.connect(g); g.connect(master || a.destination);
+      s.start();
+      return true;
+    } catch (e) { return false; }
+  }
+
   // 마림바 한 음: 사인파 + 아주 짧은 4배음(나무 막대로 친 느낌). 날카로운 파형(사각·톱니)을 쓰지 않는다.
   function mallet(f, vol, delay) {
     tone(f, 0.5, 'sine', vol, delay, null, 0.004);
@@ -97,7 +127,12 @@
     // 현장 출동: 마림바 경광등(높은 솔-도를 두 번 번갈아) — 출동 단추를 누르는 순간
     go: function () { [12, 7, 12, 7].forEach(function (n, i) { mallet(C4 * semi(n + 7), 0.26, i * 0.11); }); mallet(C4 * semi(-5), 0.3, 0); },
     coin: function () { mallet(C4 * semi(7), 0.18, 0); mallet(C4 * semi(12), 0.16, 0.07); },
-    tickLow: function () { tone(880, 0.05, 'sine', 0.07); }
+    tickLow: function () { tone(880, 0.05, 'sine', 0.07); },
+    // 시계 초침(0.1.14): 녹음된 "톡-틱-틱" 1초. 마지막 3초는 조금 크게. 녹음을 못 쓰면 예전 짧은 "삑"(5초 안쪽에서만)
+    clock: function (left) {
+      if (sample('clock', left <= 3 ? 1.0 : 0.7)) return;
+      if (left <= 5) sfx.tickLow();
+    }
   };
   function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* 무시 */ } }
 
@@ -327,7 +362,7 @@
     var fill = $('fill');
     fill.style.transform = 'scaleX(' + Math.min(1, left / cfg.duration) + ')';
     fill.classList.toggle('low', left <= 10);
-    if (left <= 5 && sec !== lastSec && sec > 0) sfx.tickLow();
+    if (left <= 10 && sec !== lastSec && sec > 0) sfx.clock(left);   // 마지막 10초: 초가 바뀔 때마다 시계 초침
     lastSec = sec;
     if (C.tick(game, now())) { finish(); return; }
     raf = requestAnimationFrame(loop);

@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.14', date: '2026-11-21', title: '시계 초침 소리',
+      items: [
+        '현장 출동 마지막 10초 동안 시계 초침 소리가 나요. 마지막 3초는 조금 더 크게 들려요.'
+      ] },
     { ver: '0.1.13', date: '2026-11-21', title: '수배서 연출 다듬기',
       items: [
         '주범 조 출동의 수배서 연출을 새로 그렸어요.'

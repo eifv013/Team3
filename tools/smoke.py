@@ -335,6 +335,11 @@ with sync_playwright() as p:
         pg.set_viewport_size({'width': 844, 'height': 390}); pg.clock.run_for(100)
         if not pg.locator('.rotate').is_visible(): problems.append('가로 화면 안내가 안 뜸')
 
+    # 시계 초침 녹음이 브라우저에서 풀리고 길이가 1초 안팎인지
+    dur = pg.evaluate('''async () => { const bin = atob(Team3Sounds.clock.split(',')[1]); const a = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+        const buf = await new OfflineAudioContext(1, 44100, 44100).decodeAudioData(a.buffer); return buf.duration; }''')
+    if not (0.9 <= dur <= 1.15): problems.append('시계 초침 녹음 길이가 이상함: %.2f초' % dur)
     problems += ['페이지 오류: ' + e for e in errors]
     br.close()
 print('화면 시험: ' + ('\n'.join(problems) if problems else '화면 시험 통과'))
