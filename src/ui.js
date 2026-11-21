@@ -108,6 +108,8 @@
    */
   var sfx = {
     pick: function (n) { tone(392 * semi(Math.max(0, n - 1) * 2), 0.12, 'sine', 0.4, 0, null, 0.006); },   // 크기 0.2 → 0.4(두 배)
+    // 고르기 취소(0.1.15): 방금 뺀 자리의 음에서 단3도 아래로 살짝 미끄러져 내려간다. 고르기보다 조금 작게
+    unpick: function (n) { var f = 392 * semi(Math.max(0, n - 1) * 2); tone(f, 0.13, 'sine', 0.3, 0, f * semi(-3), 0.006); },
     /*
      * 검거: 둔한 "탁-칵" 두 번 + 둥근 두 음(으뜸음 → 5도 위).
      * 예전 소리(고역 통과 잡음 2.2~3.2kHz + 사각파)는 날카롭다는 의견이 있어 대역·파형·크기를 낮췄다.
@@ -397,7 +399,14 @@
   function onCard(i) {
     if (!game || game.over || lock || sheetOpen()) return;
     var k = sel.indexOf(i);
-    if (k >= 0) { sel.splice(k, 1); markPicks(); return; }   // 다시 누르면 선택 해제
+    if (k >= 0) {   // 다시 누르면 선택 해제: 뺀 자리(몇 번째였는지)의 음으로 내려가는 소리
+      var was = sel.length;
+      sel.splice(k, 1);
+      sfx.unpick(was);
+      buzz(5);
+      markPicks();
+      return;
+    }
     sel.push(i);
     sfx.pick(sel.length);
     buzz(8);

@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.15', date: '2026-11-21', title: '고르기 취소 소리',
+      items: [
+        '골랐던 몽타주를 다시 눌러 취소할 때도 소리가 나요.'
+      ] },
     { ver: '0.1.14', date: '2026-11-21', title: '시계 초침 소리',
       items: [
         '현장 출동 마지막 10초 동안 시계 초침 소리가 나요. 마지막 3초는 조금 더 크게 들려요.'
