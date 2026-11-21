@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ink">#12151C</color>
+    <color name="icon_bg">#1A2030</color>
+    <!-- 제목 줄 없는 화면. 게임이 뜨기 전에는 바탕 그림(drawable/splash: 남색 바탕 + 아이콘)이 보인다. -->
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:statusBarColor">@color/ink</item>
+        <item name="android:navigationBarColor">@color/ink</item>
+    </style>
+</resources>

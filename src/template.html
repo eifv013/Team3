@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>수사 3팀</title>
+<meta name="theme-color" content="#12151C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="수사 3팀">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* ===== 바탕: 세로 고정, 폰 한 화면 ===== */
+:root{
+  --ink:#12151C; --panel:#1C212B; --panel2:#232937; --line:#2E3542; --text:#F3F0E8; --muted:#A3ACBA; --acc:#FFD23F;
+  --hit:#FFD23F; --miss:#FF7A59; --ok:#7BD88F;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--ink);color:var(--text);
+  font-family:'IBM Plex Sans KR',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:default;opacity:.45}
+.app{position:relative;max-width:430px;height:100vh;height:100dvh;margin:0 auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.screen{display:none;flex:1;flex-direction:column;gap:12px;min-height:0}
+.screen.on{display:flex}
+/* 길어질 수 있는 화면은 스크롤된다(iOS 앱 안 등 화면이 낮은 곳). 아래 버튼(.cta)은 붙어 있어서 늘 보인다. */
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px}
+.cta{position:sticky;bottom:0;margin-top:auto;display:flex;flex-direction:column;gap:10px;padding-top:16px;background:linear-gradient(rgba(18,21,28,0),var(--ink) 18px)}
+h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
+.muted{color:var(--muted)}
+[hidden]{display:none !important}
+
+/* ===== 공통 조각 ===== */
+.brand{font-size:12px;font-weight:600;letter-spacing:.2em;color:var(--muted)}
+.rule{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.rule h3{margin:0;font-size:14px;line-height:1.45}
+.primary{height:56px;border:0;border-radius:14px;background:var(--acc);color:var(--ink);font-size:18px;font-weight:700}
+.ghost{height:48px;border:1.5px solid var(--line);border-radius:14px;background:none;font-size:15px;font-weight:600}
+.row{display:flex;gap:10px;align-items:center}
+.row > *{flex:1}
+
+/* ===== 게임 화면 ===== */
+.hud{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.score{font-family:'Black Han Sans',sans-serif;font-size:34px;line-height:1}
+.label{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+.combo{padding:6px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;font-weight:700;color:var(--muted);transition:transform .15s}
+.combo.live{border-color:var(--acc);color:var(--acc)}
+.combo.pop{transform:scale(1.18)}
+.level{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted);padding:3px 8px;border-radius:6px;background:var(--panel)}
+.level.up{color:var(--ink);background:var(--acc)}
+.timer{display:flex;flex-direction:column;gap:6px}
+.timer .bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.timer .fill{height:100%;background:var(--acc);border-radius:4px;transform-origin:left;transition:background .3s}
+.timer .fill.low{background:var(--miss)}
+.timer .top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.timer .top b{color:var(--text);font-variant-numeric:tabular-nums}
+.timer.flash .top b{color:var(--miss)}
+/* 안내 줄과 셋째 조건 줄이 같은 자리를 쓴다(높이 고정이라 판이 흔들리지 않는다) */
+.assist{min-height:44px;display:flex;align-items:center;justify-content:center}
+.hint{margin:0;font-size:13px;line-height:1.35;color:var(--muted);text-align:center;transition:color .2s}
+.hint.bad{color:var(--miss)}
+.hint.good{color:var(--acc)}
+.needs{display:flex;gap:6px;width:100%}
+.need{flex:1;min-width:0;padding:4px 6px;border-radius:8px;background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2}
+.need b{font-size:13px;color:var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.need small{font-size:10px;color:var(--muted);white-space:nowrap}
+
+.board{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.card{position:relative;aspect-ratio:4/5;padding:0;border:0;border-radius:12px;overflow:hidden;transition:transform .12s, box-shadow .12s;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.card svg{display:block}
+.card .no{position:absolute;top:7px;right:9px;font-size:11px;font-weight:700;opacity:.55}
+/* 시간대 칩(왼쪽 위) · 흔적 원(오른쪽 아래) · 실루엣(가운데 아래) */
+.card .t{position:absolute;top:6px;left:6px;width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center}
+.card .m{position:absolute;bottom:6px;right:6px;width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;z-index:1}
+.card .fig{position:absolute;left:50%;bottom:0;width:84%;transform:translateX(-50%)}
+.card.sel{transform:translateY(-3px) scale(1.03);box-shadow:0 0 0 3px var(--acc),0 8px 18px rgba(0,0,0,.4)}
+.card .pick{position:absolute;top:-1px;left:50%;transform:translateX(-50%);min-width:22px;height:22px;padding:0 6px;border-radius:0 0 8px 8px;background:var(--acc);color:var(--ink);font-size:12px;font-weight:700;display:none;align-items:center;justify-content:center}
+.card.sel .pick{display:flex}
+.card.hit{animation:hit .38s ease-in forwards}
+.card.miss{animation:shake .4s}
+.card.enter{animation:enter .32s cubic-bezier(.2,1.4,.4,1)}
+.card.clue{box-shadow:0 0 0 3px var(--ink),0 0 0 6px var(--acc);animation:clue 1s ease-in-out infinite}
+.card.right{box-shadow:0 0 0 3px var(--ok)}
+@keyframes clue{50%{transform:translateY(-4px)}}
+@keyframes hit{0%{transform:scale(1.05)}40%{transform:scale(1.1) rotate(-3deg);filter:brightness(1.4)}100%{transform:scale(.2) rotate(12deg);opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+@keyframes enter{0%{transform:translateY(-14px) scale(.6);opacity:0}100%{transform:none;opacity:1}}
+
+/* 가운데에 찍히는 도장 */
+.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg) scale(.4);opacity:0;pointer-events:none;z-index:2;
+  padding:8px 18px;border:4px solid var(--acc);border-radius:10px;color:var(--acc);background:rgba(18,21,28,.86);
+  font-family:'Black Han Sans',sans-serif;font-size:34px;white-space:nowrap;text-align:center;line-height:1.1}
+.stamp small{display:block;font-family:'IBM Plex Sans KR',sans-serif;font-size:15px;font-weight:700}
+.stamp.bad{border-color:var(--miss);color:var(--miss)}
+.stamp.go{animation:stamp .9s ease-out}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.8)}18%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}}
+
+.actions{display:flex;gap:10px}
+.actions .none{flex:1;height:56px;border:2px solid var(--text);border-radius:14px;background:none;font-size:17px;font-weight:700}
+.actions .none:active{background:var(--panel)}
+.sq{width:56px;height:56px;flex:none;border:1.5px solid var(--line);border-radius:14px;background:none;display:flex;align-items:center;justify-content:center}
+.sq .badge-n{position:absolute;margin:-30px -30px 0 0;min-width:18px;height:18px;border-radius:9px;background:var(--acc);color:var(--ink);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted)}
+.icon-btn{width:44px;height:44px;border:0;background:none;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+
+/* ===== 결과 화면 ===== */
+.result-big{font-family:'Black Han Sans',sans-serif;font-size:64px;line-height:1;color:var(--acc)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.stat b{font-size:22px}
+.badge{display:inline-block;padding:4px 10px;border-radius:8px;background:var(--acc);color:var(--ink);font-size:13px;font-weight:700}
+
+/* ===== 튜토리얼 ===== */
+.tut-top{display:flex;justify-content:space-between;align-items:center}
+.dots{display:flex;gap:6px}
+.dots i{width:24px;height:6px;border-radius:3px;background:var(--line)}
+.dots i.on{background:var(--acc)}
+.tut-intro{margin:0;font-size:15px;line-height:1.55}
+.tut-intro b{color:var(--acc)}
+.pair{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:center}
+.pair .card{aspect-ratio:1/1}
+.qmark{aspect-ratio:1/1;border:2px dashed var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Black Han Sans',sans-serif;font-size:40px;color:var(--muted)}
+.cap{font-size:11px;font-weight:700;color:var(--muted);text-align:center;margin-top:4px}
+.opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.opts.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opts .card{aspect-ratio:1/1}
+.explain{background:var(--panel);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45}
+.explain .ok{color:var(--ok);font-weight:700}
+.explain .no{color:var(--miss);font-weight:700}
+.explain b{color:var(--acc)}
+
+/* ===== 사무실(방치) ===== */
+.hub-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.nameplate{border:0;background:none;padding:0;display:grid;grid-template-columns:auto auto;grid-template-rows:auto auto;column-gap:8px;row-gap:3px;align-items:center;justify-content:start;text-align:left;color:var(--muted);min-width:0}
+.nameplate .brand{grid-column:1;grid-row:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nameplate .leader{grid-column:1;grid-row:2;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nameplate .leader.empty{color:var(--muted);font-weight:500}
+.nameplate svg{grid-column:2;grid-row:1 / span 2;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.field input{height:48px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--ink);color:var(--text);font:inherit;font-size:16px;user-select:text;-webkit-user-select:text}
+.field input:focus{outline:none;border-color:var(--acc)}
+.money-wrap{position:relative;display:inline-block}
+.money.pop{animation:mpop .35s ease-out}
+@keyframes mpop{40%{transform:scale(1.08);color:#FFF1B0}}
+.float-layer{position:absolute;left:100%;top:0;margin-left:8px;pointer-events:none}
+.float{position:absolute;left:0;top:0;white-space:nowrap;font-family:'Black Han Sans',sans-serif;font-size:20px;color:var(--ok);animation:floatUp 1.3s ease-out forwards}
+@keyframes floatUp{0%{opacity:0;transform:translateY(8px)}15%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
+.rate-line{position:relative;display:block;height:20px}
+.rate-line > span{position:absolute;left:0;top:0;white-space:nowrap;transition:opacity .35s}
+.feed{font-size:12px;font-weight:600;color:var(--ok);opacity:0;line-height:20px}
+.rate-line.news .feed{opacity:1}
+.rate-line.news .rate{opacity:0}
+.rate{line-height:20px}
+.next-bar{height:5px;border-radius:3px;background:var(--panel2);overflow:hidden;margin-top:6px}
+.next-bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:3px;transition:width 1s linear}
+.next-bar i.snap{transition:none}
+.next-bar.fast i{background:var(--ok)}
+.money{font-family:'Black Han Sans',sans-serif;font-size:30px;line-height:1;color:var(--acc)}
+.rate{font-size:12px;color:var(--muted)}
+.buff{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:6px;background:var(--acc);color:var(--ink);font-size:11px;font-weight:700}
+.casebox{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.casebox .bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.casebox .bar i{display:block;height:100%;background:var(--acc);border-radius:5px;transition:width .4s}
+.casebox .story{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.linkish{border:0;background:none;padding:0;color:var(--acc);font-size:13px;font-weight:600;text-align:left}
+.section-t{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
+.shop{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--panel)}
+.item .ic{width:40px;height:40px;flex:none;border-radius:10px;background:var(--panel2);display:flex;align-items:center;justify-content:center;color:var(--acc)}
+.item .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.item .tx b{font-size:15px}
+.item .tx small{font-size:12px;color:var(--muted);line-height:1.35}
+.buy{min-width:84px;height:44px;padding:0 10px;border:0;border-radius:10px;background:var(--acc);color:var(--ink);font-size:14px;font-weight:700}
+.buy.max{background:var(--panel2);color:var(--muted)}
+.go-btn{height:64px;border:0;border-radius:16px;background:var(--acc);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.go-btn b{font-size:20px}
+.go-btn small{font-size:12px;font-weight:600;opacity:.75}
+
+/* ===== 아래에서 올라오는 창 ===== */
+.sheet-back{position:absolute;inset:0;z-index:5;background:rgba(8,10,14,.72);display:flex;align-items:flex-end;padding:16px}
+.sheet{width:100%;max-height:100%;overflow-y:auto;background:var(--panel);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
+.sheet p{margin:0;font-size:14px;line-height:1.55}
+@keyframes up{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}
+.update-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--acc);color:var(--ink);animation:up .25s ease-out}
+.update-bar .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.update-bar b{font-size:14px}
+.update-bar small{font-size:12px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.up-go{height:40px;padding:0 12px;border:0;border-radius:10px;background:var(--ink);color:var(--acc);font-size:13px;font-weight:700;white-space:nowrap}
+.up-later{height:40px;padding:0 6px;border:0;background:none;color:var(--ink);font-size:12px;font-weight:600;opacity:.75}
+.toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:6;padding:10px 14px;border-radius:10px;background:var(--panel2);font-size:13px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+
+/* ===== 로딩 화면: 제목과 라인업 → 로딩 줄, 아래에 작게 제작자 Guar =====
+   누르면 건너뛴다. 글꼴이 다 불러와질 때까지(최대 4초) 기다렸다 걷혀서, 첫 화면 글자가 깜빡이지 않는다. */
+.splash{position:absolute;inset:0;z-index:20;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:24px;transition:opacity .35s ease}
+.splash.out{opacity:0;pointer-events:none}
+.sp-game{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;opacity:0;animation:spIn .45s ease-out .05s forwards;gap:14px}
+/* 제작자 표시는 작게, 아래에 */
+.sp-brand{position:absolute;bottom:22px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0;animation:spIn .5s ease-out .3s forwards}
+.sp-brand small{font-size:10px;font-weight:600;letter-spacing:.3em;color:var(--muted)}
+.sp-brand b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:22px;line-height:1;color:var(--acc)}
+.sp-title{font-family:'Black Han Sans',sans-serif;font-size:60px;line-height:1;color:var(--acc);text-align:center}
+.sp-sub{font-size:13px;font-weight:600;letter-spacing:.2em;color:var(--muted)}
+.lineup{display:flex;gap:8px;margin:10px 0 6px;position:relative}
+.lineup .card{width:84px;aspect-ratio:4/5;pointer-events:none}
+.lineup .card:nth-child(1){animation:spUp .4s ease-out .2s both}
+.lineup .card:nth-child(2){animation:spUp .4s ease-out .35s both}
+.lineup .card:nth-child(3){animation:spUp .4s ease-out .5s both}
+.lineup::after{content:'';position:absolute;left:-10px;right:-10px;top:44%;height:2px;background:var(--acc);opacity:0;animation:scan 1.1s ease-in-out .7s infinite}
+.sp-load{width:200px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.sp-bar{width:100%;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.sp-bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:2px;transition:width .3s ease}
+.sp-msg{font-size:12px;color:var(--muted);min-height:16px}
+.sp-skip{font-size:11px;color:var(--muted);opacity:.6;margin-top:6px}
+@keyframes spIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
+@keyframes spOut{to{opacity:0;transform:scale(.96)}}
+@keyframes spUp{0%{opacity:0;transform:translateY(24px)}100%{opacity:1;transform:none}}
+@keyframes scan{0%{opacity:0;transform:translateY(-34px)}15%{opacity:.8}85%{opacity:.8}100%{opacity:0;transform:translateY(34px)}}
+@media (prefers-reduced-motion:reduce){.splash *,.splash{animation-duration:.01s !important;animation-delay:0s !important}}
+
+/* ===== 가로 화면 막기: Guar 의 게임은 세로 전용 ===== */
+.rotate{display:none;position:fixed;inset:0;z-index:10;background:var(--ink);flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:15px;color:var(--muted)}
+@media (orientation:landscape) and (max-height:520px){.rotate{display:flex}}
+/* 키가 작은 폰(SE 등): 카드를 정사각형으로 줄이고 여백을 좁혀 한 화면에 담는다 */
+@media (max-height:720px){
+  .app{gap:8px;padding-top:10px}.screen{gap:8px}
+  .score{font-size:28px}
+  .card{aspect-ratio:1/1}.card .fig{width:70%}.card .t,.card .m{width:26px;height:26px}
+  .board{gap:8px}.actions .none,.sq,.primary{height:50px}
+  .sq{width:50px}.assist{min-height:40px}
+}
+@media (prefers-reduced-motion:reduce){.float,.money.pop{animation-duration:.01s}.next-bar i{transition:none}}
+@media (prefers-reduced-motion:reduce){.card,.card.hit,.card.miss,.card.enter,.card.clue,.stamp.go{animation-duration:.01s}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 새 버전 띠(설치된 판에서만): 사무실 맨 위에 붙는다 -->
+  <div class="update-bar" id="update-bar" role="status" hidden>
+    <div class="tx"><b id="up-title">새 버전이 나왔어요</b><small id="up-sub"></small></div>
+    <button class="up-go" id="up-go">지금 업데이트</button>
+    <button class="up-later" id="up-later" aria-label="나중에">나중에</button>
+  </div>
+
+  <!-- 사무실(방치형) -->
+  <section class="screen scroll" id="s-hub" aria-label="3팀 사무실">
+    <div class="hub-head" style="margin-top:6px">
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+        <button class="nameplate" id="h-profile" aria-label="경찰서와 팀장 이름 바꾸기">
+          <span class="brand" id="h-station">중앙서 · 수사 3팀</span>
+          <span class="leader" id="h-leader">신임 팀장 · 이름 정하기</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
+        </button>
+        <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span>
+        <!-- 팀 속도 줄과 검거 소식이 같은 자리에서 번갈아 보인다(높이 고정이라 아래 칸이 움직이지 않는다) -->
+        <span class="rate-line">
+          <span class="rate" id="h-rate-wrap"><span id="h-rate">팀 1분에 1명</span><span class="buff" id="h-buff" hidden>사기 충전 ×2</span></span>
+          <span class="feed" id="h-feed" aria-live="polite"></span>
+        </span>
+      </div>
+      <button class="icon-btn" id="h-sound" aria-label="소리 끄기"></button>
+    </div>
+
+    <div class="casebox">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+        <b style="font-size:15px" id="h-case">사건 1 · 골목길 연쇄 절도</b>
+        <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="h-caught">0 / 300</span>
+      </div>
+      <div class="bar"><i id="h-bar" style="width:0%"></i></div>
+      <p class="story" id="h-story"></p>
+      <button class="linkish" id="h-story-all">사건 일지 보기</button>
+    </div>
+
+    <button class="go-btn" id="h-go">
+      <b>현장 출동</b>
+      <small id="h-go-sub">90초 · 잡은 만큼 수사비</small>
+    </button>
+
+    <span class="section-t">3팀</span>
+    <div class="shop">
+      <div class="item">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-4 3-6 6.5-6s6.5 2 6.5 6"/><path d="M18 8v6M15 11h6"/></svg></div>
+        <div class="tx"><b>형사 <span id="h-det">1</span>명</b><small id="h-next">다음 검거까지 1분</small>
+          <div class="next-bar" aria-hidden="true"><i id="h-next-fill"></i></div></div>
+        <button class="buy" id="h-hire">영입</button>
+      </div>
+      <div class="item">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
+        <div class="tx"><b>합동 훈련 <span id="h-train">0</span>단계</b><small>팀 속도 +25%, 수사비 +50%</small></div>
+        <button class="buy" id="h-trainb">훈련</button>
+      </div>
+    </div>
+
+    <span class="section-t">출동 장비</span>
+    <div class="shop" id="h-gear"></div>
+
+    <div class="row" style="margin-bottom:8px">
+      <button class="ghost" id="h-tutorial">튜토리얼</button>
+      <button class="ghost" id="h-reset-ask" style="flex:none;width:auto;padding:0 14px;font-size:13px;color:var(--muted)">처음부터</button>
+    </div>
+    <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
+  </section>
+
+  <!-- 튜토리얼: 두 명을 주고 셋째 고르기 -->
+  <section class="screen scroll" id="s-tutorial" aria-label="튜토리얼">
+    <div class="tut-top" style="margin-top:6px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span class="label" id="tut-step">튜토리얼 1 / 4</span>
+        <div class="dots" id="tut-dots"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <button class="icon-btn" id="tut-close" aria-label="튜토리얼 닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div id="tut-body" style="display:flex;flex-direction:column;gap:14px">
+      <p class="tut-intro" id="tut-intro"></p>
+      <div>
+        <div class="pair" id="tut-pair"></div>
+      </div>
+      <b style="font-size:15px">이 둘과 한 패인 셋째는?</b>
+      <div class="opts" id="tut-opts"></div>
+      <div class="explain" id="tut-explain" hidden></div>
+      <div class="cta" id="tut-next-wrap" hidden><button class="primary" id="tut-next">다음</button></div>
+    </div>
+    <div id="tut-done" hidden style="display:flex;flex-direction:column;gap:14px;margin-top:12px">
+      <h2 style="font-size:34px;color:var(--acc)">튜토리얼 끝!</h2>
+      <p class="tut-intro">요령은 하나예요. 두 명을 먼저 정하고, 특징마다<br><b>같으면 셋째도 같게, 다르면 남은 하나로.</b><br>그 셋째가 판에 있는지만 찾으면 돼요.</p>
+      <div class="cta">
+        <button class="primary" id="tut-start">바로 출동</button>
+        <button class="ghost" id="tut-home">사무실로</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 게임 화면 -->
+  <section class="screen" id="s-play" aria-label="수사">
+    <div class="hud">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span class="label">점수</span>
+        <span class="score" id="score" aria-live="polite">0</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <span class="level" id="level">모자만</span>
+        <div class="combo" id="combo">연속 0</div>
+      </div>
+    </div>
+    <div class="timer" id="timer">
+      <div class="top"><span>남은 시간</span><b id="time">1:30</b></div>
+      <div class="bar"><div class="fill" id="fill"></div></div>
+    </div>
+    <div class="assist">
+      <p class="hint" id="hint" aria-live="polite">한 패인 세 명을 고르세요</p>
+      <div class="needs" id="needs" hidden aria-live="polite"></div>
+    </div>
+    <div class="board" id="board">
+      <div class="stamp" id="stamp" aria-hidden="true"></div>
+    </div>
+    <div class="actions">
+      <button class="sq" id="btn-quit" aria-label="처음으로">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <button class="sq" id="btn-hint" aria-label="단서 보기">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+        <span class="badge-n" id="free-n" hidden>1</span>
+      </button>
+      <button class="none" id="btn-none">검거 불가</button>
+    </div>
+    <div class="foot">
+      <span id="stat-line">검거 0 · 오인 0</span>
+      <button class="icon-btn" id="btn-sound" aria-label="소리 끄기"></button>
+    </div>
+  </section>
+
+  <!-- 결과 화면 -->
+  <section class="screen scroll" id="s-result" aria-label="결과">
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:24px">
+      <span class="label" id="r-label">수사 종료</span>
+      <span class="result-big" id="r-score">0</span>
+      <span id="r-best"></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="label">검거</span><b id="r-hits">0</b></div>
+      <div class="stat"><span class="label">최고 연속</span><b id="r-combo">0</b></div>
+      <div class="stat"><span class="label">검거 불가 적중</span><b id="r-none">0</b></div>
+      <div class="stat"><span class="label">오인 체포·오판</span><b id="r-miss">0</b></div>
+    </div>
+    <div class="rule" id="r-idle" hidden style="font-size:14px;line-height:1.55"></div>
+    <p class="muted" style="margin:0;font-size:13px;line-height:1.5" id="r-tip"></p>
+    <div class="cta">
+      <button class="primary" id="btn-again">다시 출동</button>
+      <button class="ghost" id="btn-home">사무실로</button>
+    </div>
+  </section>
+
+  <!-- 처음으로 확인 창: 떠 있는 동안 시간이 멈춘다 -->
+  <div class="sheet-back" id="quit-sheet" role="dialog" aria-modal="true" aria-labelledby="quit-title" hidden>
+    <div class="sheet">
+      <h2 id="quit-title" style="font-size:24px">출동을 그만둘까요?</h2>
+      <p class="muted">이번 판 점수는 기록되지 않아요.<br>이 창이 떠 있는 동안 시간은 멈춰 있어요.</p>
+      <button class="primary" id="btn-quit-yes">그만두기</button>
+      <button class="ghost" id="btn-quit-no">계속 수사</button>
+    </div>
+  </div>
+
+  <!-- 방치형: 범용 안내 창(잠복 보고 · 사건 일지 · 사건 종결 · 처음부터) -->
+  <div class="sheet-back" id="info-sheet" role="dialog" aria-modal="true" aria-labelledby="info-title" hidden>
+    <div class="sheet">
+      <span class="label" id="info-label"></span>
+      <h2 id="info-title" style="font-size:26px"></h2>
+      <div id="info-body" style="display:flex;flex-direction:column;gap:10px"></div>
+      <button class="primary" id="info-ok">확인</button>
+      <button class="ghost" id="info-cancel" hidden>취소</button>
+    </div>
+  </div>
+  <div class="toast" id="toast" hidden role="status"></div>
+
+  <!-- 로딩 화면 -->
+  <div class="splash" id="splash" role="img" aria-label="Guar 의 수사 3팀, 불러오는 중">
+    <div class="sp-game" aria-hidden="true">
+      <span class="sp-sub">방치형 수사 퍼즐</span>
+      <div class="sp-title">수사 3팀</div>
+      <div class="lineup" id="sp-lineup"></div>
+      <div class="sp-load">
+        <div class="sp-bar"><i id="sp-fill"></i></div>
+        <span class="sp-msg" id="sp-msg">사건 파일 펼치는 중</span>
+      </div>
+      <span class="sp-skip">화면을 누르면 건너뛰어요</span>
+    </div>
+    <div class="sp-brand" aria-hidden="true">
+      <small>A GAME BY</small>
+      <b>Guar</b>
+    </div>
+  </div>
+
+  <div class="rotate" aria-hidden="true">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18h2"/></svg>
+    세로 화면으로 돌려 주세요
+  </div>
+</div>
+<script>
+/*NOTES*/
+</script>
+<script>
+/*UPDATE*/
+</script>
+<script>
+/*CORE*/
+</script>
+<script>
+/*IDLE*/
+</script>
+<script>
+/*UI*/
+</script>
+<script>
+/*HUB*/
+</script>
+</body>
+</html>

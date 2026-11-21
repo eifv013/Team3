@@ -1,0 +1,7 @@
+dist/
+node_modules/
+__pycache__/
+android/.gradle/
+android/app/build/
+android/build/
+*.orig
