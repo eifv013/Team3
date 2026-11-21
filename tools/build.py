@@ -8,7 +8,7 @@ import json, pathlib, re, shutil, subprocess, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / 'dist'
 SCRIPTS = (('/*NOTES*/', 'notes.js'), ('/*UPDATE*/', 'update.js'), ('/*CORE*/', 'core.js'),
-           ('/*IDLE*/', 'idle.js'), ('/*TRANSIT*/', 'transit.js'), ('/*SOUNDS*/', 'sounds.js'), ('/*SETTINGS*/', 'settings.js'), ('/*MUSIC*/', 'music.js'), ('/*BGM*/', 'bgm.js'), ('/*UI*/', 'ui.js'), ('/*HUB*/', 'hub.js'))
+           ('/*IDLE*/', 'idle.js'), ('/*ECONOMY*/', 'economy.js'), ('/*TRANSIT*/', 'transit.js'), ('/*SOUNDS*/', 'sounds.js'), ('/*SETTINGS*/', 'settings.js'), ('/*MUSIC*/', 'music.js'), ('/*BGM*/', 'bgm.js'), ('/*UI*/', 'ui.js'), ('/*HUB*/', 'hub.js'))
 ICONS = ('icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png',
          'apple-touch-icon.png', 'favicon-32.png', 'favicon-64.png')
 

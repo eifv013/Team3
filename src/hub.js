@@ -7,7 +7,7 @@
  */
 (function () {
   'use strict';
-  var UI = window.SuspectsUI, I = window.SuspectsIdle;
+  var UI = window.SuspectsUI, I = window.SuspectsIdle, E = window.Team3Economy;   // E: 상품·메달·특별 출동(0.1.19)
   if (!UI || !I) return;
   var $ = function (id) { return document.getElementById(id); };
   var nowMs = function () { return Date.now(); };
@@ -106,15 +106,20 @@
     $('h-station').textContent = save.profile.station + ' · 수사 3팀';
     var ld = $('h-leader');
     // 이름을 안 정했으면 "신임 팀장"(이번에 3팀을 맡은 사람). 사건 1 이야기와 이어진다.
-    ld.textContent = save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기';
+    var rk = I.rankOf(save).name;   // 계급(0.1.19): 팀장은 경위부터
+    ld.textContent = rk + ' · ' + (save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기');
     ld.classList.toggle('empty', !save.profile.leader);
     $('h-money').textContent = '수사비 ' + fmtShort(save.money);
+    $('h-gems').textContent = '◆ ' + fmt(save.gems);
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
     // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
     $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(I.incomePerMin(save, t)) + '/분';
     var b = $('h-buff');
     b.hidden = !buff;
-    if (buff) b.textContent = '사기 충전 ×2 · ' + Math.ceil((save.buffUntil - t) / 1000) + '초';
+    if (buff) {
+      var left = Math.ceil((I.boostUntil(save) - t) / 1000);
+      b.textContent = ((save.partyUntil || 0) > t && save.partyUntil >= save.buffUntil ? '회식 ×2 · ' : '사기 충전 ×2 · ') + (left >= 60 ? Math.ceil(left / 60) + '분' : left + '초');
+    }
 
     var goal = I.CASE.goal;
     $('h-case').textContent = '사건 ' + I.CASE.no + ' · ' + I.CASE.title + (save.closed ? ' (종결)' : '');
@@ -129,8 +134,10 @@
     $('h-go').classList.toggle('urgent', capped);
     renderStoryButton();
 
-    var o = I.runOptions(save);
-    $('h-go-sub').textContent = o.duration + '초' + (o.freeHints ? ' · 무료 단서 ' + o.freeHints : '') + ' · 잡은 만큼 수사비';
+    var o = I.runOptions(save), pc = save.prep || {};
+    var dur = o.duration + (pc.coffee ? 15 : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
+    $('h-go-sub').textContent = dur + '초' + (fh ? ' · 무료 단서 ' + fh : '') + (pc.press ? ' · 수사비 1.5배' : ' · 잡은 만큼 수사비');
+    if (E) { renderPrep(t); renderDaily(t); renderSupport(t); }
 
     $('h-det').textContent = save.detectives;
     renderNext(t, false);
@@ -145,6 +152,76 @@
         '<button class="buy' + (c == null ? ' max' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
         ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '배치 완료' : fmt(c)) + '</button></div>';
     }).join('');
+  }
+
+  /* ---------- 0.1.19: 준비물 · 특별 출동 · 지원 · 메달 ---------- */
+  var PREP_ICON = {
+    coffee: '<path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h2a2 2 0 0 1 0 4h-2M8 3v3M12 3v3"/>',
+    tip: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    sketch: '<circle cx="12" cy="9" r="4"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/><path d="M17 3l3 3"/>',
+    lawyer: '<path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',
+    press: '<rect x="4" y="9" width="7" height="6" rx="1"/><path d="M11 10l8-5v14l-8-5"/>',
+    party: '<path d="M8 3h8l-1 7a3 3 0 0 1-6 0zM12 13v7M8 21h8"/>',
+    night: '<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/>'
+  };
+  var SHORT = { coffee: '커피', tip: '제보 전화', sketch: '몽타주', lawyer: '변호사', press: '언론 브리핑' };
+  function icon(id) { return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (PREP_ICON[id] || '') + '</svg>'; }
+  function dayNow() { return E.dayKey(nowMs(), new Date().getTimezoneOffset()); }
+
+  function renderPrep(t) {
+    $('h-prep').innerHTML = E.PREP_IDS.map(function (id) {
+      var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], on = E.owned(save, id, t), c = E.price(save, id, 'money');
+      return '<button class="chip' + (on ? ' on' : '') + (!on && save.money < c ? ' poor' : '') + '" data-prep="' + id + '" aria-pressed="' + on + '" aria-label="' + it.name + ', ' + it.desc + (on ? ', 챙김(누르면 무르기)' : ', ' + fmt(c)) + '">' +
+        icon(id) + '<b>' + SHORT[id] + '</b><small>' + (on ? '챙김 ✓' : fmtShort(c)) + '</small></button>';
+    }).join('');
+    $('h-medals').innerHTML = E.MEDALS.map(function (m) {
+      return '<i class="' + m.key + (save.medals[m.key] ? ' on' : '') + '" title="' + m.name + ' 메달 ' + fmt(m.at) + '점">' + m.name + ' ' + fmtShort(m.at) + '</i>';
+    }).join('');
+  }
+  function renderDaily() {
+    var st = E.dailyStatus(save, dayNow()), r = st.rule, box = $('h-daily');
+    $('h-daily-name').textContent = r.name;
+    $('h-daily-desc').textContent = r.desc;
+    $('h-daily-goal').textContent = '동 ' + fmt(r.medals[0]) + ' · 은 ' + fmt(r.medals[1]) + ' · 금 ' + fmt(r.medals[2]) + (st.best ? ' · 오늘 최고 ' + fmt(st.best) : '');
+    box.classList.toggle('done', st.done);
+    var b = $('h-daily-go');
+    b.textContent = st.done ? '다시 ◆' + E.RETRY_GEMS : '도전';
+    b.disabled = st.done && save.gems < E.RETRY_GEMS;
+  }
+  function renderSupport(t) {
+    $('h-support').innerHTML = ['party', 'night'].map(function (id) {
+      var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], c = E.price(save, id, 'money'), on = E.owned(save, id, t);
+      var state = id === 'party' && on ? ' · 진행 중 ' + Math.ceil((save.partyUntil - t) / 60000) + '분' : id === 'night' && on ? ' · 대기 중' : '';
+      var lock = id === 'night' && on;
+      return '<div class="item"><div class="ic">' + icon(id) + '</div><div class="tx"><b>' + it.name + state + '</b><small>' + it.desc + '</small></div>' +
+        '<button class="buy" data-support="' + id + '"' + (lock || save.money < c ? ' disabled' : '') + '>' + (lock ? '준비됨' : fmtShort(c)) + '</button></div>';
+    }).join('');
+  }
+
+  /*
+   * 사기(0.1.19). 수사비가 있으면 바로 수사비로 산다. 모자라면 배지로 살지 묻는다(배지도 모자라면 알림).
+   */
+  function buyItem(id) {
+    var t = nowMs();
+    try {
+      E.buy(save, id, t, 'money');
+      done();
+    } catch (e) {
+      if (e.code !== 'NOT_ENOUGH') { UI.toast(e.code === 'ALREADY' ? '이미 챙겼어요' : '살 수 없어요: ' + e.message); return; }
+      var g = E.price(save, id, 'gems'), it = E.ITEMS.filter(function (x) { return x.id === id; })[0];
+      if (g == null || save.gems < g) { UI.toast('수사비가 모자라요'); return; }
+      openInfo({ label: '배지로 사기', title: it.name, body: p(it.desc) + p('<span class="muted">수사비가 모자라요. 배지 ◆' + g + '개로 살까요? (가진 배지 ◆' + fmt(save.gems) + ')</span>'),
+        ok: '◆' + g + '개로 사기', cancel: '취소',
+        onOk: function () { try { E.buy(save, id, nowMs(), 'gems'); done(); } catch (e2) { UI.toast('살 수 없어요: ' + e2.message); } } });
+    }
+    function done() { UI.sfx.coin(); UI.buzz(10); persist(); render(); }
+  }
+  function unprep(id) {
+    try {
+      var r = E.unprep(save, id);
+      UI.toast(SHORT[id] + ' 무르기 · ' + (r.currency === 'gems' ? '◆' + r.refunded : fmt(r.refunded)) + ' 돌려받음');
+      persist(); render();
+    } catch (e) { UI.toast('무를 수 없어요: ' + e.message); }
   }
 
   function setBuy(btn, c, word) {
@@ -258,12 +335,39 @@
    *   전환이 끝날 때까지(dispatching) 다시 눌러도 무시한다. 전환이 없거나 실패해도 출동은 반드시 된다.
    */
   var dispatching = false;
+  var runCfg = null;   // 지금 출동의 설정(결과를 정리할 때 언론 브리핑 배수·특별 출동인지 본다)
   function startRunNow() {
     I.advance(save, nowMs());
     duringRun = { catches: 0, money: 0 };
     var opts = I.runOptions(save);
+    if (E) {
+      opts = E.consumePrep(save, opts);   // 챙긴 준비물을 이번 판에 쓰고 비운다
+      opts.used = opts.used.map(function (id) { return SHORT[id] || id; });
+      persist();
+    }
     opts.boss = I.idleCapped(save);   // 주범 조 출동이면 배경 음악을 boss 곡으로(ui.js show)
+    runCfg = opts;
     UI.startRun(opts);
+  }
+  // 하루 한 번 특별 출동: 준비물·장비 없이 그날 규칙으로. 오늘 보상을 받았으면 배지로 한 번 더
+  function goDaily() {
+    if (dispatching || !E) return;
+    var day = dayNow(), st = E.dailyStatus(save, day);
+    var begin = function (useGems) {
+      var cfg;
+      try { cfg = E.startDaily(save, day, useGems); } catch (e) { UI.toast(e.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '시작할 수 없어요: ' + e.message); return; }
+      cfg.ruleName = st.rule.name; cfg.day = day; cfg.boss = false;
+      persist();
+      dispatching = true;
+      var run = function () { I.advance(save, nowMs()); duringRun = { catches: 0, money: 0 }; runCfg = cfg; UI.startRun(cfg); };
+      var T = window.Team3Transit;
+      if (!T) { dispatching = false; run(); return; }
+      T.play('normal', run, { caseNo: I.CASE.no, caseTitle: '특별 출동 · ' + st.rule.name })
+        .then(function () { dispatching = false; }, function () { dispatching = false; });
+    };
+    if (!st.done) { begin(false); return; }
+    openInfo({ label: '특별 출동', title: '한 번 더 도전할까요?', body: p('오늘 보상은 이미 받았어요. 배지 ◆' + E.RETRY_GEMS + '개로 한 번 더 도전하면, 메달을 따면 보상을 다시 받아요.') + p('<span class="muted">가진 배지 ◆' + fmt(save.gems) + '</span>'),
+      ok: '◆' + E.RETRY_GEMS + '개로 도전', cancel: '취소', onOk: function () { begin(true); } });
   }
   function go() {
     if (dispatching) return;
@@ -280,14 +384,50 @@
   }
 
   // 출동이 끝나면 ui.js 가 부른다. 결과 화면에 들어갈 요약 HTML 을 돌려준다.
+  /*
+   * 출동 결과 정리(0.1.19):
+   *   수사비 = 점수 × 계급 배수 × 언론 브리핑. 메달은 평소 출동만(처음 달성 보상). 특별 출동은 그날 메달 보상.
+   *   보상의 기준값은 이 판을 넣기 전 값으로 잰다(이번 판 점수로 보상이 부풀지 않게).
+   */
   function onRunEnd(g) {
     addRun(I.advance(save, nowMs()));
-    var r = I.applyRun(save, { score: g.score, hits: g.hits }, nowMs());
+    var cfg = runCfg || {}, base = E ? E.baseValue(save) : 0, best0 = save.bestScore, extra = '';
+    runCfg = null;
+    var r = I.applyRun(save, { score: g.score, hits: g.hits, payMult: cfg.payMult || 1 }, nowMs());
+    if (E && cfg.daily) {
+      var d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
+      extra += d.medal
+        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달 · 수사비 +' + fmt(d.money) + ' · ◆' + d.gems + '</span>'
+        : '<span class="muted">특별 출동: 동 메달(' + fmt(E.dailyRule(cfg.day || dayNow()).medals[0]) + '점)부터 보상이에요. 오늘 다시 도전할 수 있어요.</span>';
+    } else if (E) {
+      E.claimMedals(save, g.score, base).forEach(function (m) {
+        extra += '<span class="res-medal">첫 ' + m.name + ' 메달! 수사비 +' + fmt(m.money) + ' · ◆' + m.gems + '</span>';
+      });
+      if (g.score > best0 && best0 > 0) extra += '<span style="color:var(--acc);font-weight:700">최고 점수 경신! (전 기록 ' + fmt(best0) + ')</span>';
+    }
     persist();
     if (r.closedNow) pendingClose = true;
-    return '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b> · 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, I.CASE.goal)) + ' / ' + I.CASE.goal + ')</span>' +
+    var rk = I.rankOf(save);
+    return '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ' · 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, I.CASE.goal)) + ' / ' + I.CASE.goal + ')</span>' +
+      extra +
       '<span class="muted">팀 사기 충전: ' + (I.TUNE.buffSec / 60) + '분 동안 팀이 2배로 일해요</span>' +
+      (rk.next ? '<span class="muted">' + rk.next.name + ' 승진까지 출동 검거 ' + fmt(rk.toNext) + '명</span>' : '') +
       (r.closedNow ? '<span style="color:var(--acc);font-weight:700">사건 종결! 사무실에서 확인하세요</span>' : '');
+  }
+
+  // 승진(0.1.19): 사무실로 돌아올 때 아직 못 보여 준 승진을 한 창에 모아 보여 주고 배지를 준다
+  function showPromotions() {
+    var got = I.claimPromotions(save);
+    if (!got.length) return false;
+    persist(); render();
+    var last = got[got.length - 1], gems = got.reduce(function (a, x) { return a + x.gems; }, 0);
+    UI.sfx.none(); UI.buzz([30, 60, 30]);
+    openInfo({ label: '승진', title: last.name + '(으)로 승진했어요',
+      body: p('현장에서 직접 잡은 용의자가 ' + fmt(save.runCaught) + '명이 되었어요.') +
+        p('수사비가 <b>+' + Math.round(I.rankOf(save).bonus * 100) + '%</b> 늘어요(팀·출동 모두). 승진 축하 배지 ◆' + gems + '개를 받았어요.') +
+        (I.rankOf(save).next ? p('<span class="muted">다음 계급 ' + I.rankOf(save).next.name + '까지 ' + fmt(I.rankOf(save).toNext) + '명</span>') : ''),
+      ok: '확인' });
+    return true;
   }
 
   function home() {
@@ -298,6 +438,7 @@
     duringRun = null;
     applyIfSafe();
     if (pendingClose) showCaseClosed();
+    else if ($('info-sheet').hidden) showPromotions();
   }
 
   /* ---------- 1초마다 ---------- */
@@ -355,6 +496,19 @@
     if (b && !b.disabled) tryBuy(b.getAttribute('data-gear'));
   });
   $('h-story-all').addEventListener('click', showStory);
+  if (E) {
+    $('h-prep').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-prep]'); if (!b) return;
+      var id = b.getAttribute('data-prep');
+      if (E.owned(save, id, nowMs())) unprep(id); else buyItem(id);
+    });
+    $('h-support').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-support]'); if (b && !b.disabled) buyItem(b.getAttribute('data-support'));
+    });
+    $('h-daily-go').addEventListener('click', goDaily);
+  } else {
+    ['h-daily'].forEach(function (id) { $(id).hidden = true; });
+  }
   $('info-ok').addEventListener('click', function () { closeInfo('ok'); });
   $('info-body').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); closeInfo('ok'); } });
   $('info-cancel').addEventListener('click', function () { closeInfo('cancel'); });
@@ -514,11 +668,12 @@
       label: '잠복 보고', title: fmtDur(away.seconds) + ' 동안',
       body: p('3팀이 용의자 <b style="color:var(--acc)">' + fmt(away.catches) + '명</b>을 잡았어요.') +
         p('수사비 <b style="color:var(--acc)">+' + fmt(away.money) + '</b>') +
+        (away.night ? p('<span style="color:var(--acc);font-weight:700">야간 잠복조 투입: 이번엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 셌어요</span>') : '') +
         p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + (I.TUNE.offlineCapSec / 3600) + '시간까지만 세요.' +
-          (away.seconds >= I.TUNE.offlineCapSec ? ' 이번엔 꽉 찼어요.' : '') + '</span>') +
+          (!away.night && away.seconds >= I.TUNE.offlineCapSec ? ' 이번엔 꽉 찼어요. 지원의 야간 잠복조를 사 두면 다음엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 세요.' : '') + '</span>') +
         (away.counted < away.catches ? p('<span class="muted">남은 주범 조는 현장 출동으로만 잡을 수 있어요.</span>') : ''),
       ok: '좋아요',
-      onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); }
+      onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); else showPromotions(); }
     });
   } else if (!save.tutorialDone && save.runs === 0) {
     // 처음 켬: 사건 소개 + 튜토리얼 권유(시작 편을 보여 주므로 읽음으로 친다)
@@ -534,6 +689,8 @@
     });
   } else if (away.closedNow) {
     showCaseClosed();
+  } else {
+    showPromotions();   // 업데이트로 계급이 생긴 예전 저장: 그동안 잡은 만큼의 승진을 한 번에(0.1.19)
   }
 
   // 버전 표시 · 업데이트 뒤 첫 실행 알림 · 새 버전 확인

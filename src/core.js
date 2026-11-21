@@ -247,9 +247,35 @@
 
   /* ---------- 게임 ---------- */
   // 연속 검거 n 번째의 점수 배수: 1, 1.5, 2, 2.5, 3, 3, ...
-  function multiplier(combo) {
+  // 연속 검거 배수(평소 규칙). 판의 상한이 다르면 multiplierFor 를 쓴다
+  //   (인자를 하나만 받는다: [..].map(multiplier) 처럼 써도 두 번째 인자가 끼어들지 않게)
+  function multiplier(combo) { return multiplierFor(combo, RULES.comboMax); }
+  function multiplierFor(combo, max) {
     if (combo < 1) return 1;
-    return Math.min(RULES.comboMax, 1 + RULES.comboStep * (combo - 1));
+    return Math.min(max == null ? RULES.comboMax : max, 1 + RULES.comboStep * (combo - 1));
+  }
+
+  /*
+   * 판마다 바꿀 수 있는 규칙(0.1.19: 하루 한 번 특별 출동 · 출동 준비물).
+   *   scoreMult  점수 배수(기본 1)          comboMax  연속 배수 상한(기본 RULES.comboMax)
+   *   hitTime    검거 때 늘어나는 초          missPenalty 오인 체포 때 줄어드는 초
+   *   noneMult   검거 불가 적중 점수 배수      noHints   단서 못 씀
+   *   shield     오인 체포 벌점을 면제하는 횟수(준비물 "변호사 대기")
+   * 모르는 키는 버리고, 값이 이상하면 BAD_OPTION 을 던진다(판을 만들 때 한 번만 검사).
+   */
+  var MOD_DEFAULTS = { scoreMult: 1, comboMax: null, hitTime: null, missPenalty: null, noneMult: 1, noHints: false, shield: 0 };
+  function readMods(m) {
+    m = m && typeof m === 'object' ? m : {};
+    var out = {};
+    Object.keys(MOD_DEFAULTS).forEach(function (k) { out[k] = m[k] == null ? MOD_DEFAULTS[k] : m[k]; });
+    var num = function (v, min, max) { return typeof v === 'number' && isFinite(v) && v >= min && v <= max; };
+    if (!num(out.scoreMult, 0.1, 10) || !num(out.noneMult, 0.1, 10)) throw GameError('BAD_OPTION', '점수 배수는 0.1~10');
+    if (out.comboMax != null && !num(out.comboMax, 1, 20)) throw GameError('BAD_OPTION', '연속 배수 상한은 1~20');
+    if (out.hitTime != null && !num(out.hitTime, 0, 30)) throw GameError('BAD_OPTION', '검거 시간은 0~30초');
+    if (out.missPenalty != null && !num(out.missPenalty, 0, 60)) throw GameError('BAD_OPTION', '오인 벌점은 0~60초');
+    if (!num(out.shield, 0, 10) || Math.floor(out.shield) !== out.shield) throw GameError('BAD_OPTION', '면제 횟수는 0~10 정수');
+    out.noHints = out.noHints === true;
+    return out;
   }
 
   function assertNow(now) {
@@ -263,6 +289,7 @@
    *   level               — 시작 단계 1~4, 기본 1. 노말은 4.
    *   freeHints           — 시간이 줄지 않는 단서 횟수(장비 "베테랑 형사")
    *   nonePenalty(초)     — 검거 불가 오판 벌점(장비 "증거 보관실"이 줄인다)
+   *   mods                — 판마다 바꾸는 규칙(readMods 참고). 없으면 평소 규칙
    * 남은 시간은 "종료 시각(endAt)"으로 들고 있다. 매 프레임 깎지 않아도 되고, 탭을 떠나도 정확하다.
    */
   function createGame(opts) {
@@ -276,7 +303,9 @@
     var freeHints = opts.freeHints == null ? 0 : opts.freeHints;
     var nonePenalty = opts.nonePenalty == null ? RULES.wrongNonePenalty : opts.nonePenalty;
     if (!(freeHints >= 0) || !(nonePenalty >= 0)) throw GameError('BAD_OPTION', '단서·벌점 값은 0 이상');
+    var mods = readMods(opts.mods);
     return {
+      mods: mods, shield: mods.shield, shieldUsed: 0,
       rng: opts.rng,
       level: level,
       startLevel: level,
@@ -329,7 +358,7 @@
   function addCombo(state) {
     state.combo += 1;
     if (state.combo > state.bestCombo) state.bestCombo = state.combo;
-    return multiplier(state.combo);
+    return multiplierFor(state.combo, state.mods ? state.mods.comboMax : null);
   }
 
   // 누적 검거 수로 다음 단계를 정한다(올라가기만 한다)
@@ -358,10 +387,11 @@
     var a = state.board[idxs[0]], b = state.board[idxs[1]], c = state.board[idxs[2]];
     if (isSet(a, b, c, act)) {
       var mult = addCombo(state);
-      var gain = Math.round(RULES.base * mult);
+      var md = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.base * mult * md.scoreMult);
       state.score += gain;
       state.hits += 1;
-      state.endAt += RULES.hitTime * 1000;
+      state.endAt += (md.hitTime == null ? RULES.hitTime : md.hitTime) * 1000;
       state.clue = null;
       var next = levelForHits(state.startLevel, state.hits);
       if (next !== state.level) {
@@ -375,9 +405,12 @@
     }
     state.combo = 0;
     state.misses += 1;
-    state.endAt -= RULES.missPenalty * 1000;
+    // 변호사 대기(준비물): 남은 면제 횟수가 있으면 시간을 깎지 않는다(연속은 끊긴다)
+    var md2 = state.mods || MOD_DEFAULTS, pen = md2.missPenalty == null ? RULES.missPenalty : md2.missPenalty, shielded = false;
+    if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
+    state.endAt -= pen * 1000;
     tick(state, now);
-    return { ok: false, reasons: explain(a, b, c, act), penalty: RULES.missPenalty };
+    return { ok: false, reasons: explain(a, b, c, act), penalty: pen, shielded: shielded };
   }
 
   /*
@@ -389,7 +422,8 @@
     var sets = findSets(state.board, active(state));
     if (sets.length === 0) {
       var mult = addCombo(state);
-      var gain = Math.round(RULES.noneBonus * mult);
+      var mdn = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.noneBonus * mult * mdn.scoreMult * mdn.noneMult);
       state.score += gain;
       state.noneHits += 1;
       state.endAt += RULES.noneTime * 1000;
@@ -423,6 +457,7 @@
    */
   function hint(state, now) {
     guard(state, now, '단서를 볼');
+    if (state.mods && state.mods.noHints) throw GameError('NO_HINTS', '이 출동은 단서를 쓸 수 없다');
     if (!state.clue) {
       var sets = findSets(state.board, active(state));
       if (sets.length === 0) return { none: true, penalty: chargeHint(state, now) };
@@ -495,7 +530,7 @@
     isSet: isSet, explain: explain, thirdCard: thirdCard, needs: needs, findSets: findSets,
     makeRng: makeRng, drawDistinct: drawDistinct, newBoard: newBoard, refill: refill,
     dealBoard: dealBoard, refillBoard: refillBoard,
-    multiplier: multiplier, createGame: createGame, active: active, timeLeft: timeLeft, tick: tick,
+    multiplier: multiplier, multiplierFor: multiplierFor, readMods: readMods, MOD_DEFAULTS: MOD_DEFAULTS, createGame: createGame, active: active, timeLeft: timeLeft, tick: tick,
     pause: pause, resume: resume, submit: submit, declareNone: declareNone, hint: hint,
     makeLesson: makeLesson
   };

@@ -367,7 +367,7 @@
   function updateHud() {
     $('score').textContent = game.score.toLocaleString('ko-KR');
     var combo = $('combo');
-    combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ' · ×' + C.multiplier(game.combo) : '연속 ' + game.combo;
+    combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ' · ×' + C.multiplierFor(game.combo, game.mods && game.mods.comboMax) : '연속 ' + game.combo;
     combo.classList.toggle('live', game.combo > 1);
     var lv = $('level'), next = C.RULES.levelAt[game.level + 1];
     lv.textContent = LEVEL_NAME[game.level] + (game.level < 4 && next != null ? ' · 다음까지 ' + Math.max(0, next - game.hits) + '명' : '');
@@ -410,7 +410,8 @@
     audio();   // 첫 탭에서 소리를 깨운다(브라우저 정책)
     cfg = config || defaultConfig();
     try {
-      game = C.createGame({ rng: Math.random, now: now(), duration: cfg.duration, level: cfg.level, freeHints: cfg.freeHints, nonePenalty: cfg.nonePenalty });
+      // mods(0.1.19): 특별 출동 규칙 · 준비물 "변호사 대기"(shield)
+      game = C.createGame({ rng: Math.random, now: now(), duration: cfg.duration, level: cfg.level, freeHints: cfg.freeHints, nonePenalty: cfg.nonePenalty, mods: cfg.mods });
     } catch (e) {
       toast('판을 만들지 못했어요: ' + e.message);
       return;
@@ -422,9 +423,22 @@
     st.innerHTML = '';
     show('s-play');
     setHint(game.level < 4 ? '먼저 모자만 보세요. 셋 다 같거나, 셋 다 다르면 한 패' : '한 패인 세 명을 고르세요', game.level < 4 ? 'good' : '', game.level < 4 ? 4000 : 0);
+    // 준비물 "제보 전화"(0.1.19): 첫 판의 한 패 하나를 단서처럼 미리 표시한다(판이 바뀌면 사라진다)
+    if (cfg.tip) {
+      try {
+        var first = C.findSets(game.board, C.active(game));
+        if (first.length) game.clue = { set: first[0], shown: 3 };
+      } catch (e) { /* 표시 못 해도 출동은 그대로 */ }
+    }
+    // 단서를 못 쓰는 특별 출동이면 돋보기 단추를 잠근다
+    var noHints = !!(game.mods && game.mods.noHints);
+    $('btn-hint').disabled = noHints;
+    $('btn-hint').style.opacity = noHints ? '.35' : '';
     renderBoard(game.board.map(function (_, i) { return i; }));
+    markPicks();
     updateHud();
-    popStamp('출동!', cfg.duration + '초 · 한 패를 찾아라');
+    popStamp(cfg.daily ? '특별 출동!' : '출동!', cfg.daily && cfg.ruleName ? cfg.ruleName + ' · ' + cfg.duration + '초' : cfg.duration + '초 · 한 패를 찾아라');
+    if (cfg.used && cfg.used.length) setHint('준비물: ' + cfg.used.join(' · '), 'good', 3000);
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
   }
@@ -464,7 +478,8 @@
       picked.forEach(function (i) { cards[i].classList.add('hit'); });
       sfx.hit(r.combo); buzz([12, 40, 20]);
       popStamp('검거!', '+' + r.gain + (r.combo > 1 ? '  ·  연속 ' + r.combo : ''));
-      setHint('+' + C.RULES.hitTime + '초', 'good', 900);
+      var ht = game.mods && game.mods.hitTime != null ? game.mods.hitTime : C.RULES.hitTime;
+      setHint(ht ? '+' + ht + '초' : '시간은 그대로', 'good', 900);
       updateHud(); bumpCombo();
       setTimeout(function () {
         sel = []; lock = false;
@@ -482,7 +497,7 @@
       picked.forEach(function (i) { cards[i].classList.add('miss'); });
       sfx.miss(); buzz(120);
       var why = r.reasons.map(function (x) { return x.name + ': ' + x.value + ' 두 명만 같아요'; }).join(' · ');
-      setHint(why + '  (−' + r.penalty + '초)', 'bad', 2600);
+      setHint(r.shielded ? why + '  (변호사가 막았어요 · 벌점 없음, 남은 면제 ' + game.shield + '번)' : why + '  (−' + r.penalty + '초)', 'bad', 2600);
       flashTimer(); updateHud();
       setTimeout(function () {
         sel = []; lock = false;
@@ -523,7 +538,12 @@
     if (!game || game.over || lock || sheetOpen()) return;
     var r;
     try { r = C.hint(game, now()); }
-    catch (e) { if (e.code === 'GAME_OVER') finish(); else setHint('단서 오류: ' + e.message, 'bad', 2000); return; }
+    catch (e) {
+      if (e.code === 'GAME_OVER') finish();
+      else if (e.code === 'NO_HINTS') setHint('이번 출동은 단서를 쓸 수 없어요', 'bad', 2000);
+      else setHint('단서 오류: ' + e.message, 'bad', 2000);
+      return;
+    }
     var cost = r.penalty ? ' (−' + r.penalty + '초)' : ' (무료)';
     if (r.penalty) flashTimer();
     sfx.pick(0);
@@ -791,6 +811,16 @@
       out += item('자리를 비우면',
         '<p>앱을 꺼 두는 동안에도 팀은 일해요. 대신 <b>절반 속도</b>로, <b>' + (T.offlineCapSec / 3600) + '시간</b>까지만 세요.</p>' +
         (CS ? '<p>팀이 혼자 잡을 수 있는 건 사건마다 정해져 있어요(사건 ' + CS.no + '은 ' + CS.idleCap.toLocaleString('ko-KR') + '명). 남은 <b>주범 조</b>는 현장 출동으로만 잡아요.</p>' : ''));
+    }
+    var EC = window.Team3Economy;
+    if (EC && I) {
+      out += item('준비물 · 특별 출동 · 계급',
+        '<p><b>출동 준비물</b>은 다음 출동 한 번에 챙겨 가는 소모품이에요. 출동 전이면 다시 눌러 무를 수 있어요. 값은 최근 출동 점수와 팀 수입에 맞춰 바뀌어요.</p>' +
+        '<p><b>지원</b>: 팀 회식은 30분 동안 팀이 2배로 일하고, 야간 잠복조는 다음 자리 비움을 8시간까지 세요.</p>' +
+        '<p><b>메달</b>: 출동 점수 ' + EC.MEDALS.map(function (m) { return m.name + ' ' + m.at.toLocaleString('ko-KR'); }).join(' · ') + '을 처음 넘으면 보상을 받아요.</p>' +
+        '<p><b>오늘의 특별 출동</b>은 날마다 규칙이 바뀌어요. 준비물·장비 없이 실력으로 해요. 메달을 따면 하루 한 번 보상, 배지로 한 번 더 도전할 수 있어요.</p>' +
+        '<p><b>계급</b>은 현장에서 직접 잡은 수로 올라요(' + I.RANKS.map(function (r) { return r.name; }).join(' → ') + '). 한 계급마다 수사비 +' + Math.round(I.RANK_BONUS * 100) + '%.</p>' +
+        '<p><b>배지 ◆</b>는 승진·메달·특별 출동으로 모아요. 수사비가 모자랄 때 상품을 사거나 특별 출동에 다시 도전할 때 써요.</p>');
     }
     out += item('수사 일지 · 설정 · 백업',
       '<p>사건이 고비를 넘을 때마다 <b>수사 일지</b>가 열려요. 사무실의 수사 일지 보기에서 다시 읽을 수 있어요.</p>' +

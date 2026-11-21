@@ -226,6 +226,28 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .set-code:focus{outline:none;border-color:var(--acc)}
 .ghost.danger{color:var(--miss);border-color:rgba(255,122,89,.45)}
 .ghost.armed{background:var(--miss);color:var(--ink);border-color:var(--miss)}
+/* ===== 0.1.19: 배지 · 준비물 · 특별 출동 · 메달 ===== */
+.gem-chip{display:inline-flex;align-items:center;margin-left:10px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:#9FD8FF;font-size:13px;font-weight:700;vertical-align:middle;font-variant-numeric:tabular-nums}
+.prep{display:flex;flex-direction:column;gap:8px}
+.prep-head{display:flex;justify-content:space-between;align-items:center}
+.medals{display:flex;gap:4px;font-size:11px;font-weight:700}
+.medals i{font-style:normal;padding:2px 7px;border-radius:999px;background:var(--panel);color:var(--muted)}
+.medals i.on.b{background:#8A5A2B;color:#FFE3C4}.medals i.on.s{background:#6F7B8A;color:#F1F5FA}.medals i.on.g{background:#B8901C;color:#1C212B}
+.prep-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 7px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel);min-width:0}
+.chip svg{color:var(--muted)}
+.chip b{font-size:11px;font-weight:700;line-height:1.15;text-align:center;word-break:keep-all}
+.chip small{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip.on{border-color:var(--acc);background:rgba(255,210,63,.12)}
+.chip.on svg,.chip.on small{color:var(--acc)}
+.chip.poor{opacity:.55}
+.daily{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,#232937,#2B2340);border:1px solid #3A3150}
+.daily-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.daily-tx b{font-size:16px}
+.daily-tx small{font-size:12px;color:var(--muted);line-height:1.4}
+.daily-goal{color:#C9B8FF !important}
+.daily.done{opacity:.8}
+.res-medal{display:flex;gap:8px;align-items:center;font-weight:700}
 /* ===== 도움말(0.1.18): 톱니바퀴 왼쪽 ? 단추. 항목을 눌러 펼친다 ===== */
 .icon-pair{display:flex;align-items:center;flex:none}
 .help-d{border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
@@ -336,7 +358,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
           <span class="leader" id="h-leader">신임 팀장 · 이름 정하기</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
         </button>
-        <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span>
+        <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span><span class="gem-chip" id="h-gems" title="배지">◆ 0</span>
         <!-- 팀 속도 줄과 검거 소식이 같은 자리에서 번갈아 보인다(높이 고정이라 아래 칸이 움직이지 않는다) -->
         <span class="rate-line">
           <span class="rate" id="h-rate-wrap"><span id="h-rate">팀 1분에 1명</span><span class="buff" id="h-buff" hidden>사기 충전 ×2</span></span>
@@ -356,10 +378,22 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       <button class="linkish" id="h-story-all">수사 일지 보기</button>
     </div>
 
+    <!-- 출동 준비물(0.1.19): 다음 출동 한 번에 챙겨 가는 소모품. 누르면 챙기고, 챙긴 걸 누르면 무른다 -->
+    <div class="prep">
+      <div class="prep-head"><span class="section-t" style="margin:0">출동 준비물</span><span class="medals" id="h-medals"></span></div>
+      <div class="prep-row" id="h-prep"></div>
+    </div>
+
     <button class="go-btn" id="h-go">
       <b>현장 출동</b>
       <small id="h-go-sub">90초 · 잡은 만큼 수사비</small>
     </button>
+
+    <!-- 하루 한 번 특별 출동(0.1.19): 날마다 규칙이 바뀐다. 준비물·장비 없이 실력으로 -->
+    <div class="daily" id="h-daily">
+      <div class="daily-tx"><span class="label">오늘의 특별 출동</span><b id="h-daily-name">60초 속공</b><small id="h-daily-desc"></small><small class="daily-goal" id="h-daily-goal"></small></div>
+      <button class="buy" id="h-daily-go">도전</button>
+    </div>
 
     <span class="section-t">3팀</span>
     <div class="shop">
@@ -378,6 +412,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
     <span class="section-t">출동 장비</span>
     <div class="shop" id="h-gear"></div>
+
+    <span class="section-t">지원</span>
+    <div class="shop" id="h-support"></div>
 
     <!-- 튜토리얼·처음부터 단추는 0.1.18 부터 설정 창(톱니바퀴)으로 옮겼다 -->
     <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
@@ -572,6 +609,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 </script>
 <script>
 /*IDLE*/
+</script>
+<script>
+/*ECONOMY*/
 </script>
 <script>
 /*TRANSIT*/

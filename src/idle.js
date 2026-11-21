@@ -29,8 +29,26 @@
     offlineCapSec: 4 * 3600, // 0.1.6: 자리를 비운(앱을 끈) 시간은 4시간까지만 센다(8 → 4)
     offlineRate: 0.5,        // 0.1.6: 자리를 비운 동안 팀은 절반 속도로 일한다(켜 두면 100%)
     hireBase: 300, hireGrowth: 2.1,     // 0.1.6: 1.55 → 2.1(형사가 끝없이 늘어 검거 간격이 0초 가까이 되지 않게)
-    trainBase: 600, trainGrowth: 2.7, trainMax: 10   // 0.1.6: 2 → 2.7
+    trainBase: 600, trainGrowth: 2.7, trainMax: 10,  // 0.1.6: 2 → 2.7
+    // 0.1.19 지원 상품
+    partySec: 30 * 60,       // 팀 회식: 30분 동안 팀이 buffMult 배(사기 충전과 겹쳐도 2배 — 곱하지 않는다)
+    nightCapSec: 8 * 3600,   // 야간 잠복조: 다음 자리 비움 한 번의 한도 4 → 8시간
+    nightMinSec: 10 * 60     // 이보다 짧게 비운 건 '자리 비움'으로 치지 않아 야간 잠복조를 쓰지 않는다
   };
+
+  /*
+   * 계급(0.1.19). 플레이어는 처음부터 3팀 팀장이라 경위에서 시작한다.
+   *   직접 출동해서 잡은 수(runCaught)로 오르고, 한 계단마다 수사비(팀·출동 모두) +5%.
+   *   gems: 처음 그 계급에 오를 때 받는 배지(유료 재화와 같은 것을 무료로 조금씩 준다)
+   */
+  var RANKS = [
+    { name: '경위', at: 0, gems: 0 },
+    { name: '경감', at: 150, gems: 10 },
+    { name: '경정', at: 500, gems: 20 },
+    { name: '총경', at: 1500, gems: 30 },
+    { name: '경무관', at: 4000, gems: 50 }
+  ];
+  var RANK_BONUS = 0.05;
 
   // 출동을 돕는 장비. lvMax 까지 살 수 있고 단계마다 값이 다르다.
   var GEAR = {
@@ -106,7 +124,17 @@
       closed: false, closedAt: 0,
       tutorialDone: false,
       storySeen: 0,        // 수사 일지에서 읽은 편 수(새 편이 열리면 "수사 일지 보기"에 NEW)
-      profile: { station: PROFILE.defaultStation, leader: PROFILE.defaultLeader }
+      profile: { station: PROFILE.defaultStation, leader: PROFILE.defaultLeader },
+      // ---- 0.1.19 ----
+      gems: 0,             // 배지: 유료 재화. 지금은 계급·메달·특별 출동으로만 조금씩 얻는다
+      rankSeen: 0,         // 승진 연출을 보여 준 계급(이보다 높아지면 사무실에서 승진 창)
+      partyUntil: 0,       // 팀 회식이 끝나는 시각
+      nightWatch: false,   // 야간 잠복조를 사 뒀는가(다음 자리 비움에 한 번 쓰임)
+      medals: { b: false, s: false, g: false },   // 출동 점수 메달(처음 달성 보상은 한 번만)
+      recent: [],          // 최근 출동 점수(최대 5개) — 상품 값의 기준
+      prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
+      prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
+      daily: { day: '', done: false, best: 0, tries: 0 }   // 오늘의 특별 출동
     };
   }
 
@@ -155,8 +183,58 @@
       station: cleanName(pf.station, PROFILE.stationMax, PROFILE.defaultStation),
       leader: cleanName(pf.leader, PROFILE.leaderMax, PROFILE.defaultLeader)
     };
+    // ---- 0.1.19 (예전 저장에는 없으므로 기본값으로 채운다) ----
+    s.gems = int(data.gems, 0, 0, 1e9);
+    // 예전 저장(0.1.18 까지)은 0 부터: 이미 잡아 둔 만큼의 승진을 업데이트 뒤 사무실에서 한꺼번에 받는다
+    s.rankSeen = int(data.rankSeen, 0, 0, RANKS.length - 1);
+    s.partyUntil = num(data.partyUntil, 0, 0);
+    s.nightWatch = data.nightWatch === true;
+    var md = data.medals && typeof data.medals === 'object' ? data.medals : {};
+    s.medals = { b: md.b === true, s: md.s === true, g: md.g === true };
+    s.recent = Array.isArray(data.recent) ? data.recent.filter(function (x) { return typeof x === 'number' && isFinite(x) && x >= 0; }).map(Math.floor).slice(-5) : [];
+    var pr = data.prep && typeof data.prep === 'object' ? data.prep : {};
+    s.prep = {};
+    Object.keys(pr).forEach(function (k) { if (pr[k] === true && /^[a-z]{2,12}$/.test(k)) s.prep[k] = true; });
+    // 준비물에 낸 값(무를 때 돌려줄 값). 챙긴 준비물 것만, 돈 종류와 양수만 남긴다
+    var pp = data.prepPaid && typeof data.prepPaid === 'object' ? data.prepPaid : {};
+    s.prepPaid = {};
+    Object.keys(s.prep).forEach(function (k) {
+      var v = pp[k];
+      if (v && (v.w === 'money' || v.w === 'gems') && typeof v.c === 'number' && isFinite(v.c) && v.c > 0) s.prepPaid[k] = { w: v.w, c: Math.floor(v.c) };
+    });
+    var dl = data.daily && typeof data.daily === 'object' ? data.daily : {};
+    s.daily = {
+      day: typeof dl.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dl.day) ? dl.day : '',
+      done: dl.done === true, best: int(dl.best, 0, 0), tries: int(dl.tries, 0, 0, 99)
+    };
     return { save: s, reset: false };
   }
+
+  /* ---------- 계급(0.1.19) ---------- */
+  function rankIndex(save) {
+    var i = 0;
+    for (var k = 1; k < RANKS.length; k++) if (save.runCaught >= RANKS[k].at) i = k;
+    return i;
+  }
+  function rankOf(save) {
+    var i = rankIndex(save), next = RANKS[i + 1] || null;
+    return { index: i, name: RANKS[i].name, bonus: i * RANK_BONUS, next: next, toNext: next ? next.at - save.runCaught : 0 };
+  }
+  /*
+   * 아직 보여 주지 않은 승진이 있으면 그 계급들을 돌려주고 배지를 지급한다(한 번만).
+   * 반환: [{ name, gems }] (없으면 빈 배열)
+   */
+  function claimPromotions(save) {
+    var i = rankIndex(save), out = [];
+    while (save.rankSeen < i) {
+      save.rankSeen += 1;
+      var r = RANKS[save.rankSeen];
+      save.gems += r.gems;
+      out.push({ name: r.name, gems: r.gems });
+    }
+    return out;
+  }
+  function moneyMult(save) { return 1 + rankIndex(save) * RANK_BONUS; }
 
   function serialize(save) { return JSON.stringify(save); }
 
@@ -166,9 +244,11 @@
     return save.detectives * (1 / TUNE.catchSec) * (1 + TUNE.trainSpeed * save.training);
   }
   function payPerCatch(save) {
-    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training));
+    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training) * moneyMult(save));
   }
-  function buffed(save, now) { return save.buffUntil > now; }
+  // 팀이 2배로 일하는 끝 시각: 출동 뒤 사기 충전과 팀 회식 중 늦은 쪽(둘이 겹쳐도 곱하지 않는다)
+  function boostUntil(save) { return Math.max(save.buffUntil || 0, save.partyUntil || 0); }
+  function buffed(save, now) { return boostUntil(save) > now; }
 
   /*
    * 다음 검거까지 남은 초(1.4). 잡다 만 몫(frac)이 1 이 되는 데 걸리는 시간.
@@ -178,7 +258,7 @@
   function nextCatch(save, now) {
     var need = 1 - save.frac, base = teamRate(save);
     if (!(base > 0)) return { sec: Infinity, frac: save.frac };
-    var buffLeft = Math.max(0, (save.buffUntil - now) / 1000), fast = base * TUNE.buffMult;
+    var buffLeft = Math.max(0, (boostUntil(save) - now) / 1000), fast = base * TUNE.buffMult;
     var sec = need <= fast * buffLeft ? need / fast : buffLeft + (need - fast * buffLeft) / base;
     return { sec: sec, frac: save.frac };
   }
@@ -206,9 +286,12 @@
     var dt = (now - save.lastSeen) / 1000;
     save.lastSeen = now;
     if (!(dt > 0)) return { seconds: 0, catches: 0, money: 0, closedNow: false };
-    dt = Math.min(dt, TUNE.offlineCapSec);
+    // 야간 잠복조(0.1.19): 자리 비움이 nightMinSec 보다 길면 이번 한 번 한도를 늘리고 다 쓴 것으로 친다
+    var cap = TUNE.offlineCapSec, night = false;
+    if (offline && save.nightWatch && dt >= TUNE.nightMinSec) { cap = TUNE.nightCapSec; save.nightWatch = false; night = true; }
+    dt = Math.min(dt, cap);
     var start = now - dt * 1000;
-    var buffSec = Math.max(0, Math.min(save.buffUntil, now) - start) / 1000;
+    var buffSec = Math.max(0, Math.min(boostUntil(save), now) - start) / 1000;
     buffSec = Math.min(buffSec, dt);
     var effSec = ((dt - buffSec) + buffSec * TUNE.buffMult) * (offline ? TUNE.offlineRate : 1);
     var total = save.frac + teamRate(save) * effSec;
@@ -221,7 +304,7 @@
     var counted = Math.min(whole, room);
     save.caught += counted;
     save.teamCaught += whole;
-    return { seconds: dt, offline: offline, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
+    return { seconds: dt, offline: offline, night: night, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 사기 ---------- */
@@ -266,14 +349,18 @@
     if (!result || typeof result !== 'object') throw IdleError('BAD_RESULT', '출동 결과가 없다');
     var score = int(result.score, -1, -1), hits = int(result.hits, -1, -1);
     if (score < 0 || hits < 0) throw IdleError('BAD_RESULT', '점수·검거 수는 0 이상 정수');
-    save.money += score;
+    // 0.1.19: 수사비 = 점수 × 계급 배수 × (준비물 "언론 브리핑"이면 payMult). 점수 기록(최고·최근)은 점수 그대로
+    var payMult = typeof result.payMult === 'number' && result.payMult >= 1 && result.payMult <= 3 ? result.payMult : 1;
+    var pay = Math.round(score * moneyMult(save) * payMult);
+    save.money += pay;
+    save.recent = save.recent.concat([score]).slice(-5);
     save.caught += hits;
     save.runCaught += hits;
     save.runs += 1;
     var best = score > save.bestScore;
     if (best) save.bestScore = score;
     save.buffUntil = now + TUNE.buffSec * 1000;
-    return { money: score, caught: hits, best: best, closedNow: checkClose(save, now) };
+    return { money: pay, caught: hits, best: best, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 프로필 ---------- */
@@ -315,6 +402,7 @@
 
   return {
     VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, CASE: CASE, PROFILE: PROFILE,
+    RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
     cleanName: cleanName, setProfile: setProfile,
     newSave: newSave, load: load, serialize: serialize,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,

@@ -154,7 +154,7 @@ with sync_playwright() as p:
         pg.click('#h-profile'); pg.clock.run_for(100)
         pg.fill('#pf-station', '강남서'); pg.fill('#pf-leader', '<i>김형사</i>'); pg.press('#pf-leader', 'Enter'); pg.clock.run_for(100)
         if pg.text_content('#h-station') != '강남서 · 수사 3팀': problems.append('경찰서 이름이 안 바뀜: ' + pg.text_content('#h-station'))
-        if pg.text_content('#h-leader') != '팀장 i김형사/i': problems.append('팀장 이름이 이상함: ' + pg.text_content('#h-leader'))
+        if pg.text_content('#h-leader') != '경위 · 팀장 i김형사/i': problems.append('팀장 이름이 이상함: ' + pg.text_content('#h-leader'))   # 0.1.19: 계급이 앞에 붙는다
         if pg.locator('#h-leader i').count(): problems.append('이름 속 HTML 이 그대로 그려짐')
         pg.screenshot(path=SHOT + 'profile.png')
         # 출동 → 결과

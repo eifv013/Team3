@@ -414,3 +414,49 @@ test('3가지 단계 판에서 한 패가 없는 경우는 드물다', () => {
   console.log(`  3단계 조합 없는 판 비율: ${(none / 50).toFixed(2)}%`);
   assert.ok(none / 5000 < 0.05);
 });
+
+/* ---------- 0.1.19: 판마다 바꾸는 규칙(mods) ---------- */
+function setBoard() {
+  const s = [C.encode([0,0,0,0]), C.encode([1,1,1,1]), C.encode([2,2,2,2])];
+  return [s[0], 10, s[1], 20, 30, s[2], 40, 50, 60];
+}
+function modGame(mods, board = setBoard()) {
+  const g = C.createGame({ rng: C.makeRng(1), now: 0, level: 4, mods });
+  g.board = board.slice();
+  return g;
+}
+
+test('mods: 점수 배수·검거 시간·연속 상한이 판에만 적용된다', () => {
+  const g = modGame({ scoreMult: 2, hitTime: 0, comboMax: 5 });
+  const end0 = g.endAt;
+  const r = C.submit(g, [0, 2, 5], 1000);
+  assert.ok(r.ok);
+  assert.strictEqual(r.gain, C.RULES.base * 2);
+  assert.strictEqual(g.endAt, end0, '검거해도 시간이 안 는다');
+  assert.strictEqual(C.multiplierFor(20, 5), 5);
+  assert.strictEqual(C.multiplier(20), C.RULES.comboMax, '평소 배수는 그대로');
+});
+
+test('mods: 변호사 대기(shield)는 오인 벌점을 정해진 횟수만 면제한다', () => {
+  const g = modGame({ shield: 1 });
+  const end0 = g.endAt;
+  const r1 = C.submit(g, [1, 3, 4], 1000);
+  assert.ok(!r1.ok && r1.shielded && r1.penalty === 0);
+  assert.strictEqual(g.endAt, end0);
+  const r2 = C.submit(g, [1, 3, 4], 2000);
+  assert.ok(!r2.shielded && r2.penalty === C.RULES.missPenalty);
+  assert.strictEqual(g.shieldUsed, 1);
+});
+
+test('mods: 단서 금지 판에서 단서를 누르면 NO_HINTS', () => {
+  const g = modGame({ noHints: true });
+  assert.throws(() => C.hint(g, 1000), (e) => e.code === 'NO_HINTS');
+});
+
+test('mods: 이상한 값은 판을 만들 때 BAD_OPTION, 모르는 키는 버린다', () => {
+  for (const m of [{ scoreMult: 0 }, { scoreMult: 'x' }, { comboMax: 0.5 }, { hitTime: -1 }, { missPenalty: 99 }, { shield: 1.5 }]) {
+    assert.throws(() => C.createGame({ rng: C.makeRng(1), now: 0, mods: m }), (e) => e.code === 'BAD_OPTION', JSON.stringify(m));
+  }
+  const g = C.createGame({ rng: C.makeRng(1), now: 0, mods: { 이상한: 1 } });
+  assert.deepStrictEqual(Object.keys(g.mods).sort(), Object.keys(C.MOD_DEFAULTS).sort());
+});

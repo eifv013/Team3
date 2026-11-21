@@ -226,6 +226,28 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .set-code:focus{outline:none;border-color:var(--acc)}
 .ghost.danger{color:var(--miss);border-color:rgba(255,122,89,.45)}
 .ghost.armed{background:var(--miss);color:var(--ink);border-color:var(--miss)}
+/* ===== 0.1.19: 배지 · 준비물 · 특별 출동 · 메달 ===== */
+.gem-chip{display:inline-flex;align-items:center;margin-left:10px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:#9FD8FF;font-size:13px;font-weight:700;vertical-align:middle;font-variant-numeric:tabular-nums}
+.prep{display:flex;flex-direction:column;gap:8px}
+.prep-head{display:flex;justify-content:space-between;align-items:center}
+.medals{display:flex;gap:4px;font-size:11px;font-weight:700}
+.medals i{font-style:normal;padding:2px 7px;border-radius:999px;background:var(--panel);color:var(--muted)}
+.medals i.on.b{background:#8A5A2B;color:#FFE3C4}.medals i.on.s{background:#6F7B8A;color:#F1F5FA}.medals i.on.g{background:#B8901C;color:#1C212B}
+.prep-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.chip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px 7px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel);min-width:0}
+.chip svg{color:var(--muted)}
+.chip b{font-size:11px;font-weight:700;line-height:1.15;text-align:center;word-break:keep-all}
+.chip small{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip.on{border-color:var(--acc);background:rgba(255,210,63,.12)}
+.chip.on svg,.chip.on small{color:var(--acc)}
+.chip.poor{opacity:.55}
+.daily{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,#232937,#2B2340);border:1px solid #3A3150}
+.daily-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.daily-tx b{font-size:16px}
+.daily-tx small{font-size:12px;color:var(--muted);line-height:1.4}
+.daily-goal{color:#C9B8FF !important}
+.daily.done{opacity:.8}
+.res-medal{display:flex;gap:8px;align-items:center;font-weight:700}
 /* ===== 도움말(0.1.18): 톱니바퀴 왼쪽 ? 단추. 항목을 눌러 펼친다 ===== */
 .icon-pair{display:flex;align-items:center;flex:none}
 .help-d{border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
@@ -336,7 +358,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
           <span class="leader" id="h-leader">신임 팀장 · 이름 정하기</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
         </button>
-        <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span>
+        <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span><span class="gem-chip" id="h-gems" title="배지">◆ 0</span>
         <!-- 팀 속도 줄과 검거 소식이 같은 자리에서 번갈아 보인다(높이 고정이라 아래 칸이 움직이지 않는다) -->
         <span class="rate-line">
           <span class="rate" id="h-rate-wrap"><span id="h-rate">팀 1분에 1명</span><span class="buff" id="h-buff" hidden>사기 충전 ×2</span></span>
@@ -356,10 +378,22 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       <button class="linkish" id="h-story-all">수사 일지 보기</button>
     </div>
 
+    <!-- 출동 준비물(0.1.19): 다음 출동 한 번에 챙겨 가는 소모품. 누르면 챙기고, 챙긴 걸 누르면 무른다 -->
+    <div class="prep">
+      <div class="prep-head"><span class="section-t" style="margin:0">출동 준비물</span><span class="medals" id="h-medals"></span></div>
+      <div class="prep-row" id="h-prep"></div>
+    </div>
+
     <button class="go-btn" id="h-go">
       <b>현장 출동</b>
       <small id="h-go-sub">90초 · 잡은 만큼 수사비</small>
     </button>
+
+    <!-- 하루 한 번 특별 출동(0.1.19): 날마다 규칙이 바뀐다. 준비물·장비 없이 실력으로 -->
+    <div class="daily" id="h-daily">
+      <div class="daily-tx"><span class="label">오늘의 특별 출동</span><b id="h-daily-name">60초 속공</b><small id="h-daily-desc"></small><small class="daily-goal" id="h-daily-goal"></small></div>
+      <button class="buy" id="h-daily-go">도전</button>
+    </div>
 
     <span class="section-t">3팀</span>
     <div class="shop">
@@ -378,6 +412,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
     <span class="section-t">출동 장비</span>
     <div class="shop" id="h-gear"></div>
+
+    <span class="section-t">지원</span>
+    <div class="shop" id="h-support"></div>
 
     <!-- 튜토리얼·처음부터 단추는 0.1.18 부터 설정 창(톱니바퀴)으로 옮겼다 -->
     <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
@@ -573,6 +610,15 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.19', date: '2026-11-22', title: '계급 · 메달 · 특별 출동 · 준비물',
+      items: [
+        '계급이 생겼어요. 경위에서 시작해서 현장에서 직접 잡은 수로 경감, 경정, 총경, 경무관까지 올라요. 한 계급마다 수사비 +5%예요.',
+        '출동 점수 메달(동·은·금)이 생겼어요. 처음 넘으면 보상을 받아요.',
+        '오늘의 특별 출동이 생겼어요. 날마다 규칙이 바뀌고, 메달을 따면 하루 한 번 보상을 받아요.',
+        '출동 준비물 다섯 가지(커피·제보 전화·몽타주·변호사·언론 브리핑)를 다음 출동에 챙겨 갈 수 있어요.',
+        '지원에 팀 회식(30분 2배)과 야간 잠복조(다음 자리 비움 8시간)가 생겼어요.',
+        '배지 ◆가 생겼어요. 승진·메달·특별 출동으로 모으고, 수사비가 모자랄 때나 특별 출동을 다시 할 때 써요.'
+      ] },
     { ver: '0.1.18', date: '2026-11-22', title: '설정 창과 도움말',
       items: [
         '스피커 단추가 톱니바퀴로 바뀌었어요. 누르면 설정 창이 열려요.',
@@ -991,9 +1037,35 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
   /* ---------- 게임 ---------- */
   // 연속 검거 n 번째의 점수 배수: 1, 1.5, 2, 2.5, 3, 3, ...
-  function multiplier(combo) {
+  // 연속 검거 배수(평소 규칙). 판의 상한이 다르면 multiplierFor 를 쓴다
+  //   (인자를 하나만 받는다: [..].map(multiplier) 처럼 써도 두 번째 인자가 끼어들지 않게)
+  function multiplier(combo) { return multiplierFor(combo, RULES.comboMax); }
+  function multiplierFor(combo, max) {
     if (combo < 1) return 1;
-    return Math.min(RULES.comboMax, 1 + RULES.comboStep * (combo - 1));
+    return Math.min(max == null ? RULES.comboMax : max, 1 + RULES.comboStep * (combo - 1));
+  }
+
+  /*
+   * 판마다 바꿀 수 있는 규칙(0.1.19: 하루 한 번 특별 출동 · 출동 준비물).
+   *   scoreMult  점수 배수(기본 1)          comboMax  연속 배수 상한(기본 RULES.comboMax)
+   *   hitTime    검거 때 늘어나는 초          missPenalty 오인 체포 때 줄어드는 초
+   *   noneMult   검거 불가 적중 점수 배수      noHints   단서 못 씀
+   *   shield     오인 체포 벌점을 면제하는 횟수(준비물 "변호사 대기")
+   * 모르는 키는 버리고, 값이 이상하면 BAD_OPTION 을 던진다(판을 만들 때 한 번만 검사).
+   */
+  var MOD_DEFAULTS = { scoreMult: 1, comboMax: null, hitTime: null, missPenalty: null, noneMult: 1, noHints: false, shield: 0 };
+  function readMods(m) {
+    m = m && typeof m === 'object' ? m : {};
+    var out = {};
+    Object.keys(MOD_DEFAULTS).forEach(function (k) { out[k] = m[k] == null ? MOD_DEFAULTS[k] : m[k]; });
+    var num = function (v, min, max) { return typeof v === 'number' && isFinite(v) && v >= min && v <= max; };
+    if (!num(out.scoreMult, 0.1, 10) || !num(out.noneMult, 0.1, 10)) throw GameError('BAD_OPTION', '점수 배수는 0.1~10');
+    if (out.comboMax != null && !num(out.comboMax, 1, 20)) throw GameError('BAD_OPTION', '연속 배수 상한은 1~20');
+    if (out.hitTime != null && !num(out.hitTime, 0, 30)) throw GameError('BAD_OPTION', '검거 시간은 0~30초');
+    if (out.missPenalty != null && !num(out.missPenalty, 0, 60)) throw GameError('BAD_OPTION', '오인 벌점은 0~60초');
+    if (!num(out.shield, 0, 10) || Math.floor(out.shield) !== out.shield) throw GameError('BAD_OPTION', '면제 횟수는 0~10 정수');
+    out.noHints = out.noHints === true;
+    return out;
   }
 
   function assertNow(now) {
@@ -1007,6 +1079,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
    *   level               — 시작 단계 1~4, 기본 1. 노말은 4.
    *   freeHints           — 시간이 줄지 않는 단서 횟수(장비 "베테랑 형사")
    *   nonePenalty(초)     — 검거 불가 오판 벌점(장비 "증거 보관실"이 줄인다)
+   *   mods                — 판마다 바꾸는 규칙(readMods 참고). 없으면 평소 규칙
    * 남은 시간은 "종료 시각(endAt)"으로 들고 있다. 매 프레임 깎지 않아도 되고, 탭을 떠나도 정확하다.
    */
   function createGame(opts) {
@@ -1020,7 +1093,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var freeHints = opts.freeHints == null ? 0 : opts.freeHints;
     var nonePenalty = opts.nonePenalty == null ? RULES.wrongNonePenalty : opts.nonePenalty;
     if (!(freeHints >= 0) || !(nonePenalty >= 0)) throw GameError('BAD_OPTION', '단서·벌점 값은 0 이상');
+    var mods = readMods(opts.mods);
     return {
+      mods: mods, shield: mods.shield, shieldUsed: 0,
       rng: opts.rng,
       level: level,
       startLevel: level,
@@ -1073,7 +1148,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   function addCombo(state) {
     state.combo += 1;
     if (state.combo > state.bestCombo) state.bestCombo = state.combo;
-    return multiplier(state.combo);
+    return multiplierFor(state.combo, state.mods ? state.mods.comboMax : null);
   }
 
   // 누적 검거 수로 다음 단계를 정한다(올라가기만 한다)
@@ -1102,10 +1177,11 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var a = state.board[idxs[0]], b = state.board[idxs[1]], c = state.board[idxs[2]];
     if (isSet(a, b, c, act)) {
       var mult = addCombo(state);
-      var gain = Math.round(RULES.base * mult);
+      var md = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.base * mult * md.scoreMult);
       state.score += gain;
       state.hits += 1;
-      state.endAt += RULES.hitTime * 1000;
+      state.endAt += (md.hitTime == null ? RULES.hitTime : md.hitTime) * 1000;
       state.clue = null;
       var next = levelForHits(state.startLevel, state.hits);
       if (next !== state.level) {
@@ -1119,9 +1195,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     }
     state.combo = 0;
     state.misses += 1;
-    state.endAt -= RULES.missPenalty * 1000;
+    // 변호사 대기(준비물): 남은 면제 횟수가 있으면 시간을 깎지 않는다(연속은 끊긴다)
+    var md2 = state.mods || MOD_DEFAULTS, pen = md2.missPenalty == null ? RULES.missPenalty : md2.missPenalty, shielded = false;
+    if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
+    state.endAt -= pen * 1000;
     tick(state, now);
-    return { ok: false, reasons: explain(a, b, c, act), penalty: RULES.missPenalty };
+    return { ok: false, reasons: explain(a, b, c, act), penalty: pen, shielded: shielded };
   }
 
   /*
@@ -1133,7 +1212,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var sets = findSets(state.board, active(state));
     if (sets.length === 0) {
       var mult = addCombo(state);
-      var gain = Math.round(RULES.noneBonus * mult);
+      var mdn = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.noneBonus * mult * mdn.scoreMult * mdn.noneMult);
       state.score += gain;
       state.noneHits += 1;
       state.endAt += RULES.noneTime * 1000;
@@ -1167,6 +1247,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
    */
   function hint(state, now) {
     guard(state, now, '단서를 볼');
+    if (state.mods && state.mods.noHints) throw GameError('NO_HINTS', '이 출동은 단서를 쓸 수 없다');
     if (!state.clue) {
       var sets = findSets(state.board, active(state));
       if (sets.length === 0) return { none: true, penalty: chargeHint(state, now) };
@@ -1239,7 +1320,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     isSet: isSet, explain: explain, thirdCard: thirdCard, needs: needs, findSets: findSets,
     makeRng: makeRng, drawDistinct: drawDistinct, newBoard: newBoard, refill: refill,
     dealBoard: dealBoard, refillBoard: refillBoard,
-    multiplier: multiplier, createGame: createGame, active: active, timeLeft: timeLeft, tick: tick,
+    multiplier: multiplier, multiplierFor: multiplierFor, readMods: readMods, MOD_DEFAULTS: MOD_DEFAULTS, createGame: createGame, active: active, timeLeft: timeLeft, tick: tick,
     pause: pause, resume: resume, submit: submit, declareNone: declareNone, hint: hint,
     makeLesson: makeLesson
   };
@@ -1278,8 +1359,26 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     offlineCapSec: 4 * 3600, // 0.1.6: 자리를 비운(앱을 끈) 시간은 4시간까지만 센다(8 → 4)
     offlineRate: 0.5,        // 0.1.6: 자리를 비운 동안 팀은 절반 속도로 일한다(켜 두면 100%)
     hireBase: 300, hireGrowth: 2.1,     // 0.1.6: 1.55 → 2.1(형사가 끝없이 늘어 검거 간격이 0초 가까이 되지 않게)
-    trainBase: 600, trainGrowth: 2.7, trainMax: 10   // 0.1.6: 2 → 2.7
+    trainBase: 600, trainGrowth: 2.7, trainMax: 10,  // 0.1.6: 2 → 2.7
+    // 0.1.19 지원 상품
+    partySec: 30 * 60,       // 팀 회식: 30분 동안 팀이 buffMult 배(사기 충전과 겹쳐도 2배 — 곱하지 않는다)
+    nightCapSec: 8 * 3600,   // 야간 잠복조: 다음 자리 비움 한 번의 한도 4 → 8시간
+    nightMinSec: 10 * 60     // 이보다 짧게 비운 건 '자리 비움'으로 치지 않아 야간 잠복조를 쓰지 않는다
   };
+
+  /*
+   * 계급(0.1.19). 플레이어는 처음부터 3팀 팀장이라 경위에서 시작한다.
+   *   직접 출동해서 잡은 수(runCaught)로 오르고, 한 계단마다 수사비(팀·출동 모두) +5%.
+   *   gems: 처음 그 계급에 오를 때 받는 배지(유료 재화와 같은 것을 무료로 조금씩 준다)
+   */
+  var RANKS = [
+    { name: '경위', at: 0, gems: 0 },
+    { name: '경감', at: 150, gems: 10 },
+    { name: '경정', at: 500, gems: 20 },
+    { name: '총경', at: 1500, gems: 30 },
+    { name: '경무관', at: 4000, gems: 50 }
+  ];
+  var RANK_BONUS = 0.05;
 
   // 출동을 돕는 장비. lvMax 까지 살 수 있고 단계마다 값이 다르다.
   var GEAR = {
@@ -1355,7 +1454,17 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       closed: false, closedAt: 0,
       tutorialDone: false,
       storySeen: 0,        // 수사 일지에서 읽은 편 수(새 편이 열리면 "수사 일지 보기"에 NEW)
-      profile: { station: PROFILE.defaultStation, leader: PROFILE.defaultLeader }
+      profile: { station: PROFILE.defaultStation, leader: PROFILE.defaultLeader },
+      // ---- 0.1.19 ----
+      gems: 0,             // 배지: 유료 재화. 지금은 계급·메달·특별 출동으로만 조금씩 얻는다
+      rankSeen: 0,         // 승진 연출을 보여 준 계급(이보다 높아지면 사무실에서 승진 창)
+      partyUntil: 0,       // 팀 회식이 끝나는 시각
+      nightWatch: false,   // 야간 잠복조를 사 뒀는가(다음 자리 비움에 한 번 쓰임)
+      medals: { b: false, s: false, g: false },   // 출동 점수 메달(처음 달성 보상은 한 번만)
+      recent: [],          // 최근 출동 점수(최대 5개) — 상품 값의 기준
+      prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
+      prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
+      daily: { day: '', done: false, best: 0, tries: 0 }   // 오늘의 특별 출동
     };
   }
 
@@ -1404,8 +1513,58 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       station: cleanName(pf.station, PROFILE.stationMax, PROFILE.defaultStation),
       leader: cleanName(pf.leader, PROFILE.leaderMax, PROFILE.defaultLeader)
     };
+    // ---- 0.1.19 (예전 저장에는 없으므로 기본값으로 채운다) ----
+    s.gems = int(data.gems, 0, 0, 1e9);
+    // 예전 저장(0.1.18 까지)은 0 부터: 이미 잡아 둔 만큼의 승진을 업데이트 뒤 사무실에서 한꺼번에 받는다
+    s.rankSeen = int(data.rankSeen, 0, 0, RANKS.length - 1);
+    s.partyUntil = num(data.partyUntil, 0, 0);
+    s.nightWatch = data.nightWatch === true;
+    var md = data.medals && typeof data.medals === 'object' ? data.medals : {};
+    s.medals = { b: md.b === true, s: md.s === true, g: md.g === true };
+    s.recent = Array.isArray(data.recent) ? data.recent.filter(function (x) { return typeof x === 'number' && isFinite(x) && x >= 0; }).map(Math.floor).slice(-5) : [];
+    var pr = data.prep && typeof data.prep === 'object' ? data.prep : {};
+    s.prep = {};
+    Object.keys(pr).forEach(function (k) { if (pr[k] === true && /^[a-z]{2,12}$/.test(k)) s.prep[k] = true; });
+    // 준비물에 낸 값(무를 때 돌려줄 값). 챙긴 준비물 것만, 돈 종류와 양수만 남긴다
+    var pp = data.prepPaid && typeof data.prepPaid === 'object' ? data.prepPaid : {};
+    s.prepPaid = {};
+    Object.keys(s.prep).forEach(function (k) {
+      var v = pp[k];
+      if (v && (v.w === 'money' || v.w === 'gems') && typeof v.c === 'number' && isFinite(v.c) && v.c > 0) s.prepPaid[k] = { w: v.w, c: Math.floor(v.c) };
+    });
+    var dl = data.daily && typeof data.daily === 'object' ? data.daily : {};
+    s.daily = {
+      day: typeof dl.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dl.day) ? dl.day : '',
+      done: dl.done === true, best: int(dl.best, 0, 0), tries: int(dl.tries, 0, 0, 99)
+    };
     return { save: s, reset: false };
   }
+
+  /* ---------- 계급(0.1.19) ---------- */
+  function rankIndex(save) {
+    var i = 0;
+    for (var k = 1; k < RANKS.length; k++) if (save.runCaught >= RANKS[k].at) i = k;
+    return i;
+  }
+  function rankOf(save) {
+    var i = rankIndex(save), next = RANKS[i + 1] || null;
+    return { index: i, name: RANKS[i].name, bonus: i * RANK_BONUS, next: next, toNext: next ? next.at - save.runCaught : 0 };
+  }
+  /*
+   * 아직 보여 주지 않은 승진이 있으면 그 계급들을 돌려주고 배지를 지급한다(한 번만).
+   * 반환: [{ name, gems }] (없으면 빈 배열)
+   */
+  function claimPromotions(save) {
+    var i = rankIndex(save), out = [];
+    while (save.rankSeen < i) {
+      save.rankSeen += 1;
+      var r = RANKS[save.rankSeen];
+      save.gems += r.gems;
+      out.push({ name: r.name, gems: r.gems });
+    }
+    return out;
+  }
+  function moneyMult(save) { return 1 + rankIndex(save) * RANK_BONUS; }
 
   function serialize(save) { return JSON.stringify(save); }
 
@@ -1415,9 +1574,11 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     return save.detectives * (1 / TUNE.catchSec) * (1 + TUNE.trainSpeed * save.training);
   }
   function payPerCatch(save) {
-    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training));
+    return Math.round(TUNE.catchPay * (1 + TUNE.trainPay * save.training) * moneyMult(save));
   }
-  function buffed(save, now) { return save.buffUntil > now; }
+  // 팀이 2배로 일하는 끝 시각: 출동 뒤 사기 충전과 팀 회식 중 늦은 쪽(둘이 겹쳐도 곱하지 않는다)
+  function boostUntil(save) { return Math.max(save.buffUntil || 0, save.partyUntil || 0); }
+  function buffed(save, now) { return boostUntil(save) > now; }
 
   /*
    * 다음 검거까지 남은 초(1.4). 잡다 만 몫(frac)이 1 이 되는 데 걸리는 시간.
@@ -1427,7 +1588,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   function nextCatch(save, now) {
     var need = 1 - save.frac, base = teamRate(save);
     if (!(base > 0)) return { sec: Infinity, frac: save.frac };
-    var buffLeft = Math.max(0, (save.buffUntil - now) / 1000), fast = base * TUNE.buffMult;
+    var buffLeft = Math.max(0, (boostUntil(save) - now) / 1000), fast = base * TUNE.buffMult;
     var sec = need <= fast * buffLeft ? need / fast : buffLeft + (need - fast * buffLeft) / base;
     return { sec: sec, frac: save.frac };
   }
@@ -1455,9 +1616,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var dt = (now - save.lastSeen) / 1000;
     save.lastSeen = now;
     if (!(dt > 0)) return { seconds: 0, catches: 0, money: 0, closedNow: false };
-    dt = Math.min(dt, TUNE.offlineCapSec);
+    // 야간 잠복조(0.1.19): 자리 비움이 nightMinSec 보다 길면 이번 한 번 한도를 늘리고 다 쓴 것으로 친다
+    var cap = TUNE.offlineCapSec, night = false;
+    if (offline && save.nightWatch && dt >= TUNE.nightMinSec) { cap = TUNE.nightCapSec; save.nightWatch = false; night = true; }
+    dt = Math.min(dt, cap);
     var start = now - dt * 1000;
-    var buffSec = Math.max(0, Math.min(save.buffUntil, now) - start) / 1000;
+    var buffSec = Math.max(0, Math.min(boostUntil(save), now) - start) / 1000;
     buffSec = Math.min(buffSec, dt);
     var effSec = ((dt - buffSec) + buffSec * TUNE.buffMult) * (offline ? TUNE.offlineRate : 1);
     var total = save.frac + teamRate(save) * effSec;
@@ -1470,7 +1634,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var counted = Math.min(whole, room);
     save.caught += counted;
     save.teamCaught += whole;
-    return { seconds: dt, offline: offline, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
+    return { seconds: dt, offline: offline, night: night, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 사기 ---------- */
@@ -1515,14 +1679,18 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (!result || typeof result !== 'object') throw IdleError('BAD_RESULT', '출동 결과가 없다');
     var score = int(result.score, -1, -1), hits = int(result.hits, -1, -1);
     if (score < 0 || hits < 0) throw IdleError('BAD_RESULT', '점수·검거 수는 0 이상 정수');
-    save.money += score;
+    // 0.1.19: 수사비 = 점수 × 계급 배수 × (준비물 "언론 브리핑"이면 payMult). 점수 기록(최고·최근)은 점수 그대로
+    var payMult = typeof result.payMult === 'number' && result.payMult >= 1 && result.payMult <= 3 ? result.payMult : 1;
+    var pay = Math.round(score * moneyMult(save) * payMult);
+    save.money += pay;
+    save.recent = save.recent.concat([score]).slice(-5);
     save.caught += hits;
     save.runCaught += hits;
     save.runs += 1;
     var best = score > save.bestScore;
     if (best) save.bestScore = score;
     save.buffUntil = now + TUNE.buffSec * 1000;
-    return { money: score, caught: hits, best: best, closedNow: checkClose(save, now) };
+    return { money: pay, caught: hits, best: best, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 프로필 ---------- */
@@ -1564,11 +1732,266 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
   return {
     VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, CASE: CASE, PROFILE: PROFILE,
+    RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
     cleanName: cleanName, setProfile: setProfile,
     newSave: newSave, load: load, serialize: serialize,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
     idleCapped: idleCapped, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
+  };
+});
+
+</script>
+<script>
+/*
+ * Team3Economy(0.1.19) — 수사비를 계속 쓰게 하는 소모품, 출동 메달, 하루 한 번 특별 출동, 배지(유료 재화).
+ *
+ * 구조
+ *   SuspectsIdle(방치 층)의 저장(save)을 그대로 받아 바꾼다. 팀 속도·계급 배수 같은 계산은 idle 에 맡긴다.
+ *   DOM·시계·저장소를 모른다(now 와 날짜 키는 밖에서 받는다) → node 시험에서 그대로 돈다.
+ *
+ * 상품(ITEMS)
+ *   prep  : 다음 출동 한 번에 챙겨 가는 준비물. 종류마다 한 개씩, 출동을 시작하면 다 쓴다. 출동 전이면 무르기(전액 환불) 가능.
+ *   boost : 바로 효과가 나는 지원(팀 회식 · 야간 잠복조).
+ *   price : 어떤 돈으로 살 수 있는지와 값. 지금은 money(수사비)와 gems(배지).
+ *           나중에 광고(ad)·결제(iap)를 붙일 때도 이 표에 "살 수 있는 방법"만 더하면 된다(게임 구조는 그대로).
+ *
+ * 값의 기준(baseValue)
+ *   출동 한 판이 팀 수백 분치를 벌기 때문에, "팀 N분치"만으로 값을 매기면 너무 싸진다.
+ *   기준값 = max(최근 출동 5번 평균 점수, 팀 10분 수입, 최소 300). 실력과 팀이 클수록 값도 커진다.
+ *
+ * 원칙: 돈(수사비·배지)으로는 시간과 편의를 산다. 퍼즐 실력(메달·특별 출동 기록)은 살 수 없다.
+ *   그래서 준비물은 특별 출동에 가져갈 수 없고, 메달은 평소 출동에서만 센다.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./idle.js'));
+  else root.Team3Economy = factory(root.SuspectsIdle);
+})(typeof self !== 'undefined' ? self : this, function (I) {
+  'use strict';
+
+  function EcoError(code, message) { var e = new Error(message); e.name = 'EcoError'; e.code = code; return e; }
+
+  /* ---------- 상품 ---------- */
+  // money: 기준값 × base 와 팀 teamMin 분치 중 큰 값. gems: 배지 값(정수)
+  var ITEMS = [
+    { id: 'coffee', kind: 'prep', name: '커피 한 잔', desc: '출동 시간 +15초', price: { base: 0.3, gems: 2 } },
+    { id: 'tip', kind: 'prep', name: '제보 전화', desc: '출동을 시작할 때 한 패 하나를 미리 표시', price: { base: 0.5, gems: 3 } },
+    { id: 'sketch', kind: 'prep', name: '몽타주 전문가', desc: '무료 단서 +2번', price: { base: 0.5, gems: 3 } },
+    { id: 'lawyer', kind: 'prep', name: '변호사 대기', desc: '오인 체포 벌점 2번 면제', price: { base: 0.6, gems: 4 } },
+    { id: 'press', kind: 'prep', name: '언론 브리핑', desc: '이번 출동 수사비 1.5배', price: { base: 1.0, gems: 6 } },
+    { id: 'party', kind: 'boost', name: '팀 회식', desc: '30분 동안 팀이 2배로 일해요', price: { base: 0.4, teamMin: 20, gems: 8 } },
+    { id: 'night', kind: 'boost', name: '야간 잠복조', desc: '다음에 자리를 비울 때 한도 4시간 → 8시간', price: { base: 0.5, teamMin: 30, gems: 6 } }
+  ];
+  var BY_ID = {};
+  ITEMS.forEach(function (it) { BY_ID[it.id] = it; });
+  var PREP_IDS = ITEMS.filter(function (it) { return it.kind === 'prep'; }).map(function (it) { return it.id; });
+
+  var MIN_BASE = 300;
+
+  function baseValue(save) {
+    var r = save.recent || [], avg = 0;
+    if (r.length) avg = r.reduce(function (a, b) { return a + b; }, 0) / r.length;
+    var team10 = I.teamRate(save) * 600 * I.payPerCatch(save);
+    return Math.max(MIN_BASE, Math.round(avg), Math.round(team10));
+  }
+
+  // 사람이 읽기 좋은 값으로: 앞 두 자리만 남기고 내린다(1,234 → 1,200 · 56,789 → 56,000)
+  function roundNice(n) {
+    n = Math.max(1, Math.round(n));
+    var p = Math.pow(10, Math.max(0, String(n).length - 2));
+    return Math.floor(n / p) * p;
+  }
+
+  /** 상품 값. currency = 'money' | 'gems'. 그 돈으로 살 수 없으면 null */
+  function price(save, id, currency) {
+    var it = BY_ID[id];
+    if (!it) throw EcoError('BAD_ITEM', '모르는 상품: ' + id);
+    currency = currency || 'money';
+    if (currency === 'gems') return typeof it.price.gems === 'number' ? it.price.gems : null;
+    if (currency !== 'money') return null;   // 'ad' · 'iap' 는 아직 없다
+    var v = baseValue(save) * (it.price.base || 0);
+    if (it.price.teamMin) v = Math.max(v, I.teamRate(save) * 60 * it.price.teamMin * I.payPerCatch(save));
+    return roundNice(v);
+  }
+
+  function owned(save, id, now) {
+    var it = BY_ID[id];
+    if (!it) return false;
+    if (it.kind === 'prep') return !!(save.prep && save.prep[id]);
+    if (id === 'party') return (save.partyUntil || 0) > now;
+    if (id === 'night') return !!save.nightWatch;
+    return false;
+  }
+
+  /**
+   * 사기. 반환 { id, currency, paid }.
+   *   준비물·야간 잠복조는 이미 있으면 ALREADY. 팀 회식은 진행 중이면 30분을 처음부터 다시(남은 시간에 더하지 않는다).
+   */
+  function buy(save, id, now, currency) {
+    if (typeof now !== 'number' || !isFinite(now)) throw EcoError('BAD_TIME', 'now 는 밀리초');
+    var it = BY_ID[id];
+    if (!it) throw EcoError('BAD_ITEM', '모르는 상품: ' + id);
+    currency = currency || 'money';
+    var c = price(save, id, currency);
+    if (c == null) throw EcoError('NO_CURRENCY', '그 돈으로는 살 수 없다: ' + currency);
+    if (it.kind === 'prep' || id === 'night') { if (owned(save, id, now)) throw EcoError('ALREADY', '이미 있다: ' + id); }
+    var wallet = currency === 'gems' ? 'gems' : 'money';
+    if (save[wallet] < c) throw EcoError('NOT_ENOUGH', currency === 'gems' ? '배지가 모자란다' : '수사비가 모자란다');
+    save[wallet] -= c;
+    if (it.kind === 'prep') { save.prep[id] = true; savePaid(save, id, wallet, c); }
+    else if (id === 'party') save.partyUntil = now + I.TUNE.partySec * 1000;
+    else if (id === 'night') save.nightWatch = true;
+    return { id: id, currency: wallet, paid: c };
+  }
+  // 준비물은 출동 전이면 무를 수 있어야 해서, 낸 값을 따로 적어 둔다(저장 형식은 prep: {id:true} 그대로 두고 옆에 둔다)
+  function savePaid(save, id, wallet, c) {
+    if (!save.prepPaid || typeof save.prepPaid !== 'object') save.prepPaid = {};
+    save.prepPaid[id] = { w: wallet, c: c };
+  }
+  /** 준비물 무르기(출동 전). 낸 값을 그대로 돌려준다. 반환 { refunded, currency } */
+  function unprep(save, id) {
+    if (!save.prep || !save.prep[id]) throw EcoError('NOT_OWNED', '챙긴 준비물이 아니다: ' + id);
+    var p = save.prepPaid && save.prepPaid[id];
+    delete save.prep[id];
+    if (save.prepPaid) delete save.prepPaid[id];
+    if (p && (p.w === 'money' || p.w === 'gems') && typeof p.c === 'number' && p.c > 0) { save[p.w] += p.c; return { refunded: p.c, currency: p.w }; }
+    return { refunded: 0, currency: 'money' };
+  }
+
+  /**
+   * 출동을 시작할 때 챙긴 준비물을 쓰고, 판에 줄 설정을 돌려준다.
+   *   base: I.runOptions(save) 결과에 더해 { duration, freeHints, mods:{shield}, tip, payMult, used:[id] }
+   */
+  function consumePrep(save, base) {
+    var o = {};
+    Object.keys(base || {}).forEach(function (k) { o[k] = base[k]; });
+    o.mods = o.mods || {};
+    o.used = [];
+    o.payMult = 1;
+    PREP_IDS.forEach(function (id) {
+      if (!save.prep || !save.prep[id]) return;
+      o.used.push(id);
+      if (id === 'coffee') o.duration = (o.duration || 90) + 15;
+      else if (id === 'tip') o.tip = true;
+      else if (id === 'sketch') o.freeHints = (o.freeHints || 0) + 2;
+      else if (id === 'lawyer') o.mods.shield = 2;
+      else if (id === 'press') o.payMult = 1.5;
+    });
+    save.prep = {};
+    save.prepPaid = {};
+    return o;
+  }
+
+  /* ---------- 메달(평소 출동 점수) ---------- */
+  var MEDALS = [
+    { key: 'b', name: '동', at: 3000, base: 1, gems: 5 },
+    { key: 's', name: '은', at: 6000, base: 2, gems: 10 },
+    { key: 'g', name: '금', at: 12000, base: 4, gems: 20 }
+  ];
+  function medalFor(score, table) {
+    var got = null;
+    (table || MEDALS).forEach(function (m) { if (score >= m.at) got = m; });
+    return got;
+  }
+  /**
+   * 평소 출동 점수로 처음 단 메달을 지급한다. 보상 기준값은 이 판을 넣기 전 값(출동 전 save.recent 기준)으로 잰다.
+   * 반환: [{ name, money, gems }]
+   */
+  function claimMedals(save, score, baseBefore) {
+    var out = [];
+    MEDALS.forEach(function (m) {
+      if (score >= m.at && !save.medals[m.key]) {
+        save.medals[m.key] = true;
+        var money = roundNice(baseBefore * m.base);
+        save.money += money; save.gems += m.gems;
+        out.push({ name: m.name, money: money, gems: m.gems });
+      }
+    });
+    return out;
+  }
+
+  /* ---------- 하루 한 번 특별 출동 ---------- */
+  /*
+   * 날마다 하나(기기 날짜 기준, 자정에 바뀜). 일곱 가지가 차례로 돈다(같은 날엔 누구나 같은 규칙).
+   *   config: 판 설정(단계·시간) / mods: core 의 판별 규칙 / medals: 이 규칙의 동·은·금 점수
+   *   준비물·장비는 쓰지 않는다(실력 겨루기). 보상: 받은 메달 등급 × 기준값 + 배지(하루 한 번).
+   */
+  var DAILY = [
+    { id: 'blitz', name: '60초 속공', desc: '60초 · 처음부터 네 가지를 다 봐요', config: { duration: 60, level: 4 }, mods: {}, medals: [1500, 3000, 5500] },
+    { id: 'bare', name: '맨손 수사', desc: '단서를 쓸 수 없어요 · 점수 2배', config: { duration: 90, level: 1 }, mods: { noHints: true, scoreMult: 2 }, medals: [6000, 11000, 20000] },
+    { id: 'chain', name: '연쇄 검거', desc: '연속 검거 배수가 5배까지 올라요', config: { duration: 90, level: 1 }, mods: { comboMax: 5 }, medals: [4000, 8000, 16000] },
+    { id: 'strict', name: '엄격한 서장', desc: '오인 체포 벌점 −10초 · 점수 1.5배', config: { duration: 90, level: 1 }, mods: { missPenalty: 10, scoreMult: 1.5 }, medals: [4000, 8000, 15000] },
+    { id: 'clock', name: '마감 수사', desc: '120초 · 검거해도 시간이 늘지 않아요', config: { duration: 120, level: 1 }, mods: { hitTime: 0 }, medals: [3000, 6000, 11000] },
+    { id: 'void', name: '빈 골목', desc: '처음부터 네 가지 · 검거 불가 점수 3배', config: { duration: 90, level: 4 }, mods: { noneMult: 3 }, medals: [3000, 6000, 11000] },
+    { id: 'calm', name: '차분한 밤', desc: '150초 · 오인 체포 벌점 없음 · 점수 0.7배', config: { duration: 150, level: 1 }, mods: { missPenalty: 0, scoreMult: 0.7 }, medals: [3000, 6000, 11000] }
+  ];
+  var DAILY_GEMS = [1, 2, 3];   // 동·은·금 배지
+  var DAILY_BASE = [1, 2, 3];   // 동·은·금 × 기준값
+  var RETRY_GEMS = 5;           // 오늘 보상을 받은 뒤 배지로 한 번 더 도전(성공하면 보상도 다시 받는다)
+
+  // 'YYYY-MM-DD' → 그날의 규칙(1970-01-01 부터 센 날 수로 돌린다)
+  function dayIndex(day) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day || '');
+    if (!m) throw EcoError('BAD_DAY', '날짜 형식은 YYYY-MM-DD');
+    return Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000);
+  }
+  function dailyRule(day) {
+    var n = dayIndex(day), i = ((n % DAILY.length) + DAILY.length) % DAILY.length;
+    return DAILY[i];
+  }
+  /** 기기 시계 → 'YYYY-MM-DD'(그 기기의 지역 날짜). tzOffsetMin 은 Date#getTimezoneOffset() 값(한국 = −540) */
+  function dayKey(now, tzOffsetMin) {
+    var d = new Date(now - (tzOffsetMin || 0) * 60000);
+    var p = function (x) { return (x < 10 ? '0' : '') + x; };
+    return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate());
+  }
+  /** 오늘 상태. 날짜가 바뀌었으면 새날로 맞춘다. 반환 { day, rule, done, best, tries, canPlay, retryGems } */
+  function dailyStatus(save, day) {
+    if (save.daily.day !== day) save.daily = { day: day, done: false, best: 0, tries: 0 };
+    var rule = dailyRule(day);
+    return { day: day, rule: rule, done: save.daily.done, best: save.daily.best, tries: save.daily.tries,
+             canPlay: !save.daily.done, retryGems: RETRY_GEMS };
+  }
+  /**
+   * 특별 출동을 시작한다. 오늘 이미 보상을 받았으면 배지 RETRY_GEMS 개로 한 번 더(보상도 다시 받는다).
+   * 반환: 판 설정 { duration, level, freeHints:0, nonePenalty, mods, daily:true, ruleId }
+   */
+  function startDaily(save, day, useGems) {
+    var st = dailyStatus(save, day);
+    if (st.done) {
+      if (!useGems) throw EcoError('DAILY_DONE', '오늘 특별 출동은 끝났다');
+      if (save.gems < RETRY_GEMS) throw EcoError('NOT_ENOUGH', '배지가 모자란다');
+      save.gems -= RETRY_GEMS;
+      save.daily.done = false;
+    }
+    save.daily.tries += 1;
+    var r = st.rule;
+    var mods = {};
+    Object.keys(r.mods).forEach(function (k) { mods[k] = r.mods[k]; });
+    return { duration: r.config.duration, level: r.config.level, freeHints: 0, nonePenalty: 10, mods: mods, daily: true, ruleId: r.id };
+  }
+  /**
+   * 특별 출동 결과. 메달이 있으면 보상을 주고 오늘을 끝낸다(동 미만이면 다시 할 수 있다).
+   * 반환: { medal: '동'|'은'|'금'|null, money, gems, best }
+   */
+  function applyDaily(save, day, score, baseBefore) {
+    var st = dailyStatus(save, day);
+    score = Math.max(0, Math.floor(+score || 0));
+    if (score > save.daily.best) save.daily.best = score;
+    var tier = -1;
+    st.rule.medals.forEach(function (at, i) { if (score >= at) tier = i; });
+    if (tier < 0) return { medal: null, money: 0, gems: 0, best: save.daily.best };
+    var money = roundNice(baseBefore * DAILY_BASE[tier]), gems = DAILY_GEMS[tier];
+    save.money += money; save.gems += gems;
+    save.daily.done = true;
+    return { medal: ['동', '은', '금'][tier], money: money, gems: gems, best: save.daily.best };
+  }
+
+  return {
+    ITEMS: ITEMS, PREP_IDS: PREP_IDS, MEDALS: MEDALS, DAILY: DAILY, RETRY_GEMS: RETRY_GEMS,
+    baseValue: baseValue, roundNice: roundNice, price: price, owned: owned, buy: buy, unprep: unprep, consumePrep: consumePrep,
+    medalFor: medalFor, claimMedals: claimMedals,
+    dayKey: dayKey, dailyRule: dailyRule, dailyStatus: dailyStatus, startDaily: startDaily, applyDaily: applyDaily
   };
 });
 
@@ -2741,7 +3164,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   function updateHud() {
     $('score').textContent = game.score.toLocaleString('ko-KR');
     var combo = $('combo');
-    combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ' · ×' + C.multiplier(game.combo) : '연속 ' + game.combo;
+    combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ' · ×' + C.multiplierFor(game.combo, game.mods && game.mods.comboMax) : '연속 ' + game.combo;
     combo.classList.toggle('live', game.combo > 1);
     var lv = $('level'), next = C.RULES.levelAt[game.level + 1];
     lv.textContent = LEVEL_NAME[game.level] + (game.level < 4 && next != null ? ' · 다음까지 ' + Math.max(0, next - game.hits) + '명' : '');
@@ -2784,7 +3207,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     audio();   // 첫 탭에서 소리를 깨운다(브라우저 정책)
     cfg = config || defaultConfig();
     try {
-      game = C.createGame({ rng: Math.random, now: now(), duration: cfg.duration, level: cfg.level, freeHints: cfg.freeHints, nonePenalty: cfg.nonePenalty });
+      // mods(0.1.19): 특별 출동 규칙 · 준비물 "변호사 대기"(shield)
+      game = C.createGame({ rng: Math.random, now: now(), duration: cfg.duration, level: cfg.level, freeHints: cfg.freeHints, nonePenalty: cfg.nonePenalty, mods: cfg.mods });
     } catch (e) {
       toast('판을 만들지 못했어요: ' + e.message);
       return;
@@ -2796,9 +3220,22 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     st.innerHTML = '';
     show('s-play');
     setHint(game.level < 4 ? '먼저 모자만 보세요. 셋 다 같거나, 셋 다 다르면 한 패' : '한 패인 세 명을 고르세요', game.level < 4 ? 'good' : '', game.level < 4 ? 4000 : 0);
+    // 준비물 "제보 전화"(0.1.19): 첫 판의 한 패 하나를 단서처럼 미리 표시한다(판이 바뀌면 사라진다)
+    if (cfg.tip) {
+      try {
+        var first = C.findSets(game.board, C.active(game));
+        if (first.length) game.clue = { set: first[0], shown: 3 };
+      } catch (e) { /* 표시 못 해도 출동은 그대로 */ }
+    }
+    // 단서를 못 쓰는 특별 출동이면 돋보기 단추를 잠근다
+    var noHints = !!(game.mods && game.mods.noHints);
+    $('btn-hint').disabled = noHints;
+    $('btn-hint').style.opacity = noHints ? '.35' : '';
     renderBoard(game.board.map(function (_, i) { return i; }));
+    markPicks();
     updateHud();
-    popStamp('출동!', cfg.duration + '초 · 한 패를 찾아라');
+    popStamp(cfg.daily ? '특별 출동!' : '출동!', cfg.daily && cfg.ruleName ? cfg.ruleName + ' · ' + cfg.duration + '초' : cfg.duration + '초 · 한 패를 찾아라');
+    if (cfg.used && cfg.used.length) setHint('준비물: ' + cfg.used.join(' · '), 'good', 3000);
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
   }
@@ -2838,7 +3275,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       picked.forEach(function (i) { cards[i].classList.add('hit'); });
       sfx.hit(r.combo); buzz([12, 40, 20]);
       popStamp('검거!', '+' + r.gain + (r.combo > 1 ? '  ·  연속 ' + r.combo : ''));
-      setHint('+' + C.RULES.hitTime + '초', 'good', 900);
+      var ht = game.mods && game.mods.hitTime != null ? game.mods.hitTime : C.RULES.hitTime;
+      setHint(ht ? '+' + ht + '초' : '시간은 그대로', 'good', 900);
       updateHud(); bumpCombo();
       setTimeout(function () {
         sel = []; lock = false;
@@ -2856,7 +3294,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       picked.forEach(function (i) { cards[i].classList.add('miss'); });
       sfx.miss(); buzz(120);
       var why = r.reasons.map(function (x) { return x.name + ': ' + x.value + ' 두 명만 같아요'; }).join(' · ');
-      setHint(why + '  (−' + r.penalty + '초)', 'bad', 2600);
+      setHint(r.shielded ? why + '  (변호사가 막았어요 · 벌점 없음, 남은 면제 ' + game.shield + '번)' : why + '  (−' + r.penalty + '초)', 'bad', 2600);
       flashTimer(); updateHud();
       setTimeout(function () {
         sel = []; lock = false;
@@ -2897,7 +3335,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (!game || game.over || lock || sheetOpen()) return;
     var r;
     try { r = C.hint(game, now()); }
-    catch (e) { if (e.code === 'GAME_OVER') finish(); else setHint('단서 오류: ' + e.message, 'bad', 2000); return; }
+    catch (e) {
+      if (e.code === 'GAME_OVER') finish();
+      else if (e.code === 'NO_HINTS') setHint('이번 출동은 단서를 쓸 수 없어요', 'bad', 2000);
+      else setHint('단서 오류: ' + e.message, 'bad', 2000);
+      return;
+    }
     var cost = r.penalty ? ' (−' + r.penalty + '초)' : ' (무료)';
     if (r.penalty) flashTimer();
     sfx.pick(0);
@@ -3166,6 +3609,16 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
         '<p>앱을 꺼 두는 동안에도 팀은 일해요. 대신 <b>절반 속도</b>로, <b>' + (T.offlineCapSec / 3600) + '시간</b>까지만 세요.</p>' +
         (CS ? '<p>팀이 혼자 잡을 수 있는 건 사건마다 정해져 있어요(사건 ' + CS.no + '은 ' + CS.idleCap.toLocaleString('ko-KR') + '명). 남은 <b>주범 조</b>는 현장 출동으로만 잡아요.</p>' : ''));
     }
+    var EC = window.Team3Economy;
+    if (EC && I) {
+      out += item('준비물 · 특별 출동 · 계급',
+        '<p><b>출동 준비물</b>은 다음 출동 한 번에 챙겨 가는 소모품이에요. 출동 전이면 다시 눌러 무를 수 있어요. 값은 최근 출동 점수와 팀 수입에 맞춰 바뀌어요.</p>' +
+        '<p><b>지원</b>: 팀 회식은 30분 동안 팀이 2배로 일하고, 야간 잠복조는 다음 자리 비움을 8시간까지 세요.</p>' +
+        '<p><b>메달</b>: 출동 점수 ' + EC.MEDALS.map(function (m) { return m.name + ' ' + m.at.toLocaleString('ko-KR'); }).join(' · ') + '을 처음 넘으면 보상을 받아요.</p>' +
+        '<p><b>오늘의 특별 출동</b>은 날마다 규칙이 바뀌어요. 준비물·장비 없이 실력으로 해요. 메달을 따면 하루 한 번 보상, 배지로 한 번 더 도전할 수 있어요.</p>' +
+        '<p><b>계급</b>은 현장에서 직접 잡은 수로 올라요(' + I.RANKS.map(function (r) { return r.name; }).join(' → ') + '). 한 계급마다 수사비 +' + Math.round(I.RANK_BONUS * 100) + '%.</p>' +
+        '<p><b>배지 ◆</b>는 승진·메달·특별 출동으로 모아요. 수사비가 모자랄 때 상품을 사거나 특별 출동에 다시 도전할 때 써요.</p>');
+    }
     out += item('수사 일지 · 설정 · 백업',
       '<p>사건이 고비를 넘을 때마다 <b>수사 일지</b>가 열려요. 사무실의 수사 일지 보기에서 다시 읽을 수 있어요.</p>' +
       '<p>톱니바퀴(<b>설정</b>)에서 음악·효과음 크기와 진동을 바꿔요. 사무실에서 열면 튜토리얼 다시 하기, 백업, 초기화도 있어요.</p>' +
@@ -3392,7 +3845,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
  */
 (function () {
   'use strict';
-  var UI = window.SuspectsUI, I = window.SuspectsIdle;
+  var UI = window.SuspectsUI, I = window.SuspectsIdle, E = window.Team3Economy;   // E: 상품·메달·특별 출동(0.1.19)
   if (!UI || !I) return;
   var $ = function (id) { return document.getElementById(id); };
   var nowMs = function () { return Date.now(); };
@@ -3491,15 +3944,20 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     $('h-station').textContent = save.profile.station + ' · 수사 3팀';
     var ld = $('h-leader');
     // 이름을 안 정했으면 "신임 팀장"(이번에 3팀을 맡은 사람). 사건 1 이야기와 이어진다.
-    ld.textContent = save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기';
+    var rk = I.rankOf(save).name;   // 계급(0.1.19): 팀장은 경위부터
+    ld.textContent = rk + ' · ' + (save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기');
     ld.classList.toggle('empty', !save.profile.leader);
     $('h-money').textContent = '수사비 ' + fmtShort(save.money);
+    $('h-gems').textContent = '◆ ' + fmt(save.gems);
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
     // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
     $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(I.incomePerMin(save, t)) + '/분';
     var b = $('h-buff');
     b.hidden = !buff;
-    if (buff) b.textContent = '사기 충전 ×2 · ' + Math.ceil((save.buffUntil - t) / 1000) + '초';
+    if (buff) {
+      var left = Math.ceil((I.boostUntil(save) - t) / 1000);
+      b.textContent = ((save.partyUntil || 0) > t && save.partyUntil >= save.buffUntil ? '회식 ×2 · ' : '사기 충전 ×2 · ') + (left >= 60 ? Math.ceil(left / 60) + '분' : left + '초');
+    }
 
     var goal = I.CASE.goal;
     $('h-case').textContent = '사건 ' + I.CASE.no + ' · ' + I.CASE.title + (save.closed ? ' (종결)' : '');
@@ -3514,8 +3972,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     $('h-go').classList.toggle('urgent', capped);
     renderStoryButton();
 
-    var o = I.runOptions(save);
-    $('h-go-sub').textContent = o.duration + '초' + (o.freeHints ? ' · 무료 단서 ' + o.freeHints : '') + ' · 잡은 만큼 수사비';
+    var o = I.runOptions(save), pc = save.prep || {};
+    var dur = o.duration + (pc.coffee ? 15 : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
+    $('h-go-sub').textContent = dur + '초' + (fh ? ' · 무료 단서 ' + fh : '') + (pc.press ? ' · 수사비 1.5배' : ' · 잡은 만큼 수사비');
+    if (E) { renderPrep(t); renderDaily(t); renderSupport(t); }
 
     $('h-det').textContent = save.detectives;
     renderNext(t, false);
@@ -3530,6 +3990,76 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
         '<button class="buy' + (c == null ? ' max' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
         ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '배치 완료' : fmt(c)) + '</button></div>';
     }).join('');
+  }
+
+  /* ---------- 0.1.19: 준비물 · 특별 출동 · 지원 · 메달 ---------- */
+  var PREP_ICON = {
+    coffee: '<path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h2a2 2 0 0 1 0 4h-2M8 3v3M12 3v3"/>',
+    tip: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    sketch: '<circle cx="12" cy="9" r="4"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/><path d="M17 3l3 3"/>',
+    lawyer: '<path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',
+    press: '<rect x="4" y="9" width="7" height="6" rx="1"/><path d="M11 10l8-5v14l-8-5"/>',
+    party: '<path d="M8 3h8l-1 7a3 3 0 0 1-6 0zM12 13v7M8 21h8"/>',
+    night: '<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/>'
+  };
+  var SHORT = { coffee: '커피', tip: '제보 전화', sketch: '몽타주', lawyer: '변호사', press: '언론 브리핑' };
+  function icon(id) { return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (PREP_ICON[id] || '') + '</svg>'; }
+  function dayNow() { return E.dayKey(nowMs(), new Date().getTimezoneOffset()); }
+
+  function renderPrep(t) {
+    $('h-prep').innerHTML = E.PREP_IDS.map(function (id) {
+      var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], on = E.owned(save, id, t), c = E.price(save, id, 'money');
+      return '<button class="chip' + (on ? ' on' : '') + (!on && save.money < c ? ' poor' : '') + '" data-prep="' + id + '" aria-pressed="' + on + '" aria-label="' + it.name + ', ' + it.desc + (on ? ', 챙김(누르면 무르기)' : ', ' + fmt(c)) + '">' +
+        icon(id) + '<b>' + SHORT[id] + '</b><small>' + (on ? '챙김 ✓' : fmtShort(c)) + '</small></button>';
+    }).join('');
+    $('h-medals').innerHTML = E.MEDALS.map(function (m) {
+      return '<i class="' + m.key + (save.medals[m.key] ? ' on' : '') + '" title="' + m.name + ' 메달 ' + fmt(m.at) + '점">' + m.name + ' ' + fmtShort(m.at) + '</i>';
+    }).join('');
+  }
+  function renderDaily() {
+    var st = E.dailyStatus(save, dayNow()), r = st.rule, box = $('h-daily');
+    $('h-daily-name').textContent = r.name;
+    $('h-daily-desc').textContent = r.desc;
+    $('h-daily-goal').textContent = '동 ' + fmt(r.medals[0]) + ' · 은 ' + fmt(r.medals[1]) + ' · 금 ' + fmt(r.medals[2]) + (st.best ? ' · 오늘 최고 ' + fmt(st.best) : '');
+    box.classList.toggle('done', st.done);
+    var b = $('h-daily-go');
+    b.textContent = st.done ? '다시 ◆' + E.RETRY_GEMS : '도전';
+    b.disabled = st.done && save.gems < E.RETRY_GEMS;
+  }
+  function renderSupport(t) {
+    $('h-support').innerHTML = ['party', 'night'].map(function (id) {
+      var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], c = E.price(save, id, 'money'), on = E.owned(save, id, t);
+      var state = id === 'party' && on ? ' · 진행 중 ' + Math.ceil((save.partyUntil - t) / 60000) + '분' : id === 'night' && on ? ' · 대기 중' : '';
+      var lock = id === 'night' && on;
+      return '<div class="item"><div class="ic">' + icon(id) + '</div><div class="tx"><b>' + it.name + state + '</b><small>' + it.desc + '</small></div>' +
+        '<button class="buy" data-support="' + id + '"' + (lock || save.money < c ? ' disabled' : '') + '>' + (lock ? '준비됨' : fmtShort(c)) + '</button></div>';
+    }).join('');
+  }
+
+  /*
+   * 사기(0.1.19). 수사비가 있으면 바로 수사비로 산다. 모자라면 배지로 살지 묻는다(배지도 모자라면 알림).
+   */
+  function buyItem(id) {
+    var t = nowMs();
+    try {
+      E.buy(save, id, t, 'money');
+      done();
+    } catch (e) {
+      if (e.code !== 'NOT_ENOUGH') { UI.toast(e.code === 'ALREADY' ? '이미 챙겼어요' : '살 수 없어요: ' + e.message); return; }
+      var g = E.price(save, id, 'gems'), it = E.ITEMS.filter(function (x) { return x.id === id; })[0];
+      if (g == null || save.gems < g) { UI.toast('수사비가 모자라요'); return; }
+      openInfo({ label: '배지로 사기', title: it.name, body: p(it.desc) + p('<span class="muted">수사비가 모자라요. 배지 ◆' + g + '개로 살까요? (가진 배지 ◆' + fmt(save.gems) + ')</span>'),
+        ok: '◆' + g + '개로 사기', cancel: '취소',
+        onOk: function () { try { E.buy(save, id, nowMs(), 'gems'); done(); } catch (e2) { UI.toast('살 수 없어요: ' + e2.message); } } });
+    }
+    function done() { UI.sfx.coin(); UI.buzz(10); persist(); render(); }
+  }
+  function unprep(id) {
+    try {
+      var r = E.unprep(save, id);
+      UI.toast(SHORT[id] + ' 무르기 · ' + (r.currency === 'gems' ? '◆' + r.refunded : fmt(r.refunded)) + ' 돌려받음');
+      persist(); render();
+    } catch (e) { UI.toast('무를 수 없어요: ' + e.message); }
   }
 
   function setBuy(btn, c, word) {
@@ -3643,12 +4173,39 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
    *   전환이 끝날 때까지(dispatching) 다시 눌러도 무시한다. 전환이 없거나 실패해도 출동은 반드시 된다.
    */
   var dispatching = false;
+  var runCfg = null;   // 지금 출동의 설정(결과를 정리할 때 언론 브리핑 배수·특별 출동인지 본다)
   function startRunNow() {
     I.advance(save, nowMs());
     duringRun = { catches: 0, money: 0 };
     var opts = I.runOptions(save);
+    if (E) {
+      opts = E.consumePrep(save, opts);   // 챙긴 준비물을 이번 판에 쓰고 비운다
+      opts.used = opts.used.map(function (id) { return SHORT[id] || id; });
+      persist();
+    }
     opts.boss = I.idleCapped(save);   // 주범 조 출동이면 배경 음악을 boss 곡으로(ui.js show)
+    runCfg = opts;
     UI.startRun(opts);
+  }
+  // 하루 한 번 특별 출동: 준비물·장비 없이 그날 규칙으로. 오늘 보상을 받았으면 배지로 한 번 더
+  function goDaily() {
+    if (dispatching || !E) return;
+    var day = dayNow(), st = E.dailyStatus(save, day);
+    var begin = function (useGems) {
+      var cfg;
+      try { cfg = E.startDaily(save, day, useGems); } catch (e) { UI.toast(e.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '시작할 수 없어요: ' + e.message); return; }
+      cfg.ruleName = st.rule.name; cfg.day = day; cfg.boss = false;
+      persist();
+      dispatching = true;
+      var run = function () { I.advance(save, nowMs()); duringRun = { catches: 0, money: 0 }; runCfg = cfg; UI.startRun(cfg); };
+      var T = window.Team3Transit;
+      if (!T) { dispatching = false; run(); return; }
+      T.play('normal', run, { caseNo: I.CASE.no, caseTitle: '특별 출동 · ' + st.rule.name })
+        .then(function () { dispatching = false; }, function () { dispatching = false; });
+    };
+    if (!st.done) { begin(false); return; }
+    openInfo({ label: '특별 출동', title: '한 번 더 도전할까요?', body: p('오늘 보상은 이미 받았어요. 배지 ◆' + E.RETRY_GEMS + '개로 한 번 더 도전하면, 메달을 따면 보상을 다시 받아요.') + p('<span class="muted">가진 배지 ◆' + fmt(save.gems) + '</span>'),
+      ok: '◆' + E.RETRY_GEMS + '개로 도전', cancel: '취소', onOk: function () { begin(true); } });
   }
   function go() {
     if (dispatching) return;
@@ -3665,14 +4222,50 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   }
 
   // 출동이 끝나면 ui.js 가 부른다. 결과 화면에 들어갈 요약 HTML 을 돌려준다.
+  /*
+   * 출동 결과 정리(0.1.19):
+   *   수사비 = 점수 × 계급 배수 × 언론 브리핑. 메달은 평소 출동만(처음 달성 보상). 특별 출동은 그날 메달 보상.
+   *   보상의 기준값은 이 판을 넣기 전 값으로 잰다(이번 판 점수로 보상이 부풀지 않게).
+   */
   function onRunEnd(g) {
     addRun(I.advance(save, nowMs()));
-    var r = I.applyRun(save, { score: g.score, hits: g.hits }, nowMs());
+    var cfg = runCfg || {}, base = E ? E.baseValue(save) : 0, best0 = save.bestScore, extra = '';
+    runCfg = null;
+    var r = I.applyRun(save, { score: g.score, hits: g.hits, payMult: cfg.payMult || 1 }, nowMs());
+    if (E && cfg.daily) {
+      var d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
+      extra += d.medal
+        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달 · 수사비 +' + fmt(d.money) + ' · ◆' + d.gems + '</span>'
+        : '<span class="muted">특별 출동: 동 메달(' + fmt(E.dailyRule(cfg.day || dayNow()).medals[0]) + '점)부터 보상이에요. 오늘 다시 도전할 수 있어요.</span>';
+    } else if (E) {
+      E.claimMedals(save, g.score, base).forEach(function (m) {
+        extra += '<span class="res-medal">첫 ' + m.name + ' 메달! 수사비 +' + fmt(m.money) + ' · ◆' + m.gems + '</span>';
+      });
+      if (g.score > best0 && best0 > 0) extra += '<span style="color:var(--acc);font-weight:700">최고 점수 경신! (전 기록 ' + fmt(best0) + ')</span>';
+    }
     persist();
     if (r.closedNow) pendingClose = true;
-    return '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b> · 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, I.CASE.goal)) + ' / ' + I.CASE.goal + ')</span>' +
+    var rk = I.rankOf(save);
+    return '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ' · 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, I.CASE.goal)) + ' / ' + I.CASE.goal + ')</span>' +
+      extra +
       '<span class="muted">팀 사기 충전: ' + (I.TUNE.buffSec / 60) + '분 동안 팀이 2배로 일해요</span>' +
+      (rk.next ? '<span class="muted">' + rk.next.name + ' 승진까지 출동 검거 ' + fmt(rk.toNext) + '명</span>' : '') +
       (r.closedNow ? '<span style="color:var(--acc);font-weight:700">사건 종결! 사무실에서 확인하세요</span>' : '');
+  }
+
+  // 승진(0.1.19): 사무실로 돌아올 때 아직 못 보여 준 승진을 한 창에 모아 보여 주고 배지를 준다
+  function showPromotions() {
+    var got = I.claimPromotions(save);
+    if (!got.length) return false;
+    persist(); render();
+    var last = got[got.length - 1], gems = got.reduce(function (a, x) { return a + x.gems; }, 0);
+    UI.sfx.none(); UI.buzz([30, 60, 30]);
+    openInfo({ label: '승진', title: last.name + '(으)로 승진했어요',
+      body: p('현장에서 직접 잡은 용의자가 ' + fmt(save.runCaught) + '명이 되었어요.') +
+        p('수사비가 <b>+' + Math.round(I.rankOf(save).bonus * 100) + '%</b> 늘어요(팀·출동 모두). 승진 축하 배지 ◆' + gems + '개를 받았어요.') +
+        (I.rankOf(save).next ? p('<span class="muted">다음 계급 ' + I.rankOf(save).next.name + '까지 ' + fmt(I.rankOf(save).toNext) + '명</span>') : ''),
+      ok: '확인' });
+    return true;
   }
 
   function home() {
@@ -3683,6 +4276,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     duringRun = null;
     applyIfSafe();
     if (pendingClose) showCaseClosed();
+    else if ($('info-sheet').hidden) showPromotions();
   }
 
   /* ---------- 1초마다 ---------- */
@@ -3740,6 +4334,19 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     if (b && !b.disabled) tryBuy(b.getAttribute('data-gear'));
   });
   $('h-story-all').addEventListener('click', showStory);
+  if (E) {
+    $('h-prep').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-prep]'); if (!b) return;
+      var id = b.getAttribute('data-prep');
+      if (E.owned(save, id, nowMs())) unprep(id); else buyItem(id);
+    });
+    $('h-support').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-support]'); if (b && !b.disabled) buyItem(b.getAttribute('data-support'));
+    });
+    $('h-daily-go').addEventListener('click', goDaily);
+  } else {
+    ['h-daily'].forEach(function (id) { $(id).hidden = true; });
+  }
   $('info-ok').addEventListener('click', function () { closeInfo('ok'); });
   $('info-body').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); closeInfo('ok'); } });
   $('info-cancel').addEventListener('click', function () { closeInfo('cancel'); });
@@ -3899,11 +4506,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       label: '잠복 보고', title: fmtDur(away.seconds) + ' 동안',
       body: p('3팀이 용의자 <b style="color:var(--acc)">' + fmt(away.catches) + '명</b>을 잡았어요.') +
         p('수사비 <b style="color:var(--acc)">+' + fmt(away.money) + '</b>') +
+        (away.night ? p('<span style="color:var(--acc);font-weight:700">야간 잠복조 투입: 이번엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 셌어요</span>') : '') +
         p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + (I.TUNE.offlineCapSec / 3600) + '시간까지만 세요.' +
-          (away.seconds >= I.TUNE.offlineCapSec ? ' 이번엔 꽉 찼어요.' : '') + '</span>') +
+          (!away.night && away.seconds >= I.TUNE.offlineCapSec ? ' 이번엔 꽉 찼어요. 지원의 야간 잠복조를 사 두면 다음엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 세요.' : '') + '</span>') +
         (away.counted < away.catches ? p('<span class="muted">남은 주범 조는 현장 출동으로만 잡을 수 있어요.</span>') : ''),
       ok: '좋아요',
-      onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); }
+      onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); else showPromotions(); }
     });
   } else if (!save.tutorialDone && save.runs === 0) {
     // 처음 켬: 사건 소개 + 튜토리얼 권유(시작 편을 보여 주므로 읽음으로 친다)
@@ -3919,6 +4527,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     });
   } else if (away.closedNow) {
     showCaseClosed();
+  } else {
+    showPromotions();   // 업데이트로 계급이 생긴 예전 저장: 그동안 잡은 만큼의 승진을 한 번에(0.1.19)
   }
 
   // 버전 표시 · 업데이트 뒤 첫 실행 알림 · 새 버전 확인
