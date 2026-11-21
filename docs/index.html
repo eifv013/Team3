@@ -454,7 +454,8 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
     { ver: '0.1.2', date: '2026-11-21', title: '뒤로 단추 두 번이면 종료',
       items: [
         '안드로이드: 사무실에서 뒤로 단추를 누르면 "한 번 더 누르면 종료돼요"가 뜨고, 2초 안에 한 번 더 누르면 앱이 꺼져요. 꺼지기 전에 저장해요.',
-        '이 기능은 앱(APK)을 새로 받아야 들어가요.'
+        '이 기능은 앱(APK)을 새로 받아야 들어가요.',
+        '사무실 맨 아래 "바뀐 점 보기"를 "패치노트"로 바꿨어요.'
       ] },
     { ver: '0.1.1', date: '2026-11-21', title: '업데이트는 꼭 받기',
       items: [
@@ -2418,9 +2419,9 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
   }
 
   // 버전 표시 · 업데이트 뒤 첫 실행 알림 · 새 버전 확인
-  $('h-version').textContent = '수사 3팀 ' + VERSION + ' · 바뀐 점 보기';
+  $('h-version').textContent = '수사 3팀 ' + VERSION + ' · 패치노트';
   var seen = lsGet(SEEN_KEY);
-  if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요 · 맨 아래에서 바뀐 점 보기'); }, 3200);
+  if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요 · 맨 아래 패치노트에서 확인'); }, 3200);
   lsSet(SEEN_KEY, VERSION);
   registerSW();
   setTimeout(function () { checkUpdate(true); }, 3000);

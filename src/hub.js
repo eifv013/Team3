@@ -405,9 +405,9 @@
   }
 
   // 버전 표시 · 업데이트 뒤 첫 실행 알림 · 새 버전 확인
-  $('h-version').textContent = '수사 3팀 ' + VERSION + ' · 바뀐 점 보기';
+  $('h-version').textContent = '수사 3팀 ' + VERSION + ' · 패치노트';
   var seen = lsGet(SEEN_KEY);
-  if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요 · 맨 아래에서 바뀐 점 보기'); }, 3200);
+  if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요 · 맨 아래 패치노트에서 확인'); }, 3200);
   lsSet(SEEN_KEY, VERSION);
   registerSW();
   setTimeout(function () { checkUpdate(true); }, 3000);
