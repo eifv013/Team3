@@ -44,12 +44,14 @@
   var CASE = {
     no: 1,
     title: '골목길 연쇄 절도',
-    goal: 300,
+    goal: 1000,          // 0.1.3: 300 → 1000(방치형답게 길게). 이야기도 4편 → 6편
     story: [
       { at: 0,   text: '새벽 세 시, 골목 상가 여섯 곳이 한꺼번에 털렸다. 목격자는 많은데 말이 다 다르다. 서장이 우리 3팀에 사건을 넘겼다.' },
-      { at: 100, text: '잡아들인 자들이 하나같이 같은 말을 한다. "시키는 대로 했을 뿐." 누군가 세 명씩 짝을 지어 보내고 있다.' },
-      { at: 200, text: '세 명씩 짝지은 조에는 규칙이 있었다. 어느 특징이든 둘만 같은 조는 없다. 그 규칙을 만든 사람이 보이기 시작한다.' },
-      { at: 300, text: '사건 종결. 마지막 조를 넘긴 날, 책상 위에 봉투 하나가 놓여 있었다. 안에는 다른 도시의 지도와 숫자 2. — 사건 2에서 계속' }
+      { at: 150, text: '잡아들인 자들이 하나같이 같은 말을 한다. "시키는 대로 했을 뿐." 누군가 세 명씩 짝을 지어 보내고 있다.' },
+      { at: 300, text: '세 명씩 짝지은 조에는 규칙이 있었다. 어느 특징이든 둘만 같은 조는 없다. 그 규칙을 만든 사람이 보이기 시작한다.' },
+      { at: 500, text: '규칙을 만든 자를 놈들은 "삼번"이라고 불렀다. 우리 팀 번호와 같은 숫자다. 서장은 우연이라고 했지만, 나는 그 말을 믿지 않는다.' },
+      { at: 750, text: '삼번의 은신처를 찾아냈다. 텅 비어 있었다. 벽에는 우리 3팀 형사들의 몽타주가 세 장씩 짝지어 붙어 있었다. 둘만 같은 조는 없었다.' },
+      { at: 1000, text: '사건 종결. 마지막 조를 넘긴 날, 책상 위에 봉투 하나가 놓여 있었다. 안에는 다른 도시의 지도와 숫자 2. — 사건 2에서 계속' }
     ]
   };
 
@@ -94,7 +96,7 @@
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
       closed: false, closedAt: 0,
       tutorialDone: false,
-      storySeen: 0,        // 사건 일지에서 읽은 편 수(새 편이 열리면 "사건 일지 보기"에 NEW)
+      storySeen: 0,        // 수사 일지에서 읽은 편 수(새 편이 열리면 "수사 일지 보기"에 NEW)
       profile: { station: PROFILE.defaultStation, leader: PROFILE.defaultLeader }
     };
   }
@@ -134,7 +136,8 @@
     s.bestScore = int(data.bestScore, 0, 0);
     s.runCaught = int(data.runCaught, 0, 0);
     s.teamCaught = int(data.teamCaught, 0, 0);
-    s.closed = data.closed === true;
+    // 목표가 늘어난 뒤(0.1.3, 300 → 1000) 예전에 300명으로 종결된 저장은 다시 진행 중으로 돌린다
+    s.closed = data.closed === true && s.caught >= CASE.goal;
     s.closedAt = num(data.closedAt, 0, 0);
     s.tutorialDone = data.tutorialDone === true;
     s.storySeen = int(data.storySeen, 0, 0, CASE.story.length);

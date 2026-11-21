@@ -215,6 +215,11 @@ details.pn .pn-body p{color:var(--muted)}
 .log.locked{background:none;border:1.5px dashed var(--line)}
 .log.locked .log-at{color:var(--muted);font-weight:600}
 .log.fresh{border:1.5px solid var(--acc)}
+details.log-d summary{gap:10px;color:var(--text)}
+details.log-d summary b{color:var(--acc);font-size:13px;white-space:nowrap}
+.log-peek{flex:1;min-width:0;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.log-d[open] .log-peek{visibility:hidden}
+details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.65}
 .pn-past{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
 @media (prefers-reduced-motion:reduce){.pn-new{animation:none;box-shadow:0 0 14px rgba(255,210,63,.35)}}
 .toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:6;padding:10px 14px;border-radius:10px;background:var(--panel2);font-size:13px;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.4)}
@@ -293,7 +298,7 @@ details.pn .pn-body p{color:var(--muted)}
       </div>
       <div class="bar"><i id="h-bar" style="width:0%"></i></div>
       <p class="story" id="h-story"></p>
-      <button class="linkish" id="h-story-all">사건 일지 보기</button>
+      <button class="linkish" id="h-story-all">수사 일지 보기</button>
     </div>
 
     <button class="go-btn" id="h-go">
@@ -425,7 +430,7 @@ details.pn .pn-body p{color:var(--muted)}
     </div>
   </div>
 
-  <!-- 방치형: 범용 안내 창(잠복 보고 · 사건 일지 · 사건 종결 · 처음부터) -->
+  <!-- 방치형: 범용 안내 창(잠복 보고 · 수사 일지 · 사건 종결 · 처음부터) -->
   <div class="sheet-back" id="info-sheet" role="dialog" aria-modal="true" aria-labelledby="info-title" hidden>
     <div class="sheet">
       <span class="label" id="info-label"></span>

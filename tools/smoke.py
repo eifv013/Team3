@@ -104,8 +104,8 @@ with sync_playwright() as p:
         pg.click('#tut-home'); pg.clock.run_for(200)
         if not pg.locator('#s-hub').is_visible(): problems.append('튜토리얼 뒤 사무실로가 안 됨')
         pg.screenshot(path=SHOT + 'hub.png', full_page=True)
-        # 사건 일지: 첫 안내에서 시작 편을 봤으니 NEW 없음
-        if pg.locator('#h-story-all .new').count(): problems.append('시작 편을 봤는데 사건 일지에 NEW 가 있음')
+        # 수사 일지: 첫 안내에서 시작 편을 봤으니 NEW 없음
+        if pg.locator('#h-story-all .new').count(): problems.append('시작 편을 봤는데 수사 일지에 NEW 가 있음')
         # 패치노트: 맨 아래 NEW → 열면 지금 버전 NEW·빛나는 테두리, 지난 것은 접힘 → 닫으면 맨 아래 NEW 가 사라짐
         if not pg.locator('#h-version .new').count(): problems.append('안 읽은 패치노트에 NEW 가 없음')
         pg.click('#h-version'); pg.clock.run_for(200)
@@ -190,7 +190,7 @@ with sync_playwright() as p:
         # 300명 종결 전이라 100명을 넘었는지는 출동 결과에 따라 다르므로, 열린 편 수로 확인한다
         unread = pg.evaluate("() => !!document.querySelector('#h-story-all .new')")
         pg.click('#h-story-all'); pg.clock.run_for(150)
-        if pg.locator('#info-body .log').count() != 4: problems.append('사건 일지 칸이 4개가 아님')
+        if pg.locator('#info-body .log').count() != 6: problems.append('수사 일지 칸이 6개가 아님')
         if unread and not pg.locator('#info-body .log.fresh .new').count(): problems.append('NEW 였는데 일지 안에 새 편 표시가 없음')
         pg.screenshot(path=SHOT + 'story.png')
         pg.click('#info-ok'); pg.clock.run_for(100)
@@ -213,7 +213,7 @@ with sync_playwright() as p:
         pg.screenshot(path=SHOT + 'away.png')
         if pg.text_content('#h-station') != '강남서 · 수사 3팀': problems.append('다시 켰더니 경찰서 이름이 사라짐')
         pg.click('#info-ok'); pg.clock.run_for(100)
-        # 사건 종결: 창을 닫고, 다음 창이 뜨기 직전에 저장을 299명으로 바꿔 팀이 마지막 한 명을 잡게 한다.
+        # 사건 종결: 창을 닫고, 다음 창이 뜨기 직전에 저장을 999명으로 바꿔 팀이 마지막 한 명을 잡게 한다.
         # (열린 창의 저장을 바꾸면 떠날 때 게임이 덮어쓰므로 창 사이에서 바꾼다)
         reopen_n = [0]
         def reopen(js):
@@ -227,8 +227,22 @@ with sync_playwright() as p:
             pg = ctx.new_page(); pg.on('pageerror', lambda e: errors.append(str(e)))
             pg.clock.set_system_time((t + 1000) / 1000)   # 시계는 이미 깔려 있다(초 단위)
             pg.goto(URL); pg.clock.run_for(4500)
-        reopen("const raw = localStorage.getItem('%s'); if (raw) { const d = JSON.parse(raw); d.caught = 299; d.frac = 0; localStorage.setItem('%s', JSON.stringify(d)); } else { console.log('NO SAVE AT REOPEN'); }" % (KEY, KEY))
-        if '299' not in pg.text_content('#h-caught'): problems.append('저장 바꾸기 실패: ' + pg.text_content('#h-caught'))
+        reopen("const raw = localStorage.getItem('%s'); if (raw) { const d = JSON.parse(raw); d.caught = 999; d.frac = 0; localStorage.setItem('%s', JSON.stringify(d)); } else { console.log('NO SAVE AT REOPEN'); }" % (KEY, KEY))
+        if '999' not in pg.text_content('#h-caught'): problems.append('저장 바꾸기 실패: ' + pg.text_content('#h-caught'))
+        if not pg.locator('#info-sheet').is_hidden(): pg.click('#info-ok'); pg.clock.run_for(100)
+        # 처음 열면 새 편(NEW)들이 펼쳐져 있고, 한 번 읽은 뒤 다시 열면 가장 최근 편만 펼쳐지고 나머지는 접힌다
+        pg.click('#h-story-all'); pg.clock.run_for(150)
+        if not pg.locator('#info-body .log.fresh').count(): problems.append('새로 열린 일지에 NEW 칸이 없음')
+        pg.click('#info-ok'); pg.clock.run_for(100)
+        pg.click('#h-story-all'); pg.clock.run_for(150)
+        if pg.locator('#info-body details.log-d').count() != 4: problems.append('지난 수사 일지 4편이 접혀 있지 않음: ' + str(pg.locator('#info-body details.log-d').count()))
+        if pg.locator('#info-body details.log-d[open]').count(): problems.append('지난 수사 일지가 펼쳐져 있음')
+        pg.locator('#info-body details.log-d summary').first.click(); pg.clock.run_for(100)
+        if not pg.locator('#info-body details.log-d[open]').count(): problems.append('지난 일지를 눌러도 안 펼쳐짐')
+        pg.locator('#info-body details.log-d[open] .pn-body').first.click(); pg.clock.run_for(100)
+        if pg.locator('#info-body details.log-d[open]').count(): problems.append('펼친 일지 글을 눌러도 안 접힘')
+        pg.screenshot(path=SHOT + 'story-fold.png')
+        pg.click('#info-ok'); pg.clock.run_for(100)
         if not pg.locator('#info-sheet').is_hidden(): pg.click('#info-ok'); pg.clock.run_for(100)
         pg.clock.run_for(70_000)
         if '종결' not in (pg.text_content('#info-label') or '') or pg.locator('#info-sheet').is_hidden(): problems.append('목표에 닿았는데 사건 종결 창이 없음')

@@ -99,16 +99,19 @@ test('출동 결과: 점수만큼 수사비, 검거만큼 진척, 최고 기록'
   }
 });
 
-test('목표 검거에 닿으면 사건 종결(한 번만), 이야기는 단계마다 열린다', () => {
+test('목표(1000명)에 닿으면 사건 종결(한 번만), 이야기는 단계마다 열린다', () => {
+  assert.equal(I.CASE.goal, 1000);
+  assert.deepEqual(I.CASE.story.map(e => e.at), [0, 150, 300, 500, 750, 1000]);
   const s = I.newSave(T0);
   I.applyRun(s, { score: 0, hits: 150 }, T0);
   assert.equal(I.storyUnlocked(s).length, 2);
-  const r1 = I.applyRun(s, { score: 0, hits: 149 }, T0);
+  const r1 = I.applyRun(s, { score: 0, hits: 849 }, T0);
   assert.equal(r1.closedNow, false);
+  assert.equal(I.storyUnlocked(s).length, 5);
   const r2 = I.advance(s, T0 + MIN);       // 팀이 마지막 한 명
   assert.equal(r2.closedNow, true);
   assert.equal(s.closed, true);
-  assert.equal(I.storyUnlocked(s).length, 4);
+  assert.equal(I.storyUnlocked(s).length, 6);
   assert.equal(I.advance(s, T0 + 2 * MIN).closedNow, false);
   assert.equal(I.progress(s), 1);
 });
@@ -138,9 +141,17 @@ test('저장 왕복, 깨진 저장은 새로 시작, 이상한 값은 잘라 낸
   assert.equal(weird.closed, false);
 });
 
-test('밸런스 감: 출동 없이 형사 1명이면 사건 1에 5시간, 적당히 키우면 훨씬 빠르다', () => {
+test('300명으로 종결됐던 예전 저장은 목표가 늘면 다시 진행 중', () => {
+  const old = I.load(JSON.stringify({ v: 1, caught: 320, closed: true, closedAt: T0 }), T0).save;
+  assert.equal(old.closed, false);
+  assert.equal(old.caught, 320);
+});
+
+test('밸런스 감: 출동 없이 형사 1명이면 사건 1에 17시간쯤(8시간씩 세 번), 키우면 훨씬 빠르다', () => {
   const lazy = I.newSave(T0);
-  I.advance(lazy, T0 + 5 * HOUR);
+  I.advance(lazy, T0 + 8 * HOUR); I.advance(lazy, T0 + 16 * HOUR);
+  assert.equal(lazy.closed, false);
+  I.advance(lazy, T0 + 17 * HOUR);
   assert.ok(lazy.closed);
 
   // 출동 10번(한 번에 약 12명·1500점)을 하며 수사비가 되는 대로 형사를 들이면
@@ -151,8 +162,11 @@ test('밸런스 감: 출동 없이 형사 1명이면 사건 1에 5시간, 적당
     while (I.cost(s, 'hire') <= s.money) I.buy(s, 'hire');
   }
   t += 20 * MIN; I.advance(s, t);
-  console.log(`  출동 10번 + 20분 뒤: 형사 ${s.detectives}명, 검거 ${s.caught}/300`);
+  console.log(`  출동 10번 + 20분 뒤: 형사 ${s.detectives}명, 검거 ${s.caught}/1000`);
   assert.ok(s.caught >= 200 && s.detectives >= 5);
+  t += 2 * HOUR; I.advance(s, t);
+  console.log(`  그 뒤 2시간 비움: 검거 ${s.caught}/1000`);
+  assert.ok(s.closed, '키운 팀이면 두어 시간 비우면 끝난다');
 });
 
 test('프로필: 기본은 중앙서·팀장 없음, 바꾸면 다듬어서 저장', () => {
@@ -195,15 +209,15 @@ test('다음 검거까지: 보통·사기 충전·충전이 중간에 끝나는 
   assert.equal(I.nextCatch(s, T0).sec, Infinity);
 });
 
-test('사건 일지: 새 편이 열리면 안 읽음, 읽으면 사라짐, 저장 왕복', () => {
+test('수사 일지: 새 편이 열리면 안 읽음, 읽으면 사라짐, 저장 왕복', () => {
   const s = I.newSave(T0);
   assert.equal(I.storyUnread(s), true);           // 시작 편
   I.markStorySeen(s);
   assert.equal(I.storyUnread(s), false);
-  I.applyRun(s, { score: 0, hits: 100 }, T0);
-  assert.equal(I.storyUnread(s), true);           // 100명 편
+  I.applyRun(s, { score: 0, hits: 150 }, T0);
+  assert.equal(I.storyUnread(s), true);           // 150명 편
   assert.equal(I.markStorySeen(s), 2);
   assert.equal(I.load(I.serialize(s), T0).save.storySeen, 2);
-  assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 99 })), T0).save.storySeen, 4);
+  assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 99 })), T0).save.storySeen, 6);
   assert.equal(I.load(JSON.stringify(Object.assign(JSON.parse(I.serialize(s)), { storySeen: 'x' })), T0).save.storySeen, 0);
 });

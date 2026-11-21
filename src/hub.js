@@ -163,8 +163,9 @@
   }
 
   /*
-   * 사건 일지: 편마다 위에 "시작 / 검거 100명" 줄, 아래에 글. 안 열린 편은 점선 칸에 "검거 300명에 열려요".
-   * 새로 열려 아직 안 읽은 편에는 NEW 를 달고, 열어 보면 읽음으로 적는다(사무실의 "사건 일지 보기" NEW 도 사라진다).
+   * 수사 일지: 편마다 위에 "시작 / 검거 150명" 줄, 아래에 글. 안 열린 편은 점선 칸에 "검거 1000명에 열려요".
+   *   새 편과 가장 최근 편만 펼쳐 두고 그 전 편은 접는다(첫 줄만 살짝 보인다).
+   * 새로 열려 아직 안 읽은 편에는 NEW 를 달고, 열어 보면 읽음으로 적는다(사무실의 "수사 일지 보기" NEW 도 사라진다).
    */
   function showStory() {
     var unlocked = I.storyUnlocked(save).length, seen = save.storySeen;
@@ -172,17 +173,21 @@
       var at = e.at ? '검거 ' + e.at + '명' : '시작';
       if (i >= unlocked) return '<div class="log locked"><span class="log-at"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' + at + '에 열려요</span></div>';
       var fresh = i >= seen;
-      return '<div class="log' + (fresh ? ' fresh' : '') + '"><span class="log-at">' + (fresh ? '<span class="new">NEW</span>' : '') + at + '</span><p>' + esc(e.text) + '</p></div>';
+      // 새 편과 가장 최근 편은 펼쳐 두고, 그 전 편들은 접어 둔다(제목줄을 누르거나 펼친 글을 누르면 접고 펼친다)
+      if (fresh || i === unlocked - 1) {
+        return '<div class="log' + (fresh ? ' fresh' : '') + '"><span class="log-at">' + (fresh ? '<span class="new">NEW</span>' : '') + at + '</span><p>' + esc(e.text) + '</p></div>';
+      }
+      return '<details class="pn log-d"><summary><b>' + at + '</b><span class="log-peek">' + esc(e.text) + '</span></summary><div class="pn-body"><p>' + esc(e.text) + '</p></div></details>';
     }).join('');
-    openInfo({ label: '사건 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body });
+    openInfo({ label: '수사 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body });
     I.markStorySeen(save);
     persist();
     renderStoryButton();
   }
 
-  // "사건 일지 보기" 옆 NEW
+  // "수사 일지 보기" 옆 NEW
   function renderStoryButton() {
-    $('h-story-all').innerHTML = '사건 일지 보기' + (I.storyUnread(save) ? ' <span class="new" style="height:18px;font-size:10px;margin-left:6px">NEW</span>' : '');
+    $('h-story-all').innerHTML = '수사 일지 보기' + (I.storyUnread(save) ? ' <span class="new" style="height:18px;font-size:10px;margin-left:6px">NEW</span>' : '');
   }
 
   /* ---------- 프로필 바꾸기 ---------- */
