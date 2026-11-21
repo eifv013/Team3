@@ -119,8 +119,9 @@ test('메달: 처음 넘을 때만, 한 판에 여러 개 동시에, 보상은 �
 test('특별 출동: 날짜로 규칙이 돌고, 메달이면 보상 후 끝, 못 받으면 다시, 배지로 한 번 더', () => {
   assert.equal(E.dayKey(Date.UTC(2026, 10, 21, 15, 30), -540), '2026-11-22');   // 한국 자정 넘음
   assert.equal(E.dayKey(Date.UTC(2026, 10, 21, 14, 30), -540), '2026-11-21');
-  const seen = new Set(); for (let d = 1; d <= 7; d++) seen.add(E.dailyRule('2026-12-0' + d).id);
-  assert.equal(seen.size, 7, '일주일에 일곱 가지가 다 나온다');
+  const seen = new Set(); for (let d = 1; d <= 8; d++) seen.add(E.dailyRule('2026-12-0' + d).id);
+  assert.equal(seen.size, E.DAILY.length, '여드레에 여덟 가지가 다 나온다');
+  assert.ok(E.DAILY.some((r) => r.config.mode === 'forgery'));
   const s = rich(0, 6), day = '2026-11-22', rule = E.dailyRule(day);
   const cfg = E.startDaily(s, day);
   assert.equal(cfg.daily, true); assert.equal(cfg.freeHints, 0);

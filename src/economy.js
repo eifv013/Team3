@@ -167,7 +167,7 @@
 
   /* ---------- 하루 한 번 특별 출동 ---------- */
   /*
-   * 날마다 하나(기기 날짜 기준, 자정에 바뀜). 일곱 가지가 차례로 돈다(같은 날엔 누구나 같은 규칙).
+   * 날마다 하나(기기 날짜 기준, 자정에 바뀜). 여덟 가지가 차례로 돈다(같은 날엔 누구나 같은 규칙). 0.2.1: "위조된 한 패" 추가
    *   config: 판 설정(단계·시간) / mods: core 의 판별 규칙 / medals: 이 규칙의 동·은·금 점수
    *   준비물·장비는 쓰지 않는다(실력 겨루기). 보상: 받은 메달 등급 × 기준값 + 배지(하루 한 번).
    */
@@ -178,7 +178,9 @@
     { id: 'strict', name: '엄격한 서장', desc: '오인 체포 벌점 −10초 · 점수 1.5배', config: { duration: 90, level: 1 }, mods: { missPenalty: 10, scoreMult: 1.5 }, medals: [4000, 8000, 15000] },
     { id: 'clock', name: '마감 수사', desc: '120초 · 검거해도 시간이 늘지 않아요', config: { duration: 120, level: 1 }, mods: { hitTime: 0 }, medals: [3000, 6000, 11000] },
     { id: 'void', name: '빈 골목', desc: '처음부터 네 가지 · 검거 불가 점수 3배', config: { duration: 90, level: 4 }, mods: { noneMult: 3 }, medals: [3000, 6000, 11000] },
-    { id: 'calm', name: '차분한 밤', desc: '150초 · 오인 체포 벌점 없음 · 점수 0.7배', config: { duration: 150, level: 1 }, mods: { missPenalty: 0, scoreMult: 0.7 }, medals: [3000, 6000, 11000] }
+    { id: 'calm', name: '차분한 밤', desc: '150초 · 오인 체포 벌점 없음 · 점수 0.7배', config: { duration: 150, level: 1 }, mods: { missPenalty: 0, scoreMult: 0.7 }, medals: [3000, 6000, 11000] },
+    // 0.2.1: 다른 퍼즐(forgery.js) — 세 명씩 지은 줄 중 써드가 위조한 가짜 한 줄 찾기
+    { id: 'forge', name: '위조된 한 패', desc: '줄마다 세 명 · 써드가 위조한 가짜 줄을 찾아요', config: { duration: 90, level: 1, mode: 'forgery' }, mods: {}, medals: [3000, 6000, 11000] }
   ];
   var DAILY_GEMS = [1, 2, 3];   // 동·은·금 배지
   var DAILY_BASE = [1, 2, 3];   // 동·은·금 × 기준값
@@ -223,7 +225,7 @@
     var r = st.rule;
     var mods = {};
     Object.keys(r.mods).forEach(function (k) { mods[k] = r.mods[k]; });
-    return { duration: r.config.duration, level: r.config.level, freeHints: 0, nonePenalty: 10, mods: mods, daily: true, ruleId: r.id };
+    return { duration: r.config.duration, level: r.config.level, freeHints: 0, nonePenalty: 10, mods: mods, daily: true, ruleId: r.id, mode: r.config.mode || 'set' };
   }
   /**
    * 특별 출동 결과. 메달이 있으면 보상을 주고 오늘을 끝낸다(동 미만이면 다시 할 수 있다).

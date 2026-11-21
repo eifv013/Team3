@@ -45,7 +45,9 @@
         ac = new (window.AudioContext || window.webkitAudioContext)();
         var g = ac.createGain(), lim = ac.createDynamicsCompressor();
         g.gain.value = MASTER_GAIN * curve(settings.sfx);   // 효과음 크기는 master 에서 한 번에
-        lim.threshold.value = -6; lim.knee.value = 4; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.12;
+        // 0.2.1: 효과음이 작다는 의견 — 리미터가 -6dB 에서 눌러 버려 배수를 올려도 커지지 않았다.
+        //   누르는 선을 -1dB 로 올려 최대 크기를 약 1.8배(+5dB) 키운다(찢어지는 것은 여전히 리미터가 막는다)
+        lim.threshold.value = -1; lim.knee.value = 2; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.12;
         g.connect(lim); lim.connect(ac.destination);
         master = g;
       }
@@ -170,7 +172,8 @@
     tickLow: function () { tone(880, 0.05, 'sine', 0.07); },
     // 시계 초침(0.1.14): 녹음된 "톡-틱-틱" 1초. 마지막 3초는 조금 크게. 녹음을 못 쓰면 예전 짧은 "삑"(5초 안쪽에서만)
     clock: function (left) {
-      if (sample('clock', left <= 3 ? 1.0 : 0.7)) return;
+      // 0.2.1: 초침이 다른 소리보다 커서 줄였다(0.7/1.0 → 0.3/0.45)
+      if (sample('clock', left <= 3 ? 0.45 : 0.3)) return;
       if (left <= 5) sfx.tickLow();
     }
   };
@@ -302,9 +305,11 @@
    *   시간(timeLeft·tick·pause·resume)은 core 함수를 그대로 쓴다(같은 모양의 필드).
    *   판 = game.q.board(9명, 어려움 12명), 한 명을 누르면 바로 판정. 단서 = 거짓 진술 짚기. 검거 불가 단추는 숨긴다.
    */
-  var W = window.Team3Witness, FX = window.Team3Fx;
+  var W = window.Team3Witness, FX = window.Team3Fx, F = window.Team3Forgery;
   function WM() { return !!(game && game.mode === 'witness'); }
-  function boardIds() { return WM() ? game.q.board : game.board; }
+  // 위조된 한 패(0.2.1, 특별 출동): game.mode === 'forgery'. 판 = 세 명씩 지은 줄, 줄을 누르면 판정
+  function FM() { return !!(game && game.mode === 'forgery'); }
+  function boardIds() { return WM() ? game.q.board : FM() ? [].concat.apply([], game.q.rows) : game.board; }
   function actNow() { return WM() ? [0, 1, 2, 3] : C.active(game); }
 
   // 설정을 안 받았을 때의 기본값(사무실은 늘 장비를 반영한 설정을 넘긴다)
@@ -320,6 +325,22 @@
 
   function renderBoard(entering) {
     var board = $('board'), stamp = $('stamp'), act = actNow();
+    board.classList.toggle('forge', FM());
+    if (FM()) {
+      var fa = game.q.active;
+      board.classList.remove('wit', 'w12');
+      board.innerHTML = game.q.rows.map(function (row, r) {
+        var real = game.cleared.indexOf(r) >= 0;
+        return '<button class="rowbtn' + (real ? ' real' : '') + '" data-r="' + r + '" aria-label="' + (r + 1) + '번 줄' + (real ? ' (진짜로 확인됨)' : '') + '"><span class="rn">' + (r + 1) + '</span>' +
+          row.map(function (id) { return '<span class="card mini" data-id="' + id + '" style="background:' + look(id, fa).bg + '">' + cardInner(id, 0, fa) + '</span>'; }).join('') +
+          (real ? '<b class="real-tag">진짜</b>' : '') + '</button>';
+      }).join('');
+      board.appendChild(stamp);
+      if (FX) FX.afterRender();
+      board.setAttribute('data-level', String(game.level));
+      $('btn-none').hidden = game.level !== 3;   // "위조 없음"은 여섯 줄 단계에서만
+      return;
+    }
     board.classList.toggle('wit', WM());
     board.classList.toggle('w12', WM() && game.q.board.length > 9);
     board.innerHTML = boardIds().map(function (id, i) {
@@ -371,7 +392,7 @@
     h.className = 'hint' + (kind ? ' ' + kind : '');
     clearTimeout(hintTimer);
     if (ms) hintTimer = setTimeout(function () {
-      h.textContent = WM() ? '진술 넷 중 딱 셋과 맞는 사람이 범인' : '한 패인 세 명을 고르세요'; h.className = 'hint';
+      h.textContent = FM() ? '가짜 줄을 찾으세요' : WM() ? '진술 넷 중 딱 셋과 맞는 사람이 범인' : '한 패인 세 명을 고르세요'; h.className = 'hint';
       renderNeeds();
     }, ms);
   }
@@ -391,7 +412,11 @@
     combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ' · ×' + C.multiplierFor(game.combo, game.mods && game.mods.comboMax) : '연속 ' + game.combo;
     combo.classList.toggle('live', game.combo > 1);
     var lv = $('level');
-    if (WM()) {
+    if (FM()) {
+      var fn = F.RULES.levelAt[game.level + 1];
+      lv.textContent = '위조 감별 · ' + F.LEVEL_NAME[game.level] + (fn != null ? ' · 다음까지 ' + Math.max(0, fn - game.hits) + '명' : '');
+      lv.classList.toggle('up', game.level === 3);
+    } else if (WM()) {
       var wn = W.RULES.levelAt[game.level + 1];
       lv.textContent = '목격자 ' + W.LEVEL_NAME[game.level] + (wn != null ? ' · 다음까지 ' + Math.max(0, wn - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 3);
@@ -404,7 +429,9 @@
     f.hidden = !(game.freeHints > 0);
     f.textContent = String(game.freeHints);
     $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (무료 ' + game.freeHints + '번)' : '단서 보기 (3초 줄어듦)');
-    $('stat-line').textContent = WM()
+    $('stat-line').textContent = FM()
+      ? '찾음 ' + game.hits + ' · 위조 없음 적중 ' + game.noneHits + ' · 틀림 ' + (game.misses + game.noneMisses)
+      : WM()
       ? '검거 ' + game.hits + ' · 함정 ' + game.traps + ' · 오인 ' + game.misses
       : '검거 ' + game.hits + ' · 불가 적중 ' + game.noneHits + ' · 실수 ' + (game.misses + game.noneMisses);
   }
@@ -441,7 +468,8 @@
     cfg = config || defaultConfig();
     try {
       // mods(0.1.19): 특별 출동 규칙 · 준비물 "변호사 대기"(shield)
-      if (cfg.mode === 'witness' && W) game = W.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, trapPenalty: cfg.trapPenalty, hitBonus: cfg.hitBonus });
+      if (cfg.mode === 'forgery' && F) game = F.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods });
+      else if (cfg.mode === 'witness' && W) game = W.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, trapPenalty: cfg.trapPenalty, hitBonus: cfg.hitBonus });
       else game = C.createGame({ rng: Math.random, now: now(), duration: cfg.duration, level: cfg.level, freeHints: cfg.freeHints, nonePenalty: cfg.nonePenalty, mods: cfg.mods });
     } catch (e) {
       toast('판을 만들지 못했어요: ' + e.message);
@@ -453,12 +481,14 @@
     st.classList.remove('go', 'bad');
     st.innerHTML = '';
     show('s-play');
-    if (WM()) setHint('진술 넷 중 딱 셋과 맞는 사람이 범인 · 넷 다 맞으면 함정', 'good', 4000);
+    if (FM()) setHint('세 명씩 지은 줄 중 하나는 가짜예요. 한 특징만 둘이 같은 줄을 찾으세요', 'good', 4500);
+    else if (WM()) setHint('진술 넷 중 딱 셋과 맞는 사람이 범인 · 넷 다 맞으면 함정', 'good', 4000);
     else setHint(game.level < 4 ? '먼저 모자만 보세요. 셋 다 같거나, 셋 다 다르면 한 패' : '한 패인 세 명을 고르세요', game.level < 4 ? 'good' : '', game.level < 4 ? 4000 : 0);
     // 목격자 모드 화면: 진술서 보이기, 검거 불가 숨기기, 안개·등대 빛(사건 2 연출) 붙이기
     var wm = WM();
     $('says').hidden = !wm;
-    $('btn-none').hidden = wm;
+    $('btn-none').hidden = wm || FM();
+    $('btn-none').textContent = FM() ? '위조 없음' : '검거 불가';
     $('needs').hidden = true;
     // 사건별 화면 연출(fx.js): 목격자 모드 = 사건 2 해무항, 한 패 모드 = 사건 1 CCTV
     if (FX) FX.mount(wm ? 2 : 1, { board: $('board'), screen: $('s-play'), boss: !!cfg.boss, beamLie: !!cfg.beamLie,
@@ -466,7 +496,7 @@
     // 준비물 "제보 전화"(0.1.19): 첫 판의 한 패 하나를 단서처럼 미리 표시한다(판이 바뀌면 사라진다)
     //   목격자 모드에서는 첫 문제의 거짓 진술을 미리 짚어 준다
     if (cfg.tip && wm) game.hintShown = true;
-    else if (cfg.tip) {
+    else if (cfg.tip && !FM()) {
       try {
         var first = C.findSets(game.board, C.active(game));
         if (first.length) game.clue = { set: first[0], shown: 3 };
@@ -530,6 +560,45 @@
   }
   function flashFx() { var f = document.createElement('div'); f.className = 'flashfx'; $('s-play').appendChild(f); setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 600); }
   function shakeFx() { var s = $('s-play'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); setTimeout(function () { s.classList.remove('shake'); }, 500); }
+  /* ---------- 위조된 한 패(0.2.1) ---------- */
+  function onRow(r) {
+    if (!game || game.over || lock || sheetOpen()) return;
+    var q0 = game.q, res;
+    try { res = F.choose(game, r, now()); }
+    catch (e) { if (e.code === 'GAME_OVER') finish(); else setHint('판정 오류: ' + e.message, 'bad', 2000); return; }
+    lock = true;
+    var rows = $('board').querySelectorAll('.rowbtn'), fakeName = q0.fake >= 0 ? C.ATTRS[q0.fakeK].name : '';
+    if (q0.fake >= 0 && rows[q0.fake]) rows[q0.fake].classList.add('right');
+    if (r >= 0 && r !== q0.fake && rows[r]) rows[r].classList.add('wrong');
+    if (res.ok) {
+      sfx.hit(res.combo); buzz([12, 40, 20]);
+      if (FX) FX.hit(q0.fake >= 0 ? [rows[q0.fake]] : []);
+      popStamp(q0.fake >= 0 ? '위조 적발!' : '위조 없음!', '+' + res.gain + (res.combo > 1 ? '  ·  연속 ' + res.combo : ''));
+      setHint(q0.fake >= 0 ? (q0.fake + 1) + '번 줄 · ' + fakeName + '이(가) 둘만 같아요' : '이 판엔 가짜가 없었어요', 'good', 1400);
+    } else {
+      sfx.miss(); buzz(120);
+      if (FX) FX.miss([]);
+      shakeFx();
+      var pen = res.shielded ? ' (변호사가 막았어요)' : ' (−' + res.penalty + '초)';
+      popStamp('틀렸어요', q0.fake >= 0 ? (q0.fake + 1) + '번 줄이 가짜' : '가짜가 없는 판이었어요', true);
+      setHint((q0.fake >= 0 ? fakeName + '이(가) 둘만 같은 줄이 가짜예요' : '모든 줄이 진짜였어요') + pen, 'bad', 2400);
+      flashTimer();
+    }
+    updateHud(); bumpCombo();
+    setTimeout(function () {
+      lock = false;
+      if (!game || game.over) { if (game) finish(); return; }
+      renderBoard();
+      if (res.levelUp) {
+        var nm = { 2: ['네 가지 다 봐요', '시간대·흔적도 맞아야 진짜'], 3: ['여섯 줄', '가짜는 시간대·흔적에서만 · 없을 수도 있어요'] }[res.levelUp];
+        sfx.none(); buzz([30, 60, 30]); if (FX) FX.levelUp(res.levelUp);
+        popStamp(nm[0], nm[1]);
+        setHint(res.levelUp === 3 ? '가짜가 없으면 "위조 없음"을 누르세요' : '이제 네 가지 특징을 다 봐요', 'good', 4000);
+      }
+      updateHud();
+    }, res.ok ? 650 : 1200);
+  }
+
   function judgeWitness(i) {
     var q0 = game.q, cards = $('board').querySelectorAll('.card'), r;
     try { r = W.choose(game, i, now()); }
@@ -619,6 +688,7 @@
 
   function onNone() {
     if (!game || game.over || lock || sheetOpen()) return;
+    if (FM()) { onRow(-1); return; }
     var r;
     try {
       r = C.declareNone(game, now());
@@ -646,6 +716,16 @@
    */
   function onHint() {
     if (!game || game.over || lock || sheetOpen()) return;
+    if (FM()) {
+      var fr;
+      try { fr = F.hint(game, now()); }
+      catch (e) { if (e.code === 'GAME_OVER') finish(); else if (e.code === 'NO_HINTS') setHint('이번 출동은 단서를 쓸 수 없어요', 'bad', 2000); else setHint('단서 오류: ' + e.message, 'bad', 2000); return; }
+      if (fr.row < 0) { setHint('더 짚을 진짜 줄이 없어요', '', 1800); return; }
+      if (fr.penalty) flashTimer();
+      sfx.pick(0); updateHud(); renderBoard();
+      setHint((fr.row + 1) + '번 줄은 진짜예요' + (fr.penalty ? ' (−' + fr.penalty + '초)' : ''), 'good', 2500);
+      return;
+    }
     if (WM()) {
       var hr;
       try { hr = W.hint(game, now()); }
@@ -700,11 +780,13 @@
     $('r-miss').textContent = g.misses + ' · ' + g.noneMisses;
     if (FX) FX.unmount();
     // 결과 칸 이름: 목격자 모드는 "함정 체포 · 오인 체포"
-    var wmode = g.mode === 'witness';
-    $('r-none').parentNode.querySelector('.label').textContent = wmode ? '함정 체포' : '검거 불가 적중';
-    $('r-miss').parentNode.querySelector('.label').textContent = wmode ? '오인 체포' : '오인 체포·오판';
+    var wmode = g.mode === 'witness', fmode = g.mode === 'forgery';
+    $('r-none').parentNode.querySelector('.label').textContent = wmode ? '함정 체포' : fmode ? '위조 없음 적중' : '검거 불가 적중';
+    $('r-miss').parentNode.querySelector('.label').textContent = wmode ? '오인 체포' : fmode ? '틀림' : '오인 체포·오판';
     if (wmode) { $('r-none').textContent = g.traps; $('r-miss').textContent = String(g.misses); }
-    var tip = g.mode === 'witness'
+    if (fmode) { $('r-none').textContent = g.noneHits; $('r-miss').textContent = String(g.misses + g.noneMisses); }
+    var tip = fmode ? '진짜 줄은 특징마다 셋 다 같거나 셋 다 달라요. 한 특징씩 줄을 훑어 "둘만 같은" 곳을 찾으세요.'
+      : g.mode === 'witness'
       ? (g.traps > 1 ? '진술 넷이 다 맞는 사람은 함정이에요. 하나는 늘 거짓이니까, 딱 셋 맞는 사람을 찾으세요.'
         : g.misses > g.hits ? '먼저 진술 하나를 거짓이라 가정하고, 나머지 셋과 다 맞는 사람이 하나뿐인지 보세요.'
         : '연속 검거를 이어 가면 점수가 3배까지 올라요.')
@@ -1104,6 +1186,7 @@
 
   /* ---------- 연결 ---------- */
   $('board').addEventListener('click', function (e) {
+    if (FM()) { var rb = e.target.closest('.rowbtn'); if (rb) onRow(parseInt(rb.getAttribute('data-r'), 10)); return; }
     var card = e.target.closest('.card');
     if (card && card.hasAttribute('data-i')) onCard(parseInt(card.getAttribute('data-i'), 10));
   });
