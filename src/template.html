@@ -209,6 +209,11 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .sheet-back{position:absolute;inset:0;z-index:5;background:rgba(8,10,14,.72);display:flex;align-items:flex-end;padding:16px}
 .sheet{width:100%;max-height:100%;overflow-y:auto;background:var(--panel);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
 .sheet p{margin:0;font-size:14px;line-height:1.55}
+/* 0.1.22: 창 오른쪽 위 X(닫기). 읽기만 하는 창은 아래 확인·닫기 단추 없이 X 로 닫는다 */
+/*   창 안이 스크롤돼도 X 는 오른쪽 위에 붙어 있게 sticky. 자리를 차지하지 않게 아래 여백을 음수로 */
+.x-btn{position:sticky;top:-12px;align-self:flex-end;flex:none;margin:-12px -12px -56px 0;width:44px;height:44px;border:0;border-radius:12px;background:var(--panel);color:var(--muted);display:flex;align-items:center;justify-content:center;z-index:2}
+.x-btn:active{background:var(--panel2)}
+.sheet>.label,.sheet>h2{padding-right:44px}
 @keyframes up{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}
 /* ===== 설정 창(0.1.18): 크기 막대 두 개 · 진동 스위치 · (사무실에서만) 튜토리얼·백업·초기화 ===== */
 .set-row{display:flex;align-items:center;gap:12px;min-height:44px}
@@ -529,6 +534,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   <!-- 방치형: 범용 안내 창(잠복 보고 · 수사 일지 · 사건 종결 · 처음부터) -->
   <div class="sheet-back" id="info-sheet" role="dialog" aria-modal="true" aria-labelledby="info-title" hidden>
     <div class="sheet">
+<button class="x-btn" id="info-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label" id="info-label"></span>
       <h2 id="info-title" style="font-size:26px"></h2>
       <div id="info-body" style="display:flex;flex-direction:column;gap:10px"></div>
@@ -539,6 +545,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   <!-- 설정 창(0.1.18): 출동 중에 열면 시간이 멈춘다. 아래 묶음(set-hub)은 사무실에서만 보인다 -->
   <div class="sheet-back" id="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="set-title" hidden>
     <div class="sheet">
+<button class="x-btn" id="set-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label">설정</span>
       <h2 id="set-title" style="font-size:26px">소리와 진동</h2>
       <label class="set-row"><span>음악</span><input type="range" id="set-music" min="0" max="100" step="5" aria-label="음악 크기"><span class="set-v" id="set-music-v">50</span></label>
@@ -560,27 +567,29 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       </div>
       <div class="set-sep"></div>
       <button class="ghost" id="set-credits">만든 사람들</button>
-      <button class="primary" id="set-close">닫기</button>
+      <button class="primary" id="set-close" hidden>닫기</button>
     </div>
   </div>
   <!-- 만든 사람들(0.1.20): 설정 창에서 연다. 음악은 CC BY 라 제목·작곡가·라이선스를 밝힌다 -->
   <div class="sheet-back" id="credits-sheet" role="dialog" aria-modal="true" aria-labelledby="credits-title" hidden>
     <div class="sheet">
+<button class="x-btn" id="credits-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label">만든 사람들</span>
       <h2 id="credits-title" style="font-size:26px">수사 3팀</h2>
       <div id="credits-body" class="credits"></div>
-      <button class="primary" id="credits-close">닫기</button>
+      <button class="primary" id="credits-close" hidden>닫기</button>
     </div>
   </div>
 
   <!-- 도움말(0.1.18): 출동 중에 열면 시간이 멈춘다. 내용은 ui.js 가 규칙 수치로 채운다 -->
   <div class="sheet-back" id="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
     <div class="sheet">
+<button class="x-btn" id="help-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label">도움말</span>
       <h2 id="help-title" style="font-size:26px">수사 3팀 수사 안내</h2>
       <p class="muted" id="help-paused" style="font-size:13px" hidden>이 창이 떠 있는 동안 출동 시간은 멈춰 있어요.</p>
       <div id="help-body" style="display:flex;flex-direction:column;gap:8px"></div>
-      <button class="primary" id="help-close">닫기</button>
+      <button class="primary" id="help-close" hidden>닫기</button>
     </div>
   </div>
   <div class="toast" id="toast" hidden role="status"></div>

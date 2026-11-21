@@ -770,7 +770,8 @@
     resetHubControls();
     renderSettings();
     $('settings-sheet').hidden = false;
-    $('set-close').focus();
+    try { $('set-x').focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
+    $('settings-sheet').querySelector('.sheet').scrollTop = 0;
   }
   function closeSettings() {
     if ($('settings-sheet').hidden) return;
@@ -870,7 +871,8 @@
   function openCredits() {
     $('credits-body').innerHTML = creditsHtml();
     $('credits-sheet').hidden = false;
-    $('credits-close').focus();
+    try { $('credits-x').focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
+    $('credits-sheet').querySelector('.sheet').scrollTop = 0;
   }
   function closeCredits() { $('credits-sheet').hidden = true; }
 
@@ -879,7 +881,8 @@
     $('help-paused').hidden = !pauseForSheet();
     $('help-body').innerHTML = helpHtml();
     $('help-sheet').hidden = false;
-    $('help-close').focus();
+    try { $('help-x').focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
+    $('help-sheet').querySelector('.sheet').scrollTop = 0;
   }
   function closeHelp() {
     if ($('help-sheet').hidden) return;
@@ -978,6 +981,9 @@
   $('set-close').addEventListener('click', closeSettings);
   $('btn-help').addEventListener('click', openHelp);
   $('set-credits').addEventListener('click', openCredits);
+  $('set-x').addEventListener('click', closeSettings);
+  $('help-x').addEventListener('click', closeHelp);
+  $('credits-x').addEventListener('click', closeCredits);
   $('credits-close').addEventListener('click', closeCredits);
   $('credits-sheet').addEventListener('click', function (e) { if (e.target === this) closeCredits(); });
   $('h-help').addEventListener('click', openHelp);

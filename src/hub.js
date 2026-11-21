@@ -232,17 +232,26 @@
 
   /* ---------- 안내 창 ---------- */
   var infoOk = null, infoCancel = null;
+  /*
+   * 안내 창. o.readOnly 면 읽기만 하는 창(패치노트·수사 일지·승진): 아래 확인 단추 없이 오른쪽 위 X 로 닫는다(0.1.22).
+   *   X 는 늘 있고, 묻는 창에서는 "취소"와 같다.
+   */
   function openInfo(o) {
     $('info-label').textContent = o.label || '';
     $('info-title').textContent = o.title || '';
     $('info-body').innerHTML = o.body || '';
+    $('info-ok').hidden = !!o.readOnly;
     $('info-ok').textContent = o.ok || '확인';
     var c = $('info-cancel');
     c.hidden = !o.cancel;
     c.textContent = o.cancel || '취소';
     infoOk = o.onOk || null; infoCancel = o.onCancel || null;
     $('info-sheet').hidden = false;
-    $('info-ok').focus();
+    // 늘 맨 위(최신 패치·첫 줄)부터 보이게(0.1.22). 예전에는 맨 아래 확인 단추에 초점을 주면서
+    // 브라우저가 창을 맨 아래로 내려 버렸다 → 초점은 주되 스크롤은 움직이지 않게(preventScroll)
+    var focusEl = o.readOnly ? $('info-x') : $('info-ok');
+    try { focusEl.focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
+    $('info-sheet').querySelector('.sheet').scrollTop = 0;
   }
   function closeInfo(which) {
     $('info-sheet').hidden = true;
@@ -284,7 +293,7 @@
       }
       return '<details class="pn log-d"><summary><b>' + at + '</b><span class="log-peek">' + esc(e.text.split('\n')[0]) + '</span></summary><div class="pn-body"><p>' + esc(e.text) + '</p></div></details>';
     }).join('');
-    openInfo({ label: '수사 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body });
+    openInfo({ label: '수사 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body, readOnly: true });
     I.markStorySeen(save);
     persist();
     renderStoryButton();
@@ -426,7 +435,7 @@
       body: p('현장에서 직접 잡은 용의자가 ' + fmt(save.runCaught) + '명이 되었어요.') +
         p('수사비가 <b>+' + Math.round(I.rankOf(save).bonus * 100) + '%</b> 늘어요(팀·출동 모두). 승진 축하 배지 ◆' + gems + '개를 받았어요.') +
         (I.rankOf(save).next ? p('<span class="muted">다음 계급 ' + I.rankOf(save).next.name + '까지 ' + fmt(I.rankOf(save).toNext) + '명</span>') : ''),
-      ok: '확인' });
+      readOnly: true });
     return true;
   }
 
@@ -512,6 +521,7 @@
   $('info-ok').addEventListener('click', function () { closeInfo('ok'); });
   $('info-body').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); closeInfo('ok'); } });
   $('info-cancel').addEventListener('click', function () { closeInfo('cancel'); });
+  $('info-x').addEventListener('click', function () { closeInfo('cancel'); });
   $('info-sheet').addEventListener('click', function (e) { if (e.target === this) closeInfo('cancel'); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('info-sheet').hidden) closeInfo('cancel'); });
   // 탭을 떠날 때·돌아올 때 저장과 반영
@@ -608,7 +618,7 @@
   function lines(items) { return items.map(function (t) { return '<p class="li"><i>·</i><span>' + esc(t) + '</span></p>'; }).join(''); }
 
   function showVersionInfo() {
-    if (!N.length) { openInfo({ label: '패치노트', title: '수사 3팀', body: p('기록이 없어요') }); return; }
+    if (!N.length) { openInfo({ label: '패치노트', title: '수사 3팀', body: p('기록이 없어요'), readOnly: true }); return; }
     var cur = N[0];
     var body = '<div class="pn pn-new"><div class="pn-head"><span class="new">NEW</span><b>' + esc(cur.ver) + '</b> ' + esc(cur.title) + '</div>' + lines(cur.items) + '</div>';
     if (N.length > 1) {
@@ -617,7 +627,7 @@
       }).join('');
     }
     // 음악 출처는 0.1.20 부터 설정 → 만든 사람들 로 옮겼다
-    openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body });
+    openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body, readOnly: true });
     lsSet(NOTES_SEEN_KEY, VERSION);
     renderVersionButton();
   }

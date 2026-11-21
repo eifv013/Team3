@@ -209,6 +209,11 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .sheet-back{position:absolute;inset:0;z-index:5;background:rgba(8,10,14,.72);display:flex;align-items:flex-end;padding:16px}
 .sheet{width:100%;max-height:100%;overflow-y:auto;background:var(--panel);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
 .sheet p{margin:0;font-size:14px;line-height:1.55}
+/* 0.1.22: 창 오른쪽 위 X(닫기). 읽기만 하는 창은 아래 확인·닫기 단추 없이 X 로 닫는다 */
+/*   창 안이 스크롤돼도 X 는 오른쪽 위에 붙어 있게 sticky. 자리를 차지하지 않게 아래 여백을 음수로 */
+.x-btn{position:sticky;top:-12px;align-self:flex-end;flex:none;margin:-12px -12px -56px 0;width:44px;height:44px;border:0;border-radius:12px;background:var(--panel);color:var(--muted);display:flex;align-items:center;justify-content:center;z-index:2}
+.x-btn:active{background:var(--panel2)}
+.sheet>.label,.sheet>h2{padding-right:44px}
 @keyframes up{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}
 /* ===== 설정 창(0.1.18): 크기 막대 두 개 · 진동 스위치 · (사무실에서만) 튜토리얼·백업·초기화 ===== */
 .set-row{display:flex;align-items:center;gap:12px;min-height:44px}
@@ -529,6 +534,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   <!-- 방치형: 범용 안내 창(잠복 보고 · 수사 일지 · 사건 종결 · 처음부터) -->
   <div class="sheet-back" id="info-sheet" role="dialog" aria-modal="true" aria-labelledby="info-title" hidden>
     <div class="sheet">
+<button class="x-btn" id="info-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label" id="info-label"></span>
       <h2 id="info-title" style="font-size:26px"></h2>
       <div id="info-body" style="display:flex;flex-direction:column;gap:10px"></div>
@@ -539,6 +545,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   <!-- 설정 창(0.1.18): 출동 중에 열면 시간이 멈춘다. 아래 묶음(set-hub)은 사무실에서만 보인다 -->
   <div class="sheet-back" id="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="set-title" hidden>
     <div class="sheet">
+<button class="x-btn" id="set-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label">설정</span>
       <h2 id="set-title" style="font-size:26px">소리와 진동</h2>
       <label class="set-row"><span>음악</span><input type="range" id="set-music" min="0" max="100" step="5" aria-label="음악 크기"><span class="set-v" id="set-music-v">50</span></label>
@@ -560,27 +567,29 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       </div>
       <div class="set-sep"></div>
       <button class="ghost" id="set-credits">만든 사람들</button>
-      <button class="primary" id="set-close">닫기</button>
+      <button class="primary" id="set-close" hidden>닫기</button>
     </div>
   </div>
   <!-- 만든 사람들(0.1.20): 설정 창에서 연다. 음악은 CC BY 라 제목·작곡가·라이선스를 밝힌다 -->
   <div class="sheet-back" id="credits-sheet" role="dialog" aria-modal="true" aria-labelledby="credits-title" hidden>
     <div class="sheet">
+<button class="x-btn" id="credits-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label">만든 사람들</span>
       <h2 id="credits-title" style="font-size:26px">수사 3팀</h2>
       <div id="credits-body" class="credits"></div>
-      <button class="primary" id="credits-close">닫기</button>
+      <button class="primary" id="credits-close" hidden>닫기</button>
     </div>
   </div>
 
   <!-- 도움말(0.1.18): 출동 중에 열면 시간이 멈춘다. 내용은 ui.js 가 규칙 수치로 채운다 -->
   <div class="sheet-back" id="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
     <div class="sheet">
+<button class="x-btn" id="help-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label">도움말</span>
       <h2 id="help-title" style="font-size:26px">수사 3팀 수사 안내</h2>
       <p class="muted" id="help-paused" style="font-size:13px" hidden>이 창이 떠 있는 동안 출동 시간은 멈춰 있어요.</p>
       <div id="help-body" style="display:flex;flex-direction:column;gap:8px"></div>
-      <button class="primary" id="help-close">닫기</button>
+      <button class="primary" id="help-close" hidden>닫기</button>
     </div>
   </div>
   <div class="toast" id="toast" hidden role="status"></div>
@@ -629,6 +638,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.22', date: '2026-11-22', title: '창 닫기 단추',
+      items: [
+        '창 오른쪽 위에 X 단추가 생겼어요.',
+        '패치노트, 수사 일지, 승진, 설정, 도움말, 만든 사람들은 아래 확인·닫기 단추 없이 X로 닫아요.',
+        '패치노트처럼 긴 창이 맨 아래로 내려간 채 열리던 문제를 고쳤어요. 이제 늘 맨 위부터 보여요.'
+      ] },
     { ver: '0.1.21', date: '2026-11-22', title: '소리를 더 크게',
       items: [
         '음악과 효과음을 한 번 더 두 배로 키웠어요.'
@@ -3617,7 +3632,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     resetHubControls();
     renderSettings();
     $('settings-sheet').hidden = false;
-    $('set-close').focus();
+    try { $('set-x').focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
+    $('settings-sheet').querySelector('.sheet').scrollTop = 0;
   }
   function closeSettings() {
     if ($('settings-sheet').hidden) return;
@@ -3717,7 +3733,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   function openCredits() {
     $('credits-body').innerHTML = creditsHtml();
     $('credits-sheet').hidden = false;
-    $('credits-close').focus();
+    try { $('credits-x').focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
+    $('credits-sheet').querySelector('.sheet').scrollTop = 0;
   }
   function closeCredits() { $('credits-sheet').hidden = true; }
 
@@ -3726,7 +3743,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     $('help-paused').hidden = !pauseForSheet();
     $('help-body').innerHTML = helpHtml();
     $('help-sheet').hidden = false;
-    $('help-close').focus();
+    try { $('help-x').focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
+    $('help-sheet').querySelector('.sheet').scrollTop = 0;
   }
   function closeHelp() {
     if ($('help-sheet').hidden) return;
@@ -3825,6 +3843,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   $('set-close').addEventListener('click', closeSettings);
   $('btn-help').addEventListener('click', openHelp);
   $('set-credits').addEventListener('click', openCredits);
+  $('set-x').addEventListener('click', closeSettings);
+  $('help-x').addEventListener('click', closeHelp);
+  $('credits-x').addEventListener('click', closeCredits);
   $('credits-close').addEventListener('click', closeCredits);
   $('credits-sheet').addEventListener('click', function (e) { if (e.target === this) closeCredits(); });
   $('h-help').addEventListener('click', openHelp);
@@ -4170,17 +4191,26 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
   /* ---------- 안내 창 ---------- */
   var infoOk = null, infoCancel = null;
+  /*
+   * 안내 창. o.readOnly 면 읽기만 하는 창(패치노트·수사 일지·승진): 아래 확인 단추 없이 오른쪽 위 X 로 닫는다(0.1.22).
+   *   X 는 늘 있고, 묻는 창에서는 "취소"와 같다.
+   */
   function openInfo(o) {
     $('info-label').textContent = o.label || '';
     $('info-title').textContent = o.title || '';
     $('info-body').innerHTML = o.body || '';
+    $('info-ok').hidden = !!o.readOnly;
     $('info-ok').textContent = o.ok || '확인';
     var c = $('info-cancel');
     c.hidden = !o.cancel;
     c.textContent = o.cancel || '취소';
     infoOk = o.onOk || null; infoCancel = o.onCancel || null;
     $('info-sheet').hidden = false;
-    $('info-ok').focus();
+    // 늘 맨 위(최신 패치·첫 줄)부터 보이게(0.1.22). 예전에는 맨 아래 확인 단추에 초점을 주면서
+    // 브라우저가 창을 맨 아래로 내려 버렸다 → 초점은 주되 스크롤은 움직이지 않게(preventScroll)
+    var focusEl = o.readOnly ? $('info-x') : $('info-ok');
+    try { focusEl.focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
+    $('info-sheet').querySelector('.sheet').scrollTop = 0;
   }
   function closeInfo(which) {
     $('info-sheet').hidden = true;
@@ -4222,7 +4252,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       }
       return '<details class="pn log-d"><summary><b>' + at + '</b><span class="log-peek">' + esc(e.text.split('\n')[0]) + '</span></summary><div class="pn-body"><p>' + esc(e.text) + '</p></div></details>';
     }).join('');
-    openInfo({ label: '수사 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body });
+    openInfo({ label: '수사 일지', title: '사건 ' + I.CASE.no + ' · ' + I.CASE.title, body: body, readOnly: true });
     I.markStorySeen(save);
     persist();
     renderStoryButton();
@@ -4364,7 +4394,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       body: p('현장에서 직접 잡은 용의자가 ' + fmt(save.runCaught) + '명이 되었어요.') +
         p('수사비가 <b>+' + Math.round(I.rankOf(save).bonus * 100) + '%</b> 늘어요(팀·출동 모두). 승진 축하 배지 ◆' + gems + '개를 받았어요.') +
         (I.rankOf(save).next ? p('<span class="muted">다음 계급 ' + I.rankOf(save).next.name + '까지 ' + fmt(I.rankOf(save).toNext) + '명</span>') : ''),
-      ok: '확인' });
+      readOnly: true });
     return true;
   }
 
@@ -4450,6 +4480,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   $('info-ok').addEventListener('click', function () { closeInfo('ok'); });
   $('info-body').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); closeInfo('ok'); } });
   $('info-cancel').addEventListener('click', function () { closeInfo('cancel'); });
+  $('info-x').addEventListener('click', function () { closeInfo('cancel'); });
   $('info-sheet').addEventListener('click', function (e) { if (e.target === this) closeInfo('cancel'); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('info-sheet').hidden) closeInfo('cancel'); });
   // 탭을 떠날 때·돌아올 때 저장과 반영
@@ -4546,7 +4577,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   function lines(items) { return items.map(function (t) { return '<p class="li"><i>·</i><span>' + esc(t) + '</span></p>'; }).join(''); }
 
   function showVersionInfo() {
-    if (!N.length) { openInfo({ label: '패치노트', title: '수사 3팀', body: p('기록이 없어요') }); return; }
+    if (!N.length) { openInfo({ label: '패치노트', title: '수사 3팀', body: p('기록이 없어요'), readOnly: true }); return; }
     var cur = N[0];
     var body = '<div class="pn pn-new"><div class="pn-head"><span class="new">NEW</span><b>' + esc(cur.ver) + '</b> ' + esc(cur.title) + '</div>' + lines(cur.items) + '</div>';
     if (N.length > 1) {
@@ -4555,7 +4586,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       }).join('');
     }
     // 음악 출처는 0.1.20 부터 설정 → 만든 사람들 로 옮겼다
-    openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body });
+    openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body, readOnly: true });
     lsSet(NOTES_SEEN_KEY, VERSION);
     renderVersionButton();
   }

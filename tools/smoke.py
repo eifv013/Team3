@@ -18,6 +18,11 @@ BAD = """([b, lv]) => { const C = SuspectsCore, a = C.activeFor(lv);
 
 def card(pg, i): return pg.locator('#board .card').nth(i)
 
+def close_info(pg):
+    """안내 창 닫기(0.1.22): 확인 단추가 있으면 확인, 읽기 전용 창(패치노트·일지·승진)이면 오른쪽 위 X"""
+    if pg.locator('#info-ok').is_visible(): pg.click('#info-ok')
+    else: pg.click('#info-x')
+
 def catch_one(pg):
     """판에서 한 패를 잡는다(없으면 검거 불가). 잡았으면 True"""
     b = pg.evaluate(READ); lv = pg.evaluate(LEVEL)
@@ -126,7 +131,9 @@ with sync_playwright() as p:
             pg.locator('#info-body details.pn[open] .pn-body').first.click(); pg.clock.run_for(100)
             if pg.locator('#info-body details.pn[open]').count(): problems.append('펼친 패치노트 내용을 눌러도 안 접힘')
         pg.screenshot(path=SHOT + 'notes.png')
-        pg.click('#info-ok'); pg.clock.run_for(100)
+        if pg.locator('#info-ok').is_visible(): problems.append('패치노트에 확인 단추가 남아 있음(X 로만 닫아야 함)')
+        if not pg.locator('#info-x').is_visible(): problems.append('패치노트에 X 단추가 없음')
+        close_info(pg); pg.clock.run_for(100)
         if pg.locator('#h-version .new').count(): problems.append('패치노트를 읽었는데 NEW 가 남음')
         # 다음 검거 줄이 차오르고, 잡는 순간 +수사비가 떠오른다
         if '다음 검거까지' not in pg.text_content('#h-next'): problems.append('다음 검거까지 표시가 없음')
@@ -227,7 +234,7 @@ with sync_playwright() as p:
         if pg.locator('#info-body .log').count() != 6: problems.append('수사 일지 칸이 6개가 아님')
         if unread and not pg.locator('#info-body .log.fresh .new').count(): problems.append('NEW 였는데 일지 안에 새 편 표시가 없음')
         pg.screenshot(path=SHOT + 'story.png')
-        pg.click('#info-ok'); pg.clock.run_for(100)
+        close_info(pg); pg.clock.run_for(100)
         if pg.locator('#h-story-all .new').count(): problems.append('일지를 읽었는데 NEW 가 남음')
         if caught.startswith('0 '): problems.append('출동했는데 사건 진척이 0: ' + caught)
         if pg.locator('#h-buff').is_hidden(): problems.append('출동 뒤 사기 충전 표시가 없음')
@@ -246,7 +253,7 @@ with sync_playwright() as p:
         if pg.text_content('#info-label') != '잠복 보고' or pg.locator('#info-sheet').is_hidden(): problems.append('다시 켰는데 잠복 보고가 없음')
         pg.screenshot(path=SHOT + 'away.png')
         if pg.text_content('#h-station') != '강남서 · 수사 3팀': problems.append('다시 켰더니 경찰서 이름이 사라짐')
-        pg.click('#info-ok'); pg.clock.run_for(100)
+        close_info(pg); pg.clock.run_for(100)
         # 사건 종결: 창을 닫고, 다음 창이 뜨기 직전에 저장을 2999명으로 바꿔 팀이 마지막 한 명을 잡게 한다.
         # (열린 창의 저장을 바꾸면 떠날 때 게임이 덮어쓰므로 창 사이에서 바꾼다)
         reopen_n = [0]
@@ -266,11 +273,11 @@ with sync_playwright() as p:
         # 형사 200명: 1초에 여러 명 → 막대 대신 "1초에 N명 검거" + 흐르는 막대
         if not pg.text_content('#h-next').startswith('1초에'): problems.append('아주 빠른데 "1초에 N명"이 아님: ' + pg.text_content('#h-next'))
         if 'stream' not in (pg.get_attribute('#h-next-fill', 'class') or '') + (pg.evaluate("() => document.getElementById('h-next-fill').parentNode.className")): problems.append('흐르는 막대가 아님')
-        if not pg.locator('#info-sheet').is_hidden(): pg.click('#info-ok'); pg.clock.run_for(100)
+        if not pg.locator('#info-sheet').is_hidden(): close_info(pg); pg.clock.run_for(100)
         # 처음 열면 새 편(NEW)들이 펼쳐져 있고, 한 번 읽은 뒤 다시 열면 가장 최근 편만 펼쳐지고 나머지는 접힌다
         pg.click('#h-story-all'); pg.clock.run_for(150)
         if not pg.locator('#info-body .log.fresh').count(): problems.append('새로 열린 일지에 NEW 칸이 없음')
-        pg.click('#info-ok'); pg.clock.run_for(100)
+        close_info(pg); pg.clock.run_for(100)
         pg.click('#h-story-all'); pg.clock.run_for(150)
         if pg.locator('#info-body details.log-d').count() != 4: problems.append('지난 수사 일지 4편이 접혀 있지 않음: ' + str(pg.locator('#info-body details.log-d').count()))
         if pg.locator('#info-body details.log-d[open]').count(): problems.append('지난 수사 일지가 펼쳐져 있음')
@@ -296,8 +303,8 @@ with sync_playwright() as p:
         for d in pg.locator('#info-body details.log-d').all(): d.evaluate('e => e.open = false')
         pg.set_viewport_size({'width': 390, 'height': 844}); pg.clock.run_for(50)
         pg.screenshot(path=SHOT + 'story-fold.png')
-        pg.click('#info-ok'); pg.clock.run_for(100)
-        if not pg.locator('#info-sheet').is_hidden(): pg.click('#info-ok'); pg.clock.run_for(100)
+        close_info(pg); pg.clock.run_for(100)
+        if not pg.locator('#info-sheet').is_hidden(): close_info(pg); pg.clock.run_for(100)
         # 2500명을 넘겼으니 팀(방치)은 더 못 올린다: 빨간 알림 줄 + 출동 단추 맥박, 70초 지나도 2999 그대로
         if not pg.locator('#h-cap-note').is_visible(): problems.append('방치 상한인데 "현장 출동으로만" 알림이 없음')
         if 'urgent' not in (pg.get_attribute('#h-go', 'class') or ''): problems.append('방치 상한인데 출동 단추 강조가 없음')
