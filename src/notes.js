@@ -9,6 +9,11 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.11', date: '2026-11-21', title: '출동 연출',
+      items: [
+        '현장 출동을 누르면 셔터, 폴리스 라인, 사건 파일 중 하나가 화면을 덮었다가 열려요.',
+        '주범 조를 잡으러 갈 때는 더 큰 연출이 나와요.'
+      ] },
     { ver: '0.1.10', date: '2026-11-21', title: '평소 출동은 바로 출발',
       items: [
         '현장 출동은 누르면 바로 출발해요.',

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수사 3팀 · 출동 전환 미리보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 미리보기 전용: 게임과 같은 색·글꼴. 전환 코드(transit.js)는 게임에 들어간 것과 똑같다 */
+:root{--ink:#12151C;--panel:#1C212B;--panel2:#232937;--line:#2E3542;--text:#F3F0E8;--muted:#A3ACBA;--acc:#FFD23F}
+*{box-sizing:border-box}
+html,body{margin:0;background:#0b0d12;color:var(--text);font-family:'IBM Plex Sans KR',system-ui,sans-serif;word-break:keep-all}
+.wrap{max-width:440px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.app{position:relative;height:min(78vh,720px);border-radius:22px;overflow:hidden;background:var(--ink);border:1px solid var(--line)}
+.scr{position:absolute;inset:0;padding:22px 18px;display:flex;flex-direction:column;gap:12px;transition:none}
+.money{font-family:'Black Han Sans',sans-serif;font-size:30px;color:var(--acc)}
+.muted{color:var(--muted);font-size:13px}
+.card{background:var(--panel);border-radius:14px;padding:14px}
+.bar{height:10px;border-radius:5px;background:var(--line)}.bar i{display:block;height:100%;width:62%;border-radius:5px;background:var(--acc)}
+.go{height:72px;border-radius:16px;background:var(--acc);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Black Han Sans',sans-serif;font-size:26px;box-shadow:0 6px 0 #b8901c}
+.go small{font-family:'IBM Plex Sans KR';font-size:12px;opacity:.75}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.grid i{aspect-ratio:3/4;border-radius:10px;background:var(--panel2)}
+.tm{height:8px;border-radius:4px;background:var(--acc)}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+button{height:48px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:600 15px 'IBM Plex Sans KR',sans-serif}
+button.on{border-color:var(--acc);color:var(--acc)}
+.lbl{font-size:13px;color:var(--muted);margin-bottom:-6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="app" id="app">
+    <div class="scr" id="hub">
+      <div class="muted">중앙서 · 수사 3팀</div>
+      <div class="money">수사비 13,949</div>
+      <div class="card"><div style="margin-bottom:10px;font-weight:600">사건 1 · 골목길 연쇄 절도</div><div class="bar"><i></i></div><div style="margin-top:10px;color:var(--acc);font-size:13px;font-weight:600">수사 일지 보기</div></div>
+      <div class="go">현장 출동<small>120초 · 무료 단서 2 · 잡은 만큼 수사비</small></div>
+      <div class="card muted">형사 8명</div>
+      <div class="card muted">합동 훈련 4단계</div>
+    </div>
+    <div class="scr" id="play" style="visibility:hidden">
+      <div style="display:flex;justify-content:space-between"><span class="muted">남은 시간</span><b style="color:var(--acc)">2:00</b></div>
+      <div class="tm"></div>
+      <div class="grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+  <div class="lbl">평소 출동 (게임에선 셋 중 무작위)</div>
+  <div class="row"><button data-k="A">A 셔터</button><button data-k="B">B 폴리스 라인</button><button data-k="C">C 사건 파일</button></div>
+  <div class="lbl">주범 조 출동 (게임에선 셋 중 무작위)</div>
+  <div class="row"><button data-k="E">E 긴급 무전</button><button data-k="F">F 수배서</button><button data-k="G">G 작전 개시</button></div>
+</div>
+<script>
+/*TRANSIT*/
+</script>
+<script>
+(function () {
+  var hub = document.getElementById('hub'), play = document.getElementById('play'), busy = false;
+  Team3Transit.setHost(document.getElementById('app'));
+  function showHub() { hub.style.visibility = 'visible'; play.style.visibility = 'hidden'; }
+  document.querySelectorAll('button[data-k]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (busy) return;
+      busy = true;
+      document.querySelectorAll('button[data-k]').forEach(function (x) { x.classList.toggle('on', x === b); });
+      showHub();
+      Team3Transit.play(b.dataset.k, function () { hub.style.visibility = 'hidden'; play.style.visibility = 'visible'; },
+        { caseNo: 1, caseTitle: '골목길 연쇄 절도' })
+        .then(function () { setTimeout(function () { showHub(); busy = false; }, 900); });
+    });
+  });
+})();
+</script>
+</body>
+</html>

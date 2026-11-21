@@ -47,9 +47,9 @@ with sync_playwright() as p:
     if pg.locator('#info-sheet').is_visible(): pg.click('#info-cancel'); pg.wait_for_timeout(200)
     if not pg.locator('#updating').is_hidden(): problems.append('옛 버전인데 업데이트 창이 뜸')
     # 출동 중에 새 버전이 나오면 끼어들지 않고, 사무실로 돌아올 때 창을 띄운다
-    pg.click('#h-go'); pg.wait_for_timeout(500)
+    pg.click('#h-go'); pg.wait_for_timeout(300)
     remote['version'] = '9.9.10'
-    pg.evaluate('Team3CheckUpdate()'); pg.wait_for_timeout(1500)
+    pg.evaluate('Team3CheckUpdate()'); pg.wait_for_timeout(2500)   # 전환 도중에 새 버전 확인 → 끼어들면 안 된다
     if not pg.locator('#updating').is_hidden() or not pg.locator('#s-play').is_visible(): problems.append('출동 중에 업데이트 창이 끼어듦')
     pg.click('#btn-quit'); pg.wait_for_timeout(200); pg.click('#btn-quit-yes'); pg.wait_for_timeout(300)
     if pg.locator('#updating').is_hidden(): problems.append('사무실로 돌아왔는데 업데이트 창이 안 뜸')
@@ -62,7 +62,10 @@ with sync_playwright() as p:
     if pg.evaluate('Team3Back()') != 'exit': problems.append('사무실에서 뒤로가 exit 가 아님')
     pg.click('#h-tutorial'); pg.wait_for_timeout(200)
     if pg.evaluate('Team3Back()') != 'stay' or not pg.locator('#s-hub').is_visible(): problems.append('튜토리얼에서 뒤로가 사무실로 안 감')
-    pg.click('#h-go'); pg.wait_for_timeout(500)
+    pg.click('#h-go'); pg.wait_for_timeout(150)
+    # 출동 전환 중 뒤로: 앱이 꺼지면(exit) 안 된다
+    if pg.evaluate('Team3Back()') != 'stay': problems.append('출동 전환 중 뒤로가 stay 가 아님')
+    pg.wait_for_timeout(2500)
     pg.evaluate('Team3Back()'); pg.wait_for_timeout(200)
     if pg.locator('#quit-sheet').is_hidden(): problems.append('출동 중 뒤로가 멈춤 창을 안 띄움')
     pg.evaluate('Team3Back()'); pg.wait_for_timeout(200)

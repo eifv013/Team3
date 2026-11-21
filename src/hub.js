@@ -252,10 +252,10 @@
 
   /* ---------- 출동 ---------- */
   /*
-   * 현장 출동
-   *   평소: 바로 출발(출동 화면 전환만).
-   *   주범 조 출동(방치 한계 뒤 = 현장에서만 잡을 수 있을 때): 경광등 소리 + 진동 + 화면 위 빨강·파랑 번쩍(0.45초) → 출동.
-   *   연타로 두 번 출동하지 않게 dispatching 동안은 무시한다.
+   * 현장 출동: 화면을 한 번 가렸다가 여는 컷 전환(transit.js) 사이에 출동 화면으로 바꾼다.
+   *   평소: A 셔터 / B 폴리스 라인 / C 사건 파일 중 무작위.
+   *   주범 조 출동(방치 한계 뒤): 경광등 소리 + 진동, E 긴급 무전 / F 수배서 / G 작전 개시 중 무작위.
+   *   전환이 끝날 때까지(dispatching) 다시 눌러도 무시한다. 전환이 없거나 실패해도 출동은 반드시 된다.
    */
   var dispatching = false;
   function startRunNow() {
@@ -265,19 +265,16 @@
   }
   function go() {
     if (dispatching) return;
-    if (!I.idleCapped(save)) { startRunNow(); return; }
+    var T = window.Team3Transit;
+    if (!T) { startRunNow(); return; }
+    var big = I.idleCapped(save);
+    if (big) {
+      try { UI.sfx.go(); } catch (e) { /* 소리 실패는 무시 */ }
+      try { if (navigator.vibrate) navigator.vibrate([18, 40, 18]); } catch (e) { /* 진동 없는 기기 */ }
+    }
     dispatching = true;
-    try { UI.sfx.go(); } catch (e) { /* 소리 실패는 무시 */ }
-    try { if (navigator.vibrate) navigator.vibrate([18, 40, 18]); } catch (e) { /* 진동 없는 기기 */ }
-    var b = $('h-go'), sr = $('siren');
-    b.classList.add('press');
-    sr.classList.remove('on'); void sr.offsetWidth; sr.classList.add('on');
-    setTimeout(function () {
-      b.classList.remove('press');
-      dispatching = false;
-      startRunNow();
-    }, 450);
-    setTimeout(function () { sr.classList.remove('on'); }, 700);
+    T.play(big ? 'big' : 'normal', startRunNow, { caseNo: I.CASE.no, caseTitle: I.CASE.title })
+      .then(function () { dispatching = false; }, function () { dispatching = false; });
   }
 
   // 출동이 끝나면 ui.js 가 부른다. 결과 화면에 들어갈 요약 HTML 을 돌려준다.
@@ -392,7 +389,8 @@
   // 사무실이 보일 때만 업데이트 창을 띄운다(출동·튜토리얼·결과 중이면 사무실로 돌아올 때).
   // 창에는 "업데이트" 단추 하나뿐이고 닫을 수 없다. 누르면 저장하고 새 파일로 다시 연다.
   function applyIfSafe() {
-    if (!pendingUpdate || updating || !$('s-hub').classList.contains('on')) return;
+    // 출동 전환(화면을 덮는 중)에는 띄우지 않는다 — 출동 화면에서 돌아올 때 띄운다
+    if (!pendingUpdate || updating || dispatching || !$('s-hub').classList.contains('on')) return;
     updating = true;
     I.advance(save, nowMs());
     persist();
@@ -475,6 +473,7 @@
   // 안드로이드 앱의 뒤로 단추: 바꾸는 중이면 그대로, 안내 창이 떠 있으면 닫고, 아니면 화면 쪽(ui.js)에 맡긴다
   window.Team3Back = function () {
     if (updating) return 'stay';
+    if (dispatching) return 'stay';   // 출동 전환 중: 사무실에서 뒤로(=앱 종료)로 오해하지 않게 그냥 둔다
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }
     return UI.back();
   };

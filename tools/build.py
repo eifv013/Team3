@@ -8,7 +8,7 @@ import json, pathlib, re, shutil, subprocess, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / 'dist'
 SCRIPTS = (('/*NOTES*/', 'notes.js'), ('/*UPDATE*/', 'update.js'), ('/*CORE*/', 'core.js'),
-           ('/*IDLE*/', 'idle.js'), ('/*UI*/', 'ui.js'), ('/*HUB*/', 'hub.js'))
+           ('/*IDLE*/', 'idle.js'), ('/*TRANSIT*/', 'transit.js'), ('/*UI*/', 'ui.js'), ('/*HUB*/', 'hub.js'))
 ICONS = ('icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png',
          'apple-touch-icon.png', 'favicon-32.png', 'favicon-64.png')
 
@@ -34,6 +34,11 @@ def build():
         tpl = tpl.replace(mark, code)
     DIST.mkdir(exist_ok=True)
     (DIST / 'index.html').write_text(tpl, encoding='utf-8')
+    # 출동 전환 미리보기: 게임과 같은 transit.js 를 넣은 단독 페이지(배포 폴더에는 넣지 않는다)
+    prev = (ROOT / 'src/transit-preview.html').read_text(encoding='utf-8')
+    if prev.count('/*TRANSIT*/') != 1:
+        sys.exit('transit-preview.html 의 /*TRANSIT*/ 자리표시자가 하나가 아니다')
+    (DIST / 'transit-preview.html').write_text(prev.replace('/*TRANSIT*/', (ROOT / 'src/transit.js').read_text(encoding='utf-8')), encoding='utf-8')
 
     note = latest_note()
     pwa = DIST / 'pwa'

@@ -158,9 +158,24 @@ with sync_playwright() as p:
         if pg.locator('#h-leader i').count(): problems.append('이름 속 HTML 이 그대로 그려짐')
         pg.screenshot(path=SHOT + 'profile.png')
         # 출동 → 결과
-        pg.click('#h-go'); pg.clock.run_for(100)   # 평소 출동은 바로 출발(경광등 없음)
-        if 'on' in (pg.get_attribute('#siren', 'class') or ''): problems.append('평소 출동인데 경광등 효과가 나옴')
-        pg.clock.run_for(300)
+        # 출동 전환: 모든 연출이 화면을 덮었다가, 화면을 정확히 한 번 바꾸고, 덮개를 남기지 않는다
+        for k in ['A', 'B', 'C', 'E', 'F', 'G']:
+            pg.evaluate("k => { window.__sw = 0; window.__done = 0; Team3Transit.play(k, () => window.__sw++, { caseNo: 1, caseTitle: '골목길 연쇄 절도' }).then(() => window.__done = 1); }", k)
+            covered = False
+            for _ in range(60):
+                pg.clock.run_for(50)
+                if pg.evaluate('() => window.__sw') and not covered:
+                    covered = True
+                    pg.screenshot(path=SHOT + 'tr-' + k + '.png')
+                if pg.evaluate('() => window.__done'): break
+            pg.clock.run_for(100)
+            if pg.evaluate('() => window.__sw') != 1: problems.append('전환 %s: 화면 바꾸기가 한 번이 아님' % k)
+            if not pg.evaluate('() => window.__done'): problems.append('전환 %s: 3초 안에 안 끝남' % k)
+            if pg.locator('.tr-layer').count(): problems.append('전환 %s: 덮개가 남음' % k)
+        pg.click('#h-go'); pg.clock.run_for(100)   # 평소 출동: A·B·C 중 하나
+        kind = pg.evaluate("() => { const l = document.querySelector('.tr-layer'); return l ? l.dataset.kind : '' }")
+        if kind not in ('A', 'B', 'C'): problems.append('평소 출동 전환이 A·B·C 가 아님: ' + kind)
+        pg.clock.run_for(1600)
         if not pg.locator('#s-play').is_visible(): problems.append('출동이 안 됨')
         if '출동' not in (pg.text_content('#stamp') or ''): problems.append('출동 시작 도장이 출동이 아님: ' + (pg.text_content('#stamp') or ''))
         play_checks(pg, 1, helper=True)
@@ -193,7 +208,7 @@ with sync_playwright() as p:
         txt = pg.text_content('#r-idle') or ''
         if '수사비' not in txt or '사건 진척' not in txt: problems.append('출동 결과에 수사비·진척이 없음: ' + txt)
         pg.screenshot(path=SHOT + 'result.png')
-        pg.click('#btn-again'); pg.clock.run_for(700)
+        pg.click('#btn-again'); pg.clock.run_for(2000)
         if '검거' in (pg.text_content('#stamp') or '') or '출동' not in (pg.text_content('#stamp') or ''): problems.append('다시 출동했는데 지난 도장이 남음: ' + (pg.text_content('#stamp') or ''))
         pg.click('#btn-quit'); pg.clock.run_for(200); pg.click('#btn-quit-yes'); pg.clock.run_for(300)
         if not pg.locator('#s-hub').is_visible(): problems.append('사무실로가 안 됨')
@@ -287,12 +302,14 @@ with sync_playwright() as p:
         pg.locator('.casebox').scroll_into_view_if_needed(); pg.evaluate("() => document.querySelector('#s-hub').scrollTop = 0")
         pg.screenshot(path=SHOT + 'capped.png')
         # 마지막 한 명은 출동으로: 경광등 번쩍 → 한 패 잡고 → 시간 끝 → 사무실로 → 사건 종결 창
-        pg.click('#h-go'); pg.clock.run_for(150)
-        if 'on' not in (pg.get_attribute('#siren', 'class') or ''): problems.append('출동 순간 경광등 효과가 없음')
-        pg.screenshot(path=SHOT + 'siren.png')
-        pg.clock.run_for(600)
-        if not pg.locator('#s-play').is_visible(): problems.append('상한 뒤 출동이 안 됨')
-        catch_one(pg)
+        pg.click('#h-go'); pg.clock.run_for(100)   # 주범 조 출동: E·F·G 중 하나
+        kind = pg.evaluate("() => { const l = document.querySelector('.tr-layer'); return l ? l.dataset.kind : '' }")
+        if kind not in ('E', 'F', 'G'): problems.append('주범 조 출동 전환이 E·F·G 가 아님: ' + kind)
+        pg.clock.run_for(3000)
+        if not pg.locator('#s-play').is_visible():
+            problems.append('상한 뒤 출동이 안 됨(전환 %s, 덮개 %d)' % (kind, pg.locator('.tr-layer').count()))
+        else:
+            catch_one(pg)
         pg.clock.run_for(200_000)
         pg.click('#btn-home'); pg.clock.run_for(400)
         if '종결' not in (pg.text_content('#info-label') or '') or pg.locator('#info-sheet').is_hidden(): problems.append('출동으로 목표에 닿았는데 사건 종결 창이 없음')
