@@ -94,6 +94,8 @@
     none: function () { [0, 4, 7, 12].forEach(function (n, i) { mallet(C4 * semi(n), 0.2, i * 0.08); }); },
     // 출동 끝: 마림바로 도-미-솔-도 올라가며 끝맺는다(보상 화면과 어울리게). 예전 삼각파 솔-미-도를 바꿨다.
     end: function () { [0, 4, 7, 12].forEach(function (n, i) { tone(C4 * semi(n), i === 3 ? 0.9 : 0.35, 'sine', 0.2, i * 0.1, null, 0.004); tone(C4 * semi(n) * 4, 0.08, 'sine', 0.05, i * 0.1, null, 0.002); }); },
+    // 현장 출동: 마림바 경광등(높은 솔-도를 두 번 번갈아) — 출동 단추를 누르는 순간
+    go: function () { [12, 7, 12, 7].forEach(function (n, i) { mallet(C4 * semi(n + 7), 0.26, i * 0.11); }); mallet(C4 * semi(-5), 0.3, 0); },
     coin: function () { mallet(C4 * semi(7), 0.18, 0); mallet(C4 * semi(12), 0.16, 0.07); },
     tickLow: function () { tone(880, 0.05, 'sine', 0.07); }
   };

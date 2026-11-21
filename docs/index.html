@@ -168,8 +168,14 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .rate{font-size:12px;color:var(--muted)}
 .buff{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:6px;background:var(--acc);color:var(--ink);font-size:11px;font-weight:700}
 .casebox{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
-.casebox .bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
-.casebox .bar i{display:block;height:100%;background:var(--acc);border-radius:5px;transition:width .4s}
+.casebox .bar{position:relative;height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.casebox .bar i{position:relative;z-index:1;display:block;height:100%;background:var(--acc);border-radius:5px;transition:width .4s}
+/* 방치 상한(800명) 뒤 구간: 빗금 = "현장에서만". 눈금선이 경계 */
+.casebox .bar .cap{position:absolute;top:0;bottom:0;right:0;background:repeating-linear-gradient(135deg,rgba(255,92,92,.28) 0 4px,transparent 4px 8px);border-left:2px solid var(--panel)}
+.cap-note{display:none;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,92,92,.12);color:#ff8a8a;font-size:13px;font-weight:700}
+.cap-note.on{display:flex}
+.cap-note i{width:8px;height:8px;flex:none;border-radius:50%;background:#ff5c5c;animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
 .casebox .story{margin:0;font-size:13px;line-height:1.6;color:var(--muted);white-space:pre-line}
 .linkish{border:0;background:none;padding:0;color:var(--acc);font-size:13px;font-weight:600;text-align:left}
 .section-t{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-top:4px}
@@ -181,9 +187,28 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .item .tx small{font-size:12px;color:var(--muted);line-height:1.35}
 .buy{min-width:84px;height:44px;padding:0 10px;border:0;border-radius:10px;background:var(--acc);color:var(--ink);font-size:14px;font-weight:700}
 .buy.max{background:var(--panel2);color:var(--muted)}
-.go-btn{height:64px;border:0;border-radius:16px;background:var(--acc);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.go-btn b{font-size:20px}
-.go-btn small{font-size:12px;font-weight:600;opacity:.75}
+/* 현장 출동: 이 게임의 핵심 단추. 경광등 띠 + 빛줄기 + 누르면 꾹 들어감 */
+.go-btn{position:relative;overflow:hidden;flex:none;height:72px;border:0;border-radius:16px;background:var(--acc);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  box-shadow:0 6px 0 #b8901c,0 10px 24px rgba(255,210,63,.25);transition:transform .08s,box-shadow .08s}
+.go-btn b{position:relative;font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:26px;letter-spacing:.04em}
+.go-btn small{position:relative;font-size:12px;font-weight:600;opacity:.75}
+.go-btn::before{content:'';position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,#ff4d4d 0 50%,#3d8bff 50% 100%);background-size:200% 100%;animation:siren-bar 1.2s linear infinite}
+.go-btn::after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:shine 3.2s ease-in-out infinite}
+.go-btn:active,.go-btn.press{transform:translateY(5px);box-shadow:0 1px 0 #b8901c,0 4px 12px rgba(255,210,63,.2)}
+.go-btn.urgent{animation:urgent 1.1s ease-in-out infinite}
+@keyframes siren-bar{to{background-position:-200% 0}}
+@keyframes shine{0%,55%{left:-60%}85%,100%{left:130%}}
+@keyframes urgent{0%,100%{box-shadow:0 6px 0 #b8901c,0 0 0 0 rgba(255,77,77,.0)}50%{box-shadow:0 6px 0 #b8901c,0 0 0 6px rgba(255,77,77,.35),0 0 26px rgba(255,77,77,.45)}}
+/* 출동 순간: 화면 위로 빨강·파랑 경광등이 번갈아 번쩍 */
+.siren{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0}
+.siren.on{animation:siren-flash .62s linear}
+@keyframes siren-flash{
+  0%{opacity:1;background:radial-gradient(120% 70% at 0% 0%,rgba(255,60,60,.55),transparent 60%)}
+  25%{opacity:1;background:radial-gradient(120% 70% at 100% 0%,rgba(60,130,255,.55),transparent 60%)}
+  50%{opacity:1;background:radial-gradient(120% 70% at 0% 0%,rgba(255,60,60,.55),transparent 60%)}
+  75%{opacity:1;background:radial-gradient(120% 70% at 100% 0%,rgba(60,130,255,.55),transparent 60%)}
+  100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.go-btn::before,.go-btn::after,.go-btn.urgent,.cap-note i{animation:none}.siren.on{animation-duration:.2s}}
 
 /* ===== 아래에서 올라오는 창 ===== */
 .sheet-back{position:absolute;inset:0;z-index:5;background:rgba(8,10,14,.72);display:flex;align-items:flex-end;padding:16px}
@@ -277,6 +302,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 </head>
 <body>
 <div class="app">
+  <div class="siren" id="siren" aria-hidden="true"></div>
 
 
   <!-- 사무실(방치형) -->
@@ -303,7 +329,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
         <b style="font-size:15px" id="h-case">사건 1 · 골목길 연쇄 절도</b>
         <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="h-caught">0 / 300</span>
       </div>
-      <div class="bar"><i id="h-bar" style="width:0%"></i></div>
+      <div class="bar"><span class="cap" id="h-cap"></span><i id="h-bar" style="width:0%"></i></div>
+      <div class="cap-note" id="h-cap-note"><i></i><span id="h-cap-text">남은 주범 조는 현장 출동으로만 잡을 수 있어요</span></div>
       <p class="story" id="h-story"></p>
       <button class="linkish" id="h-story-all">수사 일지 보기</button>
     </div>
@@ -493,6 +520,13 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.6', date: '2026-11-21', title: '주범은 현장에서',
+      items: [
+        '팀이 혼자 잡을 수 있는 건 800명까지예요. 마지막 200명은 주범 조라서 현장 출동으로만 잡을 수 있어요.',
+        '자리를 비운 동안 팀은 절반 속도로 일하고, 4시간까지만 세요.',
+        '형사 영입·합동 훈련 값이 올라 사건 1이 더 길어졌어요.',
+        '현장 출동 단추와 출동하는 순간의 효과가 새로워졌어요.'
+      ] },
     { ver: '0.1.5', date: '2026-11-21', title: '수사 일지 다듬기',
       items: [
         '수사 일지 뒷부분 이야기를 다듬었어요.',
@@ -1117,15 +1151,16 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
   // 수치는 모두 여기. 밸런스를 바꿀 때 이 표만 고친다.
   var TUNE = {
-    catchSec: 60,            // 형사 1명이 1명을 잡는 데 걸리는 시간(초), 훈련 전
+    catchSec: 150,           // 형사 1명이 1명을 잡는 데 걸리는 시간(초), 훈련 전. 0.1.6: 60 → 150(사건 1을 하루~이틀로)
     trainSpeed: 0.25,        // 훈련 1단계당 속도 +25%
     catchPay: 15,            // 팀이 1명 잡을 때 수사비
     trainPay: 0.5,           // 훈련 1단계당 수사비 +50%
     buffSec: 120,            // 출동 뒤 팀 사기 충전 시간(초)
     buffMult: 2,             // 사기 충전 중 팀 속도 배수
-    offlineCapSec: 8 * 3600, // 자리를 비운 시간은 8시간까지만 센다
-    hireBase: 300, hireGrowth: 1.55,
-    trainBase: 600, trainGrowth: 2, trainMax: 10
+    offlineCapSec: 4 * 3600, // 0.1.6: 자리를 비운(앱을 끈) 시간은 4시간까지만 센다(8 → 4)
+    offlineRate: 0.5,        // 0.1.6: 자리를 비운 동안 팀은 절반 속도로 일한다(켜 두면 100%)
+    hireBase: 300, hireGrowth: 2.1,     // 0.1.6: 1.55 → 2.1(형사가 끝없이 늘어 검거 간격이 0초 가까이 되지 않게)
+    trainBase: 600, trainGrowth: 2.7, trainMax: 10   // 0.1.6: 2 → 2.7
   };
 
   // 출동을 돕는 장비. lvMax 까지 살 수 있고 단계마다 값이 다르다.
@@ -1142,6 +1177,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     no: 1,
     title: '골목길 연쇄 절도',
     goal: 1000,          // 0.1.3: 300 → 1000(방치형답게 길게). 이야기도 4편 → 6편
+    idleCap: 800,        // 0.1.6: 팀(방치)이 올릴 수 있는 사건 진척은 여기까지. 나머지(주범 조)는 현장 출동으로만 잡는다
     // 0.1.4: 일지는 편마다 3줄 이상. 한 줄 = 한 호흡이자 폰 세로 화면 한 줄(줄바꿈 \n 그대로 화면에 줄로 나온다).
     //        규칙을 만든 자 = "설계자". 놈이 스스로 밝히는 이름 "써드"는 마지막 편(1000명)에서야 나온다.
     //        진짜 이름은 사건 2 이후에 밝힌다. 패치노트에는 이야기 내용(스포일러)을 적지 않는다.
@@ -1329,11 +1365,14 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   /*
    * 지난 저장 뒤로 흐른 시간만큼 팀이 일한 결과를 반영한다(화면에서는 1초마다, 켤 때 한 번 크게).
    *   흐른 시간은 offlineCapSec 까지만 센다. 시계가 뒤로 갔으면(기기 시간 변경) 아무 일도 없다.
+   *   opts.offline = true 면 "자리를 비운 동안"(앱을 끄거나 내려 둔 사이)이라 offlineRate 배로만 센다.
+   *     켜 둔 동안(1초마다 tick, 출동 앞뒤)은 기본값 false 로 100% 센다.
    *   사기 충전이 겹친 구간은 buffMult 배로 센다.
    * 반환: { seconds, catches, money, closedNow }
    */
-  function advance(save, now) {
+  function advance(save, now, opts) {
     assertNow(now);
+    var offline = !!(opts && opts.offline);
     var dt = (now - save.lastSeen) / 1000;
     save.lastSeen = now;
     if (!(dt > 0)) return { seconds: 0, catches: 0, money: 0, closedNow: false };
@@ -1341,15 +1380,18 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var start = now - dt * 1000;
     var buffSec = Math.max(0, Math.min(save.buffUntil, now) - start) / 1000;
     buffSec = Math.min(buffSec, dt);
-    var effSec = (dt - buffSec) + buffSec * TUNE.buffMult;
+    var effSec = ((dt - buffSec) + buffSec * TUNE.buffMult) * (offline ? TUNE.offlineRate : 1);
     var total = save.frac + teamRate(save) * effSec;
     var whole = Math.floor(total);
     save.frac = total - whole;
     var money = whole * payPerCatch(save);
-    save.money += money;
-    save.caught += whole;
+    save.money += money;                       // 수사비는 상한과 상관없이 잡은 만큼 다 들어온다
+    // 사건 진척은 idleCap 까지만(이미 넘었으면 0). 출동으로 넘긴 몫은 깎지 않는다
+    var room = Math.max(0, CASE.idleCap - save.caught);
+    var counted = Math.min(whole, room);
+    save.caught += counted;
     save.teamCaught += whole;
-    return { seconds: dt, catches: whole, money: money, closedNow: checkClose(save, now) };
+    return { seconds: dt, offline: offline, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 사기 ---------- */
@@ -1419,6 +1461,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     return CASE.story.filter(function (e) { return save.caught >= e.at; });
   }
   function progress(save) { return Math.min(1, save.caught / CASE.goal); }
+  // 팀(방치)으로는 더 못 올리고 출동으로만 남은 걸 잡을 수 있는 상태인가
+  function idleCapped(save) { return !save.closed && save.caught >= CASE.idleCap; }
   // 열렸지만 아직 안 읽은 편이 있는가 / 지금 열린 편까지 읽었다고 적기
   function storyUnread(save) { return storyUnlocked(save).length > save.storySeen; }
   function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
@@ -1428,7 +1472,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     cleanName: cleanName, setProfile: setProfile,
     newSave: newSave, load: load, serialize: serialize,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
-    cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
+    idleCapped: idleCapped, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
   };
 });
@@ -1531,6 +1575,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     none: function () { [0, 4, 7, 12].forEach(function (n, i) { mallet(C4 * semi(n), 0.2, i * 0.08); }); },
     // 출동 끝: 마림바로 도-미-솔-도 올라가며 끝맺는다(보상 화면과 어울리게). 예전 삼각파 솔-미-도를 바꿨다.
     end: function () { [0, 4, 7, 12].forEach(function (n, i) { tone(C4 * semi(n), i === 3 ? 0.9 : 0.35, 'sine', 0.2, i * 0.1, null, 0.004); tone(C4 * semi(n) * 4, 0.08, 'sine', 0.05, i * 0.1, null, 0.002); }); },
+    // 현장 출동: 마림바 경광등(높은 솔-도를 두 번 번갈아) — 출동 단추를 누르는 순간
+    go: function () { [12, 7, 12, 7].forEach(function (n, i) { mallet(C4 * semi(n + 7), 0.26, i * 0.11); }); mallet(C4 * semi(-5), 0.3, 0); },
     coin: function () { mallet(C4 * semi(7), 0.18, 0); mallet(C4 * semi(12), 0.16, 0.07); },
     tickLow: function () { tone(880, 0.05, 'sine', 0.07); }
   };
@@ -2248,6 +2294,13 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     $('h-case').textContent = '사건 ' + I.CASE.no + ' · ' + I.CASE.title + (save.closed ? ' (종결)' : '');
     $('h-caught').textContent = fmt(Math.min(save.caught, goal)) + ' / ' + goal;
     $('h-bar').style.width = (I.progress(save) * 100).toFixed(1) + '%';
+    // 방치 상한 뒤 구간(800 → 1000)은 빗금 = 현장에서만. 다 차면 빨간 알림 줄과 출동 단추 맥박
+    var capPct = (1 - I.CASE.idleCap / goal) * 100;
+    $('h-cap').style.width = save.closed ? '0' : capPct.toFixed(1) + '%';
+    var capped = I.idleCapped(save);
+    $('h-cap-note').classList.toggle('on', capped);
+    if (capped) $('h-cap-text').textContent = '남은 ' + fmt(goal - save.caught) + '명은 주범 조 · 현장 출동으로만 잡을 수 있어요';
+    $('h-go').classList.toggle('urgent', capped);
     var st = I.storyUnlocked(save);
     $('h-story').textContent = st[st.length - 1].text;
     renderStoryButton();
@@ -2374,10 +2427,27 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   }
 
   /* ---------- 출동 ---------- */
+  /*
+   * 현장 출동: 누르면 경광등 소리 + 진동 + 화면 위 빨강·파랑 번쩍(0.45초) → 출동 화면.
+   *   연타로 두 번 출동하지 않게 dispatching 동안은 무시한다.
+   */
+  var dispatching = false;
   function go() {
-    I.advance(save, nowMs());
-    duringRun = { catches: 0, money: 0 };
-    UI.startRun(I.runOptions(save));
+    if (dispatching) return;
+    dispatching = true;
+    try { UI.sfx.go(); } catch (e) { /* 소리 실패는 무시 */ }
+    try { if (navigator.vibrate) navigator.vibrate([18, 40, 18]); } catch (e) { /* 진동 없는 기기 */ }
+    var b = $('h-go'), sr = $('siren');
+    b.classList.add('press');
+    sr.classList.remove('on'); void sr.offsetWidth; sr.classList.add('on');
+    setTimeout(function () {
+      b.classList.remove('press');
+      dispatching = false;
+      I.advance(save, nowMs());
+      duringRun = { catches: 0, money: 0 };
+      UI.startRun(I.runOptions(save));
+    }, 450);
+    setTimeout(function () { sr.classList.remove('on'); }, 700);
   }
 
   // 출동이 끝나면 ui.js 가 부른다. 결과 화면에 들어갈 요약 HTML 을 돌려준다.
@@ -2452,7 +2522,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   // 탭을 떠날 때·돌아올 때 저장과 반영
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { I.advance(save, nowMs()); persist(); }
-    else if ($('s-hub').classList.contains('on')) tick();
+    else {
+      // 돌아옴: 내려 둔 사이는 자리 비움(절반 속도, 4시간까지)으로 센다
+      var r = I.advance(save, nowMs(), { offline: true });
+      persist();
+      if ($('s-hub').classList.contains('on')) { if (r.catches) showGain(r, '자리 비운 동안'); tick(); }
+    }
   });
   window.addEventListener('pagehide', persist);
 
@@ -2577,7 +2652,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   /* ---------- 시작 ---------- */
   var loaded = loadSave();
   save = loaded.save;
-  var away = I.advance(save, nowMs());
+  var away = I.advance(save, nowMs(), { offline: true });   // 앱을 끈 사이 = 자리 비움(절반 속도, 4시간까지)
   persist();
   render();
   UI.show('s-hub');
@@ -2589,7 +2664,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       label: '잠복 보고', title: fmtDur(away.seconds) + ' 동안',
       body: p('3팀이 용의자 <b style="color:var(--acc)">' + fmt(away.catches) + '명</b>을 잡았어요.') +
         p('수사비 <b style="color:var(--acc)">+' + fmt(away.money) + '</b>') +
-        (away.seconds >= I.TUNE.offlineCapSec ? p('<span class="muted">자리를 비운 시간은 8시간까지만 세요.</span>') : ''),
+        p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + (I.TUNE.offlineCapSec / 3600) + '시간까지만 세요.' +
+          (away.seconds >= I.TUNE.offlineCapSec ? ' 이번엔 꽉 찼어요.' : '') + '</span>') +
+        (away.counted < away.catches ? p('<span class="muted">남은 주범 조는 현장 출동으로만 잡을 수 있어요.</span>') : ''),
       ok: '좋아요',
       onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); }
     });
@@ -2598,7 +2675,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     I.markStorySeen(save); persist(); renderStoryButton();
     openInfo({
       label: '사건 ' + I.CASE.no, title: I.CASE.title,
-      body: p(I.CASE.story[0].text) + p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),
+      // 일지 줄바꿈 그대로
+      body: '<p style="white-space:pre-line;margin:0">' + esc(I.CASE.story[0].text) + '</p>' +
+        p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),
       ok: '튜토리얼 하기', cancel: '바로 사무실로',
       onOk: UI.openTutorial,
       onCancel: function () { save.tutorialDone = true; persist(); }

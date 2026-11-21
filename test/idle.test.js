@@ -15,9 +15,10 @@ test('새 저장: 형사 1명, 수사비 0, 사건 진행 0', () => {
   assert.equal(I.storyUnlocked(s).length, 1);
 });
 
-test('팀은 형사 1명이 1분에 1명 잡고, 1명당 15 수사비', () => {
+test('팀은 형사 1명이 2분 30초(catchSec)에 1명 잡고, 1명당 15 수사비', () => {
+  assert.equal(I.TUNE.catchSec, 150);
   const s = I.newSave(T0);
-  const r = I.advance(s, T0 + 10 * MIN);
+  const r = I.advance(s, T0 + 25 * MIN);   // 1500초 / 150초 = 10명
   assert.equal(r.catches, 10);
   assert.equal(r.money, 150);
   assert.equal(s.caught, 10);
@@ -32,21 +33,31 @@ test('잡다 만 몫은 다음으로 이어진다(1초씩 나눠 흘러도 합�
   assert.equal(a.money, b.money);
 });
 
-test('자리를 비운 시간은 8시간까지만 센다, 시계가 뒤로 가면 아무 일 없다', () => {
-  const s = I.newSave(T0);
-  const r = I.advance(s, T0 + 30 * HOUR);
-  assert.equal(r.seconds, 8 * 3600);
-  assert.equal(r.catches, 480);
-  const back = I.advance(s, T0);          // 기기 시간을 되돌림
+test('자리 비움(offline)은 4시간까지만, 절반 속도로 센다 / 시계가 뒤로 가면 아무 일 없다', () => {
+  assert.equal(I.TUNE.offlineCapSec, 4 * 3600);
+  assert.equal(I.TUNE.offlineRate, 0.5);
+  const off = I.newSave(T0);
+  const r = I.advance(off, T0 + 30 * HOUR, { offline: true });
+  assert.equal(r.seconds, 4 * 3600);
+  assert.equal(r.offline, true);
+  assert.equal(r.catches, 48);             // 14400초 × 0.5 / 150초
+  const back = I.advance(off, T0);         // 기기 시간을 되돌림
   assert.equal(back.catches, 0);
-  assert.equal(s.lastSeen, T0);
+  assert.equal(off.lastSeen, T0);
+  // 켜 둔 채(기본값)면 같은 4시간이 100%
+  const on = I.newSave(T0);
+  assert.equal(I.advance(on, T0 + 4 * HOUR).catches, 96);
+  // 짧게 비워도 절반: 10분 = 600초 × 0.5 / 150 = 2명
+  const shortAway = I.newSave(T0);
+  assert.equal(I.advance(shortAway, T0 + 10 * MIN, { offline: true }).catches, 2);
 });
 
 test('출동 뒤 2분 동안 팀이 2배로 일한다(겹친 구간만)', () => {
   const s = I.newSave(T0);
   I.applyRun(s, { score: 0, hits: 0 }, T0);
-  const r = I.advance(s, T0 + 4 * MIN);   // 2분은 2배, 2분은 1배 → 6명
-  assert.equal(r.catches, 6);
+  // 120초는 2배(240초 몫) + 510초는 보통 = 750초 몫 → 5명
+  const r = I.advance(s, T0 + 630_000);
+  assert.equal(r.catches, 5);
   assert.equal(I.buffed(s, T0 + 1 * MIN), true);
   assert.equal(I.buffed(s, T0 + 3 * MIN), false);
 });
@@ -59,13 +70,17 @@ test('형사 영입·훈련 값이 오르고, 돈이 모자라면 NOT_ENOUGH', (
   I.buy(s, 'hire');
   assert.equal(s.detectives, 2);
   assert.equal(s.money, 9700);
-  assert.equal(I.cost(s, 'hire'), 465);
+  assert.equal(I.cost(s, 'hire'), 630);    // 300 × 2.1
   assert.equal(I.cost(s, 'train'), 600);
   I.buy(s, 'train');
-  assert.equal(I.cost(s, 'train'), 1200);
+  assert.equal(I.cost(s, 'train'), 1620);  // 600 × 2.7
   // 훈련하면 빨라지고 더 번다
   assert.equal(I.payPerCatch(s), 23);
-  assert.ok(Math.abs(I.teamRate(s) - 2 * 1.25 / 60) < 1e-12);
+  assert.ok(Math.abs(I.teamRate(s) - 2 * 1.25 / 150) < 1e-12);
+  // 훈련은 10단계까지
+  s.training = 10; s.money = 1e12;
+  assert.equal(I.cost(s, 'train'), null);
+  assert.throws(() => I.buy(s, 'train'), { code: 'MAXED' });
 });
 
 test('장비: 단계마다 값, 끝까지 사면 MAXED, 모르는 항목은 BAD_KIND', () => {
@@ -108,12 +123,33 @@ test('목표(1000명)에 닿으면 사건 종결(한 번만), 이야기는 단�
   const r1 = I.applyRun(s, { score: 0, hits: 849 }, T0);
   assert.equal(r1.closedNow, false);
   assert.equal(I.storyUnlocked(s).length, 5);
-  const r2 = I.advance(s, T0 + MIN);       // 팀이 마지막 한 명
-  assert.equal(r2.closedNow, true);
+  // 800명을 넘긴 뒤로 팀(방치)은 사건 진척을 못 올린다 — 수사비만 번다
+  const r2 = I.advance(s, T0 + 10 * MIN);
+  assert.ok(r2.catches > 0 && r2.counted === 0 && r2.money > 0);
+  assert.equal(s.caught, 999);
+  assert.equal(I.idleCapped(s), true);
+  const r3 = I.applyRun(s, { score: 0, hits: 1 }, T0 + 10 * MIN);   // 마지막 한 명은 출동으로
+  assert.equal(r3.closedNow, true);
   assert.equal(s.closed, true);
+  assert.equal(I.idleCapped(s), false);
   assert.equal(I.storyUnlocked(s).length, 6);
-  assert.equal(I.advance(s, T0 + 2 * MIN).closedNow, false);
+  assert.equal(I.applyRun(s, { score: 0, hits: 3 }, T0 + 11 * MIN).closedNow, false);
   assert.equal(I.progress(s), 1);
+});
+
+test('방치 상한: 팀은 800명까지만 올리고, 넘친 몫은 버리되 수사비는 다 준다', () => {
+  assert.equal(I.CASE.idleCap, 800);
+  const s = I.newSave(T0);
+  s.detectives = 20; s.caught = 790;
+  const r = I.advance(s, T0 + 10 * MIN);   // 20명 × 600초 / 150초 = 80명
+  assert.equal(r.catches, 80);
+  assert.equal(r.counted, 10);
+  assert.equal(s.caught, 800);
+  assert.equal(s.teamCaught, 80);
+  assert.equal(r.money, 80 * 15);
+  assert.equal(I.idleCapped(s), true);
+  assert.equal(I.advance(s, T0 + 20 * MIN).counted, 0);
+  assert.equal(s.caught, 800);
 });
 
 test('저장 왕복, 깨진 저장은 새로 시작, 이상한 값은 잘라 낸다', () => {
@@ -147,26 +183,39 @@ test('300명으로 종결됐던 예전 저장은 목표가 늘면 다시 진행 
   assert.equal(old.caught, 320);
 });
 
-test('밸런스 감: 출동 없이 형사 1명이면 사건 1에 17시간쯤(8시간씩 세 번), 키우면 훨씬 빠르다', () => {
-  const lazy = I.newSave(T0);
-  I.advance(lazy, T0 + 8 * HOUR); I.advance(lazy, T0 + 16 * HOUR);
-  assert.equal(lazy.closed, false);
-  I.advance(lazy, T0 + 17 * HOUR);
-  assert.ok(lazy.closed);
-
-  // 출동 10번(한 번에 약 12명·1500점)을 하며 수사비가 되는 대로 형사를 들이면
-  const s = I.newSave(T0); let t = T0;
-  for (let n = 0; n < 10 && !s.closed; n++) {
-    t += 2 * MIN; I.advance(s, t);
-    I.applyRun(s, { score: 1500, hits: 12 }, t);
-    while (I.cost(s, 'hire') <= s.money) I.buy(s, 'hire');
+// 수사비가 되는 대로, 들인 값에 비해 수입이 가장 많이 느는 쪽(영입/훈련)을 산다
+function greedyBuy(s) {
+  const inc = (n, T) => n * (1 + I.TUNE.trainSpeed * T) * Math.round(I.TUNE.catchPay * (1 + I.TUNE.trainPay * T));
+  for (;;) {
+    const h = I.cost(s, 'hire'), tr = I.cost(s, 'train');
+    const gh = (inc(s.detectives + 1, s.training) - inc(s.detectives, s.training)) / h;
+    const gt = tr == null ? 0 : (inc(s.detectives, s.training + 1) - inc(s.detectives, s.training)) / tr;
+    const k = gh >= gt ? 'hire' : 'train';
+    if (s.money < I.cost(s, k)) return;
+    I.buy(s, k);
   }
-  t += 20 * MIN; I.advance(s, t);
-  console.log(`  출동 10번 + 20분 뒤: 형사 ${s.detectives}명, 검거 ${s.caught}/1000`);
-  assert.ok(s.caught >= 200 && s.detectives >= 5);
-  t += 2 * HOUR; I.advance(s, t);
-  console.log(`  그 뒤 2시간 비움: 검거 ${s.caught}/1000`);
-  assert.ok(s.closed, '키운 팀이면 두어 시간 비우면 끝난다');
+}
+
+test('밸런스 감: 방치만으로는 800명에서 멈추고(하루쯤), 끝은 출동으로만', () => {
+  // 하루 2시간마다 들러 사기만 하는 사람(출동 없음, 밤 8시간은 비움)
+  const lazy = I.newSave(T0); let t = T0, hours800 = null;
+  for (let h = 0; h < 24 * 7; ) {
+    t = T0 + h * HOUR; I.advance(lazy, t, { offline: true }); greedyBuy(lazy);
+    if (hours800 == null && lazy.caught >= 800) hours800 = h;
+    h += (h % 24) < 16 ? 2 : 8;
+  }
+  console.log(`  방치만: 800명까지 약 ${hours800}시간, 일주일 뒤 검거 ${lazy.caught}/1000, 형사 ${lazy.detectives}명`);
+  assert.equal(lazy.caught, 800);
+  assert.equal(lazy.closed, false, '방치만으로는 사건이 안 끝난다');
+  assert.ok(hours800 >= 8 && hours800 <= 48, '800명까지 반나절~이틀: ' + hours800);
+  // 검거 간격이 0초 가까이로 무너지지 않는다(일주일 꽉 키워도 1초 이상)
+  assert.ok(1 / I.teamRate(lazy) >= 1, '검거 간격 ' + (1 / I.teamRate(lazy)).toFixed(2));
+
+  // 남은 200명은 출동(한 번에 약 12명)으로: 17번이면 끝
+  let n = 0;
+  while (!lazy.closed && n < 30) { t += 3 * MIN; I.advance(lazy, t); I.applyRun(lazy, { score: 1500, hits: 12 }, t); n++; }
+  console.log(`  그 뒤 출동 ${n}번에 종결`);
+  assert.ok(lazy.closed && n === 17);
 });
 
 test('프로필: 기본은 중앙서·팀장 없음, 바꾸면 다듬어서 저장', () => {
@@ -195,15 +244,15 @@ test('프로필은 저장 왕복되고, 옛 저장(프로필 없음)도 기본�
 
 test('다음 검거까지: 보통·사기 충전·충전이 중간에 끝나는 경우', () => {
   const s = I.newSave(T0);
-  assert.equal(I.nextCatch(s, T0).sec, 60);
+  assert.equal(I.nextCatch(s, T0).sec, 150);
   s.frac = 0.5;
-  assert.equal(I.nextCatch(s, T0).sec, 30);
-  s.buffUntil = T0 + 120_000;                 // 2배: 남은 0.5 는 15초
-  assert.equal(I.nextCatch(s, T0).sec, 15);
-  s.buffUntil = T0 + 10_000;                  // 10초 동안 2배로 1/3, 나머지 1/6 은 보통 속도로 10초
-  assert.ok(Math.abs(I.nextCatch(s, T0).sec - 20) < 1e-9);
+  assert.equal(I.nextCatch(s, T0).sec, 75);
+  s.buffUntil = T0 + 120_000;                 // 2배: 남은 0.5 는 37.5초
+  assert.equal(I.nextCatch(s, T0).sec, 37.5);
+  s.buffUntil = T0 + 10_000;                  // 10초 동안 2배로 20/150, 나머지(0.5 - 2/15)는 보통 속도로 55초
+  assert.ok(Math.abs(I.nextCatch(s, T0).sec - 65) < 1e-9);
   // 실제로 그 시간이 지나면 한 명을 잡는다
-  const r = I.advance(s, T0 + 20_000);
+  const r = I.advance(s, T0 + 65_000);
   assert.equal(r.catches, 1);
   s.detectives = 0;
   assert.equal(I.nextCatch(s, T0).sec, Infinity);

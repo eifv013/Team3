@@ -20,15 +20,16 @@
 
   // 수치는 모두 여기. 밸런스를 바꿀 때 이 표만 고친다.
   var TUNE = {
-    catchSec: 60,            // 형사 1명이 1명을 잡는 데 걸리는 시간(초), 훈련 전
+    catchSec: 150,           // 형사 1명이 1명을 잡는 데 걸리는 시간(초), 훈련 전. 0.1.6: 60 → 150(사건 1을 하루~이틀로)
     trainSpeed: 0.25,        // 훈련 1단계당 속도 +25%
     catchPay: 15,            // 팀이 1명 잡을 때 수사비
     trainPay: 0.5,           // 훈련 1단계당 수사비 +50%
     buffSec: 120,            // 출동 뒤 팀 사기 충전 시간(초)
     buffMult: 2,             // 사기 충전 중 팀 속도 배수
-    offlineCapSec: 8 * 3600, // 자리를 비운 시간은 8시간까지만 센다
-    hireBase: 300, hireGrowth: 1.55,
-    trainBase: 600, trainGrowth: 2, trainMax: 10
+    offlineCapSec: 4 * 3600, // 0.1.6: 자리를 비운(앱을 끈) 시간은 4시간까지만 센다(8 → 4)
+    offlineRate: 0.5,        // 0.1.6: 자리를 비운 동안 팀은 절반 속도로 일한다(켜 두면 100%)
+    hireBase: 300, hireGrowth: 2.1,     // 0.1.6: 1.55 → 2.1(형사가 끝없이 늘어 검거 간격이 0초 가까이 되지 않게)
+    trainBase: 600, trainGrowth: 2.7, trainMax: 10   // 0.1.6: 2 → 2.7
   };
 
   // 출동을 돕는 장비. lvMax 까지 살 수 있고 단계마다 값이 다르다.
@@ -45,6 +46,7 @@
     no: 1,
     title: '골목길 연쇄 절도',
     goal: 1000,          // 0.1.3: 300 → 1000(방치형답게 길게). 이야기도 4편 → 6편
+    idleCap: 800,        // 0.1.6: 팀(방치)이 올릴 수 있는 사건 진척은 여기까지. 나머지(주범 조)는 현장 출동으로만 잡는다
     // 0.1.4: 일지는 편마다 3줄 이상. 한 줄 = 한 호흡이자 폰 세로 화면 한 줄(줄바꿈 \n 그대로 화면에 줄로 나온다).
     //        규칙을 만든 자 = "설계자". 놈이 스스로 밝히는 이름 "써드"는 마지막 편(1000명)에서야 나온다.
     //        진짜 이름은 사건 2 이후에 밝힌다. 패치노트에는 이야기 내용(스포일러)을 적지 않는다.
@@ -232,11 +234,14 @@
   /*
    * 지난 저장 뒤로 흐른 시간만큼 팀이 일한 결과를 반영한다(화면에서는 1초마다, 켤 때 한 번 크게).
    *   흐른 시간은 offlineCapSec 까지만 센다. 시계가 뒤로 갔으면(기기 시간 변경) 아무 일도 없다.
+   *   opts.offline = true 면 "자리를 비운 동안"(앱을 끄거나 내려 둔 사이)이라 offlineRate 배로만 센다.
+   *     켜 둔 동안(1초마다 tick, 출동 앞뒤)은 기본값 false 로 100% 센다.
    *   사기 충전이 겹친 구간은 buffMult 배로 센다.
    * 반환: { seconds, catches, money, closedNow }
    */
-  function advance(save, now) {
+  function advance(save, now, opts) {
     assertNow(now);
+    var offline = !!(opts && opts.offline);
     var dt = (now - save.lastSeen) / 1000;
     save.lastSeen = now;
     if (!(dt > 0)) return { seconds: 0, catches: 0, money: 0, closedNow: false };
@@ -244,15 +249,18 @@
     var start = now - dt * 1000;
     var buffSec = Math.max(0, Math.min(save.buffUntil, now) - start) / 1000;
     buffSec = Math.min(buffSec, dt);
-    var effSec = (dt - buffSec) + buffSec * TUNE.buffMult;
+    var effSec = ((dt - buffSec) + buffSec * TUNE.buffMult) * (offline ? TUNE.offlineRate : 1);
     var total = save.frac + teamRate(save) * effSec;
     var whole = Math.floor(total);
     save.frac = total - whole;
     var money = whole * payPerCatch(save);
-    save.money += money;
-    save.caught += whole;
+    save.money += money;                       // 수사비는 상한과 상관없이 잡은 만큼 다 들어온다
+    // 사건 진척은 idleCap 까지만(이미 넘었으면 0). 출동으로 넘긴 몫은 깎지 않는다
+    var room = Math.max(0, CASE.idleCap - save.caught);
+    var counted = Math.min(whole, room);
+    save.caught += counted;
     save.teamCaught += whole;
-    return { seconds: dt, catches: whole, money: money, closedNow: checkClose(save, now) };
+    return { seconds: dt, offline: offline, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 사기 ---------- */
@@ -322,6 +330,8 @@
     return CASE.story.filter(function (e) { return save.caught >= e.at; });
   }
   function progress(save) { return Math.min(1, save.caught / CASE.goal); }
+  // 팀(방치)으로는 더 못 올리고 출동으로만 남은 걸 잡을 수 있는 상태인가
+  function idleCapped(save) { return !save.closed && save.caught >= CASE.idleCap; }
   // 열렸지만 아직 안 읽은 편이 있는가 / 지금 열린 편까지 읽었다고 적기
   function storyUnread(save) { return storyUnlocked(save).length > save.storySeen; }
   function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
@@ -331,7 +341,7 @@
     cleanName: cleanName, setProfile: setProfile,
     newSave: newSave, load: load, serialize: serialize,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
-    cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
+    idleCapped: idleCapped, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
   };
 });

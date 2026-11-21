@@ -97,6 +97,13 @@
     $('h-case').textContent = '사건 ' + I.CASE.no + ' · ' + I.CASE.title + (save.closed ? ' (종결)' : '');
     $('h-caught').textContent = fmt(Math.min(save.caught, goal)) + ' / ' + goal;
     $('h-bar').style.width = (I.progress(save) * 100).toFixed(1) + '%';
+    // 방치 상한 뒤 구간(800 → 1000)은 빗금 = 현장에서만. 다 차면 빨간 알림 줄과 출동 단추 맥박
+    var capPct = (1 - I.CASE.idleCap / goal) * 100;
+    $('h-cap').style.width = save.closed ? '0' : capPct.toFixed(1) + '%';
+    var capped = I.idleCapped(save);
+    $('h-cap-note').classList.toggle('on', capped);
+    if (capped) $('h-cap-text').textContent = '남은 ' + fmt(goal - save.caught) + '명은 주범 조 · 현장 출동으로만 잡을 수 있어요';
+    $('h-go').classList.toggle('urgent', capped);
     var st = I.storyUnlocked(save);
     $('h-story').textContent = st[st.length - 1].text;
     renderStoryButton();
@@ -223,10 +230,27 @@
   }
 
   /* ---------- 출동 ---------- */
+  /*
+   * 현장 출동: 누르면 경광등 소리 + 진동 + 화면 위 빨강·파랑 번쩍(0.45초) → 출동 화면.
+   *   연타로 두 번 출동하지 않게 dispatching 동안은 무시한다.
+   */
+  var dispatching = false;
   function go() {
-    I.advance(save, nowMs());
-    duringRun = { catches: 0, money: 0 };
-    UI.startRun(I.runOptions(save));
+    if (dispatching) return;
+    dispatching = true;
+    try { UI.sfx.go(); } catch (e) { /* 소리 실패는 무시 */ }
+    try { if (navigator.vibrate) navigator.vibrate([18, 40, 18]); } catch (e) { /* 진동 없는 기기 */ }
+    var b = $('h-go'), sr = $('siren');
+    b.classList.add('press');
+    sr.classList.remove('on'); void sr.offsetWidth; sr.classList.add('on');
+    setTimeout(function () {
+      b.classList.remove('press');
+      dispatching = false;
+      I.advance(save, nowMs());
+      duringRun = { catches: 0, money: 0 };
+      UI.startRun(I.runOptions(save));
+    }, 450);
+    setTimeout(function () { sr.classList.remove('on'); }, 700);
   }
 
   // 출동이 끝나면 ui.js 가 부른다. 결과 화면에 들어갈 요약 HTML 을 돌려준다.
@@ -301,7 +325,12 @@
   // 탭을 떠날 때·돌아올 때 저장과 반영
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { I.advance(save, nowMs()); persist(); }
-    else if ($('s-hub').classList.contains('on')) tick();
+    else {
+      // 돌아옴: 내려 둔 사이는 자리 비움(절반 속도, 4시간까지)으로 센다
+      var r = I.advance(save, nowMs(), { offline: true });
+      persist();
+      if ($('s-hub').classList.contains('on')) { if (r.catches) showGain(r, '자리 비운 동안'); tick(); }
+    }
   });
   window.addEventListener('pagehide', persist);
 
@@ -426,7 +455,7 @@
   /* ---------- 시작 ---------- */
   var loaded = loadSave();
   save = loaded.save;
-  var away = I.advance(save, nowMs());
+  var away = I.advance(save, nowMs(), { offline: true });   // 앱을 끈 사이 = 자리 비움(절반 속도, 4시간까지)
   persist();
   render();
   UI.show('s-hub');
@@ -438,7 +467,9 @@
       label: '잠복 보고', title: fmtDur(away.seconds) + ' 동안',
       body: p('3팀이 용의자 <b style="color:var(--acc)">' + fmt(away.catches) + '명</b>을 잡았어요.') +
         p('수사비 <b style="color:var(--acc)">+' + fmt(away.money) + '</b>') +
-        (away.seconds >= I.TUNE.offlineCapSec ? p('<span class="muted">자리를 비운 시간은 8시간까지만 세요.</span>') : ''),
+        p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + (I.TUNE.offlineCapSec / 3600) + '시간까지만 세요.' +
+          (away.seconds >= I.TUNE.offlineCapSec ? ' 이번엔 꽉 찼어요.' : '') + '</span>') +
+        (away.counted < away.catches ? p('<span class="muted">남은 주범 조는 현장 출동으로만 잡을 수 있어요.</span>') : ''),
       ok: '좋아요',
       onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); }
     });
@@ -447,7 +478,9 @@
     I.markStorySeen(save); persist(); renderStoryButton();
     openInfo({
       label: '사건 ' + I.CASE.no, title: I.CASE.title,
-      body: p(I.CASE.story[0].text) + p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),
+      // 일지 줄바꿈 그대로
+      body: '<p style="white-space:pre-line;margin:0">' + esc(I.CASE.story[0].text) + '</p>' +
+        p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),
       ok: '튜토리얼 하기', cancel: '바로 사무실로',
       onOk: UI.openTutorial,
       onCancel: function () { save.tutorialDone = true; persist(); }

@@ -136,7 +136,7 @@ with sync_playwright() as p:
         if not w2 > w1: problems.append(f'다음 검거 줄이 안 차오름: {w1} → {w2}')
         y_case = pg.locator('.casebox').bounding_box()['y']
         m0 = pg.text_content('#h-money'); feeds = 0
-        for _ in range(70):
+        for _ in range(170):   # 형사 1명은 150초에 1명
             pg.clock.run_for(1000)
             if pg.locator('#h-float .float').count(): feeds += 1; break
         if not feeds: problems.append('팀이 잡았는데 +수사비가 안 떠오름')
@@ -157,7 +157,7 @@ with sync_playwright() as p:
         if pg.locator('#h-leader i').count(): problems.append('이름 속 HTML 이 그대로 그려짐')
         pg.screenshot(path=SHOT + 'profile.png')
         # 출동 → 결과
-        pg.click('#h-go'); pg.clock.run_for(400)
+        pg.click('#h-go'); pg.clock.run_for(700)   # 경광등 0.45초 뒤 출동
         if not pg.locator('#s-play').is_visible(): problems.append('출동이 안 됨')
         if '출동' not in (pg.text_content('#stamp') or ''): problems.append('출동 시작 도장이 출동이 아님: ' + (pg.text_content('#stamp') or ''))
         play_checks(pg, 1, helper=True)
@@ -190,7 +190,7 @@ with sync_playwright() as p:
         txt = pg.text_content('#r-idle') or ''
         if '수사비' not in txt or '사건 진척' not in txt: problems.append('출동 결과에 수사비·진척이 없음: ' + txt)
         pg.screenshot(path=SHOT + 'result.png')
-        pg.click('#btn-again'); pg.clock.run_for(300)
+        pg.click('#btn-again'); pg.clock.run_for(700)
         if '검거' in (pg.text_content('#stamp') or '') or '출동' not in (pg.text_content('#stamp') or ''): problems.append('다시 출동했는데 지난 도장이 남음: ' + (pg.text_content('#stamp') or ''))
         pg.click('#btn-quit'); pg.clock.run_for(200); pg.click('#btn-quit-yes'); pg.clock.run_for(300)
         if not pg.locator('#s-hub').is_visible(): problems.append('사무실로가 안 됨')
@@ -260,8 +260,27 @@ with sync_playwright() as p:
         pg.screenshot(path=SHOT + 'story-fold.png')
         pg.click('#info-ok'); pg.clock.run_for(100)
         if not pg.locator('#info-sheet').is_hidden(): pg.click('#info-ok'); pg.clock.run_for(100)
+        # 800명을 넘겼으니 팀(방치)은 더 못 올린다: 빨간 알림 줄 + 출동 단추 맥박, 70초 지나도 999 그대로
+        if not pg.locator('#h-cap-note').is_visible(): problems.append('방치 상한인데 "현장 출동으로만" 알림이 없음')
+        if 'urgent' not in (pg.get_attribute('#h-go', 'class') or ''): problems.append('방치 상한인데 출동 단추 강조가 없음')
         pg.clock.run_for(70_000)
-        if '종결' not in (pg.text_content('#info-label') or '') or pg.locator('#info-sheet').is_hidden(): problems.append('목표에 닿았는데 사건 종결 창이 없음')
+        if '999' not in pg.text_content('#h-caught'): problems.append('방치 상한을 넘어 팀이 사건을 올림: ' + pg.text_content('#h-caught'))
+        if not pg.locator('#info-sheet').is_hidden(): problems.append('팀(방치)만으로 사건이 종결됨')
+        # 출동 단추가 눌려 납작해지지 않았는지(사무실은 세로로 쌓이는 칸이라 줄어들 수 있다)
+        gh = pg.locator('#h-go').bounding_box()['height']
+        if gh < 60: problems.append('출동 단추가 납작함: %.0fpx' % gh)
+        pg.locator('.casebox').scroll_into_view_if_needed(); pg.evaluate("() => document.querySelector('#s-hub').scrollTop = 0")
+        pg.screenshot(path=SHOT + 'capped.png')
+        # 마지막 한 명은 출동으로: 경광등 번쩍 → 한 패 잡고 → 시간 끝 → 사무실로 → 사건 종결 창
+        pg.click('#h-go'); pg.clock.run_for(150)
+        if 'on' not in (pg.get_attribute('#siren', 'class') or ''): problems.append('출동 순간 경광등 효과가 없음')
+        pg.screenshot(path=SHOT + 'siren.png')
+        pg.clock.run_for(600)
+        if not pg.locator('#s-play').is_visible(): problems.append('상한 뒤 출동이 안 됨')
+        catch_one(pg)
+        pg.clock.run_for(200_000)
+        pg.click('#btn-home'); pg.clock.run_for(400)
+        if '종결' not in (pg.text_content('#info-label') or '') or pg.locator('#info-sheet').is_hidden(): problems.append('출동으로 목표에 닿았는데 사건 종결 창이 없음')
         if '(종결)' not in pg.text_content('#h-case'): problems.append('사건 제목에 종결 표시가 없음')
         pg.screenshot(path=SHOT + 'closed.png')
         # 깨진 저장
