@@ -351,12 +351,33 @@
     } catch (e) { /* 무시 */ }
   }
 
+  /*
+   * 패치노트 창: 지금 버전은 NEW 표시와 빛나는 테두리로 펼쳐 두고, 지난 버전은 접어 둔다(누르면 펼침).
+   * 사무실 맨 아래 "패치노트"에는 이 버전을 아직 안 열어 봤으면 NEW 를 붙인다.
+   * 패치노트 글은 우리가 쓴 notes.js 라 HTML 로 넣지만, 꺾쇠는 미리 바꿔 둔다.
+   */
+  var NOTES_SEEN_KEY = 'guar.suspects3.notesSeen';
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function lines(items) { return items.map(function (t) { return '<p>· ' + esc(t) + '</p>'; }).join(''); }
+
   function showVersionInfo() {
-    var body = N.map(function (n, i) {
-      return '<p><b style="color:var(--acc)">' + n.ver + '</b> · ' + n.title + (i === 0 ? ' <span class="muted">(지금)</span>' : '') + '</p>' +
-        n.items.map(function (t) { return '<p class="muted" style="font-size:13px">· ' + t + '</p>'; }).join('');
-    }).join('');
-    openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body || p('기록이 없어요') });
+    if (!N.length) { openInfo({ label: '패치노트', title: '수사 3팀', body: p('기록이 없어요') }); return; }
+    var cur = N[0];
+    var body = '<div class="pn pn-new"><div class="pn-head"><span class="new">NEW</span><b>' + esc(cur.ver) + '</b> ' + esc(cur.title) + '</div>' + lines(cur.items) + '</div>';
+    if (N.length > 1) {
+      body += '<span class="pn-past">지난 패치노트</span>' + N.slice(1).map(function (n) {
+        return '<details class="pn"><summary><b>' + esc(n.ver) + '</b> ' + esc(n.title) + '</summary><div class="pn-body">' + lines(n.items) + '</div></details>';
+      }).join('');
+    }
+    openInfo({ label: '패치노트', title: '수사 3팀 ' + VERSION, body: body });
+    lsSet(NOTES_SEEN_KEY, VERSION);
+    renderVersionButton();
+  }
+
+  // 맨 아래 단추: "수사 3팀 0.1.2 · 패치노트" + 안 읽었으면 NEW
+  function renderVersionButton() {
+    var unseen = lsGet(NOTES_SEEN_KEY) !== VERSION;
+    $('h-version').innerHTML = '수사 3팀 ' + esc(VERSION) + ' · 패치노트' + (unseen ? ' <span class="new" style="height:18px;font-size:10px;margin-left:4px">NEW</span>' : '');
   }
 
   $('h-version').addEventListener('click', showVersionInfo);
@@ -405,7 +426,7 @@
   }
 
   // 버전 표시 · 업데이트 뒤 첫 실행 알림 · 새 버전 확인
-  $('h-version').textContent = '수사 3팀 ' + VERSION + ' · 패치노트';
+  renderVersionButton();
   var seen = lsGet(SEEN_KEY);
   if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요 · 맨 아래 패치노트에서 확인'); }, 3200);
   lsSet(SEEN_KEY, VERSION);

@@ -104,6 +104,17 @@ with sync_playwright() as p:
         pg.click('#tut-home'); pg.clock.run_for(200)
         if not pg.locator('#s-hub').is_visible(): problems.append('튜토리얼 뒤 사무실로가 안 됨')
         pg.screenshot(path=SHOT + 'hub.png', full_page=True)
+        # 패치노트: 맨 아래 NEW → 열면 지금 버전 NEW·빛나는 테두리, 지난 것은 접힘 → 닫으면 맨 아래 NEW 가 사라짐
+        if not pg.locator('#h-version .new').count(): problems.append('안 읽은 패치노트에 NEW 가 없음')
+        pg.click('#h-version'); pg.clock.run_for(200)
+        if not pg.locator('#info-body .pn-new .new').count(): problems.append('패치노트 지금 버전에 NEW 가 없음')
+        if pg.locator('#info-body details.pn[open]').count(): problems.append('지난 패치노트가 펼쳐져 있음')
+        if pg.locator('#info-body details.pn').count():
+            pg.locator('#info-body details.pn summary').first.click(); pg.clock.run_for(100)
+            if not pg.locator('#info-body details.pn[open]').count(): problems.append('지난 패치노트를 눌러도 안 펼쳐짐')
+        pg.screenshot(path=SHOT + 'notes.png')
+        pg.click('#info-ok'); pg.clock.run_for(100)
+        if pg.locator('#h-version .new').count(): problems.append('패치노트를 읽었는데 NEW 가 남음')
         # 다음 검거 줄이 차오르고, 잡는 순간 +수사비가 떠오른다
         if '다음 검거까지' not in pg.text_content('#h-next'): problems.append('다음 검거까지 표시가 없음')
         w1 = pg.evaluate("() => parseFloat(document.getElementById('h-next-fill').style.width)")
