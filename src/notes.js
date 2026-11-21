@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.13', date: '2026-11-21', title: '수배서 연출 다듬기',
+      items: [
+        '주범 조 출동의 수배서 연출을 새로 그렸어요.'
+      ] },
     { ver: '0.1.12', date: '2026-11-21', title: '출동 연출 고침',
       items: [
         '주범 조 출동의 작전 개시 연출에서 글자가 두 번 나오던 문제를 고쳤어요.'
