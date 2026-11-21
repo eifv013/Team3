@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.12', date: '2026-11-21', title: '출동 연출 고침',
+      items: [
+        '주범 조 출동의 작전 개시 연출에서 글자가 두 번 나오던 문제를 고쳤어요.'
+      ] },
     { ver: '0.1.11', date: '2026-11-21', title: '출동 연출',
       items: [
         '현장 출동을 누르면 셔터, 폴리스 라인, 사건 파일 중 하나가 화면을 덮었다가 열려요.',

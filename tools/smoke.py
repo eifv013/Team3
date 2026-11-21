@@ -162,6 +162,11 @@ with sync_playwright() as p:
         for k in ['A', 'B', 'C', 'E', 'F', 'G']:
             pg.evaluate("k => { window.__sw = 0; window.__done = 0; Team3Transit.play(k, () => window.__sw++, { caseNo: 1, caseTitle: '골목길 연쇄 절도' }).then(() => window.__done = 1); }", k)
             covered = False
+            # 덮기 전(시작 직후)에는 연출 글자가 화면에 보이면 안 된다(G 에서 셔터 글자가 미리 보였다 다시 닫히던 문제)
+            pg.clock.run_for(50)
+            early = pg.evaluate('''() => [...document.querySelectorAll('.tr-a-main')].filter(e => {
+                const r = e.getBoundingClientRect(); return getComputedStyle(e).opacity !== '0' && r.bottom > 0 && r.top < innerHeight; }).length''')
+            if early: problems.append('전환 %s: 덮기 전에 셔터 글자가 보임' % k)
             for _ in range(60):
                 pg.clock.run_for(50)
                 if pg.evaluate('() => window.__sw') and not covered:
@@ -203,7 +208,10 @@ with sync_playwright() as p:
         if over > 2: problems.append(f'375×667 출동 화면이 {over}px 넘침')
         pg.screenshot(path=SHOT + 'se.png')
         pg.set_viewport_size({'width': 390, 'height': 844}); pg.clock.run_for(100)
-        pg.clock.run_for(200_000)
+        # 남은 시간만큼만 흘려 결과 화면을 띄운다(고정 200초를 흘리면 출동 뒤 2분 사기 충전이 시험 중에 끝나 버린다)
+        for _ in range(220):
+            if pg.locator('#s-result').is_visible(): break
+            pg.clock.run_for(1000)
         if not pg.locator('#s-result').is_visible(): problems.append('출동 끝 결과 화면이 안 뜸')
         txt = pg.text_content('#r-idle') or ''
         if '수사비' not in txt or '사건 진척' not in txt: problems.append('출동 결과에 수사비·진척이 없음: ' + txt)

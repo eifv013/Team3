@@ -147,6 +147,10 @@
     var top = h('div', 'tr-plate top' + (red ? ' red' : ''), '<b class="tr-bh tr-a-main">' + (opt && opt.word || '출동') + '</b><i class="tr-hazard"></i>', layer);
     var bot = h('div', 'tr-plate bot' + (red ? ' red' : ''), '<span class="tr-a-sub">' + (opt && opt.sub || '수사 3팀') + '</span><i class="tr-hazard"></i>', layer);
     var word = top.querySelector('.tr-a-main');
+    // 처음엔 화면 밖·글자 숨김: cover 를 늦게 부르는 연출(G: 경광등 먼저)에서 셔터가 미리 보이지 않게
+    top.style.transform = 'translateY(-101%)';
+    bot.style.transform = 'translateY(101%)';
+    word.style.opacity = '0';
     return {
       cover: function () {
         word.style.opacity = '0';

@@ -513,6 +513,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.12', date: '2026-11-21', title: '출동 연출 고침',
+      items: [
+        '주범 조 출동의 작전 개시 연출에서 글자가 두 번 나오던 문제를 고쳤어요.'
+      ] },
     { ver: '0.1.11', date: '2026-11-21', title: '출동 연출',
       items: [
         '현장 출동을 누르면 셔터, 폴리스 라인, 사건 파일 중 하나가 화면을 덮었다가 열려요.',
@@ -1625,6 +1629,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var top = h('div', 'tr-plate top' + (red ? ' red' : ''), '<b class="tr-bh tr-a-main">' + (opt && opt.word || '출동') + '</b><i class="tr-hazard"></i>', layer);
     var bot = h('div', 'tr-plate bot' + (red ? ' red' : ''), '<span class="tr-a-sub">' + (opt && opt.sub || '수사 3팀') + '</span><i class="tr-hazard"></i>', layer);
     var word = top.querySelector('.tr-a-main');
+    // 처음엔 화면 밖·글자 숨김: cover 를 늦게 부르는 연출(G: 경광등 먼저)에서 셔터가 미리 보이지 않게
+    top.style.transform = 'translateY(-101%)';
+    bot.style.transform = 'translateY(101%)';
+    word.style.opacity = '0';
     return {
       cover: function () {
         word.style.opacity = '0';
