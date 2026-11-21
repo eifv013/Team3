@@ -60,7 +60,7 @@ with sync_playwright() as p:
     if pg.locator('#info-sheet').is_visible(): pg.click('#info-cancel'); pg.wait_for_timeout(200)
     if pg.evaluate('Team3Save()') != 'ok': problems.append('끄기 직전 저장(Team3Save)이 안 됨')
     if pg.evaluate('Team3Back()') != 'exit': problems.append('사무실에서 뒤로가 exit 가 아님')
-    pg.click('#h-tutorial'); pg.wait_for_timeout(200)
+    pg.click('#h-sound'); pg.wait_for_timeout(150); pg.click('#set-tut'); pg.wait_for_timeout(200)   # 튜토리얼은 설정 창에서(0.1.18)
     if pg.evaluate('Team3Back()') != 'stay' or not pg.locator('#s-hub').is_visible(): problems.append('튜토리얼에서 뒤로가 사무실로 안 감')
     pg.click('#h-go'); pg.wait_for_timeout(150)
     # 출동 전환 중 뒤로: 앱이 꺼지면(exit) 안 된다

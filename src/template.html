@@ -210,6 +210,34 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .sheet{width:100%;max-height:100%;overflow-y:auto;background:var(--panel);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:12px;animation:up .22s ease-out}
 .sheet p{margin:0;font-size:14px;line-height:1.55}
 @keyframes up{0%{transform:translateY(30px);opacity:0}100%{transform:none;opacity:1}}
+/* ===== 설정 창(0.1.18): 크기 막대 두 개 · 진동 스위치 · (사무실에서만) 튜토리얼·백업·초기화 ===== */
+.set-row{display:flex;align-items:center;gap:12px;min-height:44px}
+.set-row>span:first-child{width:52px;flex:none;font-size:15px;font-weight:600}
+.set-row input[type=range]{flex:1;min-width:0;height:44px;accent-color:var(--acc);background:none}
+.set-v{width:34px;flex:none;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+.switch{margin-left:auto;width:56px;height:32px;border-radius:16px;border:0;background:var(--line);position:relative;transition:background .15s}
+.switch::after{content:'';position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:var(--text);transition:transform .15s}
+.switch[aria-pressed="true"]{background:var(--acc)}
+.switch[aria-pressed="true"]::after{transform:translateX(24px);background:var(--ink)}
+.set-sep{height:1px;background:var(--line);margin:4px 0}
+.set-hub{display:flex;flex-direction:column;gap:10px}
+.set-hub .ghost{width:100%}
+.set-code{width:100%;min-height:84px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--ink);color:var(--text);font:12px/1.4 ui-monospace,monospace;word-break:break-all;resize:none;user-select:text;-webkit-user-select:text}
+.set-code:focus{outline:none;border-color:var(--acc)}
+.ghost.danger{color:var(--miss);border-color:rgba(255,122,89,.45)}
+.ghost.armed{background:var(--miss);color:var(--ink);border-color:var(--miss)}
+/* ===== 도움말(0.1.18): 톱니바퀴 왼쪽 ? 단추. 항목을 눌러 펼친다 ===== */
+.icon-pair{display:flex;align-items:center;flex:none}
+.help-d{border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.help-d summary{list-style:none;cursor:pointer;padding:14px 16px;font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.help-d summary::-webkit-details-marker{display:none}
+.help-d summary::after{content:'+';color:var(--muted);font-weight:400;font-size:20px;line-height:1}
+.help-d[open] summary::after{content:'−'}
+.help-b{padding:0 16px 14px;display:flex;flex-direction:column;gap:8px}
+.help-b p{font-size:14px;line-height:1.6}
+.help-b b{color:var(--acc);font-weight:700}
+.help-cards{display:flex;gap:8px;justify-content:center;margin:4px 0}
+.help-cards .card{width:76px;aspect-ratio:4/5;pointer-events:none}
 .updating{position:absolute;inset:0;z-index:15;background:rgba(12,14,19,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center}
 .updating b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:26px;color:var(--acc)}
 .up-notes{max-width:300px;display:flex;flex-direction:column;gap:4px;font-size:13px;line-height:1.5;color:var(--text);text-align:left}
@@ -315,7 +343,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
           <span class="feed" id="h-feed" aria-live="polite"></span>
         </span>
       </div>
-      <button class="icon-btn" id="h-sound" aria-label="소리 끄기"></button>
+      <div class="icon-pair"><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
     </div>
 
     <div class="casebox">
@@ -351,10 +379,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     <span class="section-t">출동 장비</span>
     <div class="shop" id="h-gear"></div>
 
-    <div class="row" style="margin-bottom:8px">
-      <button class="ghost" id="h-tutorial">튜토리얼</button>
-      <button class="ghost" id="h-reset-ask" style="flex:none;width:auto;padding:0 14px;font-size:13px;color:var(--muted)">처음부터</button>
-    </div>
+    <!-- 튜토리얼·처음부터 단추는 0.1.18 부터 설정 창(톱니바퀴)으로 옮겼다 -->
     <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
   </section>
 
@@ -422,7 +447,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     </div>
     <div class="foot">
       <span id="stat-line">검거 0 · 오인 0</span>
-      <button class="icon-btn" id="btn-sound" aria-label="소리 끄기"></button>
+      <div class="icon-pair"><button class="icon-btn" id="btn-help" aria-label="도움말"></button><button class="icon-btn" id="btn-sound" aria-label="설정"></button></div>
     </div>
   </section>
 
@@ -465,6 +490,41 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       <div id="info-body" style="display:flex;flex-direction:column;gap:10px"></div>
       <button class="primary" id="info-ok">확인</button>
       <button class="ghost" id="info-cancel" hidden>취소</button>
+    </div>
+  </div>
+  <!-- 설정 창(0.1.18): 출동 중에 열면 시간이 멈춘다. 아래 묶음(set-hub)은 사무실에서만 보인다 -->
+  <div class="sheet-back" id="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="set-title" hidden>
+    <div class="sheet">
+      <span class="label">설정</span>
+      <h2 id="set-title" style="font-size:26px">소리와 진동</h2>
+      <label class="set-row"><span>음악</span><input type="range" id="set-music" min="0" max="100" step="1" aria-label="음악 크기"><span class="set-v" id="set-music-v">70</span></label>
+      <label class="set-row"><span>효과음</span><input type="range" id="set-sfx" min="0" max="100" step="1" aria-label="효과음 크기"><span class="set-v" id="set-sfx-v">80</span></label>
+      <div class="set-row"><span>진동</span><button class="switch" id="set-vib" aria-pressed="true" aria-label="진동"></button></div>
+      <p class="muted" id="set-paused" style="font-size:13px" hidden>이 창이 떠 있는 동안 출동 시간은 멈춰 있어요.</p>
+      <div class="set-hub" id="set-hub">
+        <div class="set-sep"></div>
+        <button class="ghost" id="set-tut">튜토리얼 다시 하기</button>
+        <div class="set-sep"></div>
+        <span class="label">저장 백업</span>
+        <p class="muted" style="font-size:13px">진행은 이 기기에만 저장돼요. 백업 코드를 복사해 두면 앱을 지우거나 기기를 바꿔도 이어서 할 수 있어요.</p>
+        <button class="ghost" id="set-export">백업 코드 복사</button>
+        <button class="ghost" id="set-import">백업 코드 불러오기</button>
+        <textarea class="set-code" id="set-code" spellcheck="false" autocomplete="off" hidden></textarea>
+        <button class="ghost" id="set-import-go" hidden>이 코드로 불러오기</button>
+        <div class="set-sep"></div>
+        <button class="ghost danger" id="set-reset">진행 초기화</button>
+      </div>
+      <button class="primary" id="set-close">닫기</button>
+    </div>
+  </div>
+  <!-- 도움말(0.1.18): 출동 중에 열면 시간이 멈춘다. 내용은 ui.js 가 규칙 수치로 채운다 -->
+  <div class="sheet-back" id="help-sheet" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
+    <div class="sheet">
+      <span class="label">도움말</span>
+      <h2 id="help-title" style="font-size:26px">수사 3팀 수사 안내</h2>
+      <p class="muted" id="help-paused" style="font-size:13px" hidden>이 창이 떠 있는 동안 출동 시간은 멈춰 있어요.</p>
+      <div id="help-body" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button class="primary" id="help-close">닫기</button>
     </div>
   </div>
   <div class="toast" id="toast" hidden role="status"></div>
@@ -518,6 +578,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 </script>
 <script>
 /*SOUNDS*/
+</script>
+<script>
+/*SETTINGS*/
 </script>
 <script>
 /*MUSIC*/

@@ -167,3 +167,21 @@ test('소리 장치가 없을 때 낮추기를 불러도 던지지 않고, 나�
   const bus = ctx.sources[0].to.to;
   assert.ok(Math.abs(bus.gain.value - 0.5 * B.DUCK) < 1e-9);
 });
+
+test('흐리게(dim)·크기 바꾸기: 버스 = 크기 × 낮추기 × 흐리게. 범위 밖 크기는 0~1 로 자른다', async () => {
+  const ctx = fakeCtx(), f = fakeFetch();
+  const p = B.createPlayer({ context: () => ctx, music: M, fetch: f, gain: 0.5 });
+  p.want('field'); await f.flush();
+  const bus = ctx.sources[0].to.to, near = (a, b) => Math.abs(a - b) < 1e-9;
+  p.dim(true);
+  assert.ok(near(bus.gain.value, 0.5 * B.DIM));
+  p.duck(true);
+  assert.ok(near(bus.gain.value, 0.5 * B.DIM * B.DUCK), '둘이 겹치면 곱해진다');
+  p.dim(false); p.duck(false);
+  assert.ok(near(bus.gain.value, 0.5));
+  p.setVolume(0.2); assert.ok(near(bus.gain.value, 0.2));
+  p.setVolume(5); assert.ok(near(bus.gain.value, 1));
+  p.setVolume(-1); assert.ok(near(bus.gain.value, 0));
+  const before = bus.gain.set.length; p.setVolume(NaN);
+  assert.strictEqual(bus.gain.set.length, before, '숫자가 아니면 무시');
+});

@@ -272,7 +272,7 @@
     var big = I.idleCapped(save);
     if (big) {
       try { UI.sfx.go(); } catch (e) { /* 소리 실패는 무시 */ }
-      try { if (navigator.vibrate) navigator.vibrate([18, 40, 18]); } catch (e) { /* 진동 없는 기기 */ }
+      UI.buzz([18, 40, 18]);   // 설정에서 진동을 끄면 떨지 않는다
     }
     dispatching = true;
     T.play(big ? 'big' : 'normal', startRunNow, { caseNo: I.CASE.no, caseTitle: I.CASE.title })
@@ -324,6 +324,27 @@
   UI.hooks.go = go;
   UI.hooks.onRunEnd = onRunEnd;
   UI.hooks.onTutorialDone = function () { save.tutorialDone = true; persist(); };
+  /*
+   * 설정 창의 저장 백업·초기화(0.1.18). 코드 형식 검사는 settings.js, 값 검사·범위 맞추기는 SuspectsIdle.load 가 한다.
+   *   불러오기·초기화 뒤에는 ui.js 가 페이지를 다시 연다(모든 화면을 새 저장으로 처음부터 그리게).
+   */
+  UI.hooks.saveVersion = I.VERSION;
+  UI.hooks.exportSave = function () {
+    I.advance(save, nowMs());   // 지금까지 팀이 한 일까지 넣어서
+    persist();
+    return window.Team3Settings.exportCode(I.serialize(save));
+  };
+  UI.hooks.importSave = function (json) {
+    var r = I.load(json, nowMs());
+    if (r.reset) return { ok: false, message: '저장 내용이 올바르지 않아요' };
+    save = r.save;
+    save.lastSeen = nowMs();   // 코드를 만든 뒤 지난 시간은 '자리 비움'으로 치지 않는다(기기를 옮기는 사이 보상 받기 방지)
+    persist();
+    return { ok: true };
+  };
+  UI.hooks.resetSave = function () {
+    save = I.newSave(nowMs()); save.tutorialDone = true; persist();
+  };
 
   $('h-go').addEventListener('click', go);
   $('h-profile').addEventListener('click', editProfile);
@@ -333,16 +354,7 @@
     var b = e.target.closest('[data-gear]');
     if (b && !b.disabled) tryBuy(b.getAttribute('data-gear'));
   });
-  $('h-tutorial').addEventListener('click', UI.openTutorial);
   $('h-story-all').addEventListener('click', showStory);
-  $('h-reset-ask').addEventListener('click', function () {
-    openInfo({
-      label: '처음부터', title: '사건 1을 처음부터 할까요?',
-      body: p('수사비, 형사, 장비, 사건 진척이 모두 사라져요. 되돌릴 수 없어요.'),
-      ok: '처음부터 하기', cancel: '취소',
-      onOk: function () { save = I.newSave(nowMs()); save.tutorialDone = true; persist(); render(); UI.toast('사건 1을 처음부터 시작해요'); }
-    });
-  });
   $('info-ok').addEventListener('click', function () { closeInfo('ok'); });
   $('info-body').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); closeInfo('ok'); } });
   $('info-cancel').addEventListener('click', function () { closeInfo('cancel'); });

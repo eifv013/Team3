@@ -20,10 +20,16 @@
     get: function (k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { window.localStorage.setItem(k, v); } catch (e) { /* 저장 불가 환경: 무시 */ } }
   };
-  var MUTE_KEY = 'guar.suspects.mute';
+  /*
+   * 설정(0.1.18, settings.js): 음악 크기 · 효과음 크기(0~100) · 진동. 예전 소리 끔 단추는 설정 창으로 바뀌었다.
+   *   음악·효과음이 둘 다 0 이면 소리 장치를 아예 만들지 않는다.
+   */
+  var ST = window.Team3Settings;
+  var settings = ST ? ST.load(store) : { music: 70, sfx: 80, vibrate: true };
+  function curve(v) { return ST ? ST.gain(v) : Math.pow(v / 100, 2); }
+  function silent() { return settings.music === 0 && settings.sfx === 0; }
 
   /* ---------- 소리: 파일 없이 WebAudio 로 합성 ---------- */
-  var muted = store.get(MUTE_KEY) === '1';
   /*
    * 모든 소리는 master 를 거쳐 나간다(0.1.2): 전체 크기 2배(MASTER_GAIN) → 리미터(컴프레서) → 스피커.
    *   소리가 작다는 의견으로 전체를 두 배로 키웠다. 여러 소리가 겹쳐도 찢어지지 않게 리미터로 위를 눌러 둔다.
@@ -31,12 +37,12 @@
   var MASTER_GAIN = 2;
   var ac = null, master = null;
   function audio() {
-    if (muted) return null;
+    if (silent()) return null;
     try {
       if (!ac) {
         ac = new (window.AudioContext || window.webkitAudioContext)();
         var g = ac.createGain(), lim = ac.createDynamicsCompressor();
-        g.gain.value = MASTER_GAIN;
+        g.gain.value = MASTER_GAIN * curve(settings.sfx);   // 효과음 크기는 master 에서 한 번에
         lim.threshold.value = -6; lim.knee.value = 4; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.12;
         g.connect(lim); lim.connect(ac.destination);
         master = g;
@@ -47,6 +53,7 @@
     return ac;
   }
   function tone(freq, dur, type, vol, delay, slideTo, attack) {
+    if (settings.sfx === 0) return;
     var a = audio(); if (!a) return;
     try {
       var t = a.currentTime + (delay || 0);
@@ -68,14 +75,15 @@
    */
   var BGM_GAIN = 0.55;
   var music = window.Team3Bgm
-    ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN })
-    : { want: function () {}, wake: function () {}, duck: function () {}, setMuted: function () {}, state: function () { return {}; } };
+    ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN * curve(settings.music) })
+    : { want: function () {}, wake: function () {}, duck: function () {}, dim: function () {}, setVolume: function () {}, setMuted: function () {}, state: function () { return {}; } };
+  music.setMuted(settings.music === 0);
   document.addEventListener('pointerdown', function () { try { music.wake(); } catch (e) { /* 무시 */ } }, true);
   // 앱을 내리거나 다른 탭을 보는 동안은 소리 장치를 쉬게 한다(배경에서 음악이 계속 나오지 않게)
   document.addEventListener('visibilitychange', function () {
     try {
       if (!ac) return;
-      if (document.hidden) ac.suspend(); else if (!muted) ac.resume();
+      if (document.hidden) ac.suspend(); else if (!silent()) ac.resume();
     } catch (e) { /* 무시 */ }
   });
 
@@ -98,6 +106,7 @@
   }
   // 녹음 효과음 한 번 재생. 성공하면 true(없거나 실패하면 false → 합성음으로 대신)
   function sample(name, vol) {
+    if (settings.sfx === 0) return true;   // 효과음 0: 합성음으로 대신하지도 않는다
     var a = audio(); if (!a || !buffers[name]) return false;
     try {
       var s = a.createBufferSource(), g = a.createGain();
@@ -158,7 +167,8 @@
       if (left <= 5) sfx.tickLow();
     }
   };
-  function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* 무시 */ } }
+  // 진동: 설정에서 끄면 아무것도 안 한다(0.1.18). 진동 없는 기기도 조용히 넘어간다
+  function buzz(ms) { if (!settings.vibrate) return; try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* 무시 */ } }
 
   /* ---------- 용의자 그림 ----------
    * 네 속성이 각각 다른 자리에 있어 따로 눈에 들어온다.
@@ -419,7 +429,7 @@
     raf = requestAnimationFrame(loop);
   }
 
-  function sheetOpen() { return !$('quit-sheet').hidden || !$('info-sheet').hidden; }
+  function sheetOpen() { return !$('quit-sheet').hidden || !$('info-sheet').hidden || !$('settings-sheet').hidden || !$('help-sheet').hidden; }
 
   function onCard(i) {
     if (!game || game.over || lock || sheetOpen()) return;
@@ -573,11 +583,13 @@
     if (!game || game.over) { goHome(); return; }
     try { C.pause(game, now()); } catch (e) { goHome(); return; }
     cancelAnimationFrame(raf);
+    music.dim(true);   // 멈춘 동안 음악을 작게(0.1.18)
     $('quit-sheet').hidden = false;
     $('btn-quit-no').focus();
   }
   function closeQuit() {
     $('quit-sheet').hidden = true;
+    music.dim(false);
     if (!game) return;
     C.resume(game, now());
     cancelAnimationFrame(raf);
@@ -585,7 +597,7 @@
     $('btn-quit').focus();
   }
   function quitToHome() {
-    music.duck(false);
+    music.duck(false); music.dim(false);
     $('quit-sheet').hidden = true;
     cancelAnimationFrame(raf);
     clearTimeout(hintTimer);
@@ -673,23 +685,203 @@
     toastTimer = setTimeout(function () { t.hidden = true; }, 2200);
   }
 
-  function soundIcon() {
-    return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/>' +
-      (muted ? '<path d="M16 9l5 6M21 9l-5 6"/>' : '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>') + '</svg>';
+  // 톱니바퀴(설정) 그림. 예전 스피커 단추 자리(사무실 오른쪽 위, 출동 화면 오른쪽 아래)에 들어간다
+  function gearIcon() {
+    return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
   }
+  // 이름은 예전 그대로(hub.js 가 부른다): 단추 그림을 다시 그린다
   function renderSound() {
     ['btn-sound', 'h-sound'].forEach(function (id) {
       var b = $(id); if (!b) return;
-      b.setAttribute('aria-label', muted ? '소리 켜기' : '소리 끄기');
-      b.innerHTML = soundIcon();
+      b.setAttribute('aria-label', '설정');
+      b.innerHTML = gearIcon();
+    });
+    ['btn-help', 'h-help'].forEach(function (id) { var b = $(id); if (b) b.innerHTML = helpIcon(); });
+  }
+
+  /* ---------- 설정 창(0.1.18) ----------
+   * 사무실·출동 어디서든 톱니바퀴로 연다. 출동 중이면 멈춤 창처럼 시간을 멈추고(닫으면 이어서), 음악을 작게 한다.
+   * 막대를 움직이는 동안 바로 반영하고, 손을 떼면 저장한다. 효과음 막대는 손을 뗄 때 고르기 소리로 크기를 들려준다.
+   * 튜토리얼·백업·초기화는 사무실에서만 보인다(출동 중에 하면 판이 꼬이므로). 백업·초기화는 hub.js 의 hooks 가 한다.
+   */
+  var setPaused = false;   // 설정·도움말 창 때문에 출동을 멈췄는가
+  function playing() { return !!(game && !game.over && $('s-play').classList.contains('on')); }
+  // 출동 중이면 멈추고 음악을 작게(설정·도움말 공용). 멈췄으면 true
+  function pauseForSheet() {
+    setPaused = false;
+    if (playing()) {
+      try { C.pause(game, now()); setPaused = true; } catch (e) { setPaused = false; }
+      cancelAnimationFrame(raf);
+      music.dim(true);
+    }
+    return setPaused;
+  }
+  function resumeFromSheet() {
+    if (setPaused && game) {
+      setPaused = false;
+      music.dim(false);
+      try { C.resume(game, now()); } catch (e) { /* 무시 */ }
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(loop);
+    }
+  }
+  function renderSettings() {
+    $('set-music').value = settings.music; $('set-music-v').textContent = settings.music;
+    $('set-sfx').value = settings.sfx; $('set-sfx-v').textContent = settings.sfx;
+    $('set-vib').setAttribute('aria-pressed', settings.vibrate ? 'true' : 'false');
+  }
+  function saveSettings() { if (ST) ST.save(store, settings); }
+  function applyVolumes() {
+    if (master) { try { master.gain.value = MASTER_GAIN * curve(settings.sfx); } catch (e) { /* 무시 */ } }
+    music.setVolume(BGM_GAIN * curve(settings.music));
+    music.setMuted(settings.music === 0);
+    if (!silent()) audio();   // 0 에서 올렸으면 소리 장치를 깨운다(막대를 만지는 것도 사람의 손길이다)
+  }
+  function openSettings() {
+    if (sheetOpen()) return;
+    var inRun = playing();
+    $('set-paused').hidden = !pauseForSheet();
+    $('set-hub').hidden = inRun || !hooks.exportSave;   // 출동 중이거나 사무실이 없으면 아래 묶음 숨김
+    resetHubControls();
+    renderSettings();
+    $('settings-sheet').hidden = false;
+    $('set-close').focus();
+  }
+  function closeSettings() {
+    if ($('settings-sheet').hidden) return;
+    $('settings-sheet').hidden = true;
+    saveSettings();
+    resetHubControls();
+    resumeFromSheet();
+  }
+
+  /* ---------- 도움말(0.1.18) ----------
+   * 다섯 항목을 눌러 펼친다. 수치(시간·벌점·한도)는 core·idle 의 규칙 표에서 읽어 와서, 밸런스를 바꿔도 글이 틀리지 않게 한다.
+   * 처음 한 패 예시는 네 가지가 다 보이는 카드 세 장(늘 한 패). 열 때마다 새로 뽑는다.
+   */
+  function helpHtml() {
+    var R = C.RULES, I = window.SuspectsIdle, T = I && I.TUNE, CS = I && I.CASE;
+    var a = Math.floor(Math.random() * 81), b;
+    do { b = Math.floor(Math.random() * 81); } while (b === a);
+    var cards = [a, b, C.thirdCard(a, b)].map(function (id) {
+      return '<div class="card" style="background:' + look(id).bg + '">' + cardInner(id) + '</div>';
+    }).join('');
+    function sec(n) { return n + '초'; }
+    function item(title, body, open) {
+      return '<details class="help-d"' + (open ? ' open' : '') + '><summary>' + title + '</summary><div class="help-b">' + body + '</div></details>';
+    }
+    var lv = R.levelAt;
+    var out = item('한 패 찾기',
+      '<p>용의자에게는 <b>모자 · 얼굴 · 시간대 · 흔적</b> 네 가지 특징이 있어요.</p>' +
+      '<p>세 명을 골랐을 때 특징마다 <b>셋 다 같거나, 셋 다 다르면</b> 한 패예요. 둘만 같은 특징이 하나라도 있으면 한 패가 아니에요.</p>' +
+      '<div class="help-cards">' + cards + '</div>' +
+      '<p class="muted">두 명을 고르면 셋째는 하나로 정해져요. 그 한 명이 판에 있는지만 찾으면 돼요.</p>', true);
+    out += item('현장 출동',
+      '<p>처음엔 <b>모자</b>만 봐요. 검거 ' + lv[2] + '명이면 얼굴, ' + lv[3] + '명이면 시간대, ' + lv[4] + '명이면 흔적까지 봐요.</p>' +
+      '<p>검거하면 시간 <b>+' + sec(R.hitTime) + '</b>, 오인 체포는 <b>−' + sec(R.missPenalty) + '</b>.</p>' +
+      '<p>판에 한 패가 없으면 <b>검거 불가</b>를 누르세요. 맞으면 큰 점수와 +' + sec(R.noneTime) + ', 틀리면 시간이 줄어요.</p>' +
+      '<p>돋보기(<b>단서</b>)는 한 번 누르면 한 패 중 한 명, 한 번 더 누르면 한 명 더와 셋째의 모습을 알려 줘요. 판에 한 패가 없으면 그것도 알려 줘요. 한 번에 시간 −' + sec(R.hintPenalty) + '.</p>' +
+      '<p>연속으로 잡으면 점수가 최대 <b>' + R.comboMax + '배</b>까지 올라요.</p>');
+    if (T) {
+      out += item('사무실',
+        '<p>형사들은 내가 없어도 용의자를 잡고 <b>수사비</b>를 벌어요.</p>' +
+        '<p><b>형사 영입</b>은 팀을 키우고, <b>합동 훈련</b>은 팀을 빠르게 하고 수사비를 늘려요. <b>출동 장비</b>는 현장 출동을 돕는 장비예요.</p>' +
+        '<p>현장 출동을 다녀오면 점수만큼 수사비를 받고, ' + Math.round(T.buffSec / 60) + '분 동안 팀이 <b>' + T.buffMult + '배</b>로 일해요(사기 충전).</p>');
+      out += item('자리를 비우면',
+        '<p>앱을 꺼 두는 동안에도 팀은 일해요. 대신 <b>절반 속도</b>로, <b>' + (T.offlineCapSec / 3600) + '시간</b>까지만 세요.</p>' +
+        (CS ? '<p>팀이 혼자 잡을 수 있는 건 사건마다 정해져 있어요(사건 ' + CS.no + '은 ' + CS.idleCap.toLocaleString('ko-KR') + '명). 남은 <b>주범 조</b>는 현장 출동으로만 잡아요.</p>' : ''));
+    }
+    out += item('수사 일지 · 설정 · 백업',
+      '<p>사건이 고비를 넘을 때마다 <b>수사 일지</b>가 열려요. 사무실의 수사 일지 보기에서 다시 읽을 수 있어요.</p>' +
+      '<p>톱니바퀴(<b>설정</b>)에서 음악·효과음 크기와 진동을 바꿔요. 사무실에서 열면 튜토리얼 다시 하기, 백업, 초기화도 있어요.</p>' +
+      '<p>진행은 이 기기에만 저장돼요. 앱을 지우거나 기기를 바꾸기 전에 <b>백업 코드</b>를 복사해 두세요.</p>');
+    return out;
+  }
+  function openHelp() {
+    if (sheetOpen()) return;
+    $('help-paused').hidden = !pauseForSheet();
+    $('help-body').innerHTML = helpHtml();
+    $('help-sheet').hidden = false;
+    $('help-close').focus();
+  }
+  function closeHelp() {
+    if ($('help-sheet').hidden) return;
+    $('help-sheet').hidden = true;
+    resumeFromSheet();
+  }
+  function helpIcon() {
+    return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.4-2.7 4"/><path d="M12 17.3h.01"/></svg>';
+  }
+
+  /*
+   * 두 번 눌러 확인하는 단추(초기화·불러오기). 처음 누르면 빨갛게 바뀌고 글이 경고로 바뀐다.
+   * 4초 안에 한 번 더 누르면 실행, 지나면 원래대로 돌아간다.
+   */
+  var armTimers = {};
+  function armOrRun(id, label, warn, run) {
+    var b = $(id);
+    if (b.classList.contains('armed')) {
+      clearTimeout(armTimers[id]); b.classList.remove('armed'); b.textContent = label;
+      run();
+      return;
+    }
+    b.classList.add('armed'); b.textContent = warn;
+    buzz(15);
+    clearTimeout(armTimers[id]);
+    armTimers[id] = setTimeout(function () { b.classList.remove('armed'); b.textContent = label; }, 4000);
+  }
+  var RESET_LABEL = '진행 초기화', IMPORT_LABEL = '이 코드로 불러오기';
+  function resetHubControls() {
+    Object.keys(armTimers).forEach(function (k) { clearTimeout(armTimers[k]); });
+    $('set-reset').classList.remove('armed'); $('set-reset').textContent = RESET_LABEL;
+    $('set-import-go').classList.remove('armed'); $('set-import-go').textContent = IMPORT_LABEL;
+    $('set-code').hidden = true; $('set-code').value = ''; $('set-code').readOnly = false;
+    $('set-import-go').hidden = true;
+  }
+
+  // 백업 코드 복사: 코드를 칸에 보여 주고(직접 길게 눌러 복사할 수도 있게) 클립보드에 넣어 본다
+  function exportSave() {
+    var code;
+    try { code = hooks.exportSave(); } catch (e) { toast('백업 코드를 만들지 못했어요: ' + e.message); return; }
+    var box = $('set-code');
+    box.hidden = false; box.readOnly = true; box.value = code;
+    $('set-import-go').hidden = true;
+    var fallback = function () {
+      try { box.focus(); box.select(); } catch (e) { /* 무시 */ }
+      toast('아래 코드를 길게 눌러 전부 복사해 주세요');
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(function () { toast('백업 코드를 복사했어요 · 메모장 등에 붙여 넣어 두세요'); }, fallback);
+      } else fallback();
+    } catch (e) { fallback(); }
+  }
+  function showImport() {
+    var box = $('set-code');
+    box.hidden = false; box.readOnly = false; box.value = '';
+    box.placeholder = 'T3- 로 시작하는 백업 코드를 붙여 넣으세요';
+    $('set-import-go').hidden = false;
+    box.focus();
+  }
+  function importSave() {
+    var code = $('set-code').value;
+    var check = ST ? ST.importCode(code, hooks.saveVersion) : { ok: false, reason: 'broken' };
+    if (!check.ok) { toast(ST ? ST.REASONS[check.reason] : '불러오지 못했어요'); return; }
+    armOrRun('set-import-go', IMPORT_LABEL, '지금 진행이 이 코드로 바뀌어요 · 한 번 더 누르기', function () {
+      var r;
+      try { r = hooks.importSave(check.json); } catch (e) { r = { ok: false, message: e.message }; }
+      if (!r || !r.ok) { toast('불러오지 못했어요' + (r && r.message ? ': ' + r.message : '')); return; }
+      toast('불러왔어요 · 다시 여는 중');
+      setTimeout(function () { try { location.reload(); } catch (e) { /* 무시 */ } }, 700);
     });
   }
-  function toggleSound() {
-    muted = !muted;
-    store.set(MUTE_KEY, muted ? '1' : '0');
-    renderSound();
-    try { music.setMuted(muted); } catch (e) { /* 무시 */ }
-    if (!muted) sfx.pick(1);
+  function resetSave() {
+    armOrRun('set-reset', RESET_LABEL, '모든 진행이 지워져요 · 한 번 더 누르기', function () {
+      try { hooks.resetSave(); } catch (e) { toast('초기화하지 못했어요: ' + e.message); return; }
+      toast('처음부터 다시 시작해요');
+      setTimeout(function () { try { location.reload(); } catch (e) { /* 무시 */ } }, 700);
+    });
   }
 
   /* ---------- 연결 ---------- */
@@ -705,8 +897,34 @@
   $('btn-home').addEventListener('click', goHome);
   $('btn-none').addEventListener('click', onNone);
   $('btn-hint').addEventListener('click', onHint);
-  $('btn-sound').addEventListener('click', toggleSound);
-  $('h-sound').addEventListener('click', toggleSound);
+  $('btn-sound').addEventListener('click', openSettings);
+  $('h-sound').addEventListener('click', openSettings);
+  $('set-close').addEventListener('click', closeSettings);
+  $('btn-help').addEventListener('click', openHelp);
+  $('h-help').addEventListener('click', openHelp);
+  $('help-close').addEventListener('click', closeHelp);
+  $('help-sheet').addEventListener('click', function (e) { if (e.target === this) closeHelp(); });
+  $('settings-sheet').addEventListener('click', function (e) { if (e.target === this) closeSettings(); });
+  // 막대: 움직이는 동안 바로 반영(input), 손을 떼면 저장(change)
+  ['music', 'sfx'].forEach(function (k) {
+    var el = $('set-' + k);
+    el.addEventListener('input', function () {
+      settings[k] = Math.max(0, Math.min(100, Math.round(+el.value) || 0));
+      $('set-' + k + '-v').textContent = settings[k];
+      applyVolumes();
+    });
+    el.addEventListener('change', function () { saveSettings(); if (k === 'sfx') sfx.pick(1); });
+  });
+  $('set-vib').addEventListener('click', function () {
+    settings.vibrate = !settings.vibrate;
+    renderSettings(); saveSettings();
+    buzz(30);   // 켰을 때만 실제로 떤다
+  });
+  $('set-tut').addEventListener('click', function () { closeSettings(); openTutorial(); });
+  $('set-export').addEventListener('click', exportSave);
+  $('set-import').addEventListener('click', showImport);
+  $('set-import-go').addEventListener('click', importSave);
+  $('set-reset').addEventListener('click', resetSave);
   $('btn-quit').addEventListener('click', openQuit);
   $('btn-quit-no').addEventListener('click', closeQuit);
   $('btn-quit-yes').addEventListener('click', quitToHome);
@@ -715,7 +933,10 @@
   $('tut-close').addEventListener('click', goHome);
   $('tut-home').addEventListener('click', goHome);
   $('tut-start').addEventListener('click', again);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('quit-sheet').hidden) closeQuit(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!$('help-sheet').hidden) closeHelp(); else if (!$('settings-sheet').hidden) closeSettings(); else if (!$('quit-sheet').hidden) closeQuit();
+  });
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && game && !sheetOpen()) { cancelAnimationFrame(raf); raf = requestAnimationFrame(loop); }
   });
@@ -767,6 +988,8 @@
    *   멈춤 창 → 닫고 계속 / 출동 중 → 멈춤 창 / 튜토리얼·결과 → 사무실 / 사무실 → exit
    */
   function back() {
+    if (!$('help-sheet').hidden) { closeHelp(); return 'stay'; }
+    if (!$('settings-sheet').hidden) { closeSettings(); return 'stay'; }
     if (!$('quit-sheet').hidden) { closeQuit(); return 'stay'; }
     if ($('s-play').classList.contains('on')) { openQuit(); return 'stay'; }
     if ($('s-tutorial').classList.contains('on') || $('s-result').classList.contains('on')) { goHome(); return 'stay'; }
@@ -775,7 +998,8 @@
 
   window.SuspectsUI = {
     hooks: hooks, show: show, back: back, startRun: startRun, goHome: goHome,
-    openTutorial: openTutorial, toast: toast, sfx: sfx, buzz: buzz, store: store, renderSound: renderSound, music: music
+    openTutorial: openTutorial, toast: toast, sfx: sfx, buzz: buzz, store: store, renderSound: renderSound, music: music,
+    openSettings: openSettings, closeSettings: closeSettings, openHelp: openHelp, closeHelp: closeHelp, settings: function () { return settings; }
   };
 
   renderSound();
