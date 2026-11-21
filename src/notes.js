@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.21', date: '2026-11-22', title: '소리를 더 크게',
+      items: [
+        '음악과 효과음을 한 번 더 두 배로 키웠어요.'
+      ] },
     { ver: '0.1.20', date: '2026-11-22', title: '소리 크기와 만든 사람들',
       items: [
         '전체 소리를 두 배로 키웠어요.',

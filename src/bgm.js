@@ -166,10 +166,10 @@
         dimmed = on;
         rampBus(target());
       },
-      /** 설정의 음악 크기(0~2: 비율 × 배수). 0 이어도 멈추지는 않는다(끄기는 setMuted). */
+      /** 설정의 음악 크기(0~4: 비율 × 배수). 0 이어도 멈추지는 않는다(끄기는 setMuted). */
       setVolume: function (v) {
         if (!(typeof v === 'number' && isFinite(v))) return;
-        volume = Math.max(0, Math.min(2, v));
+        volume = Math.max(0, Math.min(4, v));
         rampBus(target());
       },
       want: function (name) {

@@ -35,7 +35,8 @@
    *   소리가 작다는 의견으로 전체를 두 배로 키웠다. 여러 소리가 겹쳐도 찢어지지 않게 리미터로 위를 눌러 둔다.
    */
   // 0.1.20: 효과음 크기 50 에서 예전 기본(배수 2 × 0.8²≈1.28)의 2배 ≈ 2.5 가 되도록 5 × 0.5. 리미터가 찢어짐을 막는다
-  var MASTER_GAIN = 5;
+  // 0.1.21: 더 키워 달라는 의견으로 한 번 더 2배(5 → 10)
+  var MASTER_GAIN = 10;
   var ac = null, master = null;
   function audio() {
     if (silent()) return null;
@@ -75,7 +76,8 @@
    *   사람이 화면을 누를 때마다 wake → 막혀 있던 첫 곡이 이때 나온다(브라우저 자동 재생 정책).
    */
   // 0.1.20: 음악 크기 50 에서 예전 기본(0.55 × 0.7²≈0.27)의 2배 ≈ 0.55 가 되도록 1.1 × 0.5
-  var BGM_GAIN = 1.1;
+  // 0.1.21: 한 번 더 2배(1.1 → 2.2). 큰 소리는 bgm.js 의 리미터가 누른다
+  var BGM_GAIN = 2.2;
   var music = window.Team3Bgm
     ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN * curve(settings.music) })
     : { want: function () {}, wake: function () {}, duck: function () {}, dim: function () {}, setVolume: function () {}, setMuted: function () {}, state: function () { return {}; } };
