@@ -7,10 +7,10 @@
       "loopStart": 0.0,
       "duration": 40.4082,
       "credit": {
-        "title": "Trouble Makers (Loopable)",
-        "artist": "",
-        "license": "",
-        "url": ""
+        "title": "Trouble Makers (Cool/Riff-Jazz)",
+        "artist": "Music by Matthew Pablo",
+        "license": "CC BY 3.0",
+        "url": "www.matthewpablo.com · https://opengameart.org/content/trouble-makers-coolriff-jazz"
       }
     },
     "field": {
@@ -25,9 +25,9 @@
       }
     },
     "boss": {
-      "file": "music/boss.f973b1cb.mp3",
-      "loopStart": 51.6,
-      "duration": 89.9512,
+      "file": "music/boss.a06d6e42.mp3",
+      "loopStart": 17.5297,
+      "duration": 36.8197,
       "credit": {
         "title": "More Trigger Fish Attack",
         "artist": "Sascha Ende",

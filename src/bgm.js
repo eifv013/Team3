@@ -23,6 +23,8 @@
 
   var FADE = 1.2;        // 곡을 넘길 때 서서히 줄고 커지는 시간(초)
   var STOP_FADE = 0.35;  // 소리 끔·화면 떠남 때 줄이는 시간(초)
+  var DUCK = 0.35;       // 낮추기(duck): 출동 마지막 10초에 시계 초침이 잘 들리게 음악을 이만큼으로 줄인다
+  var DUCK_FADE = 0.4;   // 낮추고 되돌리는 데 걸리는 시간(초)
 
   /**
    * @param {object} o
@@ -46,6 +48,7 @@
     var current = null;    // { name, src, gain }
     var buffers = {};      // 이름 → AudioBuffer
     var loading = {};      // 이름 → true(받는 중)
+    var ducked = false;    // 지금 음악을 낮춰 둔 상태인가
 
     function ctx() {
       if (muted) return null;
@@ -54,7 +57,7 @@
       if (!a) return null;
       if (busCtx !== a) {   // 소리 장치가 새로 생겼으면 버스도 새로
         try {
-          bus = a.createGain(); bus.gain.value = volume; bus.connect(a.destination); busCtx = a;
+          bus = a.createGain(); bus.gain.value = volume * (ducked ? DUCK : 1); bus.connect(a.destination); busCtx = a;
           current = null;
         } catch (e) { bus = null; busCtx = null; return null; }
       }
@@ -123,7 +126,28 @@
       current = null;
     }
 
+    // 버스 크기를 목표로 서서히 옮긴다(낮추기·되돌리기)
+    function rampBus(level) {
+      if (!bus || !busCtx) return;
+      try {
+        var now = busCtx.currentTime;
+        bus.gain.cancelScheduledValues(now);
+        bus.gain.setValueAtTime(bus.gain.value, now);
+        bus.gain.linearRampToValueAtTime(level, now + DUCK_FADE);
+      } catch (e) { /* 무시 */ }
+    }
+
     return {
+      /**
+       * 음악 낮추기 켬/끔. 같은 값이 계속 와도(매 프레임) 바뀔 때만 움직인다.
+       *   출동 마지막 10초에 켜고, 검거로 시간이 늘어 10초를 넘거나 화면이 바뀌면 끈다.
+       */
+      duck: function (on) {
+        on = !!on;
+        if (on === ducked) return;
+        ducked = on;
+        rampBus(volume * (on ? DUCK : 1));
+      },
       want: function (name) {
         wanted = music[name] ? name : null;
         if (!wanted) { stopAll(STOP_FADE); return; }
@@ -137,7 +161,7 @@
       },
       // 시험·디버그용: 지금 상태
       state: function () {
-        return { wanted: wanted, playing: current ? current.name : null, muted: muted,
+        return { wanted: wanted, playing: current ? current.name : null, muted: muted, ducked: ducked,
                  loaded: Object.keys(buffers), loading: Object.keys(loading).filter(function (k) { return loading[k]; }) };
       }
     };
@@ -155,5 +179,5 @@
     return out;
   }
 
-  return { createPlayer: createPlayer, credits: credits, FADE: FADE };
+  return { createPlayer: createPlayer, credits: credits, FADE: FADE, DUCK: DUCK };
 });

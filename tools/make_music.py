@@ -2,11 +2,13 @@
 배경 음악 만들기: 원곡(assets/music/src/) → 게임용 고리(loop) 음악 3곡(assets/music/*.mp3) + src/music.js(곡 정보)
 
   곡             쓰는 곳                 원곡                                   처리
-  office  사무실·튜토리얼·결과   Trouble Makers (Loopable, 40.4초)       원래 고리 음악이라 자르지 않고 크기만 맞춘다
+  office  사무실·튜토리얼·결과   Trouble Makers (Matthew Pablo, CC BY 3.0) 원곡 묶음의 고리판(40.4초)이라 자르지 않고 크기만 맞춘다
   field   현장 출동(평소)         Cinematic Suspense Series Ep. 009       소리가 나기 시작하는 곳부터. 앞 인트로는 한 번만,
                                   (Sascha Ende, CC BY 4.0, 120 BPM)       그 뒤 구간을 마디 단위로 되풀이한다
-  boss    주범 조 출동            More Trigger Fish Attack                 조용한 잠입 부분은 버리고 액션이 터지는 91초부터.
-                                  (Sascha Ende, CC BY 4.0, 100 BPM)       가장 센 143초~ 구간을 마디 단위로 되풀이한다
+  boss    주범 조 출동            More Trigger Fish Attack                 뒤쪽 액션 부분은 너무 정신없어서 앞 40초 정도(잠입 부분)만 쓴다.
+                                  (Sascha Ende, CC BY 4.0, 100 BPM)       1.7~38.54초, 19.25초~끝을 8마디로 되풀이(0.1.17, 후보 A로 정함).
+                                                                          처음 고른 9초는 크게 치는 박자라 조용한 끝에서 넘어갈 때 어색했다
+                                                                          → 크기·음색이 끝과 닮은 19.25초로 옮기고 교차를 1.5초로 늘렸다
 
   고리 만드는 법(되풀이 구간 [S, E)):
     E 에서 S 로 돌아갈 때 끊기지 않게, 파일의 [E-XF, E] 를 "원래 소리(줄어듦) + S 바로 앞 소리(커짐)"로 바꾼다.
@@ -27,11 +29,13 @@ SR = 44100
 TRACKS = [
     # name, 원곡, 시작(초), 되풀이 시작 S(초, 원곡 기준), 마디 수, BPM(한 마디 4박), 목표 LUFS, 교차(초), 출처 표기
     dict(name='office', src='trouble-makers-loopable.flac', start=0.0, whole=True, lufs=-21,
-         credit={'title': 'Trouble Makers (Loopable)', 'artist': '', 'license': '', 'url': ''}),
+         # OpenGameArt 에 CC-BY 3.0 으로 올라온 곡. 작곡가가 게임에 요청하는 표기: "Music by Matthew Pablo www.matthewpablo.com"
+         credit={'title': 'Trouble Makers (Cool/Riff-Jazz)', 'artist': 'Music by Matthew Pablo', 'license': 'CC BY 3.0',
+                 'url': 'www.matthewpablo.com · https://opengameart.org/content/trouble-makers-coolriff-jazz'}),
     dict(name='field', src='cinematic-suspense-009.mp3', start=None, loop_at=14.0, bars=44, bpm=120.0, lufs=-20, xf=1.5,
          credit={'title': 'Cinematic Suspense Series Episode 009', 'artist': 'Sascha Ende', 'license': 'CC BY 4.0',
                  'url': 'https://ende.app/en/song/8224-cinematic-suspense-series-episode-009'}),
-    dict(name='boss', src='more-trigger-fish-attack.mp3', start=91.4, loop_at=143.0, bars=16, bpm=99.75, lufs=-19, xf=1.0,
+    dict(name='boss', src='more-trigger-fish-attack.mp3', start=None, loop_at=19.25, loop_end=38.54, bars=8, bpm=99.75, lufs=-19, xf=1.5,
          credit={'title': 'More Trigger Fish Attack', 'artist': 'Sascha Ende', 'license': 'CC BY 4.0',
                  'url': 'https://ende.app/en/song/13674-more-trigger-fish-attack'}),
 ]
@@ -132,9 +136,13 @@ def main():
                 y, loop_start, info = x, 0.0, '원곡 그대로 되풀이'
             else:
                 start = first_sound(x) if t['start'] is None else t['start']
-                E, score = find_loop_end(x, t['loop_at'], t['bars'], t['bpm'])
+                if t.get('loop_end'):   # 귀로 들어 보고 고른 끝 지점은 그대로 쓴다
+                    E, score = t['loop_end'], float('nan')
+                else:
+                    E, score = find_loop_end(x, t['loop_at'], t['bars'], t['bpm'])
                 y, loop_start = make_loop(x, start, t['loop_at'], E, t['xf'])
-                info = f'원곡 {start:.2f}~{E:.3f}초, 되풀이 {t["loop_at"]:.2f}~{E:.3f}초({t["bars"]}마디, 닮음 {score:.2f})'
+                how = '귀로 고름' if t.get('loop_end') else f'닮음 {score:.2f}'
+                info = f'원곡 {start:.2f}~{E:.3f}초, 되풀이 {t["loop_at"]:.2f}~{E:.3f}초({t["bars"]}마디, {how})'
             wav = d / (t['name'] + '.wav')
             write_wav(wav, y)
             tmp = d / (t['name'] + '.mp3')

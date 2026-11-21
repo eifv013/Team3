@@ -144,3 +144,26 @@ test('wake 는 곡이 이미 나오고 있어도 소리 장치를 깨운다(cont
   const before = asked; p.wake();
   assert.ok(asked > before);
 });
+
+test('낮추기(duck): 켜면 버스 크기가 DUCK 배로, 끄면 원래대로. 같은 값이 계속 와도 한 번만 움직인다', async () => {
+  const ctx = fakeCtx(), f = fakeFetch();
+  const p = B.createPlayer({ context: () => ctx, music: M, fetch: f, gain: 0.5 });
+  p.want('field'); await f.flush();
+  const bus = ctx.sources[0].to.to;   // 소스 → 곡 크기 → 버스
+  p.duck(true); p.duck(true); p.duck(true);
+  assert.strictEqual(bus.gain.set.length, 1, '바뀔 때만 움직인다');
+  assert.ok(Math.abs(bus.gain.value - 0.5 * B.DUCK) < 1e-9);
+  assert.strictEqual(p.state().ducked, true);
+  p.duck(false);
+  assert.ok(Math.abs(bus.gain.value - 0.5) < 1e-9);
+  assert.strictEqual(p.state().ducked, false);
+});
+
+test('소리 장치가 없을 때 낮추기를 불러도 던지지 않고, 나중에 만든 버스는 낮춘 크기로 시작한다', async () => {
+  let ctx = null; const f = fakeFetch();
+  const p = B.createPlayer({ context: () => ctx, music: M, fetch: f, gain: 0.5 });
+  assert.doesNotThrow(() => p.duck(true));
+  ctx = fakeCtx(); p.want('field'); await f.flush();
+  const bus = ctx.sources[0].to.to;
+  assert.ok(Math.abs(bus.gain.value - 0.5 * B.DUCK) < 1e-9);
+});

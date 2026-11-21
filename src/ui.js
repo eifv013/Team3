@@ -69,7 +69,7 @@
   var BGM_GAIN = 0.55;
   var music = window.Team3Bgm
     ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN })
-    : { want: function () {}, wake: function () {}, setMuted: function () {}, state: function () { return {}; } };
+    : { want: function () {}, wake: function () {}, duck: function () {}, setMuted: function () {}, state: function () { return {}; } };
   document.addEventListener('pointerdown', function () { try { music.wake(); } catch (e) { /* 무시 */ } }, true);
   // 앱을 내리거나 다른 탭을 보는 동안은 소리 장치를 쉬게 한다(배경에서 음악이 계속 나오지 않게)
   document.addEventListener('visibilitychange', function () {
@@ -261,7 +261,7 @@
   var SCREENS = ['s-hub', 's-tutorial', 's-play', 's-result'];
   function show(id) {
     // 화면마다 배경 음악: 출동 = 평소 field / 주범 조 boss, 그 밖(사무실·튜토리얼·결과) = office
-    try { music.want(id === 's-play' ? (cfg && cfg.boss ? 'boss' : 'field') : 'office'); } catch (e) { /* 음악 실패는 무시 */ }
+    try { music.duck(false); music.want(id === 's-play' ? (cfg && cfg.boss ? 'boss' : 'field') : 'office'); } catch (e) { /* 음악 실패는 무시 */ }
     SCREENS.forEach(function (s) {
       var el = $(s), on = s === id;
       el.classList.toggle('on', on);
@@ -389,6 +389,7 @@
     fill.style.transform = 'scaleX(' + Math.min(1, left / cfg.duration) + ')';
     fill.classList.toggle('low', left <= 10);
     if (left <= 10 && sec !== lastSec && sec > 0) sfx.clock(left);   // 마지막 10초: 초가 바뀔 때마다 시계 초침
+    music.duck(left <= 10);   // 마지막 10초엔 음악을 낮춰 초침이 묻히지 않게(시간이 늘어 10초를 넘으면 되돌린다)
     lastSec = sec;
     if (C.tick(game, now())) { finish(); return; }
     raf = requestAnimationFrame(loop);
@@ -584,6 +585,7 @@
     $('btn-quit').focus();
   }
   function quitToHome() {
+    music.duck(false);
     $('quit-sheet').hidden = true;
     cancelAnimationFrame(raf);
     clearTimeout(hintTimer);

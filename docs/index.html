@@ -513,6 +513,12 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.1.17', date: '2026-11-21', title: '주범 조 음악 다듬기',
+      items: [
+        '주범 조 출동 음악을 차분한 앞부분으로 바꿨어요. 반복될 때 이음새도 자연스러워졌어요.',
+        '현장 출동 마지막 10초에는 음악이 작아져서 시계 초침 소리가 잘 들려요.',
+        '사무실 음악의 작곡가와 라이선스를 음악 출처에 적었어요.'
+      ] },
     { ver: '0.1.16', date: '2026-11-21', title: '배경 음악',
       items: [
         '사무실, 현장 출동, 주범 조 출동에 배경 음악이 생겼어요. 화면이 바뀌면 음악이 자연스럽게 넘어가요.',
@@ -1943,10 +1949,10 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       "loopStart": 0.0,
       "duration": 40.4082,
       "credit": {
-        "title": "Trouble Makers (Loopable)",
-        "artist": "",
-        "license": "",
-        "url": ""
+        "title": "Trouble Makers (Cool/Riff-Jazz)",
+        "artist": "Music by Matthew Pablo",
+        "license": "CC BY 3.0",
+        "url": "www.matthewpablo.com · https://opengameart.org/content/trouble-makers-coolriff-jazz"
       }
     },
     "field": {
@@ -1961,9 +1967,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       }
     },
     "boss": {
-      "file": "music/boss.f973b1cb.mp3",
-      "loopStart": 51.6,
-      "duration": 89.9512,
+      "file": "music/boss.a06d6e42.mp3",
+      "loopStart": 17.5297,
+      "duration": 36.8197,
       "credit": {
         "title": "More Trigger Fish Attack",
         "artist": "Sascha Ende",
@@ -2002,6 +2008,8 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 
   var FADE = 1.2;        // 곡을 넘길 때 서서히 줄고 커지는 시간(초)
   var STOP_FADE = 0.35;  // 소리 끔·화면 떠남 때 줄이는 시간(초)
+  var DUCK = 0.35;       // 낮추기(duck): 출동 마지막 10초에 시계 초침이 잘 들리게 음악을 이만큼으로 줄인다
+  var DUCK_FADE = 0.4;   // 낮추고 되돌리는 데 걸리는 시간(초)
 
   /**
    * @param {object} o
@@ -2025,6 +2033,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     var current = null;    // { name, src, gain }
     var buffers = {};      // 이름 → AudioBuffer
     var loading = {};      // 이름 → true(받는 중)
+    var ducked = false;    // 지금 음악을 낮춰 둔 상태인가
 
     function ctx() {
       if (muted) return null;
@@ -2033,7 +2042,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       if (!a) return null;
       if (busCtx !== a) {   // 소리 장치가 새로 생겼으면 버스도 새로
         try {
-          bus = a.createGain(); bus.gain.value = volume; bus.connect(a.destination); busCtx = a;
+          bus = a.createGain(); bus.gain.value = volume * (ducked ? DUCK : 1); bus.connect(a.destination); busCtx = a;
           current = null;
         } catch (e) { bus = null; busCtx = null; return null; }
       }
@@ -2102,7 +2111,28 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       current = null;
     }
 
+    // 버스 크기를 목표로 서서히 옮긴다(낮추기·되돌리기)
+    function rampBus(level) {
+      if (!bus || !busCtx) return;
+      try {
+        var now = busCtx.currentTime;
+        bus.gain.cancelScheduledValues(now);
+        bus.gain.setValueAtTime(bus.gain.value, now);
+        bus.gain.linearRampToValueAtTime(level, now + DUCK_FADE);
+      } catch (e) { /* 무시 */ }
+    }
+
     return {
+      /**
+       * 음악 낮추기 켬/끔. 같은 값이 계속 와도(매 프레임) 바뀔 때만 움직인다.
+       *   출동 마지막 10초에 켜고, 검거로 시간이 늘어 10초를 넘거나 화면이 바뀌면 끈다.
+       */
+      duck: function (on) {
+        on = !!on;
+        if (on === ducked) return;
+        ducked = on;
+        rampBus(volume * (on ? DUCK : 1));
+      },
       want: function (name) {
         wanted = music[name] ? name : null;
         if (!wanted) { stopAll(STOP_FADE); return; }
@@ -2116,7 +2146,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       },
       // 시험·디버그용: 지금 상태
       state: function () {
-        return { wanted: wanted, playing: current ? current.name : null, muted: muted,
+        return { wanted: wanted, playing: current ? current.name : null, muted: muted, ducked: ducked,
                  loaded: Object.keys(buffers), loading: Object.keys(loading).filter(function (k) { return loading[k]; }) };
       }
     };
@@ -2134,7 +2164,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     return out;
   }
 
-  return { createPlayer: createPlayer, credits: credits, FADE: FADE };
+  return { createPlayer: createPlayer, credits: credits, FADE: FADE, DUCK: DUCK };
 });
 
 </script>
@@ -2210,7 +2240,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   var BGM_GAIN = 0.55;
   var music = window.Team3Bgm
     ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN })
-    : { want: function () {}, wake: function () {}, setMuted: function () {}, state: function () { return {}; } };
+    : { want: function () {}, wake: function () {}, duck: function () {}, setMuted: function () {}, state: function () { return {}; } };
   document.addEventListener('pointerdown', function () { try { music.wake(); } catch (e) { /* 무시 */ } }, true);
   // 앱을 내리거나 다른 탭을 보는 동안은 소리 장치를 쉬게 한다(배경에서 음악이 계속 나오지 않게)
   document.addEventListener('visibilitychange', function () {
@@ -2402,7 +2432,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
   var SCREENS = ['s-hub', 's-tutorial', 's-play', 's-result'];
   function show(id) {
     // 화면마다 배경 음악: 출동 = 평소 field / 주범 조 boss, 그 밖(사무실·튜토리얼·결과) = office
-    try { music.want(id === 's-play' ? (cfg && cfg.boss ? 'boss' : 'field') : 'office'); } catch (e) { /* 음악 실패는 무시 */ }
+    try { music.duck(false); music.want(id === 's-play' ? (cfg && cfg.boss ? 'boss' : 'field') : 'office'); } catch (e) { /* 음악 실패는 무시 */ }
     SCREENS.forEach(function (s) {
       var el = $(s), on = s === id;
       el.classList.toggle('on', on);
@@ -2530,6 +2560,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     fill.style.transform = 'scaleX(' + Math.min(1, left / cfg.duration) + ')';
     fill.classList.toggle('low', left <= 10);
     if (left <= 10 && sec !== lastSec && sec > 0) sfx.clock(left);   // 마지막 10초: 초가 바뀔 때마다 시계 초침
+    music.duck(left <= 10);   // 마지막 10초엔 음악을 낮춰 초침이 묻히지 않게(시간이 늘어 10초를 넘으면 되돌린다)
     lastSec = sec;
     if (C.tick(game, now())) { finish(); return; }
     raf = requestAnimationFrame(loop);
@@ -2725,6 +2756,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
     $('btn-quit').focus();
   }
   function quitToHome() {
+    music.duck(false);
     $('quit-sheet').hidden = true;
     cancelAnimationFrame(raf);
     clearTimeout(hintTimer);
