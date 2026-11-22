@@ -218,10 +218,13 @@
     var hub = $('s-hub');
     hub.addEventListener('click', function (e) {
       var t;
-      if ((t = e.target.closest('[data-dmode]'))) { mode = t.getAttribute('data-dmode'); renderDept(); return; }
+      if ((t = e.target.closest('[data-dmode]'))) { mode = t.getAttribute('data-dmode'); lastDraw = 0; render(); return; }
       if ((t = e.target.closest('#h-dept [data-buy]'))) {
         var s = S(), id = t.getAttribute('data-buy'), q = qty(s, id);
-        try { var r = D.buy(s, id, q, disc()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } if (r.mile) toast(D.BY_ID[id].name + ' ' + r.mile + '명! 속도 ×2'); ctx.render(); }
+        try { var r = D.buy(s, id, q, disc()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } if (r.mile) toast(D.BY_ID[id].name + ' ' + r.mile + '명! 속도 ×2');
+          // 0.8.0 바로 보이게: 1초 묶음(render 의 900ms 제한)을 기다리지 않고 지금 다시 그리고, 산 칸을 반짝인다
+          lastDraw = 0; ctx.render();
+          var row = document.querySelector('#h-dept [data-dept="' + id + '"]'); if (row) { row.classList.remove('bought'); void row.offsetWidth; row.classList.add('bought'); } }
         catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '수사비가 모자라요' : '영입할 수 없어요'); }
         return;
       }

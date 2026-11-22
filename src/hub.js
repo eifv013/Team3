@@ -963,6 +963,20 @@
     return UI.back();
   };
 
+  /*
+   * 0.8.0 누르기 씹힘 고침: 사무실 칸들(장비 · 준비물 · 지원 · 부서)은 1초마다 다시 그린다. 내용이 같아도 innerHTML 을 새로 넣으면
+   *   손가락을 누르는 사이 단추가 새 단추로 바뀌어 click 이 사라졌다("부서 하나 살 때 반응이 느려"). 내용이 바뀔 때만 다시 넣는다.
+   */
+  function guardHTML(id) {
+    var el = $(id), d = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+    if (!el || !d || el._guard) return;
+    el._guard = true;
+    Object.defineProperty(el, 'innerHTML', { configurable: true,
+      get: function () { return d.get.call(el); },
+      set: function (v) { if (el._h === v) return; el._h = v; d.set.call(el, v); } });
+  }
+  ['h-gear', 'h-prep', 'h-prep-now', 'h-medals', 'h-support', 'h-dept', 'h-dept-mode', 'h-retreat'].forEach(guardHTML);
+
   /* ---------- 시작 ---------- */
   var loaded = loadSave();
   save = loaded.save;

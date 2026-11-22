@@ -93,7 +93,7 @@
     var tick = function () {
       if (!cur || !cur.hud) return;
       var d = new Date(), p = function (x) { return (x < 10 ? '0' : '') + x; };
-      cur.hud.querySelector('.ts').textContent = d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate()) + ' 03:' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+      cur.hud.querySelector('.ts').textContent = d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
     };
     tick(); cur.clock = setInterval(tick, 1000);
     if (cur.boss) cur.screen.classList.add('fx-boss1');

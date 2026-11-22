@@ -327,19 +327,24 @@
   }
 
   /* ---------- 마스코트(파트너 동물): 상태를 골라 움직인다 ---------- */
-  var pet = { x: 30, state: 'idle', face: 1 };
+  // y: 바닥에서 띄운 높이(px). 끌어서 책상 위 · 상황판 앞에 올려 둘 수 있다. 다음에 걸어갈 때 톡 내려온다
+  var pet = { x: 30, y: 2, state: 'idle', face: 1, drawn: '' };
   function drawPet() {
     var p = $('of-pet'), s = S(), eq = s.pets && s.pets.eq, x = ctx.pets && eq ? ctx.pets.parse(eq) : null;
     if (!p) return;
     if (!x || !ctx.art) { p.hidden = true; return; }
     p.hidden = false;
-    $('of-pet-in').innerHTML = ctx.art.draw(x.id, { grade: x.g, anim: true, outfit: ctx.pets.wearing ? ctx.pets.wearing(s, eq) : null });
-    p.style.left = pet.x + 'px';
+    // 조는 중이면 눈을 감은 그림(mood:'sleep'). 같은 그림이면 다시 그리지 않는다(깜빡임 애니메이션이 끊기지 않게)
+    var sleep = pet.state === 'sleep', key = x.id + x.g + (ctx.pets.wearing ? ctx.pets.wearing(s, eq) : '') + (sleep ? 'z' : '');
+    if (pet.drawn !== key) { pet.drawn = key; $('of-pet-in').innerHTML = ctx.art.draw(x.id, { grade: x.g, anim: !sleep, mood: sleep ? 'sleep' : null, outfit: ctx.pets.wearing ? ctx.pets.wearing(s, eq) : null }); }
+    if (!drag) { p.style.left = pet.x + 'px'; p.style.bottom = pet.y + 'px'; }
   }
   function setPet(state, ms) {
     var p = $('of-pet'); if (!p || p.hidden) return;
-    p.className = 'of-pet ' + state + (pet.face < 0 ? ' flip' : '');
+    var wasSleep = pet.state === 'sleep';
+    p.className = 'of-pet ' + state + (pet.face < 0 ? ' flip' : '') + (pet.y > 4 ? ' air' : '');
     pet.state = state;
+    if (wasSleep !== (state === 'sleep')) drawPet();   // 잠들 때 눈 감기 · 깰 때 뜨기
     if (ms) { clearTimeout(petT); petT = later(petAct, ms); }
   }
   function moveTo(x, speed, state) {
@@ -353,7 +358,9 @@
     return ms;
   }
   function petAct() {
-    if (!box || $('of-pet').hidden) return;
+    if (!box || $('of-pet').hidden || drag) return;
+    // 높은 곳에 올려 둔 채면: 잠깐 둘러보다가 톡 뛰어내린다
+    if (pet.y > 4) { var pp = $('of-pet'); pp.classList.add('drop'); pet.y = 2; pp.style.bottom = '2px'; later(function () { pp.classList.remove('drop'); setPet('hop', 700); }, 380); return; }
     if (reduce()) { setPet('sit', 8000); return; }
     var night = box.getAttribute('data-time') === 'night', r = Math.random(), W = box.clientWidth - 64;
     if (night && r < 0.35) { setPet('sleep', 9000); return; }
@@ -368,12 +375,44 @@
     setPet('spin', 1100);
   }
   function petChase(x) {
-    if (!box || reduce() || $('of-pet').hidden || pet.state === 'sleep' || Math.random() > 0.3) return;
+    if (!box || reduce() || $('of-pet').hidden || pet.state === 'sleep' || drag || pet.y > 4 || Math.random() > 0.3) return;
     clearTimeout(petT);
     var ms = moveTo(x - 30, 170, 'run');
     petT = later(function () { setPet('hop', 800); }, ms);
   }
+  /* 0.8.0 끌어서 옮기기: 누른 채 6px 넘게 움직이면 집어 든다(그보다 적으면 쓰다듬기). 상황실 안에서만 */
+  var drag = null, justDragged = 0;
+  function petDown(e) {
+    var p = $('of-pet'); if (!p || p.hidden || e.button > 0) return;
+    var b = box.getBoundingClientRect(), r = p.getBoundingClientRect();
+    drag = { sx: e.clientX, sy: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, b: b, on: false, id: e.pointerId };
+  }
+  function petMove(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var p = $('of-pet');
+    if (!drag.on) {
+      if (Math.abs(e.clientX - drag.sx) + Math.abs(e.clientY - drag.sy) < 6) return;
+      drag.on = true; clearTimeout(petT); try { p.setPointerCapture(drag.id); } catch (er) { /* 무시 */ }
+      p.className = 'of-pet held'; pet.state = 'held'; pet.drawn = ''; drawPetFace();
+    }
+    e.preventDefault();
+    var b = drag.b, W = b.width - 58, H = b.height - 58;
+    var x = Math.max(0, Math.min(W, e.clientX - b.left - drag.ox)), top = Math.max(0, Math.min(H, e.clientY - b.top - drag.oy));
+    pet.x = x; pet.y = Math.max(2, H - top);
+    p.style.left = x + 'px'; p.style.bottom = pet.y + 'px';
+  }
+  function petUp(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var was = drag.on; drag = null;
+    if (!was) return;   // 거의 안 움직였으면 click(쓰다듬기)이 이어서 온다
+    justDragged = Date.now();
+    var s = S(), x = ctx.pets.parse(s.pets.eq);
+    setPet(pet.y > 4 ? 'sit' : 'hop', 2600 + Math.random() * 2000);
+    if (x && Math.random() < 0.6) say({ el: $('of-pet'), name: 'pet' }, ['여기 좋은데요?', '높은 데서 잘 보여요!', '어지러워요…', '내려 줘요~', '여기서 잠복할게요'][Math.floor(Math.random() * 5)]);
+  }
+  function drawPetFace() { drawPet(); }
   function patPet() {
+    if (Date.now() - justDragged < 350) return;   // 끌고 놓은 손이 쓰다듬기로 세지지 않게
     clearTimeout(petT); setPet('happy', 1400);
     var p = $('of-pet'), a = rel(p);
     for (var i = 0; i < 4; i++) {
@@ -469,11 +508,16 @@
       if (e.target.closest('#of-send')) { send(); return; }
       if (e.target.closest('#of-pet')) { patPet(); return; }
     });
+    box.addEventListener('pointerdown', function (e) { if (e.target.closest('#of-pet')) petDown(e); });
+    box.addEventListener('pointermove', petMove);
+    box.addEventListener('pointerup', petUp);
+    box.addEventListener('pointercancel', petUp);
     box.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.id === 'of-pet') { e.preventDefault(); patPet(); } });
     cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
     petT = later(petAct, 1200);
     talkT = later(chatter, 3500);
   }
 
-  root.Team3OfficeUI = { mount: mount, render: render, caught: caught, tick: tick };
+  root.Team3OfficeUI = { mount: mount, render: render, caught: caught, tick: tick,
+    _petState: function (st, ms) { clearTimeout(petT); setPet(st, ms || 9000); return pet.state; } };   // 화면 시험용(조는 모습 확인)
 })(typeof self !== 'undefined' ? self : this);

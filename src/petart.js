@@ -59,14 +59,19 @@
     '<radialGradient id="gPtSoft"><stop offset="0" stop-color="#9C8170" stop-opacity=".75"/><stop offset=".7" stop-color="#B39A88" stop-opacity=".45"/><stop offset="1" stop-color="#B39A88" stop-opacity="0"/></radialGradient>' +
     '<radialGradient id="gPtSoftD"><stop offset="0" stop-color="#5E4233" stop-opacity=".95"/><stop offset=".65" stop-color="#7A5A46" stop-opacity=".7"/><stop offset="1" stop-color="#7A5A46" stop-opacity="0"/></radialGradient>' +
     '</defs>';
+  // 0.8.0 조는 중(mood:'sleep'): 눈을 감는다 — 아래로 둥근 감은 눈 선(∪). 그리는 동안만 켜 두는 깃발
+  var SLEEP = false;
+  function shut(x, y, rx, c) { return '<path d="M' + (x - rx) + ' ' + (y - 1) + ' q' + rx + ' ' + (rx * 0.75) + ' ' + (rx * 2) + ' 0" stroke="' + (c || '#2A1E1A') + '" stroke-width="3.6" fill="none" stroke-linecap="round"/>'; }
   // 큰 눈: 짙은 눈동자 + 큰 반짝임 + 작은 반짝임
   function eye(x, y, rx, ry) {
+    if (SLEEP) return shut(x, y, rx);
     return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="#1B1E24"/>' +
       '<ellipse cx="' + (x - rx * 0.3) + '" cy="' + (y - ry * 0.35) + '" rx="' + (rx * 0.42) + '" ry="' + (ry * 0.36) + '" fill="#fff"/>' +
       '<circle cx="' + (x + rx * 0.35) + '" cy="' + (y + ry * 0.35) + '" r="' + (rx * 0.18) + '" fill="#fff" opacity=".85"/>';
   }
   // 파란 눈(랙돌 · 샴): 홍채 + 세로 동공 + 반짝임
   function blueEye(x, y, rx, ry) {
+    if (SLEEP) return shut(x, y, rx);
     return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="url(#gBlue)"/>' +
       '<ellipse cx="' + x + '" cy="' + (y + 1) + '" rx="' + (rx * 0.45) + '" ry="' + (ry * 0.78) + '" fill="#1B1E24"/>' +
       '<ellipse cx="' + (x - rx * 0.32) + '" cy="' + (y - ry * 0.4) + '" rx="' + (rx * 0.36) + '" ry="' + (ry * 0.28) + '" fill="#fff"/>' +
@@ -117,6 +122,7 @@
   function kEyes(o, y, blue) {
     if (o.mood === 'happy') return happyEye(72, y + 2, 9, '#2A1E1A') + happyEye(128, y + 2, 9, '#2A1E1A');
     var e = function (x) {
+      if (SLEEP) return shut(x, y, 9);
       return blue
         ? '<ellipse cx="' + x + '" cy="' + y + '" rx="10" ry="12" fill="url(#gBlue)" stroke="#2A1E1A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + (y + 1) + '" rx="5" ry="8" fill="#1B1E24"/>' +
           '<ellipse cx="' + (x - 3.5) + '" cy="' + (y - 5) + '" rx="4" ry="3.6" fill="#fff"/><circle cx="' + (x + 4) + '" cy="' + (y + 5) + '" r="1.8" fill="#fff"/>'
@@ -255,6 +261,7 @@
     s += '<path d="M40 104 q0-20 30-20 q18 0 30 12 q12-12 30-12 q30 0 30 20 q0 14-28 14 q-20 0-32-10 q-12 10-32 10 q-28 0-28-14z" fill="' + D + '"/>';
     s += '<path d="M100 44 q6 16 0 30 q-6-14 0-30z" fill="' + L + '" opacity=".6"/>';
     if (o.mood === 'happy') s += happyEye(72, 104, 9, '#fff') + happyEye(128, 104, 9, '#fff');
+    else if (SLEEP) s += shut(72, 104, 9, '#fff') + shut(128, 104, 9, '#fff');
     else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><ellipse cx="72" cy="102" rx="9" ry="10.5" fill="#fff"/><ellipse cx="128" cy="102" rx="9" ry="10.5" fill="#fff"/><ellipse cx="73" cy="104" rx="6.5" ry="8" fill="#2A1E1A"/><ellipse cx="127" cy="104" rx="6.5" ry="8" fill="#2A1E1A"/><circle cx="71" cy="100" r="2.6" fill="#fff"/><circle cx="125" cy="100" r="2.6" fill="#fff"/></g>';
     s += kFace(o, 112, '#2A1E1A');
     s += kPaws(F, L, D).replace(/<ellipse cx="(80|120)" cy="166" rx="10" ry="8" fill="#C3C8D1"/g, '<ellipse cx="$1" cy="166" rx="10" ry="8" fill="' + D + '"');
@@ -266,7 +273,7 @@
   function beak(y, c) { return '<path d="M92 ' + y + ' q8-4 16 0 q-2 8-8 11 q-6-3-8-11z" fill="' + c + '" stroke="#A8601E" stroke-width="2" stroke-linejoin="round"/>'; }
   function amberEyes(o, y) {
     if (o.mood === 'happy') return happyEye(72, y + 2, 9, '#2A1E1A') + happyEye(128, y + 2, 9, '#2A1E1A');
-    var e = function (x) { return '<circle cx="' + x + '" cy="' + y + '" r="14" fill="#FFD66B" stroke="#A8762A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + y + '" rx="8" ry="9" fill="#2A1E1A"/><ellipse cx="' + (x - 3) + '" cy="' + (y - 4) + '" rx="3.6" ry="3.4" fill="#fff"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 4) + '" r="1.6" fill="#fff"/>'; };
+    var e = function (x) { if (SLEEP) return '<circle cx="' + x + '" cy="' + y + '" r="14" fill="#E8D4A8" stroke="#A8762A" stroke-width="2"/>' + shut(x, y + 1, 9); return '<circle cx="' + x + '" cy="' + y + '" r="14" fill="#FFD66B" stroke="#A8762A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + y + '" rx="8" ry="9" fill="#2A1E1A"/><ellipse cx="' + (x - 3) + '" cy="' + (y - 4) + '" rx="3.6" ry="3.4" fill="#fff"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 4) + '" r="1.6" fill="#fff"/>'; };
     return '<g class="' + (o.anim ? 'pb-blink' : '') + '">' + e(72) + e(128) + '</g>';
   }
   function kOwl(o) {
@@ -287,6 +294,7 @@
     s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
     s += '<ellipse cx="70" cy="102" rx="17" ry="21" fill="' + D + '" transform="rotate(28 70 102)"/><ellipse cx="130" cy="102" rx="17" ry="21" fill="' + D + '" transform="rotate(-28 130 102)"/>';
     if (o.mood === 'happy') s += happyEye(72, 104, 8, '#fff') + happyEye(128, 104, 8, '#fff');
+    else if (SLEEP) s += shut(73, 104, 8, '#fff') + shut(127, 104, 8, '#fff');
     else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><ellipse cx="73" cy="103" rx="7" ry="8.5" fill="#fff"/><ellipse cx="127" cy="103" rx="7" ry="8.5" fill="#fff"/><ellipse cx="74" cy="104" rx="5" ry="6.5" fill="#1B1E24"/><ellipse cx="126" cy="104" rx="5" ry="6.5" fill="#1B1E24"/><circle cx="72" cy="101" r="2" fill="#fff"/><circle cx="124" cy="101" r="2" fill="#fff"/></g>';
     s += kFace(o, 108, D);
     s += kPaws(D, D, D);
@@ -417,6 +425,7 @@
     s += '<path d="' + MOCHI + '"' + k(F, L) + '/>';
     s += '<circle cx="66" cy="44" r="21" fill="' + F + '"/><circle cx="134" cy="44" r="21" fill="' + F + '"/>';
     if (o.mood === 'happy') s += happyEye(66, 48, 10, '#2A1E1A') + happyEye(134, 48, 10, '#2A1E1A');
+    else if (SLEEP) s += '<circle cx="66" cy="44" r="15" fill="#8FD07A"/><circle cx="134" cy="44" r="15" fill="#8FD07A"/>' + shut(66, 46, 9) + shut(134, 46, 9);
     else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><circle cx="66" cy="44" r="15" fill="#fff"/><circle cx="134" cy="44" r="15" fill="#fff"/><ellipse cx="67" cy="46" rx="9" ry="10" fill="#2A1E1A"/><ellipse cx="133" cy="46" rx="9" ry="10" fill="#2A1E1A"/><circle cx="64" cy="42" r="3.4" fill="#fff"/><circle cx="130" cy="42" r="3.4" fill="#fff"/></g>';
     s += '<path d="M100 120 c30 0 48 8 48 24 c0 10-8 16-18 18 q6 14 4 28 h-68 q-2-14 4-28 c-10-2-18-8-18-18 c0-16 18-24 48-24z" fill="' + C + '"/>';
     s += '<ellipse cx="52" cy="98" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/><ellipse cx="148" cy="98" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/>';
@@ -612,7 +621,10 @@
     o = o || {};
     var f = DRAW[id];
     if (!f) return '';
-    return decorate(f({ mood: o.mood, anim: o.anim, outfit: o.outfit }), o.grade, id, o.outfit);
+    // 조는 중: 눈만 감기고 나머지(입 · 몸)는 평소 얼굴. 그리는 동안만 깃발을 켠다
+    SLEEP = o.mood === 'sleep';
+    try { return decorate(f({ mood: SLEEP ? null : o.mood, anim: o.anim && !SLEEP, outfit: o.outfit }), o.grade, id, o.outfit); }
+    finally { SLEEP = false; }
   }
   /** 검수용: 그 동물의 눈 자리 { y, x:[왼, 오], r } (tools/art_check.py 가 "모자가 눈을 가리나"를 볼 때 쓴다) */
   function eyes(id) {
