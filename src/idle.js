@@ -193,6 +193,7 @@
       pets: null,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
       profileEdits: 0,     // 0.3.0 프로필 이름을 바꾼 횟수(0 이면 다음 한 번은 무료)
       ach: null,           // 0.3.0 업적 · 칭호(Team3Ach.clean)
+      shop: null,          // 0.4.0 상점 · 광고 자리 · 월정액 · 시즌 패스(Team3Monet.clean)
       nameTags: 0          // 0.3.0 이름표: 프로필·동물 이름 바꾸기 1번(배지 대신). 묶음으로 산다
     };
   }
@@ -274,7 +275,8 @@
     s.nameTags = int(data.nameTags, 0, 0, 9999);
     // 0.3.0: 동물 저장은 객체만 그대로 넘긴다(안쪽 검사는 Team3Pets.clean)
     s.pets = data.pets && typeof data.pets === 'object' && !Array.isArray(data.pets) ? data.pets : null;
-    s.ach = data.ach && typeof data.ach === 'object' && !Array.isArray(data.ach) ? data.ach : null;   // 0.3.0 업적(검사는 Team3Ach.clean)
+    s.ach = data.ach && typeof data.ach === 'object' && !Array.isArray(data.ach) ? data.ach : null;
+    s.shop = data.shop && typeof data.shop === 'object' && !Array.isArray(data.shop) ? data.shop : null;   // 0.4.0 상점 · 패스(검사는 Team3Monet.clean)   // 0.3.0 업적(검사는 Team3Ach.clean)
     return { save: s, reset: false };
   }
 

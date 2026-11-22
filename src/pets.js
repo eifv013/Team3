@@ -2,7 +2,7 @@
  * Team3Pets(0.3.0) — 말랑 동물 뽑기 · 도감 · 별 강화 · 보유/장착 효과.
  *
  * 구조
- *   20종 × 4등급(일반 c · 희귀 r · 영웅 h · 전설 l) = 80마리. 한 마리의 열쇠는 'corgi:c' 처럼 "종류:등급".
+ *   30종 × 4등급(일반 c · 희귀 r · 영웅 h · 전설 l) = 120마리(0.4.0: 20종 → 30종). 한 마리의 열쇠는 'corgi:c' 처럼 "종류:등급".
  *   저장은 save.pets 하나에 모은다(idle.load 는 객체만 넘겨주고, 검사는 여기 clean 이 한다).
  *     own    { 'corgi:c': 별(1~5) }   가진 동물과 별
  *     eq     '' | 'corgi:c'           장착(파트너) 1마리
@@ -14,13 +14,13 @@
  *   DOM·시계·난수를 모른다(rng 는 밖에서 받는다) → node 시험에서 그대로 돈다.
  *
  * 뽑기
- *   등급을 먼저 정하고(RATES), 그 등급 안의 20종 중 하나를 똑같은 확률로 고른다.
+ *   등급을 먼저 정하고(GRADE.pct), 그 등급 안의 30종 중 하나를 똑같은 확률로 고른다(영웅 · 전설은 픽업 절반).
  *   천장: PITY 번째까지 전설이 한 번도 안 나오면 그 번째는 전설 확정. 전설이 나오면 0 부터 다시 센다.
  *   10연속: 희귀 이상이 하나도 없으면 마지막 한 마리를 희귀로 올린다(천장이 먼저).
  *   확률·천장은 화면에 그대로 공개한다(게임산업법 · 구글 플레이 정책).
  *
  * 효과
- *   보유 효과: 가진 동물 모두(80마리 각각), 작게, 늘 켜짐. 종류마다 하나의 갈래(OWN)로 쌓인다.
+ *   보유 효과: 가진 동물 모두(120마리 각각), 작게, 늘 켜짐. 종류마다 하나의 갈래(OWN)로 쌓인다.
  *   장착 효과: 파트너 1마리만, 크게. 등급 배수 GRADE_MUL × 별 배수(★마다 +25%).
  *   ⚡ 퍼즐 도움: 영웅·전설 등급의 일부 종류만. 일일 특별 출동에서는 쓰지 않는다(밖에서 판단).
  *   원칙: 돈으로 시간·편의를 산다. 퍼즐 도움은 작고, 기록을 겨루는 특별 출동에선 꺼진다.
@@ -38,14 +38,30 @@
   var GRADE = {
     c: { name: '일반', pct: 64, color: '#A3ACBA', treat: 1, swap: 20 },
     r: { name: '희귀', pct: 28, color: '#5BB2E8', treat: 3, swap: 60 },
-    h: { name: '영웅', pct: 6, color: '#B07CF0', treat: 10, swap: 200 },
-    l: { name: '전설', pct: 2, color: '#FFD23F', treat: 30, swap: 600 }
+    h: { name: '영웅', pct: 5, color: '#B07CF0', treat: 10, swap: 250 },
+    l: { name: '전설', pct: 3, color: '#FFD23F', treat: 40, swap: 900 }   // 0.4.0: 30종 · 전설 한 마리 0.1%(등급 3%), 천장 80
   };
   var GRADE_MUL = { c: 1, r: 1.5, h: 2, l: 3 };   // 장착 효과 배수
   var STAR_MAX = 5, STAR_STEP = 0.25;
-  var PITY = 50;
+  var PITY = 80;
   var COST = { one: 10, ten: 90 };   // 배지(◆)
   var WELCOME = 5;                   // 처음 뽑기 창을 열면 주는 뽑기권
+  /*
+   * 의상(0.3.1): 한 번 사면 옷장(closet)에 들어가 모든 동물이 함께 입는다. 동물마다 하나씩(wear).
+   *   값은 간식 또는 배지 중 고른다. need: 열리는 조건(caseNo 이상) — 사건 한정 의상.
+   *   꾸미기 전용: 효과 없음.
+   */
+  var OUTFITS = [
+    { id: 'glasses', name: '동그란 안경', treats: 10, gems: 10 },
+    { id: 'mask', name: '마스크', treats: 10, gems: 10 },
+    { id: 'beanie', name: '잠복 비니', treats: 15, gems: 15 },
+    { id: 'bow', name: '분홍 리본', treats: 15, gems: 15 },
+    { id: 'sunglasses', name: '선글라스', treats: 25, gems: 25 },
+    { id: 'fedora', name: '탐정 중절모', treats: 30, gems: 30 },
+    { id: 'raincoat', name: '해무항 우비', treats: 40, gems: 40, need: 2 }
+  ];
+  var OUTFIT_BY = {};
+  OUTFITS.forEach(function (o) { OUTFIT_BY[o.id] = o; });
   var NAME_MAX = 8, RENAME_GEMS = 5; // 0.3.0 동물 이름: 8자까지, 게임 전체 첫 한 번은 무료 · 그 뒤로 배지 5개
 
   /*
@@ -76,7 +92,18 @@
     { id: 'owl', kind: '부엉이', name: '새벽', own: 'idle', eq: { owl: 25 }, line: '새벽 3시 CCTV 담당' },
     { id: 'otter', kind: '수달', name: '달수', own: 'pay', eq: { speed: 5 }, zap: { miss: 2 }, line: '해무항 물속 증거 수색' },
     { id: 'panda', kind: '판다', name: '판돌', own: 'idle', eq: { pay: 10, idle: 10 }, zap: { time: 3 }, line: '3팀의 전설, 보기 드문 손님' },
-    { id: 'tiger', kind: '호랑이', name: '범수', own: 'pay', eq: { pay: 12 }, zap: { combo: 1 }, line: '범인 잡는 범' }
+    { id: 'tiger', kind: '호랑이', name: '범수', own: 'pay', eq: { pay: 12 }, zap: { combo: 1 }, line: '범인 잡는 범' },
+    // 0.4.0 추가 10종
+    { id: 'sheep', kind: '양', name: '뭉게', own: 'cap', eq: { cap: 75 }, line: '푹신한 털 속에 증거를 숨겨 둠' },
+    { id: 'pig', kind: '돼지', name: '복돌', own: 'pay', eq: { daily: 25 }, line: '코로 킁킁, 냄새 추적의 달인' },
+    { id: 'redpanda', kind: '레서판다', name: '단풍', own: 'idle', eq: { speed: 7 }, line: '꼬리 줄무늬가 자랑인 정보원' },
+    { id: 'alpaca', kind: '알파카', name: '파카', own: 'prep', eq: { prep: 12 }, line: '침착하게 준비물 챙기는 담당' },
+    { id: 'seal', kind: '물범', name: '몽실', own: 'idle', eq: { case2: 18 }, line: '해무항 부두를 지키는 순찰대' },
+    { id: 'hippo', kind: '하마', name: '하하', own: 'pay', eq: { buff: 40 }, line: '하품 한 번에 팀 사기 충전' },
+    { id: 'turtle', kind: '거북이', name: '엉금', own: 'cap', eq: { off: 10 }, line: '느려도 끝까지 잠복하는 끈기' },
+    { id: 'mouse', kind: '생쥐', name: '치즈', own: 'gear', eq: { gear: 10 }, line: '좁은 틈으로 장비를 구해 옴' },
+    { id: 'lion', kind: '사자', name: '갈기', own: 'pay', eq: { pay: 11 }, line: '갈기 휘날리는 출동 대장' },
+    { id: 'deer', kind: '사슴', name: '방울', own: 'idle', eq: { idle: 9 }, line: '뿔에 방울 달고 순찰 중' }
   ];
   var BY_ID = {};
   SPECIES.forEach(function (s) { BY_ID[s.id] = s; });
@@ -102,7 +129,7 @@
     var m = /^([a-z0-9]+):([crhl])$/.exec(k || '');
     return m && BY_ID[m[1]] ? { id: m[1], g: m[2] } : null;
   }
-  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false }; }
+  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, free: null, picks: { l: 0 }, bond: {} }; }
   function int(v, def, min, max) {
     if (typeof v !== 'number' || !isFinite(v)) return def;
     v = Math.floor(v);
@@ -124,6 +151,18 @@
     var nm = d.names && typeof d.names === 'object' ? d.names : {};
     Object.keys(nm).forEach(function (k) { var v = cleanText(nm[k]); if (parse(k) && v) p.names[k] = v; });
     p.freeName = d.freeName === true;
+    p.picks = { l: int(d.picks && d.picks.l, 0, 0, 999) };
+    var bd = d.bond && typeof d.bond === 'object' ? d.bond : {};
+    Object.keys(bd).forEach(function (k) {
+      var b = bd[k];
+      if (!parse(k) || !p.own[k] || !b || typeof b !== 'object') return;
+      p.bond[k] = { days: int(b.days, 0, 0, 1e5), last: /^\d{4}-\d{2}-\d{2}$/.test(b.last) ? b.last : '', since: /^\d{4}-\d{2}-\d{2}$/.test(b.since) ? b.since : '' };
+    });
+    if (d.free && typeof d.free === 'object' && /^\d{4}-\d{2}-\d{2}$/.test(d.free.day)) p.free = { day: d.free.day, n: int(d.free.n, 0, 0, 99) };
+    var cl = d.closet && typeof d.closet === 'object' ? d.closet : {};
+    Object.keys(cl).forEach(function (k) { if (cl[k] === true && OUTFIT_BY[k]) p.closet[k] = true; });
+    var wr = d.wear && typeof d.wear === 'object' ? d.wear : {};
+    Object.keys(wr).forEach(function (k) { if (parse(k) && p.own[k] && p.closet[wr[k]]) p.wear[k] = wr[k]; });
     save.pets = p;
     return p;
   }
@@ -161,12 +200,41 @@
   /** 기본 이름으로 되돌리기(무료) */
   function resetName(save, k) { var p = P(save); delete p.names[k]; return nameOf(save, k); }
 
+  /* ---------- 의상(0.3.1) ---------- */
+  function outfitOpen(save, id) { var o = OUTFIT_BY[id]; return !!o && (!o.need || (save.caseNo || 1) >= o.need); }
+  /** 의상 사기. pay = 'treats' | 'gems' */
+  function buyOutfit(save, id, pay) {
+    var o = OUTFIT_BY[id], p = P(save);
+    if (!o) throw PetError('BAD_OUTFIT', '모르는 의상');
+    if (p.closet[id]) throw PetError('ALREADY', '이미 있다');
+    if (!outfitOpen(save, id)) throw PetError('LOCKED', '아직 열리지 않았다');
+    if (pay === 'treats') { if (p.treats < o.treats) throw PetError('NOT_ENOUGH', '간식이 모자란다'); p.treats -= o.treats; }
+    else if (pay === 'gems') { if (!(save.gems >= o.gems)) throw PetError('NOT_ENOUGH', '배지가 모자란다'); save.gems -= o.gems; }
+    else throw PetError('BAD_PAY', '간식 또는 배지');
+    p.closet[id] = true;
+    return o;
+  }
+  /** 입히기('' 이면 벗기기). 가진 동물 · 가진 의상만 */
+  function wear(save, k, id) {
+    var p = P(save);
+    if (!p.own[k]) throw PetError('NOT_OWNED', '없는 동물');
+    if (id && !p.closet[id]) throw PetError('NO_OUTFIT', '없는 의상');
+    if (id) p.wear[k] = id; else delete p.wear[k];
+    return id || '';
+  }
+  function wearing(save, k) { var p = save && save.pets; return p && p.wear && p.wear[k] || ''; }
+
   /* ---------- 확률 ---------- */
   /** 등급 확률(%)과 한 마리 확률(%) — 화면에 공개하는 표 */
   function rates() {
     return GRADES.map(function (g) {
       return { g: g, name: GRADE[g].name, pct: GRADE[g].pct, each: Math.round(GRADE[g].pct / SPECIES.length * 1000) / 1000 };
     });
+  }
+  /** 천장을 포함한 실제 전설 확률(%) = 1 / 전설 하나에 드는 평균 횟수 */
+  function effectiveLegend() {
+    var p = GRADE.l.pct / 100, q = 1 - p, mean = (1 - Math.pow(q, PITY)) / p;
+    return Math.round(1000 / mean) / 10;
   }
   function rollGrade(rng) {
     var x = rng() * 100, acc = 0;
@@ -179,6 +247,20 @@
   function rollSpecies(rng) {
     var i = Math.floor(rng() * SPECIES.length);
     return SPECIES[Math.min(SPECIES.length - 1, Math.max(0, i))].id;
+  }
+
+  /*
+   * 픽업(0.4.0): 주마다 바뀌는 "이번 주 출동 동물". 영웅·전설이 나오면 반은 픽업 동물, 천장 전설은 픽업 확정.
+   *   주는 월요일에 바뀐다(EPOCH 2026-01-05 월). 순서는 PICKUP_ORDER 를 돈다.
+   */
+  var PICKUP_ORDER = ['panda', 'tiger', 'raccoon', 'lion', 'owl', 'otter', 'redpanda', 'fox', 'ragdoll', 'penguin', 'seal', 'corgi', 'koala', 'deer', 'siamese', 'monkey', 'alpaca', 'shiba', 'squirrel', 'pig', 'rabbit', 'hamster', 'sheep', 'frog', 'bear', 'hippo', 'duck', 'hedgehog', 'mouse', 'turtle'];
+  var PICKUP_RATE = 0.5, EPOCH = Date.UTC(2026, 0, 5);
+  function dayNum(day) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day || ''); return m ? Math.floor((Date.UTC(+m[1], +m[2] - 1, +m[3]) - EPOCH) / 864e5) : 0; }
+  function dayStr(n) { var d = new Date(EPOCH + n * 864e5), z = function (x) { return (x < 10 ? '0' : '') + x; }; return d.getUTCFullYear() + '-' + z(d.getUTCMonth() + 1) + '-' + z(d.getUTCDate()); }
+  /** 그날의 픽업 { id, week, from, to(마지막 날), left(남은 날 수, 오늘 포함) } */
+  function pickup(day) {
+    var n = dayNum(day), w = Math.floor(n / 7), i = ((w % PICKUP_ORDER.length) + PICKUP_ORDER.length) % PICKUP_ORDER.length;
+    return { id: PICKUP_ORDER[i], week: w, from: dayStr(w * 7), to: dayStr(w * 7 + 6), left: w * 7 + 7 - n };
   }
 
   /* ---------- 받기(중복 → 별 → 간식) ---------- */
@@ -197,11 +279,26 @@
    * 뽑기. n = 1 | 10. pay = 'ticket' | 'gems'. rng 는 0 이상 1 미만.
    * 반환: { results:[grant 결과], paid:{ w, c } }
    */
-  function pull(save, n, pay, rng) {
+  /*
+   * opts(0.4.0): { day:'YYYY-MM-DD'(픽업 · 무료 뽑기에 필요), freeExtra: 하루 무료 뽑기 더(월정액 등) }
+   *   pay 'free': 하루 FREE_DAILY(+freeExtra) 번, 1회만.
+   */
+  var FREE_DAILY = 1;
+  function freeLeft(save, day, extra) {
+    var p = P(save), used = p.free && p.free.day === day ? p.free.n : 0;
+    return Math.max(0, FREE_DAILY + (extra || 0) - used);
+  }
+  function pull(save, n, pay, rng, opts) {
     if (n !== 1 && n !== 10) throw PetError('BAD_COUNT', '1회 또는 10회만');
     if (typeof rng !== 'function') throw PetError('BAD_RNG', 'rng 는 함수');
-    var p = P(save), c;
-    if (pay === 'ticket') {
+    opts = opts || {};
+    var p = P(save), c, pk = opts.day ? pickup(opts.day).id : '';
+    if (pay === 'free') {
+      if (n !== 1 || !opts.day) throw PetError('BAD_COUNT', '무료 뽑기는 하루 정해진 만큼 1회씩');
+      if (freeLeft(save, opts.day, opts.freeExtra) < 1) throw PetError('NOT_ENOUGH', '오늘 무료 뽑기를 다 썼다');
+      p.free = { day: opts.day, n: (p.free && p.free.day === opts.day ? p.free.n : 0) + 1 };
+      c = 0;
+    } else if (pay === 'ticket') {
       c = n;
       if (p.tickets < c) throw PetError('NOT_ENOUGH', '뽑기권이 모자란다');
       p.tickets -= c;
@@ -209,20 +306,120 @@
       c = n === 10 ? COST.ten : COST.one;
       if (!(save.gems >= c)) throw PetError('NOT_ENOUGH', '배지가 모자란다');
       save.gems -= c;
-    } else throw PetError('BAD_PAY', '뽑기권 또는 배지');
+    } else throw PetError('BAD_PAY', '뽑기권 · 배지 · 무료');
     var out = [];
     for (var i = 0; i < n; i++) {
-      var g;
-      if (p.pity >= PITY - 1) g = 'l';            // 천장
+      var g, forced = false;
+      if (p.pity >= PITY - 1) { g = 'l'; forced = true; }   // 천장
       else g = rollGrade(rng);
       if (n === 10 && i === n - 1 && g === 'c' && out.every(function (x) { return x.g === 'c'; })) g = 'r';   // 10연속 희귀 보장
       p.pity = g === 'l' ? 0 : p.pity + 1;
       p.pulls += 1;
-      out.push(grant(save, rollSpecies(rng), g));
+      // 픽업: 천장 전설은 확정, 영웅·전설은 반
+      var id = pk && (forced || ((g === 'l' || g === 'h') && rng() < PICKUP_RATE)) ? pk : rollSpecies(rng);
+      var r = grant(save, id, g);
+      r.pickup = id === pk && (g === 'l' || g === 'h');
+      out.push(r);
     }
     return { results: out, paid: { w: pay, c: c } };
   }
 
+  /*
+   * 친밀도(0.4.0): 하루 한 번 쓰다듬으면 그 동물과 "함께한 날"이 하루 는다. 날 수에 따라 단계, 단계마다 보상 한 번.
+   *   since: 처음 쓰다듬은 날(함께한 지 며칠은 화면이 since 로 센다)
+   */
+  var BOND = [
+    { lv: 1, days: 0 },
+    { lv: 2, days: 3, give: { treats: 10 } },
+    { lv: 3, days: 7, give: { treats: 20 } },
+    { lv: 4, days: 14, give: { tickets: 3 } },
+    { lv: 5, days: 30, give: { tickets: 5 } },
+    { lv: 6, days: 60, give: { gems: 30 } }
+  ];
+  function bondOf(save, k) {
+    var b = (P(save).bond[k]) || { days: 0, last: '', since: '' }, lv = BOND[0];
+    BOND.forEach(function (x) { if (b.days >= x.days) lv = x; });
+    var next = BOND[BOND.indexOf(lv) + 1] || null;
+    return { days: b.days, last: b.last, since: b.since, lv: lv.lv, next: next ? next.days - b.days : 0 };
+  }
+  /** 쓰다듬기. 오늘 처음이면 하루 늘고, 단계가 오르면 보상을 준다. 반환 { counted, lv, up, give } */
+  function pat(save, k, day) {
+    var p = P(save);
+    if (!p.own[k]) throw PetError('NOT_OWNED', '없는 동물');
+    var b = p.bond[k] || (p.bond[k] = { days: 0, last: '', since: day });
+    if (!b.since) b.since = day;
+    if (b.last === day) return { counted: false, lv: bondOf(save, k).lv, up: false, give: null };
+    var before = bondOf(save, k).lv;
+    b.days += 1; b.last = day;
+    var now = bondOf(save, k).lv, give = null;
+    if (now > before) {
+      give = BOND[now - 1].give || null;
+      if (give) {
+        if (give.treats) p.treats += give.treats;
+        if (give.tickets) p.tickets += give.tickets;
+        if (give.gems) save.gems = (save.gems || 0) + give.gems;
+      }
+    }
+    return { counted: true, lv: now, up: now > before, give: give };
+  }
+
+  /*
+   * 말(0.4.0): 종류마다 성격이 있는 말 + 상황 말. ctx { hour, capped, tickets, name }
+   */
+  var TALK = {
+    corgi: ['킁킁! 범인 냄새가 나요!', '팀장님, 오늘도 출동해요?', '꼬리 흔드는 거 아니에요. 수사 중이에요.'],
+    shiba: ['…흥. 잘했어요.', '보리는 원래 이렇게 생겼어요.', '피곤하면 쉬어요. 나 말고 팀장님이.'],
+    hamster: ['볼에 증거 넣어 왔어요!', '해바라기씨 하나만…', '쪼르르! 다녀왔어요.'],
+    rabbit: ['쫑긋! 무전이 들려요.', '회식 언제 해요?', '깡총깡총, 탐문 끝!'],
+    bear: ['현장은 내가 지킨다.', '꿀… 아니 단서 찾았다.', '든든하지? 반장이니까.'],
+    hedgehog: ['건드리면 따끔해요!', '범인은 제가 콕!', '가시는 부드러워요. 팀장님한테만.'],
+    duck: ['꽥! 탐문 다녀왔어요.', '뒤뚱뒤뚱… 그래도 빨라요!', '물웅덩이에 발자국 있었어요!'],
+    frog: ['비 오는 날이 좋아요.', '개굴! 해무항 가고 싶다.', '풍덩 하고 증거 건져 왔어요.'],
+    ragdoll: ['안아 줘요… 수사는 그다음에.', '알리바이? 제 이름이에요.', '말랑말랑… 졸려요.'],
+    siamese: ['이 가면은 원래 얼굴이에요.', '냥. 수상한 사람 봤어요.', '변장은 자신 있어요.'],
+    fox: ['거짓말하면 다 보여요.', '여우 눈은 못 속여요.', '흐음, 그 진술 수상한데요?'],
+    penguin: ['정복 다림질 끝!', '특별 출동은 제 담당이에요.', '뒤뚱… 아니 씩씩하게 출동!'],
+    monkey: ['높은 데서 다 봤어요!', '바나나… 아니 단서!', '끽끽! 망보기 완료.'],
+    squirrel: ['증거는 도토리처럼 모아 둬요.', '어디 숨겼더라…', '볼이 꽉 찼어요!'],
+    koala: ['…zzz 아, 잠복 중이었어요.', '코코는 잠복 전문이에요.', '나무 위가 제일 잘 보여요.'],
+    raccoon: ['복면은 타고났어요.', '밤이 제 시간이에요.', '쓰레기통에서 단서 찾았어요!'],
+    owl: ['새벽 3시 CCTV 확인 완료.', '부엉. 오늘도 야근이에요?', '어둠 속에서도 다 보여요.'],
+    otter: ['물속 증거 건져 왔어요!', '조개 하나만 깨도 돼요?', '손 꼭 잡고 잠복해요.'],
+    panda: ['전설은 바쁘지만 팀장님 곁엔 있어요.', '대나무… 아니 단서 먹고 싶다.', '데굴데굴. 그래도 수사는 확실히.'],
+    tiger: ['범인 잡는 범이에요!', '어흥! 출동 준비 완료.', '무섭다고요? 귀여운 거예요.'],
+    sheep: ['메에~ 푹신하죠?', '털 속에 단서 숨겨 왔어요.', '세다가 잠들면 안 돼요… 용의자를요.'],
+    pig: ['킁킁! 이쪽이에요!', '간식 냄새도 잘 맡아요.', '복돌이 코는 못 속여요.'],
+    redpanda: ['꼬리 줄무늬 예쁘죠?', '정보 하나 물어 왔어요!', '판다 아니에요. 레서판다예요!'],
+    alpaca: ['준비물은 다 챙겼어요.', '침착하게, 침착하게.', '퉤… 아니 아무것도 아니에요.'],
+    seal: ['부두 순찰 끝!', '물속은 제 구역이에요.', '몽실몽실… 졸려요.'],
+    hippo: ['하~암. 다들 힘내요!', '하하 웃으면 사기 충전!', '물 밖에서도 잘해요.'],
+    turtle: ['천천히, 하지만 확실하게.', '등딱지 안이 제일 안전해요.', '잠복은 끈기예요.'],
+    mouse: ['찍! 장비 구해 왔어요.', '좁은 틈도 문제없어요.', '치즈 한 조각만…'],
+    lion: ['갈기 휘날리며 출동!', '어흥! 대장은 나야.', '사자도 쓰다듬는 거 좋아해요.'],
+    deer: ['딸랑딸랑, 순찰 중!', '뿔에 방울 달았어요.', '숲에서도 다 보여요.']
+  };
+  function talk(id, ctx, rng) {
+    ctx = ctx || {};
+    rng = typeof rng === 'function' ? rng : Math.random;
+    var pool = (TALK[id] || ['…']).slice();
+    if (typeof ctx.hour === 'number') {
+      if (ctx.hour >= 6 && ctx.hour < 11) pool.push('좋은 아침이에요, 팀장님!');
+      if (ctx.hour >= 22 || ctx.hour < 5) pool.push('졸려요… 그래도 잠복은 해야죠.');
+    }
+    if (ctx.capped) pool.push('팀장님, 주범 조가 기다려요!', '사무실이 꽉 찼어요! 출동해요!');
+    if (ctx.tickets > 0) pool.push('뽑기권 있어요! 친구 데려와요.');
+    return pool[Math.floor(rng() * pool.length) % pool.length];
+  }
+
+  /** 전설 선택권(0.4.0, 시즌 패스 보상): 전설 동물 하나를 골라 데려오기(이미 있으면 ★). 반환: grant 결과 */
+  function usePick(save, id) {
+    var p = P(save);
+    if (!BY_ID[id]) throw PetError('BAD_PET', '모르는 동물');
+    if (!(p.picks.l > 0)) throw PetError('NOT_ENOUGH', '선택권이 없다');
+    if (p.own[key(id, 'l')] >= STAR_MAX) throw PetError('MAXED', '이미 ★5');
+    p.picks.l -= 1;
+    return grant(save, id, 'l');
+  }
   /** 간식으로 원하는 동물 받기. 반환: grant 결과 */
   function swap(save, id, g) {
     if (!BY_ID[id] || !GRADE[g]) throw PetError('BAD_PET', '모르는 동물');
@@ -277,10 +474,30 @@
    * 반환(모두 숫자, 없으면 0): pay idle speed cap off gear prep party night daily buff treat shield miss time combo
    *   pay·idle 에는 case2·owl 이 조건에 맞을 때 더해져 있다.
    */
+  /*
+   * 세트 보너스(0.4.0)
+   *   종류 세트: 한 종류의 네 등급을 다 모으면 그 종류의 보유 효과가 두 배.
+   *   등급 세트: 한 등급의 모든 종류(30종)를 다 모으면 GRADE_SET 보너스.
+   */
+  var GRADE_SET = { c: { idle: 5 }, r: { pay: 5 }, h: { cap: 60 }, l: { pay: 10, idle: 10 } };
+  function sets(save) {
+    var p = P(save), sp = {}, gr = {};
+    SPECIES.forEach(function (s) { sp[s.id] = GRADES.every(function (g) { return !!p.own[key(s.id, g)]; }); });
+    GRADES.forEach(function (g) { gr[g] = SPECIES.every(function (s) { return !!p.own[key(s.id, g)]; }); });
+    return { species: sp, grades: gr };
+  }
   function bonus(save, opts) {
     var p = save && save.pets && save.pets.own ? save.pets : null, b = {};
     if (!p) return zero();
-    Object.keys(p.own).forEach(function (k) { var x = parse(k); if (x) add(b, ownEffect(x.id, x.g, p.own[k])); });
+    var st = sets(save);
+    Object.keys(p.own).forEach(function (k) {
+      var x = parse(k);
+      if (!x) return;
+      var e = ownEffect(x.id, x.g, p.own[k]);
+      if (st.species[x.id]) Object.keys(e).forEach(function (q) { e[q] *= 2; });   // 종류 세트: 보유 효과 두 배
+      add(b, e);
+    });
+    GRADES.forEach(function (g) { if (st.grades[g]) add(b, GRADE_SET[g]); });
     var e = parse(p.eq);
     if (e && p.own[p.eq]) add(b, eqEffect(e.id, e.g, p.own[p.eq]));
     opts = opts || {};
@@ -310,8 +527,10 @@
   return {
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,
     STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, WELCOME: WELCOME, CAPS: CAPS,
-    key: key, parse: parse, clean: clean, rates: rates, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,
+    key: key, parse: parse, clean: clean, rates: rates, effectiveLegend: effectiveLegend, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,
     addTickets: addTickets, claimWelcome: claimWelcome, giftOnce: giftOnce,
+    usePick: usePick, BOND: BOND, bondOf: bondOf, pat: pat, TALK: TALK, talk: talk, PICKUP_ORDER: PICKUP_ORDER, PICKUP_RATE: PICKUP_RATE, pickup: pickup, FREE_DAILY: FREE_DAILY, freeLeft: freeLeft, GRADE_SET: GRADE_SET, sets: sets,
+    OUTFITS: OUTFITS, OUTFIT_BY: OUTFIT_BY, outfitOpen: outfitOpen, buyOutfit: buyOutfit, wear: wear, wearing: wearing,
     NAME_MAX: NAME_MAX, RENAME_GEMS: RENAME_GEMS, cleanText: cleanText, nameOf: nameOf, renameCost: renameCost, rename: rename, resetName: resetName, ownEffect: ownEffect, eqEffect: eqEffect, bonus: bonus, describe: describe,
     starMul: starMul, progress: progress, zero: zero
   };

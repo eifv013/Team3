@@ -140,15 +140,65 @@
       '<ellipse cx="80" cy="166" rx="10" ry="8"' + k(fill, line) + '/><ellipse cx="120" cy="166" rx="10" ry="8"' + k(fill, line) + '/>' +
       '<ellipse cx="74" cy="190" rx="13" ry="7"' + k(foot || fill, line) + '/><ellipse cx="126" cy="190" rx="13" ry="7"' + k(foot || fill, line) + '/>';
   }
-  function kWrap(o, inner, eyeY) {
-    var s = inner;
+  /*
+   * 의상(0.3.1): 모자(HATS)는 머리 위, 안경 · 선글라스 · 마스크는 눈높이(eyeY)에.
+   *   hatT: 머리 위에 눈이 있는 개구리처럼 모자를 옮길 때의 transform(없으면 그대로).
+   */
+  var HATS = { raincoat: 1, beanie: 1, fedora: 1, bow: 1 };
+  function sunglasses(cx, ey) {
+    var lens = function (x) { return '<path d="M' + (x - 17) + ' ' + (ey - 9) + 'h34q2 0 1 3l-3 10q-3 8-14 8t-15-8l-3-10q-1-3 1-3z" fill="#1E2330" stroke="#0E1118" stroke-width="2.4" stroke-linejoin="round"/>' +
+      '<path d="M' + (x - 11) + ' ' + (ey - 4) + 'l9 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>'; };
+    return '<g>' + lens(cx - 28) + lens(cx + 28) + '<path d="M' + (cx - 11) + ' ' + (ey - 6) + 'q11-5 22 0" stroke="#0E1118" stroke-width="3" fill="none"/></g>';
+  }
+  function bow(x, y) {
+    return '<g transform="rotate(14 ' + x + ' ' + y + ')"><path d="M' + x + ' ' + y + 'l-22-14q-6 0-6 8v12q0 8 6 8z" fill="#FF6B8A" stroke="#C23A5A" stroke-width="2.6" stroke-linejoin="round"/>' +
+      '<path d="M' + x + ' ' + y + 'l22-14q6 0 6 8v12q0 8-6 8z" fill="#FF6B8A" stroke="#C23A5A" stroke-width="2.6" stroke-linejoin="round"/>' +
+      '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#FF8FA6" stroke="#C23A5A" stroke-width="2.6"/></g>';
+  }
+  /*
+   * 머리 위에 "얹는" 모자(0.3.1 다시 그림). 말랑 머리는 위 끝이 y=26, 눈은 y≈100.
+   *   모자 아래 끝이 y≈52~62 에서 멈춰 눈을 가리지 않고, 폭은 머리(52~148)보다 좁아 귀가 옆으로 나온다.
+   *   살짝 기울이고(rotate) 같은 계열 진한 색 테두리를 둘러 다른 그림과 말투를 맞춘다.
+   */
+  function knitBeanie() {
+    var L = '#232A3B', s = '<g transform="rotate(-7 100 40)">';
+    s += '<path d="M60 46 C58 16 78 4 100 4 C122 4 142 16 140 46 Z" fill="#45527A" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    for (var x = 72; x <= 128; x += 11) s += '<path d="M' + x + ' ' + (x === 72 || x === 127 ? 22 : 14) + ' V40" stroke="#5A6A96" stroke-width="3" stroke-linecap="round"/>';
+    s += '<rect x="54" y="38" width="92" height="17" rx="8.5" fill="#6475A3" stroke="' + L + '" stroke-width="3.5"/>';
+    for (var y = 62; y <= 138; y += 8) s += '<path d="M' + y + ' 42 v9" stroke="#4E5D86" stroke-width="2.4" stroke-linecap="round"/>';
+    s += '<circle cx="100" cy="2" r="11" fill="#F0525A" stroke="#9E2A33" stroke-width="3"/><circle cx="96" cy="-2" r="3.5" fill="#fff" opacity=".55"/>';
+    return s + '</g>';
+  }
+  function rainHat() {
+    var L = '#B8901C', s = '<g transform="rotate(-8 100 40)">';
+    s += '<path d="M66 50 C64 20 80 8 100 8 C120 8 136 20 134 50 Z" fill="url(#gCoat)" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M100 10 V46" stroke="#D9A51E" stroke-width="2.6" stroke-linecap="round"/>';
+    s += '<path d="M38 52 Q100 34 162 52 Q168 64 152 66 Q100 54 48 66 Q32 64 38 52 Z" fill="url(#gCoat)" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M70 44 Q100 52 130 44" stroke="' + L + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return s + '</g>';
+  }
+  function detectiveHat() {
+    var L = '#24170F', s = '<g transform="rotate(-9 100 40)">';
+    s += '<path d="M66 44 L70 14 Q74 6 86 8 Q100 14 114 8 Q126 6 130 14 L134 44 Z" fill="#5A4030" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M88 12 Q100 22 112 12" stroke="#3A2A1E" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M67 34 H133 V44 H67 Z" fill="#C0392B" stroke="' + L + '" stroke-width="3" stroke-linejoin="round"/>';
+    s += '<path d="M36 50 Q100 30 164 50 Q166 58 156 58 Q100 44 44 58 Q34 58 36 50 Z" fill="#6B4C38" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M118 28 l4 -14 l6 10z" fill="#E8D9B0" stroke="' + L + '" stroke-width="2"/>';   // 띠에 꽂은 깃털 · 쪽지
+    return s + '</g>';
+  }
+  function hatOf(o) {
+    return o.outfit === 'raincoat' ? rainHat() : o.outfit === 'beanie' ? knitBeanie() : o.outfit === 'fedora' ? detectiveHat() : o.outfit === 'bow' ? bow(138, 36) : '';
+  }
+  var lastEyeY = 0;   // 검수용(eyes): 마지막으로 그린 동물의 눈 높이
+  function kWrap(o, inner, eyeY, hatT, maskY) {
+    lastEyeY = eyeY;
+    var s = inner, hat = hatT === 'behind' ? '' : hatOf(o);   // 'behind': 그림 쪽에서 이미 모자를 뒤에 그렸다(개구리)
     if (o.mood === 'huh') s += huhMark();
     if (o.mood === 'happy') s += sparkle(30, 48) + sparkle(170, 40);
-    if (o.outfit === 'raincoat') s += '<path d="M34 84 q66-82 132 0 l6 12 q-72-34-144 0z"' + k('url(#gCoat)', '#B8901C') + '/>';
-    if (o.outfit === 'beanie') s += beanie(100, 28, 112, '#2F3646');
-    if (o.outfit === 'fedora') s += fedora(100, 34, 94, '#3A2A1E');
-    if (o.outfit === 'glasses' || o.outfit === 'fedora') s += glasses(100, eyeY, 28, 15);
-    if (o.outfit === 'mask') s += mask(100, eyeY + 8, 66);
+    if (hat) s += hatT && hatT !== 'behind' ? '<g transform="' + hatT + '">' + hat + '</g>' : hat;
+    if (o.outfit === 'glasses') s += glasses(100, eyeY, 28, 15);
+    if (o.outfit === 'sunglasses') s += sunglasses(100, eyeY);
+    if (o.outfit === 'mask') s += mask(100, maskY || eyeY + 14, 62);
     return wrap(o, s);
   }
 
@@ -350,6 +400,17 @@
     s += kPaws('#FFD24A', L, '#FF9A3C');
     return kWrap(o, s, 98);
   }
+  /*
+   * 개구리 모자(0.3.1): 눈이 머리 위에 튀어나와 있어서 모자를 두 눈 "위"에 얹는다.
+   *   모자 아래 끝(bottom)을 눈 흰자 위(y=30)에 맞추고 조금 줄인다 → 챙 아래로 두 눈이 그대로 보인다.
+   *   tools/art_check.py 가 크기(A) · 눈 가림(B) · 넘침(C)을 본다.
+   */
+  // [크기, 모자 아래 끝 y, 눈 위 어디에 맞출지 y] — 비니는 방울이 높아 조금 더 내려 쓴다
+  var FROG_HAT = { beanie: [0.78, 55, 34], fedora: [0.85, 58, 30], raincoat: [0.8, 66, 30], cap: [0.8, 62, 30] };
+  function frogHat(kind) {
+    var f = FROG_HAT[kind];
+    return f ? 'translate(100 ' + f[2] + ') scale(' + f[0] + ') translate(-100 -' + f[1] + ')' : '';
+  }
   function kFrog(o) {
     o = o || {}; var F = '#93D26D', L = '#4C8A30', C = '#E9F7D8', s = '';
     s += '<circle cx="66" cy="44" r="24"' + k(F, L) + '/><circle cx="134" cy="44" r="24"' + k(F, L) + '/>';
@@ -362,7 +423,7 @@
     if (o.outfit !== 'mask') s += o.mood === 'huh' ? '<path d="M88 104 q12-6 24 0" stroke="#2A1E1A" stroke-width="2.6" fill="none" stroke-linecap="round"/>' : '<path d="M76 96 q24 18 48 0" stroke="#2A1E1A" stroke-width="2.8" fill="' + (o.mood === 'happy' ? '#B23A4C' : 'none') + '" stroke-linecap="round"/>';
     s += '<circle cx="90" cy="80" r="1.8" fill="' + L + '"/><circle cx="110" cy="80" r="1.8" fill="' + L + '"/>';
     s += kPaws(F, L);
-    return kWrap(o, s, 44).replace('<g><circle cx="' , '<g><circle cx="');
+    return kWrap(o, s, 44, o.outfit === 'bow' ? 'translate(-70 -14)' : frogHat(o.outfit), 90);   // 개구리: 모자는 눈 뒤(위에서 그림), 리본은 오른쪽 눈 옆, 마스크는 입
   }
   function kKoala(o) {
     o = o || {}; var F = '#AEB5BF', L = '#5E6570', C = '#F6F3EE', s = '';
@@ -388,6 +449,118 @@
   }
 
 
+  /* ---------- 3차 추가(0.4.0): 양 · 돼지 · 레서판다 · 알파카 · 물범 · 하마 · 거북이 · 생쥐 · 사자 · 사슴 ---------- */
+  function kSheep(o) {
+    o = o || {}; var F = '#FFFFFF', L = '#B3A79A', C = '#F3DFC8', s = '';
+    // 귀(옆으로 늘어진)
+    s += '<ellipse cx="34" cy="96" rx="20" ry="10" transform="rotate(-24 34 96)"' + k(C, L) + '/><ellipse cx="166" cy="96" rx="20" ry="10" transform="rotate(24 166 96)"' + k(C, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>';
+    // 이마 곱슬 털
+    s += '<g' + k(F, L) + '><circle cx="78" cy="44" r="15"/><circle cx="100" cy="36" r="16"/><circle cx="122" cy="44" r="15"/></g>';
+    s += '<path d="M100 74 c30 0 46 16 46 38 c0 22-20 34-46 34 c-26 0-46-12-46-34 c0-22 16-38 46-38z" fill="' + C + '"/>';
+    s += kShine() + kEyes(o, 104) + kFace(o, 108, '#E58C9C') + kPaws(F, L, C);
+    return kWrap(o, s, 104);
+  }
+  function kPig(o) {
+    o = o || {}; var F = '#FFC6D0', L = '#D47388', s = '';
+    s += mirror('M44 60 Q30 26 50 22 Q66 26 80 42 Z', k(F, L)) + mirror('M50 52 Q42 32 54 30 Q64 34 72 42 Z', ' fill="#FF9DB0"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += kEyes(o, 96);
+    s += '<ellipse cx="100" cy="116" rx="18" ry="12" fill="#FFADBE"' + ' stroke="' + L + '" stroke-width="2.6"/><ellipse cx="94" cy="116" rx="3.2" ry="4.4" fill="#B4556B"/><ellipse cx="106" cy="116" rx="3.2" ry="4.4" fill="#B4556B"/>';
+    s += kFace(o, 116, null) + kPaws(F, L);
+    s += '<path class="' + (o.anim ? 'pb-wag' : '') + '" d="M146 176 q12-2 10-12 q-2-8-8-4 q-4 4 2 6" stroke="' + L + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return kWrap(o, s, 96);
+  }
+  function kRedPanda(o) {
+    o = o || {}; var F = '#D9773A', L = '#8A4218', C = '#FFF6EA', D = '#5A2C12', s = '';
+    s += '<g class="' + (o.anim ? 'pb-sway' : '') + '"><path d="M140 184 q42 0 42-40 q0-12 10-10 q14 46-46 58z"' + k(F, L) + '/><path d="M170 160 l12-6M174 146 l12-4" stroke="#F3C39C" stroke-width="6" stroke-linecap="round"/></g>';
+    s += mirror('M40 66 L36 26 Q40 18 50 22 L80 44 Z', k(F, L)) + mirror('M46 58 L44 32 L68 46 Z', ' fill="' + C + '"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="74" cy="78" rx="9" ry="6" fill="' + C + '"/><ellipse cx="126" cy="78" rx="9" ry="6" fill="' + C + '"/>';   // 눈썹 흰 점
+    s += '<path d="M100 104 c26 0 46 8 46 22 c0 16-22 24-46 24 c-24 0-46-8-46-24 c0-14 20-22 46-22z" fill="' + C + '"/>';
+    s += '<path d="M66 108 q-6 14-2 26M134 108 q6 14 2 26" stroke="' + D + '" stroke-width="6" stroke-linecap="round" fill="none" opacity=".75"/>';   // 눈물 줄무늬
+    s += kEyes(o, 100) + kFace(o, 108, '#2A1E1A') + kPaws(F, L, D);
+    return kWrap(o, s, 100);
+  }
+  function kAlpaca(o) {
+    o = o || {}; var F = '#F5E8D2', L = '#AE9470', C = '#FFFBF3', s = '';
+    s += mirror('M58 54 Q48 14 60 10 Q72 12 74 46 Z', k(F, L)) + mirror('M61 46 Q56 22 62 20 Q67 22 68 44 Z', ' fill="#F2C9B4"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>';
+    s += '<g' + k(C, L) + '><circle cx="84" cy="36" r="14"/><circle cx="116" cy="36" r="14"/><circle cx="100" cy="28" r="16"/></g>';   // 머리 털 뭉치
+    s += '<ellipse cx="100" cy="122" rx="24" ry="17" fill="' + C + '"/>';
+    s += kShine() + kEyes(o, 100) + kFace(o, 108, '#6E4E36') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+  function kSeal(o) {
+    o = o || {}; var F = '#CFD8E0', L = '#6C7B8A', s = '';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<g fill="#A9B6C3"><circle cx="62" cy="62" r="5"/><circle cx="140" cy="70" r="4"/><circle cx="150" cy="56" r="3"/><circle cx="56" cy="160" r="4"/></g>';
+    s += '<ellipse cx="100" cy="120" rx="22" ry="14" fill="#F1F5F8"/>';
+    s += kEyes(o, 100) + kFace(o, 108, '#2A2E36');
+    s += '<g fill="' + L + '" opacity=".7"><circle cx="86" cy="120" r="1.8"/><circle cx="90" cy="126" r="1.8"/><circle cx="114" cy="120" r="1.8"/><circle cx="110" cy="126" r="1.8"/></g>';
+    s += '<path d="M60 118 h-18M60 124 l-16 4M140 118 h18M140 124 l16 4" stroke="' + L + '" stroke-width="2" stroke-linecap="round"/>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+  function kHippo(o) {
+    o = o || {}; var F = '#BBA9DC', L = '#6A5791', C = '#DCD0F0', s = '';
+    s += '<circle cx="56" cy="40" r="13"' + k(F, L) + '/><circle cx="144" cy="40" r="13"' + k(F, L) + '/><circle cx="56" cy="41" r="6" fill="#F2B6C6"/><circle cx="144" cy="41" r="6" fill="#F2B6C6"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 104 c34 0 52 10 52 26 c0 16-24 24-52 24 c-28 0-52-8-52-24 c0-16 18-26 52-26z" fill="' + C + '" stroke="' + L + '" stroke-width="2.4"/>';
+    s += '<ellipse cx="84" cy="114" rx="4" ry="3" fill="' + L + '"/><ellipse cx="116" cy="114" rx="4" ry="3" fill="' + L + '"/>';
+    s += kEyes(o, 88) + kFace(o, 116, null) + kPaws(F, L);
+    return kWrap(o, s, 88);
+  }
+  function kTurtle(o) {
+    o = o || {}; var F = '#A7D873', L = '#4F8A2E', S = '#B98049', SL = '#6E4620', s = '';
+    // 등딱지(몸 뒤): 몸 양옆과 아래로 보인다
+    s += '<path d="M14 140 q0-58 86-60 q86 2 86 60 q0 44-86 50 q-86-6-86-50z" fill="' + S + '" stroke="' + SL + '" stroke-width="3.5"/>';
+    s += '<path d="M14 140 q86 26 172 0" stroke="#E7C38E" stroke-width="5" fill="none"/>';   // 등딱지 테두리 띠
+    s += '<path d="M26 112 l18 10 l-4 18 M174 112 l-18 10 l4 18 M30 166 l18 -6 M170 166 l-18 -6" stroke="' + SL + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 150 q26 0 28 40 h-56 q2-40 28-40z" fill="#E9F2C9"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#2E5A1A') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+  function kMouse(o) {
+    o = o || {}; var F = '#CBCBD4', L = '#75758A', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M146 182 q30 6 34-16 q2-14-10-16" stroke="' + L + '" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+    s += '<circle cx="42" cy="46" r="24"' + k(F, L) + '/><circle cx="158" cy="46" r="24"' + k(F, L) + '/><circle cx="42" cy="47" r="14" fill="#F6B8C6"/><circle cx="158" cy="47" r="14" fill="#F6B8C6"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 150 q24 0 26 40 h-52 q2-40 26-40z" fill="#EEEEF3"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#F08A9A');
+    s += '<path d="M64 112 h-20M64 118 l-18 5M136 112 h20M136 118 l18 5" stroke="' + L + '" stroke-width="1.8" stroke-linecap="round"/>';
+    s += kPaws(F, L, '#F6B8C6');
+    return kWrap(o, s, 100);
+  }
+  function kLion(o) {
+    o = o || {}; var F = '#F7C76E', L = '#A8711A', M = '#D9782B', ML = '#8E4512', s = '';
+    // 갈기: 머리 뒤 둥근 꽃잎
+    var mane = '';
+    for (var a = 0; a < 360; a += 30) {
+      var r = Math.PI / 180 * a, cx = (100 + 66 * Math.cos(r)).toFixed(1), cy = (92 + 62 * Math.sin(r)).toFixed(1);
+      mane += '<circle cx="' + cx + '" cy="' + cy + '" r="24"/>';
+    }
+    s += '<g fill="' + M + '" stroke="' + ML + '" stroke-width="3.5">' + mane + '</g><circle cx="100" cy="92" r="66" fill="' + M + '"/>';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M146 182 q30 0 32-26" stroke="' + L + '" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="178" cy="152" r="7" fill="' + M + '" stroke="' + ML + '" stroke-width="3"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="100" cy="120" rx="24" ry="17" fill="#FFF1D2"/>';
+    s += kEyes(o, 100) + kFace(o, 108, '#6E3A12') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+  function kDeer(o) {
+    o = o || {}; var F = '#D89B62', L = '#86562C', C = '#FFF3E4', A = '#EBD3A8', AL = '#9A7240', s = '';
+    // 뿔(작은 가지)
+    s += mirror('M74 34 L66 6 M68 16 L56 10 M70 24 L60 24', ' stroke="' + AL + '" stroke-width="8" stroke-linecap="round" fill="none"') +
+      mirror('M74 34 L66 6 M68 16 L56 10 M70 24 L60 24', ' stroke="' + A + '" stroke-width="4" stroke-linecap="round" fill="none"');
+    s += '<ellipse cx="34" cy="74" rx="20" ry="10" transform="rotate(-28 34 74)"' + k(F, L) + '/><ellipse cx="166" cy="74" rx="20" ry="10" transform="rotate(28 166 74)"' + k(F, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<g fill="' + C + '"><circle cx="88" cy="48" r="4"/><circle cx="104" cy="42" r="3.5"/><circle cx="116" cy="52" r="4"/><circle cx="60" cy="160" r="4"/><circle cx="142" cy="164" r="3.5"/></g>';
+    s += '<ellipse cx="100" cy="122" rx="22" ry="16" fill="' + C + '"/>';
+    s += kEyes(o, 100) + kFace(o, 108, '#3A2418') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+
   /* ---------- 등급 꾸밈 ---------- */
   var GDEFS = '<defs>' +
     '<linearGradient id="gBronze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C08A"/><stop offset="1" stop-color="#B07034"/></linearGradient>' +
@@ -396,7 +569,7 @@
     '<radialGradient id="gAura"><stop offset="0" stop-color="#FFE48A" stop-opacity=".95"/><stop offset=".6" stop-color="#FFD23F" stop-opacity=".45"/><stop offset="1" stop-color="#FFD23F" stop-opacity="0"/></radialGradient>' +
     '</defs>';
   // 머리 위에 눈이 달린 개구리는 모자를 이마(눈 사이 아래)로 작게
-  var CAP_AT = { frog: 'translate(100 76) scale(.6) translate(-100 -44)' };
+  var CAP_AT = {};   // (0.3.1) 개구리 경찰모는 이마가 아니라 두 눈 뒤에 — decorate 에서 뒤쪽에 그린다
   function cap(gold, id) {
     var at = CAP_AT[id] ? '<g transform="' + CAP_AT[id] + '">' : '<g>';
     return at + capInner(gold) + '</g>';
@@ -409,13 +582,16 @@
   }
   var CAPE = '<path d="M30 108 q-28 52-8 86 h156 q20-34-8-86 q-70 32-140 0z" fill="url(#gCape)" stroke="#7A1219" stroke-width="3" stroke-linejoin="round"/>';
   var AURA = '<circle cx="100" cy="104" r="98" fill="url(#gAura)"/>';
-  function decorate(svg, g, id) {
+  function decorate(svg, g, id, outfit) {
     if (!g) return svg;
     var badgeFill = { c: 'url(#gBronze)', r: 'url(#gSilver)', h: 'url(#gGold)', l: 'url(#gGold)' }[g] || 'url(#gGold)';
     // 배지 색(별 모양 배지의 첫 path 만 gGold 를 쓴다 — 노란 우비 gCoat 등은 그대로)
     svg = svg.replace(/(<path d="M[\d.]+ [\d.]+ l3\.3 6\.6[^"]*" fill=")url\(#gGold\)"/g, '$1' + badgeFill + '"');
     var back = g === 'l' ? AURA : g === 'h' ? CAPE : '';
-    var front = g === 'r' || g === 'h' ? cap(false, id) : g === 'l' ? cap(true, id) + sparkle(28, 40) + sparkle(172, 62) + sparkle(160, 150) : '';
+    var hatOn = !!HATS[outfit];   // 모자 의상을 입으면 등급 경찰모는 벗는다
+    var capStr = (g === 'r' || g === 'h' || g === 'l') && !hatOn ? cap(g === 'l', id) : '';
+    if (id === 'frog' && capStr) capStr = '<g transform="' + frogHat('cap') + '">' + capStr + '</g>';   // 개구리: 두 눈 위에
+    var front = capStr + (g === 'l' ? sparkle(28, 40) + sparkle(172, 62) + sparkle(160, 150) : '');
     // 뒤: 그림자 다음(첫 <g class=…> 앞), 앞: 마지막 </g> 앞
     var at = svg.indexOf('<g class=');
     svg = svg.slice(0, at) + back + svg.slice(at);
@@ -428,14 +604,24 @@
     corgi: function (o) { return kDog(o, 'corgi'); }, shiba: function (o) { return kDog(o, 'shiba'); },
     ragdoll: function (o) { return kCat(o, 'ragdoll'); }, siamese: function (o) { return kCat(o, 'siamese'); },
     raccoon: kRaccoon, owl: kOwl, panda: kPanda, monkey: kMonkey, hamster: kHamster, rabbit: kRabbit, fox: kFox, penguin: kPenguin, bear: kBear,
-    hedgehog: kHedgehog, squirrel: kSquirrel, otter: kOtter, duck: kDuck, frog: kFrog, koala: kKoala, tiger: kTiger
+    hedgehog: kHedgehog, squirrel: kSquirrel, otter: kOtter, duck: kDuck, frog: kFrog, koala: kKoala, tiger: kTiger,
+    sheep: kSheep, pig: kPig, redpanda: kRedPanda, alpaca: kAlpaca, seal: kSeal, hippo: kHippo, turtle: kTurtle, mouse: kMouse, lion: kLion, deer: kDeer
   };
   /** 동물 그림. 모르는 종류면 빈 문자열 */
   function draw(id, o) {
     o = o || {};
     var f = DRAW[id];
     if (!f) return '';
-    return decorate(f({ mood: o.mood, anim: o.anim, outfit: o.outfit }), o.grade, id);
+    return decorate(f({ mood: o.mood, anim: o.anim, outfit: o.outfit }), o.grade, id, o.outfit);
   }
-  return { draw: draw, ids: Object.keys(DRAW) };
+  /** 검수용: 그 동물의 눈 자리 { y, x:[왼, 오], r } (tools/art_check.py 가 "모자가 눈을 가리나"를 볼 때 쓴다) */
+  function eyes(id) {
+    if (!DRAW[id]) return null;
+    DRAW[id]({});
+    var frog = id === 'frog';
+    // mouth: 얼굴 아래 끝(입 높이) — 모자 · 경찰모가 눈~입 사이(얼굴)에 내려오면 안 된다
+    return { y: lastEyeY, x: frog ? [66, 134] : [72, 128], r: frog ? 15 : id === 'owl' ? 14 : 11, mouth: frog ? 100 : lastEyeY + 22,
+      faceTop: frog ? 62 : lastEyeY - (id === 'owl' ? 14 : 11) };   // 개구리는 눈이 머리 위라 얼굴은 눈 아래부터
+  }
+  return { draw: draw, ids: Object.keys(DRAW), HATS: HATS, eyes: eyes };
 });

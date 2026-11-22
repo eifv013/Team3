@@ -232,7 +232,8 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .ghost.danger{color:var(--miss);border-color:rgba(255,122,89,.45)}
 .ghost.armed{background:var(--miss);color:var(--ink);border-color:var(--miss)}
 /* ===== 0.1.19: 배지 · 준비물 · 특별 출동 · 메달 ===== */
-.gem-chip{display:inline-flex;align-items:center;margin-left:10px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:#9FD8FF;font-size:13px;font-weight:700;vertical-align:middle;font-variant-numeric:tabular-nums}
+.gem-chip{display:inline-flex;align-items:center;margin-left:10px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:#9FD8FF;font-size:13px;font-weight:700;vertical-align:middle;font-variant-numeric:tabular-nums;border:1px solid rgba(159,216,255,.35);font-family:inherit;cursor:pointer}
+.gem-chip::after{content:'+';margin-left:5px;width:14px;height:14px;border-radius:50%;background:#9FD8FF;color:#1B1E24;font-size:12px;line-height:14px;text-align:center}
 .prep{display:flex;flex-direction:column;gap:8px}
 .prep-head{display:flex;justify-content:space-between;align-items:center}
 .medals{display:flex;gap:4px;font-size:11px;font-weight:700}
@@ -617,6 +618,143 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 .ach-n{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
 .ttl{font-style:normal;font-size:.82em;font-weight:700;color:var(--acc);margin-right:3px}
 .ttl::before{content:'「'}.ttl::after{content:'」'}
+
+/* ---------- 0.3.1 의상 · 사무실 몸짓 ---------- */
+.pet-closet{display:flex;flex-direction:column;gap:8px}
+.pet-closet-g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pet-cloth{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px;border-radius:14px;background:var(--panel2);border:1.5px solid var(--line)}
+.pet-cloth.have{border-color:rgba(255,210,63,.5)}.pet-cloth.on{box-shadow:0 0 0 2px var(--acc)}
+.pet-cloth-art{width:96px;height:96px;border-radius:12px;background:linear-gradient(180deg,#FBF7EE,#EFE6D2)}
+.pet-cloth-art svg{width:100%;height:100%;overflow:visible}
+.pet-cloth b{font-size:13px}
+.pet-cloth-btns{display:flex;gap:6px;width:100%}.pet-cloth-btns button{flex:1;height:36px;font-size:13px;padding:0 4px}
+.pet-art.pa-jump{animation:pajump .5s ease-out 2}
+@keyframes pajump{0%,100%{transform:translateY(0)}40%{transform:translateY(-9px) scale(1.04)}}
+.pet-art.pa-peek{animation:papeek 1.8s ease-in-out}
+@keyframes papeek{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg)}60%{transform:rotate(8deg)}}
+.pet-art.pa-wiggle{animation:pawig .4s ease-in-out 3}
+@keyframes pawig{0%,100%{transform:translateX(0)}30%{transform:translateX(-3px) rotate(-3deg)}70%{transform:translateX(3px) rotate(3deg)}}
+.pet-art.pa-doze{animation:padoze 1.6s ease-in-out 2;position:relative}
+.pet-art.pa-doze::after{content:'Zz';position:absolute;top:-10px;right:-6px;font-weight:700;font-size:13px;color:#9CD3F2;animation:pazz 1.6s ease-out 2}
+@keyframes padoze{0%,100%{transform:rotate(0)}50%{transform:rotate(6deg) translateY(2px)}}
+@keyframes pazz{0%{opacity:0;transform:translate(0,6px)}40%{opacity:1}100%{opacity:0;transform:translate(6px,-8px)}}
+@media (prefers-reduced-motion:reduce){.pet-art{animation:none !important}.pet-art::after{display:none}}
+
+/* ---------- 0.3.1 뽑기 연출 ---------- */
+.gx{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:radial-gradient(ellipse at 50% 45%,#262C3A 0%,#10131A 70%);overflow:hidden;animation:gxin .2s ease-out;touch-action:manipulation;user-select:none}
+.gx.out{animation:gxout .2s ease-in forwards}
+@keyframes gxin{from{opacity:0}to{opacity:1}}@keyframes gxout{to{opacity:0}}
+.gx-rays{position:absolute;left:50%;top:44%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;opacity:0;
+  background:repeating-conic-gradient(from 0deg,var(--gx) 0deg 7deg,transparent 7deg 22deg);
+  -webkit-mask:radial-gradient(circle,#000 0,rgba(0,0,0,.55) 22%,transparent 55%);mask:radial-gradient(circle,#000 0,rgba(0,0,0,.55) 22%,transparent 55%);transition:opacity .3s}
+.gx.opened .gx-rays{opacity:.55;animation:gxspin 9s linear infinite}
+.gx.legend .gx-rays{opacity:.85}
+@keyframes gxspin{to{transform:rotate(360deg)}}
+.gx-box{position:absolute;top:50%;left:50%;width:220px;margin:-95px 0 0 -110px;animation:gxdrop .5s cubic-bezier(.3,1.5,.6,1) both}
+.gx-box svg{width:100%;height:auto;overflow:visible;filter:drop-shadow(0 0 18px var(--gx))}
+.gx-seam{fill:var(--gx);filter:blur(3px);transition:fill .3s}
+@keyframes gxdrop{0%{transform:translateY(-70vh) rotate(-8deg)}70%{transform:translateY(6px) rotate(2deg)}100%{transform:none}}
+.gx.shake .gx-box{animation:gxshake .23s ease-in-out 4}
+.gx.upgrade .gx-box svg{filter:drop-shadow(0 0 34px var(--gx)) drop-shadow(0 0 10px #fff)}
+@keyframes gxshake{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg) translateX(-4px)}75%{transform:rotate(6deg) translateX(4px)}}
+.gx-lid{transform-box:fill-box;transform-origin:50% 100%;transition:transform .45s cubic-bezier(.2,.8,.3,1),opacity .45s}
+.gx.opened .gx-lid{transform:translate(40px,-160px) rotate(38deg);opacity:0}
+.gx.opened .gx-box{animation:gxpop .4s ease-out forwards}
+.gx.cards .gx-box{transition:opacity .3s,transform .3s;opacity:0;transform:translateY(60px) scale(.8)}
+@keyframes gxpop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+.gx-flash{position:absolute;inset:0;background:var(--gx);opacity:0;pointer-events:none}
+.gx.opened .gx-flash{animation:gxflash .5s ease-out}
+.gx.legend .gx-flash{background:#FFF3C2;animation:gxflash .9s ease-out}
+@keyframes gxflash{0%{opacity:.85}100%{opacity:0}}
+.gx.legend{animation:gxquake .5s ease-in-out .05s}
+@keyframes gxquake{0%,100%{transform:none}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,-2px)}80%{transform:translate(3px,3px)}}
+.gx-spark{position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(circle,#FFE27A 0 2px,transparent 3px) 0 0/46px 46px,radial-gradient(circle,#fff 0 1.5px,transparent 2.5px) 23px 23px/46px 46px}
+.gx.legend .gx-spark{animation:gxsparks 2.4s ease-out forwards}
+@keyframes gxsparks{0%{opacity:0;transform:translateY(20px) scale(.9)}20%{opacity:1}100%{opacity:0;transform:translateY(-120px) scale(1.1)}}
+.gx-cards{position:relative;z-index:2;display:grid;gap:8px;width:min(92vw,430px);opacity:0;pointer-events:none}
+.gx.cards .gx-cards{opacity:1;pointer-events:auto}
+.gx.one .gx-cards{grid-template-columns:1fr;justify-items:center}
+.gx.ten .gx-cards{grid-template-columns:repeat(5,1fr)}
+.gx-card{perspective:600px;aspect-ratio:3/4;width:100%}
+.gx.one .gx-card{width:200px}
+.gx.cards .gx-card{animation:gxdeal .35s cubic-bezier(.3,1.4,.6,1) both;animation-delay:calc(var(--i) * 35ms)}
+@keyframes gxdeal{from{opacity:0;transform:translateY(40vh) scale(.6)}to{opacity:1;transform:none}}
+.gx-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.3,1.3,.5,1)}
+.gx-card.flip .gx-in{transform:rotateY(180deg)}
+.gx-back,.gx-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px}
+.gx-back{display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#2F3A55,#1B2133);border:2px solid #4A5677}
+.gx-back span{font-family:'Black Han Sans',sans-serif;font-size:28px;color:#FFD23F;opacity:.85}
+.gx-card.g-h .gx-back,.gx-card.g-l .gx-back{border-color:var(--gc);box-shadow:0 0 14px var(--gc)}
+.gx-card.g-l .gx-back{animation:gxpulse .6s ease-in-out infinite alternate}
+@keyframes gxpulse{to{box-shadow:0 0 26px var(--gc),0 0 6px #fff}}
+.gx-face{transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px;
+  background:linear-gradient(180deg,#FBF7EE,#EFE6D2);border:2.5px solid var(--gc)}
+.gx-face svg{width:100%;height:auto;aspect-ratio:1/1;overflow:visible}
+.gx-face span{font-size:10px;font-weight:700;color:#1B1E24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.gx.one .gx-face span{font-size:16px}
+.gx-face em{font-style:normal;font-size:10px;font-weight:700;color:#5A6170}.gx-face em.new{color:#E5484F}
+.gx.one .gx-face em{font-size:13px}
+.gx-card.flip.g-l .gx-face{box-shadow:0 0 22px rgba(255,210,63,.9)}.gx-card.flip.g-h .gx-face{box-shadow:0 0 14px rgba(176,124,240,.8)}
+.gx-foot{position:absolute;left:0;right:0;bottom:calc(28px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:3}
+.gx-hint{font-size:13px;color:rgba(255,255,255,.55)}
+.gx-ok{min-width:180px;height:52px;font-size:17px}
+@media (prefers-reduced-motion:reduce){.gx,.gx *{animation:none !important;transition:none !important}}
+
+/* ---------- 0.4.0 픽업 · 무료 뽑기 · 세트 · 동물 효과 표시 ---------- */
+.pet-pk{display:flex;gap:10px;align-items:center;padding:10px;border-radius:14px;background:linear-gradient(120deg,rgba(255,210,63,.18),rgba(255,210,63,.04));border:1.5px solid rgba(255,210,63,.55)}
+.pet-pk-art{width:72px;height:72px;flex:none;border-radius:12px;background:linear-gradient(180deg,#FBF7EE,#EFE6D2)}
+.pet-pk-art svg{width:100%;height:100%;overflow:visible}
+.pet-pk-tx{display:flex;flex-direction:column;gap:2px;min-width:0}.pet-pk-tx b{font-size:16px}.pet-pk-tx small{font-size:12px;color:var(--muted);line-height:1.4}
+.pet-btns button.free{background:var(--acc);color:#1B1E24;border-color:var(--acc)}
+.pet-sets{display:flex;flex-direction:column;gap:6px}
+.pet-sets>div{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.pet-sets span:not(.label){display:flex;flex-direction:column;padding:6px 8px;border-radius:10px;background:var(--panel2);font-size:12px;font-weight:700;color:var(--gc);border:1.5px solid transparent}
+.pet-sets span.on{border-color:var(--gc)}
+.pet-sets i{font-style:normal;font-weight:500;color:var(--muted);font-size:11px}
+.pet-dex-name em.set{font-style:normal;color:var(--acc);font-weight:700}
+.res-pet{color:#9CD3F2;font-weight:700}
+
+/* ---------- 0.4.0 3팀 매점 · 광고 자리 ---------- */
+.shop-body{display:flex;flex-direction:column;gap:8px}
+.shop-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--panel2);border:1.5px solid transparent}
+.shop-row.hot{border-color:#FF8A5B;background:linear-gradient(120deg,rgba(255,138,91,.16),rgba(255,138,91,.03))}
+.shop-row.on{border-color:rgba(255,210,63,.6)}
+.shop-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.shop-tx b{font-size:14px}.shop-tx small{font-size:12px;color:var(--muted);line-height:1.4}
+.shop-tx em{font-style:normal;font-size:12px;font-weight:700;color:#FF8A5B}.shop-row.on .shop-tx em{color:var(--acc)}
+.shop-row>button{flex:none;min-width:112px;height:48px;font-size:14px;padding:0 10px}
+.shop-buy{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.shop-buy small{font-size:10px;font-weight:600;opacity:.8}
+.shop-buy[aria-disabled="true"]{opacity:.55}
+.shop-gems{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.shop-gem{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px;border-radius:12px;background:var(--panel2)}
+.shop-gem b{color:#9FD8FF;font-size:15px}.shop-gem small{font-size:11px;color:var(--muted)}.shop-gem button{width:100%;height:46px}
+.pass-top b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:26px;color:var(--acc);display:block;margin:2px 0 6px}
+.pass-top .ach-bar{height:8px}
+.pass-acts{display:flex;gap:8px;align-items:stretch}.pass-acts>*{flex:1;min-height:48px}
+.pass-prem.on{display:flex;align-items:center;justify-content:center;border-radius:12px;border:1.5px solid var(--acc);color:var(--acc);font-weight:700;font-size:14px}
+.pass-grid{display:grid;grid-template-columns:34px 1fr 1fr;gap:4px;font-size:12px}
+.pass-h{font-size:11px;font-weight:700;color:var(--muted);text-align:center}.pass-h.prem{color:var(--acc)}
+.pass-t{display:flex;align-items:center;justify-content:center;border-radius:8px;background:var(--panel2);color:var(--muted);font-weight:700}
+.pass-t.open{background:var(--acc);color:#1B1E24}
+.pass-c{padding:6px 6px;border-radius:8px;background:var(--panel2);color:var(--muted);line-height:1.3}
+.pass-c.prem{background:rgba(255,210,63,.08)}
+.pass-c.ready{color:var(--text);box-shadow:inset 0 0 0 1.5px var(--acc)}
+.pass-c.got{opacity:.5}
+.ad-stub{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;background:rgba(8,10,14,.94)}
+.ad-stub>div{display:flex;flex-direction:column;align-items:center;gap:8px;padding:28px 34px;border-radius:18px;border:2px dashed #4A5677}
+.ad-stub b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:56px;color:var(--acc)}
+.ad-stub small{font-size:12px;color:var(--muted)}
+.res-double{margin-top:6px}
+
+/* ---------- 0.4.0 파트너 말풍선 · 친밀도 ---------- */
+.pet-card{position:relative}
+.pet-bond{color:#FF9AAE !important;font-weight:600}
+.pet-bubble{position:absolute;left:12px;bottom:calc(100% - 4px);max-width:78%;padding:7px 11px;border-radius:14px 14px 14px 4px;background:#FFF8EA;color:#1B1E24;font-size:13px;font-weight:600;line-height:1.35;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:3;pointer-events:none}
+.pet-bubble.show{animation:bubblein .25s cubic-bezier(.3,1.5,.6,1)}
+@keyframes bubblein{from{opacity:0;transform:translateY(6px) scale(.9)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.pet-bubble.show{animation:none}}
 </style>
 </head>
 <body>
@@ -632,7 +770,7 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
           <span class="leader" id="h-leader">신임 팀장 · 이름 정하기</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
         </button>
-        <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span><span class="gem-chip" id="h-gems" title="배지">◆ 0</span>
+        <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span><button class="gem-chip" id="h-gems" aria-label="배지 · 3팀 매점 열기">◆ 0</button>
         <!-- 팀 속도 줄과 검거 소식이 같은 자리에서 번갈아 보인다(높이 고정이라 아래 칸이 움직이지 않는다) -->
         <span class="rate-line">
           <span class="rate" id="h-rate-wrap"><span id="h-rate">팀 1분에 1명</span><span class="buff" id="h-buff" hidden>사기 충전 ×2</span></span>
@@ -883,15 +1021,29 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
       <span class="label">동물 · 뽑기</span>
       <h2 id="pets-title" style="font-size:26px">말랑 수사대</h2>
       <div class="pet-wallet" id="pets-wallet"></div>
-      <div class="pet-tabs" id="pets-tabs"><button data-tab="draw">뽑기</button><button data-tab="dex" id="pets-tab-dex">도감</button></div>
+      <div class="pet-tabs" id="pets-tabs"><button data-tab="draw">뽑기</button><button data-tab="dex" id="pets-tab-dex">도감</button><button data-tab="closet">의상</button></div>
       <div class="pet-detail" id="pets-detail" hidden></div>
       <div id="pets-draw" class="pet-draw">
+        <div class="pet-pk" id="pets-pickup"></div>
         <div class="pet-result" id="pets-result"><p class="muted">뽑은 동물이 여기에 나와요</p></div>
         <span class="pet-pity" id="pets-pity"></span>
         <div class="pet-btns"><button class="ghost" id="pets-one"></button><button class="primary" id="pets-ten"></button></div>
         <details class="pet-rate-box" open><summary>확률 공개 · 규칙</summary><div id="pets-rates"></div></details>
       </div>
       <div id="pets-dex" class="pet-dex" hidden></div>
+      <div id="pets-closet" class="pet-closet" hidden></div>
+    </div>
+  </div>
+  <!-- 0.4.0 3팀 매점: 상점 · 시즌 패스(shopui.js 가 채운다) -->
+  <div class="sheet-back" id="shop-sheet" role="dialog" aria-modal="true" aria-labelledby="shop-title" hidden>
+    <div class="sheet">
+<button class="x-btn" id="shop-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="label">상점 · 시즌 패스</span>
+      <h2 id="shop-title" style="font-size:26px">3팀 매점</h2>
+      <div class="pet-wallet" id="shop-wallet"></div>
+      <div class="pet-tabs" id="shop-tabs"><button data-tab="shop">상점</button><button data-tab="pass">시즌 패스</button></div>
+      <div id="shop-body" class="shop-body"></div>
+      <div id="pass-body" class="shop-body" hidden></div>
     </div>
   </div>
   <!-- 0.3.0 업적 · 칭호 창(achui.js 가 채운다) -->
@@ -962,6 +1114,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 /*ACH*/
 </script>
 <script>
+/*MONET*/
+</script>
+<script>
 /*TRANSIT*/
 </script>
 <script>
@@ -993,6 +1148,9 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 </script>
 <script>
 /*PETSUI*/
+</script>
+<script>
+/*SHOPUI*/
 </script>
 <script>
 /*HUB*/

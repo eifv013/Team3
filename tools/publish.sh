@@ -7,12 +7,15 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 node --test test/*.test.js >/dev/null || { echo "단위 테스트 실패. 올리지 않는다." >&2; exit 1; }
+# 동물 그림 검수(0.3.1): 의상 크기 · 눈 가림 · 얼굴에 내려온 모자 · 넘침. 검수판은 tools/out/art_sheet_*.png
+python3 tools/art_check.py || { echo "그림 검수 실패(tools/out/art_report.txt). 올리지 않는다." >&2; exit 1; }
 VERSION="$(python3 tools/build.py | sed -n 's/.*버전 \([0-9.]*\),.*/\1/p')"
 [ -n "$VERSION" ] || { echo "빌드 실패." >&2; exit 1; }
 if [ "${SKIP_SMOKE:-0}" != "1" ]; then
   # 화면 시험은 실제 시간(애니메이션)에 기대는 곳이 있어 가끔 한 번 어긋난다: 한 번만 다시 돌리고, 그래도 실패면 멈춘다
   python3 tools/smoke.py >/tmp/smoke.log 2>&1 || python3 tools/smoke.py >/tmp/smoke.log 2>&1 || { grep -E "^화면 시험|^[^ ]" /tmp/smoke.log | tail -5 >&2; echo "화면 시험 실패. 올리지 않는다." >&2; exit 1; }
   python3 tools/pwa_check.py >/dev/null || { echo "설치형 확인 실패. 올리지 않는다." >&2; exit 1; }
+  python3 tools/screens_check.py || { echo "수익 · 수집 화면 시험 실패. 올리지 않는다." >&2; exit 1; }
 fi
 
 # docs/ 를 비우고 다시 채운다(지운 파일이 남지 않게)

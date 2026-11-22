@@ -8,18 +8,25 @@ function seq(values) { let i = 0; return () => values[i++ % values.length]; }
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function fresh(gems = 0) { const s = { gems }; P.clean(s); return s; }
 
-test('20종 × 4등급, 등급 확률 합은 100%', () => {
-  assert.equal(P.SPECIES.length, 20);
+test('30종 × 4등급, 등급 확률 합은 100%, 전설 3%(한 마리 0.1%) · 천장 80', () => {
+  assert.equal(P.SPECIES.length, 30);
+  assert.equal(new Set(P.SPECIES.map(x => x.id)).size, 30);
   assert.equal(P.GRADES.reduce((a, g) => a + P.GRADE[g].pct, 0), 100);
+  assert.equal(P.GRADE.l.pct, 3); assert.equal(P.PITY, 80);
   const r = P.rates();
   assert.equal(r.find(x => x.g === 'l').each, 0.1);
-  assert.equal(r.find(x => x.g === 'c').each, 3.2);
+  assert.equal(r.find(x => x.g === 'c').each, 2.133);
+  assert.equal(P.effectiveLegend(), 3.3);
+  // 그림 · 말이 30종 모두 있다
+  const A = require('../src/petart.js');
+  P.SPECIES.forEach(x => { assert.ok(A.ids.includes(x.id), x.id); assert.ok(P.TALK[x.id], x.id); });
+  assert.deepEqual([...P.PICKUP_ORDER].sort(), P.SPECIES.map(x => x.id).sort());
 });
 
 test('rollGrade: 경계값', () => {
-  assert.equal(P.rollGrade(() => 0), 'l');        // 0~2 전설
-  assert.equal(P.rollGrade(() => 0.0199), 'l');
-  assert.equal(P.rollGrade(() => 0.02), 'h');     // 2~8 영웅
+  assert.equal(P.rollGrade(() => 0), 'l');        // 0~3 전설
+  assert.equal(P.rollGrade(() => 0.0299), 'l');
+  assert.equal(P.rollGrade(() => 0.03), 'h');     // 3~8 영웅
   assert.equal(P.rollGrade(() => 0.08), 'r');     // 8~36 희귀
   assert.equal(P.rollGrade(() => 0.36), 'c');
   assert.equal(P.rollGrade(() => 0.9999), 'c');
@@ -30,8 +37,8 @@ test('많이 뽑으면 등급 비율이 공개 확률에 가깝다', () => {
   for (let i = 0; i < 200000; i++) n[P.rollGrade(rng)]++;
   assert.ok(Math.abs(n.c / 2000 - 64) < 0.8);
   assert.ok(Math.abs(n.r / 2000 - 28) < 0.8);
-  assert.ok(Math.abs(n.h / 2000 - 6) < 0.4);
-  assert.ok(Math.abs(n.l / 2000 - 2) < 0.3);
+  assert.ok(Math.abs(n.h / 2000 - 5) < 0.4);
+  assert.ok(Math.abs(n.l / 2000 - 3) < 0.3);
 });
 
 test('결제: 뽑기권·배지가 모자라면 아무것도 안 바뀐다', () => {
@@ -50,13 +57,10 @@ test('결제: 뽑기권·배지가 모자라면 아무것도 안 바뀐다', () 
   assert.equal(s.pets.pulls, 11);
 });
 
-test('천장: 49번 전설이 없으면 50번째는 전설, 그리고 0부터 다시', () => {
-  const s = fresh(1e6), rng = seq([0.99]);   // 늘 일반
-  for (let i = 0; i < 4; i++) P.pull(s, 10, 'gems', rng);
-  P.pull(s, 1, 'gems', rng); P.pull(s, 1, 'gems', rng); P.pull(s, 1, 'gems', rng); P.pull(s, 1, 'gems', rng); P.pull(s, 1, 'gems', rng);
-  assert.equal(s.pets.pity, 45);
-  P.pull(s, 1, 'gems', rng); P.pull(s, 1, 'gems', rng); P.pull(s, 1, 'gems', rng); P.pull(s, 1, 'gems', rng);
-  assert.equal(s.pets.pity, 49);
+test('천장: PITY-1번 전설이 없으면 PITY번째는 전설, 그리고 0부터 다시', () => {
+  const s = fresh(1e7), rng = seq([0.99]);   // 늘 일반
+  for (let i = 0; i < P.PITY - 1; i++) { const r = P.pull(s, 1, 'gems', rng); assert.notEqual(r.results[0].g, 'l'); }
+  assert.equal(s.pets.pity, P.PITY - 1);
   const r = P.pull(s, 1, 'gems', rng);
   assert.equal(r.results[0].g, 'l');
   assert.equal(s.pets.pity, 0);
@@ -88,13 +92,13 @@ test('오리 장착: 중복 간식 +1', () => {
   P.grant(s, 'duck', 'c'); P.equip(s, 'duck:c');
   for (let i = 0; i < 5; i++) P.grant(s, 'tiger', 'l');   // ★5까지
   const t = P.grant(s, 'tiger', 'l');
-  assert.equal(t.treats, 30 + 1);
+  assert.equal(t.treats, P.GRADE.l.treat + 1);
 });
 
 test('교환: 간식으로 원하는 동물, ★5면 막힘', () => {
   const s = fresh();
   assert.throws(() => P.swap(s, 'panda', 'l'), { code: 'NOT_ENOUGH' });
-  s.pets.treats = 700;
+  s.pets.treats = P.GRADE.l.swap + 100;
   const r = P.swap(s, 'panda', 'l');
   assert.equal(r.isNew, true);
   assert.equal(s.pets.treats, 100);
@@ -175,7 +179,7 @@ test('describe · progress', () => {
   assert.deepEqual(P.describe({ gear: 8 }), ['장비 값 −8%']);
   const s = fresh();
   P.grant(s, 'corgi', 'c'); P.grant(s, 'corgi', 'l');
-  assert.deepEqual(P.progress(s), { have: 2, total: 80, byGrade: { c: 1, r: 0, h: 0, l: 1 } });
+  assert.deepEqual(P.progress(s), { have: 2, total: 120, byGrade: { c: 1, r: 0, h: 0, l: 1 } });
 });
 
 test('idle · economy 연결: setBonus 로 꽂으면 수입·한도·값이 바뀌고, 빼면 예전 그대로', () => {
@@ -280,4 +284,118 @@ test('이름표: 배지 12로 3장, 이름 바꾸기에 배지보다 먼저 쓰�
   assert.equal(s.nameTags, 1);
   assert.equal(s.gems, 1);
   assert.equal(I.load(I.serialize(s), 1_700_000_000_000).save.nameTags, 1);
+});
+
+test('의상(0.3.1): 간식·배지로 사고, 옷장은 모든 동물 공용, 동물마다 하나씩', () => {
+  const s = fresh(12); s.caseNo = 1;
+  assert.throws(() => P.buyOutfit(s, 'beanie', 'treats'), { code: 'NOT_ENOUGH' });
+  s.pets.treats = 20;
+  P.buyOutfit(s, 'beanie', 'treats');
+  assert.equal(s.pets.treats, 5);
+  assert.throws(() => P.buyOutfit(s, 'beanie', 'gems'), { code: 'ALREADY' });
+  P.buyOutfit(s, 'glasses', 'gems');
+  assert.equal(s.gems, 2);
+  assert.throws(() => P.buyOutfit(s, 'raincoat', 'gems'), { code: 'LOCKED' });   // 해무항(사건 2)부터
+  s.caseNo = 2; s.gems = 40;
+  P.buyOutfit(s, 'raincoat', 'gems');
+  assert.throws(() => P.wear(s, 'corgi:c', 'beanie'), { code: 'NOT_OWNED' });
+  P.grant(s, 'corgi', 'c'); P.grant(s, 'tiger', 'l');
+  P.wear(s, 'corgi:c', 'beanie'); P.wear(s, 'tiger:l', 'beanie');
+  assert.throws(() => P.wear(s, 'corgi:c', 'fedora'), { code: 'NO_OUTFIT' });
+  assert.equal(P.wearing(s, 'tiger:l'), 'beanie');
+  P.wear(s, 'tiger:l', '');
+  assert.equal(P.wearing(s, 'tiger:l'), '');
+  const c = P.clean({ pets: { own: { 'corgi:c': 1 }, closet: { beanie: true, x: true }, wear: { 'corgi:c': 'beanie', 'tiger:l': 'beanie' } } });
+  assert.deepEqual(c.closet, { beanie: true });
+  assert.deepEqual(c.wear, { 'corgi:c': 'beanie' });
+});
+
+test('의상 그림: 모자를 쓰면 등급 경찰모는 벗는다', () => {
+  const A = require('../src/petart.js');
+  const capped = A.draw('corgi', { grade: 'r' }), hatted = A.draw('corgi', { grade: 'r', outfit: 'beanie' });
+  assert.ok(capped.includes('rotate(-8 100 36)'));
+  assert.ok(!hatted.includes('rotate(-8 100 36)'));
+  assert.ok(A.draw('corgi', { grade: 'r', outfit: 'sunglasses' }).includes('rotate(-8 100 36)'));
+  for (const o of ['glasses', 'mask', 'beanie', 'bow', 'sunglasses', 'fedora', 'raincoat']) assert.ok(A.draw('frog', { grade: 'l', outfit: o }).length > 1000);
+});
+
+test('픽업(0.4.0): 주마다 바뀌고 월요일에 시작, 남은 날', () => {
+  const a = P.pickup('2026-01-05'), b = P.pickup('2026-01-11'), c = P.pickup('2026-01-12');
+  assert.equal(a.id, b.id);
+  assert.notEqual(a.id, c.id);
+  assert.equal(a.from, '2026-01-05'); assert.equal(a.to, '2026-01-11');
+  assert.equal(a.left, 7); assert.equal(b.left, 1);
+  assert.equal(P.PICKUP_ORDER.length, 30);
+  assert.equal(new Set(P.PICKUP_ORDER).size, 30);
+  assert.ok(P.pickup('2026-11-22').id);
+});
+
+test('픽업: 천장 전설은 픽업 동물 확정, 영웅·전설은 반쯤 픽업', () => {
+  const day = '2026-11-22', pk = P.pickup(day).id;
+  const s = fresh(1e6); s.pets.pity = P.PITY - 1;
+  const r = P.pull(s, 1, 'gems', Math.random, { day });
+  assert.equal(r.results[0].g, 'l');
+  assert.equal(r.results[0].id, pk);
+  assert.equal(r.results[0].pickup, true);
+  // 많이 뽑으면 영웅·전설 중 픽업 비율은 반 + 나머지 중 1/20
+  // 많이 뽑으면: 영웅 중 픽업 = 0.5 + 0.5/20 = 0.525, 전설은 천장 몫(늘 픽업)이 더해져 더 높다
+  const t = fresh(1e9), rng = mulberry(11), c = { h: [0, 0], l: [0, 0] };
+  for (let i = 0; i < 5000; i++) for (const x of P.pull(t, 10, 'gems', rng, { day }).results) if (x.g === 'h' || x.g === 'l') { c[x.g][0]++; if (x.id === pk) c[x.g][1]++; }
+  const rh = c.h[1] / c.h[0], rl = c.l[1] / c.l[0];
+  assert.ok(rh > 0.49 && rh < 0.56, 'hero ' + rh);
+  assert.ok(rl >= rh - 0.03 && rl < 0.66, 'legend ' + rl);   // 전설은 천장 몫(늘 픽업)만큼 조금 더
+});
+
+test('하루 무료 뽑기: 1번(월정액 등으로 더), 날이 바뀌면 다시', () => {
+  const s = fresh(0), d1 = '2026-11-22', d2 = '2026-11-23';
+  assert.equal(P.freeLeft(s, d1), 1);
+  P.pull(s, 1, 'free', Math.random, { day: d1 });
+  assert.equal(P.freeLeft(s, d1), 0);
+  assert.throws(() => P.pull(s, 1, 'free', Math.random, { day: d1 }), { code: 'NOT_ENOUGH' });
+  assert.equal(P.freeLeft(s, d1, 1), 1);
+  P.pull(s, 1, 'free', Math.random, { day: d1, freeExtra: 1 });
+  assert.equal(P.freeLeft(s, d2), 1);
+  assert.throws(() => P.pull(s, 10, 'free', Math.random, { day: d1 }), { code: 'BAD_COUNT' });
+  assert.equal(P.clean(s).free.day, d1);
+});
+
+test('세트 보너스: 종류 네 등급이면 보유 효과 두 배, 등급 20종이면 등급 보너스', () => {
+  const s = fresh();
+  ['c', 'r', 'h', 'l'].forEach(g => P.grant(s, 'corgi', g));
+  s.pets.eq = '';
+  assert.equal(P.bonus(s).pay, (0.5 + 1 + 2 + 3) * 2);
+  assert.equal(P.sets(s).species.corgi, true);
+  const t = fresh();
+  P.SPECIES.forEach(sp => P.grant(t, sp.id, 'c'));
+  t.pets.eq = '';
+  const b = P.bonus(t);
+  assert.equal(P.sets(t).grades.c, true);
+  // 일반 20종 보유(idle 갈래 0.5 × idle 종류 수) + 등급 세트 idle 5
+  const idleKinds = P.SPECIES.filter(x => x.own === 'idle').length;
+  assert.equal(b.idle, idleKinds * 0.5 + 5);
+});
+
+test('친밀도(0.4.0): 하루 한 번만 늘고, 단계가 오르면 보상 한 번', () => {
+  const s = fresh(0);
+  P.grant(s, 'corgi', 'c');
+  assert.throws(() => P.pat(s, 'tiger:l', '2026-11-22'), { code: 'NOT_OWNED' });
+  let r = P.pat(s, 'corgi:c', '2026-11-22');
+  assert.equal(r.counted, true); assert.equal(r.lv, 1);
+  assert.equal(P.pat(s, 'corgi:c', '2026-11-22').counted, false);
+  P.pat(s, 'corgi:c', '2026-11-23');
+  r = P.pat(s, 'corgi:c', '2026-11-24');
+  assert.equal(r.up, true); assert.equal(r.lv, 2);
+  assert.equal(s.pets.treats, 10);
+  const b = P.bondOf(s, 'corgi:c');
+  assert.equal(b.days, 3); assert.equal(b.since, '2026-11-22'); assert.equal(b.next, 4);
+  assert.deepEqual(P.clean(s).bond['corgi:c'].days, 3);
+});
+
+test('말: 종류마다 3마디 이상, 상황 말이 섞인다', () => {
+  P.SPECIES.forEach(sp => assert.ok(P.TALK[sp.id] && P.TALK[sp.id].length >= 3, sp.id));
+  const lines = new Set();
+  for (let i = 0; i < 200; i++) lines.add(P.talk('corgi', { hour: 8, capped: true, tickets: 2 }));
+  assert.ok(lines.has('좋은 아침이에요, 팀장님!'));
+  assert.ok(lines.has('팀장님, 주범 조가 기다려요!'));
+  assert.ok(lines.has('뽑기권 있어요! 친구 데려와요.'));
 });

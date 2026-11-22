@@ -55,8 +55,8 @@
     { id: 'case1', group: '사건', name: '골목의 평화', desc: '사건 1 종결', need: function (s) { return closed(s, 1); }, goal: 1, title: '골목 해결사', tickets: 3 },
     { id: 'case2', group: '사건', name: '안개가 걷히다', desc: '사건 2 종결', need: function (s) { return closed(s, 2); }, goal: 1, title: '해무항의 등대', tickets: 5 },
     { id: 'pet10', group: '말랑 수사대', name: '동물 친구', desc: '동물 10마리 모으기', need: function (s) { return petCount(s); }, goal: 10, title: '동물 친구', tickets: 2 },
-    { id: 'pet40', group: '말랑 수사대', name: '말랑 수집가', desc: '동물 40마리 모으기', need: function (s) { return petCount(s); }, goal: 40, title: '말랑 수집가', tickets: 5 },
-    { id: 'pet80', group: '말랑 수사대', name: '도감 완성', desc: '동물 80마리 모두 모으기', need: function (s) { return petCount(s); }, goal: 80, title: '말랑 도감 완성', gems: 100 },
+    { id: 'pet40', group: '말랑 수사대', name: '말랑 수집가', desc: '동물 50마리 모으기', need: function (s) { return petCount(s); }, goal: 50, title: '말랑 수집가', tickets: 5 },
+    { id: 'pet80', group: '말랑 수사대', name: '도감 완성', desc: '동물 120마리 모두 모으기', need: function (s) { return petCount(s); }, goal: 120, title: '말랑 도감 완성', gems: 150 },   // id 는 저장 호환으로 그대로(0.4.0: 80 → 120)
     { id: 'legend1', group: '말랑 수사대', name: '전설을 만나다', desc: '전설 동물 1마리', need: function (s) { return petCount(s, 'l'); }, goal: 1, title: '전설을 만난 자', tickets: 3 },
     { id: 'pull100', group: '말랑 수사대', name: '운명의 손', desc: '뽑기 100번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 100, title: '운명의 손', tickets: 5 }
   ];

@@ -10,6 +10,7 @@
   var UI = window.SuspectsUI, I = window.SuspectsIdle, E = window.Team3Economy;   // E: 상품·메달·특별 출동(0.1.19)
   var PT = window.Team3Pets, PUI = window.Team3PetsUI;   // 0.3.0 동물 뽑기(규칙 · 화면)
   var H = window.Team3Ach, AUI = window.Team3AchUI;      // 0.3.0 업적 · 칭호(규칙 · 화면)
+  var M = window.Team3Monet, SUI = window.Team3ShopUI;   // 0.4.0 상점 · 광고 자리 · 월정액 · 시즌 패스(규칙 · 화면)
   if (!UI || !I) return;
   var $ = function (id) { return document.getElementById(id); };
   var nowMs = function () { return Date.now(); };
@@ -20,9 +21,32 @@
 
   /* ---------- 0.3.0 동물 효과 ---------- */
   // 지금 켜진 동물 효과(사건 번호 · 기기 시각으로 개구리 · 부엉이 조건을 센다)
-  function petBonus(sv) { return PT ? PT.bonus(sv, { caseNo: sv.caseNo, hour: new Date().getHours() }) : null; }
+  function petBonus(sv) {
+    var b = PT ? PT.bonus(sv, { caseNo: sv.caseNo, hour: new Date().getHours() }) : null;
+    // 0.4.0 월정액: 자리 비움 한도 +분(동물 효과와 같은 갈래로 넘긴다)
+    var pk = M && sv.shop ? M.perks(sv, Date.now()) : null;
+    if (pk && pk.capMin) { b = b || (PT ? PT.zero() : { cap: 0 }); b.cap = (b.cap || 0) + pk.capMin; }
+    return b;
+  }
+  /*
+   * 0.4.0 다른 모듈이 주는 보상을 저장에 넣는 한 곳(상점 · 패스 · 광고): tickets · treats · outfit · pick
+   */
+  function grant(kind, v) {
+    if (!PT) return;
+    var p = save.pets;
+    if (kind === 'tickets') PT.addTickets(save, v);
+    else if (kind === 'treats') p.treats += v;
+    else if (kind === 'outfit' && PT.OUTFIT_BY[v]) p.closet[v] = true;
+    else if (kind === 'pick') p.picks[v] = (p.picks[v] || 0) + 1;
+    if (PUI) PUI.renderPartner();
+  }
+  // 광고 보상 "팀 회식 무료": 상점 회식과 같은 효과(토끼 효과 포함)
+  function freeParty() {
+    var b = petBonus(save), mul = 1 + (b && b.party ? b.party / 100 : 0);
+    save.partyUntil = Math.max(save.partyUntil || 0, nowMs()) + I.TUNE.partySec * mul * 1000;
+  }
   if (PT) I.setBonus(petBonus);
-  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); }
+  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); }
   /*
    * 업적 확인(0.3.0). 사무실을 그릴 때마다(1초) 본다 — 조건이 20개 남짓이라 가볍다.
    *   새로 달성하면 보상(배지 · 뽑기권)을 주고 저장, 사무실에서 차례로 알린다.
@@ -143,10 +167,15 @@
     ld.classList.toggle('empty', !save.profile.leader);
     $('h-money').textContent = '수사비 ' + fmtShort(save.money);
     checkAch();
+    // 0.4.0 월정액 하루 보상: 사무실에 오면 하루 한 번
+    if (M) { var sg = M.claimSub(save, nowMs(), dayNow()); if (sg) { persist(); UI.toast('3팀 월정액: 오늘의 배지 ◆' + sg); } }
     $('h-gems').textContent = '◆ ' + fmt(save.gems);
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
     // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
-    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(I.incomePerMin(save, t)) + '/분';
+    // 0.4.0 동물 효과가 보이게: 분당 수사비 중 동물(보유 + 파트너) 몫을 따로
+    var inc = I.incomePerMin(save, t), pb = PT ? petBonus(save) : null, petInc = 0;
+    if (pb && (pb.idle || pb.speed)) petInc = Math.round(inc - inc / ((1 + pb.idle / 100) * (1 + pb.speed / 100)));
+    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(inc) + '/분' + (petInc > 0 ? ' (동물 +' + fmt(petInc) + ')' : '');
     var b = $('h-buff');
     b.hidden = !buff;
     if (buff) {
@@ -512,13 +541,15 @@
    *   수사비 = 점수 × 계급 배수 × 언론 브리핑. 메달은 평소 출동만(처음 달성 보상). 특별 출동은 그날 메달 보상.
    *   보상의 기준값은 이 판을 넣기 전 값으로 잰다(이번 판 점수로 보상이 부풀지 않게).
    */
+  var lastDouble = null;   // 0.4.0 방금 출동의 "2배 받기" 한 번
   function onRunEnd(g) {
+    var d = null;
     addRun(I.advance(save, nowMs()));
     var cfg = runCfg || {}, base = E ? E.baseValue(save) : 0, best0 = save.bestScore, extra = '';
     runCfg = null;
     var r = I.applyRun(save, { score: g.score, hits: g.hits, payMult: cfg.payMult || 1 }, nowMs());
     if (E && cfg.daily) {
-      var d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
+      d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
       if (H) H.noteDaily(save, d.medal);   // 0.3.0 업적용 기록
       extra += d.medal
         ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달 · 수사비 +' + fmt(d.money) + ' · ◆' + d.gems + (PT ? ' · ' + giveTickets(1) : '') + '</span>'
@@ -529,9 +560,23 @@
       });
       if (g.score > best0 && best0 > 0) extra += '<span style="color:var(--acc);font-weight:700">최고 점수 경신! (전 기록 ' + fmt(best0) + ')</span>';
     }
+    // 0.4.0 시즌 패스 경험치 · 광고 보고 수사비 2배
+    if (M) {
+      var xr = M.addXp(save, dayNow(), M.runXp(g.score, d && d.medal));
+      extra += '<span class="res-pass">시즌 패스 +' + M.runXp(g.score, d && d.medal) + 'XP' + (xr.up ? ' · <b>' + xr.tier + '단계 달성!</b> 매점에서 보상을 받아요' : '') + '</span>';
+      lastDouble = null;
+      if (r.money > 0 && M.adLeft(save, 'double', dayNow()) > 0) {
+        lastDouble = { amt: r.money };
+        extra += '<button class="ghost res-double" id="res-double">' + (M.perks(save, nowMs()).adFree ? '' : '▶ 광고 보고 ') + '수사비 2배 받기 (+' + fmt(r.money) + ')</button>';
+      }
+    }
     persist();
     if (r.closedNow) pendingClose = true;
     var rk = I.rankOf(save);
+    // 0.4.0 이번 출동 수사비 중 동물 효과 몫(파트너 이름과 함께)
+    var pb2 = PT ? petBonus(save) : null, petPay = pb2 && pb2.pay ? Math.round(r.money - r.money / (1 + pb2.pay / 100)) : 0;
+    var partner = PT && save.pets.eq ? PT.nameOf(save, save.pets.eq) : '';
+    if (petPay > 0) extra = '<span class="res-pet">동물 효과 +' + fmt(petPay) + (partner ? ' · 파트너 ' + esc(partner) + ' 덕분이에요' : '') + '</span>' + extra;
     return '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ' · 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, CS().goal)) + ' / ' + CS().goal + ')</span>' +
       extra +
       '<span class="muted">팀 사기 충전: ' + (I.TUNE.buffSec / 60) + '분 동안 팀이 2배로 일해요</span>' +
@@ -653,6 +698,7 @@
     if (!$('info-sheet').hidden) closeInfo('cancel');
     else if (PUI && PUI.isOpen()) PUI.close();
     else if (AUI && AUI.isOpen()) AUI.close();
+    else if (SUI && SUI.isOpen()) SUI.close();
   });
   // 탭을 떠날 때·돌아올 때 저장과 반영
   document.addEventListener('visibilitychange', function () {
@@ -786,6 +832,7 @@
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }
     if (PUI && PUI.isOpen()) { PUI.close(); return 'stay'; }
     if (AUI && AUI.isOpen()) { AUI.close(); return 'stay'; }
+    if (SUI && SUI.isOpen()) { SUI.close(); return 'stay'; }
     return UI.back();
   };
 
@@ -796,8 +843,24 @@
   var away = I.advance(save, nowMs(), { offline: true });   // 앱을 끈 사이 = 자리 비움(절반 속도, 4시간까지)
   persist();
   // 창 모듈을 먼저 붙인다(첫 render 의 업적 확인이 알림을 띄울 수 있게)
-  if (PUI) PUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
+  if (PUI) PUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, freeExtra: function () { return M ? M.perks(save, nowMs()).freePulls : 0; } });
   if (AUI) AUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
+  if (SUI) SUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, grant: grant, freeParty: freeParty, day: dayNow });
+  // 출동 결과의 "수사비 2배 받기"(광고 자리): 한 번만
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('#res-double');
+    if (!b || !lastDouble || !SUI) return;
+    var amt = lastDouble.amt;
+    b.disabled = true;
+    SUI.watch('double', function () {
+      if (!lastDouble) return;
+      lastDouble = null;
+      save.money += amt;
+      b.textContent = '수사비 +' + fmt(amt) + ' 더 받았어요';
+      UI.sfx.coin();
+    });
+    setTimeout(function () { if (lastDouble) b.disabled = false; }, 3600);   // 광고를 못 끝냈으면 다시 누를 수 있게
+  });
   render();
   applyTheme();
   UI.show('s-hub');

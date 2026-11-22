@@ -515,7 +515,7 @@
     raf = requestAnimationFrame(loop);
   }
 
-  function sheetOpen() { return !$('quit-sheet').hidden || !$('info-sheet').hidden || !$('settings-sheet').hidden || !$('help-sheet').hidden || ($('pets-sheet') && !$('pets-sheet').hidden) || ($('ach-sheet') && !$('ach-sheet').hidden); }
+  function sheetOpen() { return !$('quit-sheet').hidden || !$('info-sheet').hidden || !$('settings-sheet').hidden || !$('help-sheet').hidden || ($('pets-sheet') && !$('pets-sheet').hidden) || ($('ach-sheet') && !$('ach-sheet').hidden) || ($('shop-sheet') && !$('shop-sheet').hidden); }
 
   function onCard(i) {
     if (!game || game.over || lock || sheetOpen()) return;
@@ -1056,6 +1056,12 @@
         '<p>같은 동물이 또 나오면 ★가 올라 효과가 세져요(★5까지). 그 뒤로는 <b>간식</b>이 되고, 간식으로 원하는 동물을 데려와요.</p>' +
         '<p>확률은 뽑기 창에 늘 공개돼요. ' + PT.PITY + '번 안에 전설이 안 나오면 전설 확정. ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>' +
         '<p>뽑기권은 처음 선물 ' + PT.WELCOME + '장 · 사건 종결 10장 · 승진 3장 · 첫 메달 2장 · 특별 출동 메달 1장. 배지로도 뽑을 수 있어요(1회 ◆' + PT.COST.one + ' · 10회 ◆' + PT.COST.ten + ').</p>');
+    }
+    if (window.Team3Monet) {
+      out += item('3팀 매점 · 시즌 패스',
+        '<p>사무실의 <b>배지(◆) 칸</b>을 누르면 매점이 열려요. 짧은 광고를 보면 뽑기권 · 팀 회식을 받을 수 있어요(하루 한도). 출동 결과에서는 수사비 2배도 받아요.</p>' +
+        '<p><b>시즌 패스</b>는 28일마다 새로 시작해요. 출동할 때마다 경험치가 쌓여 단계가 열리고, 무료 줄 보상은 누구나 받아요.</p>' +
+        '<p>새내기 꾸러미 · 월정액 · 배지 묶음 · 패스 프리미엄은 출시 때 결제가 열려요. 돈으로 퍼즐 실력은 팔지 않아요.</p>');
     }
     if (window.Team3Ach) {
       out += item('업적 · 칭호 · 이름',
