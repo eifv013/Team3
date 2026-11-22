@@ -331,7 +331,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 /* 출동 기록판 */
 .t-rec{background:var(--panel);border:1px solid #262D39;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .t-rec h4{margin:0;font-size:14px;display:flex;justify-content:space-between}.t-rec h4 small{color:var(--muted);font-weight:700;font-size:12px}
-.rec-bars{display:flex;align-items:flex-end;gap:8px;height:84px;padding-top:16px}
+.rec-bars{display:flex;align-items:flex-end;gap:8px;height:70px;padding-top:16px}
 .rec-bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
 .rec-bars i{width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--acc),#B8901A);position:relative;min-height:3px}
 .rec-bars i em{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-style:normal;font-size:10px;font-weight:800;color:var(--text);white-space:nowrap}
@@ -1422,6 +1422,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
         </div>
       </div>
       <div class="tab scroll" id="t-run" data-tab="run" aria-label="출동">
+        <!-- 0.8.1 출동 기록은 맨 위(준비물 위)에 — 아래에 두면 아무도 안 본다 -->
+        <div class="t-rec" id="h-rec"></div>
     <!-- 출동 준비물(0.1.19): 다음 출동 한 번에 챙겨 가는 소모품. 누르면 챙기고, 챙긴 걸 누르면 무른다 -->
     <div class="prep">
       <div class="prep-head"><span class="prep-title"><span class="section-t" style="margin:0">출동 준비물</span><button class="prep-help" id="h-prep-help" aria-label="출동 준비물 효과 보기">?</button></span><span class="medals" id="h-medals"></span></div>
@@ -1441,7 +1443,6 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     <div class="shop" id="h-gear"></div>
         <span class="section-t">공용 장비 <small class="cr-sub">사건마다 2개씩 열려요</small></span>
         <div class="shop" id="h-kit"></div>
-        <div class="t-rec" id="h-rec"></div>
       </div>
       <div class="tab scroll on" id="t-home" data-tab="home" aria-label="상황실">
     <div class="casebox">
@@ -1763,6 +1764,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.8.1', date: '2026-11-23', title: '어디서든 좌우로 밀기',
+      items: ['증거판 · 상황실 그림 위에서도 화면을 좌우로 밀어 탭을 옮길 수 있어요(파트너를 끌 때만 빼고).', '출동 기록을 출동 탭 맨 위로 올렸어요.'] },
     { ver: '0.8.0', date: '2026-11-22', title: '아래 메뉴 · 상황실이 메인',
       items: [
         '아래 메뉴가 생겼어요: 팀 · 출동 · 상황실(가운데) · 증거 · 파트너. 화면을 좌우로 밀어도 옮겨져요. 맨 위 수사비 · 난이도 · 배지는 어느 탭에서나 보여요.',
@@ -11335,8 +11338,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
   function swipe() {
     var box = $('h-tabs'), sx = null, sy = 0, st = 0;
     box.addEventListener('touchstart', function (e) {
-      // 끌어 옮기는 것(파트너) · 증거판 칸 · 가로로 넘기는 줄 위에서는 밀기를 하지 않는다
-      if (e.target.closest('#of-pet, #ev-board, .office, input, textarea, .swap')) { sx = null; return; }
+      // 0.8.1: 끌어 옮기는 파트너 · 글 넣는 칸 위에서만 밀기를 하지 않는다(증거판 · 상황실은 누르기만 해서 밀어도 된다)
+      if (e.target.closest('#of-pet, input, textarea')) { sx = null; return; }
       sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
     }, { passive: true });
     box.addEventListener('touchend', function (e) {
