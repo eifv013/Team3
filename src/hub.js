@@ -9,6 +9,7 @@
   'use strict';
   var UI = window.SuspectsUI, I = window.SuspectsIdle, E = window.Team3Economy;   // E: 상품·메달·특별 출동(0.1.19)
   var PT = window.Team3Pets, PUI = window.Team3PetsUI;   // 0.3.0 동물 뽑기(규칙 · 화면)
+  var OF = window.Team3Office, OUI = window.Team3OfficeUI;   // 0.6.0 살아 있는 사무실(유치장 · 커피 · 장면)
   var H = window.Team3Ach, AUI = window.Team3AchUI;      // 0.3.0 업적 · 칭호(규칙 · 화면)
   var M = window.Team3Monet, SUI = window.Team3ShopUI;   // 0.4.0 상점 · 광고 자리 · 월정액 · 시즌 패스(규칙 · 화면)
   if (!UI || !I) return;
@@ -46,14 +47,15 @@
     save.partyUntil = Math.max(save.partyUntil || 0, nowMs()) + I.TUNE.partySec * mul * 1000;
   }
   if (PT) I.setBonus(petBonus);
-  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); }
+  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); if (OF) OF.clean(save); }
   /*
    * 업적 확인(0.3.0). 사무실을 그릴 때마다(1초) 본다 — 조건이 20개 남짓이라 가볍다.
    *   새로 달성하면 보상(배지 · 뽑기권)을 주고 저장, 사무실에서 차례로 알린다.
    */
   function checkAch() {
     if (!H) return;
-    var got = H.check(save, PT ? PT.addTickets : null);
+    var got = H.check(save);   // 0.6.0: 보상은 트로피에서 눌러 받는다
+    if (AUI) AUI.dot();
     if (!got.length) return;
     persist();
     if (PUI) PUI.renderPartner();
@@ -157,8 +159,28 @@
   }
 
   /* ---------- 그리기 ---------- */
+  /* 0.6.0 붙는 줄: 큰 수사비가 화면 위로 지나가면 보인다. 내용은 render 마다 */
+  function renderMini(incPerMin, petInc) {
+    var m = $('h-mini'); if (!m) return;
+    var IC = window.Team3Icons;
+    $('hm-money').textContent = '수사비 ' + fmtShort(save.money);
+    $('hm-gems').innerHTML = (IC ? IC.icon('gem') : '◆') + fmt(save.gems);
+    $('hm-rate').textContent = '+' + fmtShort(incPerMin) + '/분' + (petInc > 0 ? ' (동물 +' + fmtShort(petInc) + ')' : '');
+    var cs = I.caseOf(save);
+    $('hm-case').textContent = '사건 ' + cs.no + ' · ' + cs.title + ' · ' + fmt(Math.min(save.caught, cs.goal)) + ' / ' + fmt(cs.goal);
+    $('hm-fill').style.width = (I.progress(save) * 100).toFixed(1) + '%';
+    var x = PT && save.pets && save.pets.eq ? PT.parse(save.pets.eq) : null, pe = $('hm-pet'), key = x ? save.pets.eq : '';
+    if (pe.getAttribute('data-k') !== key) { pe.setAttribute('data-k', key); pe.innerHTML = x && window.Team3PetArt ? window.Team3PetArt.draw(x.id, { grade: x.g }) : ''; }
+  }
+  function miniScroll() {
+    var hub = $('s-hub'), m = $('h-mini'), money = $('h-money'); if (!hub || !m || !money) return;
+    var show = money.getBoundingClientRect().bottom < hub.getBoundingClientRect().top + 4;
+    if (show !== m.classList.contains('show')) { m.classList.toggle('show', show); m.setAttribute('aria-hidden', show ? 'false' : 'true'); }
+  }
+
   function render() {
     var t = nowMs(), buff = I.buffed(save, t);
+    if (OUI) OUI.tick();   // 0.6.0 사무실 장면(형사 수 · 날씨 · 사기 충전)
     // 내 자리: 사용자가 넣은 이름이라 textContent 로만 넣는다
     $('h-station').textContent = save.profile.station + ' · 수사 3팀';
     var ld = $('h-leader');
@@ -180,6 +202,7 @@
     var inc = I.incomePerMin(save, t), pb = PT ? petBonus(save) : null, petInc = 0;
     if (pb && (pb.idle || pb.speed)) petInc = Math.round(inc - inc / ((1 + pb.idle / 100) * (1 + pb.speed / 100)));
     $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(inc) + '/분' + (petInc > 0 ? ' (동물 +' + fmt(petInc) + ')' : '');
+    renderMini(inc, petInc);
     var b = $('h-buff');
     b.hidden = !buff;
     if (buff) {
@@ -239,12 +262,39 @@
   function icon(id) { return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (PREP_ICON[id] || '') + '</svg>'; }
   function dayNow() { return E.dayKey(nowMs(), new Date().getTimezoneOffset()); }
 
+  /*
+   * 0.6.0 준비물 효과 글: 지금 사건의 퍼즐(set · witness · lineup)에 맞게. "어디에도 설명이 없음" → ? 단추 · 챙긴 것 줄에서 쓴다
+   */
+  function prepDesc(id) {
+    var mode = I.caseOf(save).mode;
+    if (id === 'tip') return mode === 'witness' ? '첫 문제의 거짓 진술을 미리 짚어 줘요' : mode === 'lineup' ? '첫 줄에서 아닌 자리 절반을 미리 지워 줘요' : '출동을 시작할 때 한 패 하나를 미리 표시해 줘요';
+    if (id === 'lawyer') return mode === 'witness' ? '오인 · 함정 체포 벌점을 2번 막아 줘요' : mode === 'lineup' ? '오인 지목 벌점을 2번 막아 줘요' : '오인 체포 벌점을 2번 막아 줘요';
+    if (id === 'sketch') return '단서(돋보기)를 2번 무료로 써요';
+    if (id === 'coffee') return '출동 시간 +15초';
+    if (id === 'press') return '이번 출동으로 버는 수사비 1.5배';
+    var it = E.ITEMS.filter(function (x) { return x.id === id; })[0];
+    return it ? it.desc : '';
+  }
+  function showPrepHelp() {
+    var t = nowMs();
+    openInfo({ label: '다음 현장 출동 한 번에 챙겨 가요', title: '준비물 효과',
+      body: '<div class="prep-list">' + E.PREP_IDS.map(function (id) {
+        var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], on = E.owned(save, id, t);
+        return '<div><b>' + esc(it.name) + (on ? ' · 챙김 ✓' : '') + '</b><span>' + esc(prepDesc(id)) + '</span><small>' + (on ? '챙긴 걸 다시 누르면 무르고 돌려받아요' : '수사비 ' + fmt(E.price(save, id, 'money')) + ' (모자라면 배지로)') + '</small></div>';
+      }).join('') + '</div>' + p('<span class="muted">출동을 한 번 하면 다 써요. 특별 출동에는 준비물을 쓰지 않아요.</span>'),
+      readOnly: true });
+  }
+
   function renderPrep(t) {
     $('h-prep').innerHTML = E.PREP_IDS.map(function (id) {
       var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], on = E.owned(save, id, t), c = E.price(save, id, 'money');
-      return '<button class="chip' + (on ? ' on' : '') + (!on && save.money < c ? ' poor' : '') + '" data-prep="' + id + '" aria-pressed="' + on + '" aria-label="' + it.name + ', ' + it.desc + (on ? ', 챙김(누르면 무르기)' : ', ' + fmt(c)) + '">' +
+      return '<button class="chip' + (on ? ' on' : '') + (!on && save.money < c ? ' poor' : '') + '" data-prep="' + id + '" aria-pressed="' + on + '" aria-label="' + it.name + ', ' + prepDesc(id) + (on ? ', 챙김(누르면 무르기)' : ', ' + fmt(c)) + '">' +
         icon(id) + '<b>' + SHORT[id] + '</b><small>' + (on ? '챙김 ✓' : fmtShort(c)) + '</small></button>';
     }).join('');
+    var packed = E.PREP_IDS.filter(function (id) { return E.owned(save, id, t); });
+    // 챙긴 것은 한 줄에 하나씩(이어 붙이면 문장이 길게 꺾인다)
+    $('h-prep-now').innerHTML = packed.length ? packed.map(function (id) { return '<span class="pn-row"><b>' + SHORT[id] + '</b> ' + esc(prepDesc(id)) + '</span>'; }).join('')
+      : '누르면 다음 출동에 챙겨 가요 · 효과는 <b>?</b> 를 눌러 보세요';
     $('h-medals').innerHTML = E.MEDALS.map(function (m) {
       return '<i class="' + m.key + (save.medals[m.key] ? ' on' : '') + '" title="' + m.name + ' 메달 ' + fmt(m.at) + '점">' + m.name + ' ' + fmtShort(m.at) + '</i>';
     }).join('');
@@ -281,7 +331,7 @@
       if (e.code !== 'NOT_ENOUGH') { UI.toast(e.code === 'ALREADY' ? '이미 챙겼어요' : '살 수 없어요: ' + e.message); return; }
       var g = E.price(save, id, 'gems'), it = E.ITEMS.filter(function (x) { return x.id === id; })[0];
       if (g == null || save.gems < g) { UI.toast('수사비가 모자라요'); return; }
-      openInfo({ label: '배지로 사기', title: it.name, body: p(it.desc) + p('<span class="muted">수사비가 모자라요. 배지 ◆' + g + '개로 살까요? (가진 배지 ◆' + fmt(save.gems) + ')</span>'),
+      openInfo({ label: '배지로 사기', title: it.name, body: p(esc(prepDesc(id))) + p('<span class="muted">수사비가 모자라요. 배지 ◆' + g + '개로 살까요? (가진 배지 ◆' + fmt(save.gems) + ')</span>'),
         ok: '◆' + g + '개로 사기', cancel: '취소',
         onOk: function () { try { E.buy(save, id, nowMs(), 'gems'); done(); } catch (e2) { UI.toast('살 수 없어요: ' + e2.message); } } });
     }
@@ -312,7 +362,8 @@
     $('info-title').textContent = o.title || '';
     $('info-body').innerHTML = o.body || '';
     $('info-ok').hidden = !!o.readOnly;
-    $('info-ok').textContent = o.ok || '확인';
+    // 0.6.0: 단추 글자의 ◆ 는 배지 아이콘으로(글자는 내부 문구뿐이라 이스케이프 뒤 바꾼다)
+    $('info-ok').innerHTML = esc(o.ok || '확인').replace(/◆/g, window.Team3Icons ? window.Team3Icons.icon('gem') : '◆');
     var c = $('info-cancel');
     c.hidden = !o.cancel;
     c.textContent = o.cancel || '취소';
@@ -623,6 +674,8 @@
   function tick() {
     var t = nowMs(), r = I.advance(save, t);
     addRun(r);
+    if (OF && r.catches) OF.addCatches(save, r.catches);   // 0.6.0 유치장(출동 중에도 모인다)
+    if (OUI && r.catches && $('s-hub').classList.contains('on')) OUI.caught(r.catches);
     if ($('s-hub').classList.contains('on')) {
       render();
       if (r.catches) { renderNext(t, true); showGain(r); }
@@ -678,8 +731,11 @@
     if (b && !b.disabled) tryBuy(b.getAttribute('data-gear'));
   });
   $('h-story-all').addEventListener('click', showStory);
+  $('s-hub').addEventListener('scroll', miniScroll, { passive: true });
+  $('h-mini').addEventListener('click', function () { $('s-hub').scrollTo({ top: 0, behavior: 'smooth' }); });   // 붙는 줄을 누르면 맨 위로
   $('h-next-case').addEventListener('click', function () { if (I.nextCase(save)) goNextCase(); });
   if (E) {
+    $('h-prep-help').addEventListener('click', showPrepHelp);
     $('h-prep').addEventListener('click', function (e) {
       var b = e.target.closest('[data-prep]'); if (!b) return;
       var id = b.getAttribute('data-prep');
@@ -845,10 +901,13 @@
   save = loaded.save;
   petsReady();   // 동물 저장 검사는 자리 비움 계산(한도 효과) 전에
   var away = I.advance(save, nowMs(), { offline: true });   // 앱을 끈 사이 = 자리 비움(절반 속도, 4시간까지)
+  if (OF && away.catches) OF.addCatches(save, away.catches);   // 0.6.0 자리를 비운 동안 잡은 사람도 유치장에(돌아와서 이송하는 맛)
   persist();
   // 창 모듈을 먼저 붙인다(첫 render 의 업적 확인이 알림을 띄울 수 있게)
   if (PUI) PUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, freeExtra: function () { return M ? M.perks(save, nowMs()).freePulls : 0; } });
   if (AUI) AUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
+  if (OUI) OUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, idle: I, pets: PT, art: window.Team3PetArt, petsUI: PUI,
+    progress: function () { return I.progress(save); }, capped: function () { return I.idleCapped(save); }, buffed: function (t) { return I.buffed(save, t); } });
   if (SUI) SUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, grant: grant, freeParty: freeParty, day: dayNow });
   // 출동 결과의 "수사비 2배 받기"(광고 자리): 한 번만
   document.addEventListener('click', function (e) {

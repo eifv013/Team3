@@ -27,6 +27,11 @@
     Object.keys(own).forEach(function (k) { if (!grade || k.slice(-2) === ':' + grade) n += 1; });
     return n;
   }
+  function starCount(save, star) {
+    var own = save.pets && save.pets.own || {}, n = 0;
+    Object.keys(own).forEach(function (k) { if (own[k] >= star) n += 1; });
+    return n;
+  }
   function closed(save, no) {
     if ((save.past || []).some(function (x) { return x.no === no; })) return 1;
     return save.caseNo === no && save.closed ? 1 : 0;
@@ -58,7 +63,27 @@
     { id: 'pet40', group: '말랑 수사대', name: '말랑 수집가', desc: '동물 50마리 모으기', need: function (s) { return petCount(s); }, goal: 50, title: '말랑 수집가', tickets: 5 },
     { id: 'pet80', group: '말랑 수사대', name: '도감 완성', desc: '동물 120마리 모두 모으기', need: function (s) { return petCount(s); }, goal: 120, title: '말랑 도감 완성', gems: 150 },   // id 는 저장 호환으로 그대로(0.4.0: 80 → 120)
     { id: 'legend1', group: '말랑 수사대', name: '전설을 만나다', desc: '전설 동물 1마리', need: function (s) { return petCount(s, 'l'); }, goal: 1, title: '전설을 만난 자', tickets: 3 },
-    { id: 'pull100', group: '말랑 수사대', name: '운명의 손', desc: '뽑기 100번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 100, title: '운명의 손', tickets: 5 }
+    { id: 'pull100', group: '말랑 수사대', name: '운명의 손', desc: '뽑기 100번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 100, title: '운명의 손', tickets: 5 },
+    // 0.6.0 업적 늘리기(31개 → 50개). 받기는 눌러서(claim) — 달성하면 빨간 점
+    { id: 'run10', group: '현장', name: '몸이 풀렸다', desc: '현장 출동 10번', need: function (s) { return s.runs; }, goal: 10, title: '현장 체질', tickets: 1 },
+    { id: 'run1000', group: '현장', name: '천 번의 출동', desc: '현장 출동 1,000번', need: function (s) { return s.runs; }, goal: 1000, title: '살아 있는 기록', tickets: 10, gems: 50 },
+    { id: 'catch20k', group: '현장', name: '검거 기계', desc: '현장에서 직접 20,000명 검거', need: function (s) { return s.runCaught; }, goal: 20000, title: '검거 기계', tickets: 8, gems: 40 },
+    { id: 'score5k', group: '점수', name: '감이 왔다', desc: '출동 점수 5,000', need: function (s) { return s.bestScore; }, goal: 5000, title: '감 좋은 형사', tickets: 2 },
+    { id: 'score40k', group: '점수', name: '전설의 한 판', desc: '출동 점수 40,000', need: function (s) { return s.bestScore; }, goal: 40000, title: '전설의 한 판', tickets: 8, gems: 50 },
+    { id: 'daily20', group: '점수', name: '특별 출동 단골', desc: '특별 출동 메달 20번', need: function (s) { return st(s, 'dailyMedals'); }, goal: 20, title: '특별 출동 단골', tickets: 4, gems: 10 },
+    { id: 'gold10', group: '점수', name: '금메달 수집가', desc: '특별 출동 금메달 10번', need: function (s) { return st(s, 'dailyGold'); }, goal: 10, title: '금빛 수집가', tickets: 5, gems: 30 },
+    { id: 'det5', group: '사무실', name: '한 팀이 되다', desc: '형사 5명', need: function (s) { return s.detectives; }, goal: 5, title: '팀장다운 팀장', tickets: 1 },
+    { id: 'det60', group: '사무실', name: '한 개 서', desc: '형사 60명', need: function (s) { return s.detectives; }, goal: 60, title: '서장급 팀장', tickets: 6, gems: 30 },
+    { id: 'train5', group: '사무실', name: '땀의 결실', desc: '합동 훈련 5단계', need: function (s) { return s.training; }, goal: 5, title: '훈련광', tickets: 2 },
+    { id: 'team1k', group: '사무실', name: '팀이 잡은 천 명', desc: '팀(방치)이 잡은 1,000명', need: function (s) { return s.teamCaught || 0; }, goal: 1000, title: '든든한 팀', tickets: 2 },
+    { id: 'team10k', group: '사무실', name: '팀이 잡은 만 명', desc: '팀(방치)이 잡은 10,000명', need: function (s) { return s.teamCaught || 0; }, goal: 10000, title: '만 명의 팀', tickets: 5, gems: 20 },
+    { id: 'send100', group: '사무실', name: '호송 반장', desc: '유치장에서 100명 이송', need: function (s) { return s.office && s.office.sent || 0; }, goal: 100, title: '호송 반장', tickets: 2 },
+    { id: 'send1000', group: '사무실', name: '호송 대장', desc: '유치장에서 1,000명 이송', need: function (s) { return s.office && s.office.sent || 0; }, goal: 1000, title: '호송 대장', tickets: 5, gems: 20 },
+    { id: 'case3', group: '사건', name: '기억의 끝', desc: '사건 3 종결', need: function (s) { return closed(s, 3); }, goal: 1, title: '면통실의 눈', tickets: 8, gems: 30 },
+    { id: 'star5', group: '말랑 수사대', name: '★5 단짝', desc: '★5 동물 1마리', need: function (s) { return starCount(s, 5); }, goal: 1, title: '단짝 조련사', tickets: 3 },
+    { id: 'legend5', group: '말랑 수사대', name: '전설의 무리', desc: '전설 동물 5마리', need: function (s) { return petCount(s, 'l'); }, goal: 5, title: '전설 사냥꾼', tickets: 6, gems: 30 },
+    { id: 'closet3', group: '말랑 수사대', name: '옷장 정리', desc: '동물 옷 3벌 모으기', need: function (s) { return s.pets && s.pets.closet ? Object.keys(s.pets.closet).length : 0; }, goal: 3, title: '패셔니스타', tickets: 2 },
+    { id: 'pull500', group: '말랑 수사대', name: '뽑기의 달인', desc: '뽑기 500번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 500, title: '뽑기의 달인', tickets: 10, gems: 30 }
   ];
   // 배지로 사는 칭호(꾸미기)
   var SHOP = [
@@ -81,9 +106,12 @@
   function isTitle(id) { return !!(BY_ID[id] || SHOP_BY[id]); }
   /** 저장 속 ach 를 검사해 깨끗하게(없으면 빈 값). save.ach 를 돌려준다 */
   function clean(save) {
-    var d = save.ach && typeof save.ach === 'object' ? save.ach : {}, a = { got: {}, bought: {}, title: '', pet: {}, stat: { dailyMedals: 0, dailyGold: 0 } };
+    var d = save.ach && typeof save.ach === 'object' ? save.ach : {}, a = { got: {}, claimed: {}, bought: {}, title: '', pet: {}, stat: { dailyMedals: 0, dailyGold: 0 } };
     var got = d.got && typeof d.got === 'object' ? d.got : {};
     Object.keys(got).forEach(function (k) { if (got[k] === true && BY_ID[k]) a.got[k] = true; });
+    // 0.6.0 보상은 눌러서 받는다(claimed). 예전 저장(claimed 없음)은 달성 때 이미 받았으므로 모두 받은 것으로
+    var cl = d.claimed && typeof d.claimed === 'object' ? d.claimed : null;
+    Object.keys(a.got).forEach(function (k) { if (!cl || cl[k] === true) a.claimed[k] = true; });
     var bo = d.bought && typeof d.bought === 'object' ? d.bought : {};
     Object.keys(bo).forEach(function (k) { if (bo[k] === true && SHOP_BY[k]) a.bought[k] = true; });
     var sd = d.stat && typeof d.stat === 'object' ? d.stat : {};
@@ -114,21 +142,34 @@
     return LIST.map(function (x) {
       var v = 0;
       try { v = +x.need(save) || 0; } catch (e) { v = 0; }
-      return { a: x, value: Math.min(v, x.goal), done: !!a.got[x.id], ready: !a.got[x.id] && v >= x.goal };
+      return { a: x, value: Math.min(v, x.goal), done: !!a.got[x.id], ready: !a.got[x.id] && v >= x.goal, claim: !!a.got[x.id] && !a.claimed[x.id] };
     });
   }
   /**
-   * 새로 달성한 업적을 처리한다: 표시하고 보상을 준다(뽑기권은 addTickets 로, 동물 모듈이 없으면 건너뛴다).
+   * 새로 달성한 업적을 표시한다(칭호는 바로 쓸 수 있다). 0.6.0: 보상은 바로 주지 않고 claim 으로 받는다(빨간 점).
    * 반환: 새로 달성한 업적 목록
    */
-  function check(save, addTickets) {
+  function check(save) {
     var a = A(save), out = [];
     status(save).forEach(function (r) {
       if (!r.ready) return;
       a.got[r.a.id] = true;
-      if (r.a.gems) save.gems = (save.gems || 0) + r.a.gems;
-      if (r.a.tickets && typeof addTickets === 'function') addTickets(save, r.a.tickets);
       out.push(r.a);
+    });
+    return out;
+  }
+  /** 받을 보상이 남은 업적 수 */
+  function unclaimed(save) { var a = A(save); return Object.keys(a.got).filter(function (k) { return !a.claimed[k]; }).length; }
+  /** 보상 받기. id 없으면 모두. 반환 { n, tickets, gems } */
+  function claim(save, id, addTickets) {
+    var a = A(save), ids = id ? [id] : Object.keys(a.got).filter(function (k) { return !a.claimed[k]; }), out = { n: 0, tickets: 0, gems: 0 };
+    if (id && !a.got[id]) throw AchError('NOT_DONE', '아직 달성 안 한 업적');
+    if (id && a.claimed[id]) throw AchError('ALREADY', '이미 받은 보상');
+    ids.forEach(function (k) {
+      var x = BY_ID[k]; if (!x || a.claimed[k]) return;
+      a.claimed[k] = true; out.n += 1;
+      if (x.gems) { save.gems = (save.gems || 0) + x.gems; out.gems += x.gems; }
+      if (x.tickets) { out.tickets += x.tickets; if (typeof addTickets === 'function') addTickets(save, x.tickets); }
     });
     return out;
   }
@@ -170,7 +211,7 @@
 
   return {
     LIST: LIST, SHOP: SHOP, BY_ID: BY_ID, TITLE_MAX: TITLE_MAX,
-    clean: clean, status: status, check: check, noteDaily: noteDaily, buy: buy, has: has, owned: owned, titleText: titleText,
+    clean: clean, status: status, check: check, claim: claim, unclaimed: unclaimed, noteDaily: noteDaily, buy: buy, has: has, owned: owned, titleText: titleText,
     setTitle: setTitle, setPetTitle: setPetTitle, leaderTitle: leaderTitle, petTitle: petTitle, progress: progress
   };
 });

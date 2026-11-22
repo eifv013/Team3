@@ -72,6 +72,7 @@
     var an = a.n && typeof a.n === 'object' ? a.n : {};
     Object.keys(an).forEach(function (k) { if (ADS[k]) s.ads.n[k] = int(an[k], 0, 0, 99); });
     var ps = d.pass && typeof d.pass === 'object' ? d.pass : {};
+    s.passStart = typeof d.passStart === 'string' && DAY_RE.test(d.passStart) ? d.passStart : '';
     s.pass = { season: int(ps.season, -1, -1, 1e6), xp: int(ps.xp, 0, 0, 1e7), free: {}, prem: {}, premium: ps.premium === true };
     ['free', 'prem'].forEach(function (t) {
       var o = ps[t] && typeof ps[t] === 'object' ? ps[t] : {};
@@ -157,7 +158,12 @@
    */
   var SEASON_DAYS = 28, TIERS = 30, TIER_XP = 100, EPOCH = Date.UTC(2026, 0, 5);
   function dayNum(day) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day || ''); return m ? Math.floor((Date.UTC(+m[1], +m[2] - 1, +m[3]) - EPOCH) / D) : 0; }
-  function season(day) { var n = dayNum(day), s = Math.floor(n / SEASON_DAYS); return { no: s + 1, idx: s, left: (s + 1) * SEASON_DAYS - n }; }
+  /*
+   * 0.6.0 시즌은 플레이어마다: 시즌 패스를 처음 연 날(passStart)부터 28일씩. 누구나 시즌 1 · 28일로 시작한다.
+   *   (예전에는 2026-01-05 부터 다 같이 28일씩이라 출시 전인데 "시즌 12", 중간에 시작하면 남은 날이 모자랐다)
+   */
+  function season(day, start) { var n = dayNum(day) - (start ? dayNum(start) : dayNum(day)), s = Math.max(0, Math.floor(n / SEASON_DAYS)); return { no: s + 1, idx: s, left: (s + 1) * SEASON_DAYS - Math.max(0, n) }; }
+  function seasonOf(save, day) { var s = S(save); if (!s.passStart) { s.passStart = day; s.pass.season = 0; } return season(day, s.passStart); }
   function reward(track, t) {
     // t: 1..TIERS
     if (track === 'free') return t % 5 === 0 ? { tickets: 2 } : t % 2 === 0 ? { treats: 10 } : { gems: 5 };
@@ -165,7 +171,7 @@
     return t % 10 === 0 ? { tickets: 5, gems: 30 } : t % 5 === 0 ? { tickets: 3 } : t % 2 === 0 ? { gems: 15 } : { tickets: 1, treats: 10 };
   }
   function passOf(save, day) {
-    var s = S(save), se = season(day);
+    var s = S(save), se = seasonOf(save, day);   // 처음이면 오늘부터 시즌 1(예전 저장은 경험치 · 받은 보상을 그대로 시즌 1로 옮긴다)
     if (s.pass.season !== se.idx) s.pass = { season: se.idx, xp: 0, free: {}, prem: {}, premium: false };   // 새 시즌: 처음부터(프리미엄도 시즌마다)
     return s.pass;
   }
@@ -198,7 +204,7 @@
   }
 
   return {
-    PRODUCTS: PRODUCTS, BY_ID: BY_ID, SUB: SUB, ADS: ADS, SEASON_DAYS: SEASON_DAYS, TIERS: TIERS, TIER_XP: TIER_XP,
+    PRODUCTS: PRODUCTS, BY_ID: BY_ID, SUB: SUB, ADS: ADS, SEASON_DAYS: SEASON_DAYS, seasonOf: seasonOf, TIERS: TIERS, TIER_XP: TIER_XP,
     clean: clean, visible: visible, starterLeft: starterLeft, applyPurchase: applyPurchase,
     subActive: subActive, subDaysLeft: subDaysLeft, claimSub: claimSub, perks: perks,
     adLimit: adLimit, adLeft: adLeft, adUse: adUse,

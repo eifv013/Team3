@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수사 3팀 · 철수(재시작) 새 아이디어 시안</title>
+<!--
+  철수(프레스티지) 아이디어 넷. 모두 시간을 빨리 돌린 시험판(1초 = 게임 속 몇 분).
+  ① 되감기: 써드가 같은 날을 되풀이시킨다. 되감을 때마다 "데자뷔"가 쌓이고, 되감기를 해야만 열리는 일지 줄이 있다.
+  ② 세대교체: 형사들이 은퇴해 명예의 전당에 걸린다. 은퇴한 형사마다 제 특기(영구 보너스)를 남긴다. 신입은 새 특기를 들고 온다.
+  ③ 증거 보드: 철수로 받은 단서로 보드에 증거를 핀으로 꽂는다. 같은 색끼리 이웃하면 붉은 실로 이어져 콤보.
+  ④ 전근: 다른 도시 경찰서로 발령. 도시마다 규칙이 다르고, 거쳐 간 도시마다 인맥(영구 보너스)이 남는다.
+-->
+<style>
+:root{--bg:#12151C;--panel:#1C212B;--panel2:#252B37;--line:#323A48;--text:#EEF1F6;--muted:#97A1B3;--acc:#FFD23F;--ink:#1B1E24;--ok:#3DDC84;--miss:#FF6B6B;--red:#D2343A}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans KR','Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+body{max-width:440px;margin:0 auto;min-height:100vh;padding-bottom:40px}
+button{font:inherit;cursor:pointer}
+.top{position:sticky;top:0;z-index:10;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+.label{font-size:12px;color:var(--muted);font-weight:600}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.tabs button{height:40px;border-radius:10px;border:1.5px solid var(--line);background:none;color:var(--muted);font-weight:800;font-size:13px;white-space:nowrap;padding:0 2px}
+.tabs button.on{border-color:var(--acc);color:var(--acc);background:rgba(255,210,63,.08)}
+.pane{display:none;padding:12px 14px}.pane.on{display:block}
+.about{background:var(--panel);border-radius:14px;padding:12px;font-size:13px;line-height:1.6;color:#C9D0DC}
+.about h3{margin:0 0 4px;font-size:17px;color:var(--text)}
+.about b{color:var(--text)}
+.about ul{margin:6px 0 0;padding-left:18px}
+.card{background:var(--panel);border-radius:14px;padding:12px;margin-top:10px;border:1px solid var(--line)}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:3px 0}
+.row b{font-variant-numeric:tabular-nums}
+.bar{height:12px;border-radius:6px;background:var(--panel2);overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#FFB13F,var(--acc));width:0}
+.big{width:100%;height:56px;border-radius:14px;border:0;margin-top:10px;background:linear-gradient(90deg,#FFB13F,var(--acc));color:var(--ink);font-weight:900;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.big small{font-size:12px;font-weight:700}
+.big:disabled{background:#2A2F3A;color:#8A919E;border:1.5px dashed #4A5160;cursor:default}
+.toast{position:fixed;left:50%;top:120px;transform:translateX(-50%);z-index:50;background:var(--acc);color:var(--ink);font-weight:800;padding:10px 16px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.4);animation:toast 2s ease-out forwards;pointer-events:none;white-space:nowrap}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-10px)}12%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0}}
+.good{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6}
+.good b{color:var(--ok)}.good em{font-style:normal;color:var(--miss);font-weight:700}
+
+/* ① 되감기 */
+.loop-clock{position:relative;width:120px;height:120px;margin:4px auto 0;border-radius:50%;background:#F4EFE2;border:6px solid #2A2F3A;box-shadow:0 0 0 2px #4A5263}
+.loop-clock i{position:absolute;left:50%;bottom:50%;width:3px;background:#1B1E24;transform-origin:bottom;border-radius:2px}
+.loop-clock .h{height:30px}.loop-clock .m{height:44px;width:2px}
+.loop-clock b{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px;border-radius:50%;background:var(--red)}
+.loop-clock.rew{animation:rew 1.2s ease-in-out}
+@keyframes rew{50%{transform:rotate(-720deg) scale(1.1);filter:sepia(1) hue-rotate(-30deg)}}
+.dayline{text-align:center;font-weight:800;margin-top:6px}
+.journal{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.jl{padding:8px 10px;border-radius:8px;background:#EFE8D8;color:#1E1A14;font-size:13px;line-height:1.5;font-weight:600}
+.jl.lock{background:var(--panel2);color:var(--muted);font-weight:600}
+.jl.new{animation:jnew 1s ease-out}
+@keyframes jnew{from{background:#FFE27A;transform:scale(1.03)}}
+.sepia{position:fixed;inset:0;z-index:40;pointer-events:none;background:radial-gradient(circle,rgba(255,226,150,.0),rgba(120,80,20,.65));animation:sepia 1.3s ease-out forwards}
+@keyframes sepia{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+
+/* ② 세대교체 */
+.squad{display:grid;grid-template-columns:1fr;gap:6px;margin-top:6px}
+.det{background:var(--panel2);border-radius:12px;padding:8px;display:flex;gap:8px;align-items:center;min-width:0}
+.det svg{width:40px;height:44px;flex:none}
+.det .tx{min-width:0;display:flex;flex-direction:column;gap:2px}
+.det b{font-size:13px}.det small{font-size:11px;color:var(--muted);line-height:1.35}
+.det .lv{height:5px;border-radius:3px;background:#1B1E24;overflow:hidden}.det .lv i{display:block;height:100%;background:var(--acc)}
+.det.rookie{animation:rookie .6s cubic-bezier(.2,1.4,.4,1)}
+@keyframes rookie{from{opacity:0;transform:translateY(16px) scale(.9)}}
+.hall{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;min-height:30px}
+.frame{width:76px;border-radius:6px;padding:5px 4px;background:linear-gradient(180deg,#8A6A47,#6E5236);box-shadow:inset 0 0 0 2px #C9A97A;text-align:center;color:#F4EFE2}
+.frame svg{width:44px;height:48px;background:#2A2F3A;border-radius:4px}
+.frame b{display:block;font-size:11px}.frame small{display:block;font-size:10px;color:#FFE27A;line-height:1.3}
+.frame.new{animation:hang .7s cubic-bezier(.3,1.5,.5,1)}
+@keyframes hang{from{transform:translateY(-30px) rotate(-8deg);opacity:0}}
+
+/* ③ 증거 보드 */
+.cork{position:relative;margin-top:8px;border-radius:10px;padding:12px;background:#B8965F;box-shadow:inset 0 0 0 6px #6E5236,inset 0 0 30px rgba(0,0,0,.35);
+  background-image:radial-gradient(rgba(0,0,0,.08) 1px,transparent 1.5px);background-size:7px 7px}
+.ev{position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.clue{position:relative;aspect-ratio:1/1.05;border-radius:4px;border:0;background:#F4EFE2;color:#1B1E24;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:rotate(var(--r));box-shadow:0 3px 6px rgba(0,0,0,.35);opacity:.55}
+.clue b{font-size:12px}.clue small{font-size:10px;color:#5A6170;line-height:1.3}
+.clue i.dot{width:12px;height:12px;border-radius:50%;background:var(--c)}
+.clue.pin{opacity:1}
+.clue.pin::before{content:'';position:absolute;top:-6px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FF8A8A,#C0392B);box-shadow:0 2px 2px rgba(0,0,0,.4)}
+.clue.pin.pop{animation:pinpop .35s cubic-bezier(.3,1.6,.6,1)}
+@keyframes pinpop{from{transform:rotate(var(--r)) scale(1.25)}}
+svg.strings{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+svg.strings path{fill:none;stroke:var(--red);stroke-width:2.6;stroke-linecap:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4));stroke-dasharray:300;animation:str .5s ease-out}
+@keyframes str{from{stroke-dashoffset:300}to{stroke-dashoffset:0}}
+.combo{margin-top:8px;font-size:13px;line-height:1.6}
+.combo b{color:var(--acc)}
+
+/* ④ 전근 */
+.map{position:relative;margin-top:8px;height:250px;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#2B5D7A,#3E7A8E);}
+.land{position:absolute;inset:16px 10px 16px 30px;border-radius:40% 55% 45% 50%;background:#7DAA6A;box-shadow:inset 0 -10px 0 #5E8A50}
+.desert{position:absolute;right:16px;bottom:30px;width:120px;height:80px;border-radius:50%;background:#E3C27A}
+.snowl{position:absolute;left:50px;top:20px;width:130px;height:70px;border-radius:50%;background:#EEF4F8}
+.city{position:absolute;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;color:#1B1E24;font-weight:800;font-size:12px;transform:translate(-50%,-50%)}
+.city i{width:22px;height:22px;border-radius:50%;background:#F4EFE2;border:3px solid #1B1E24;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:11px}
+.city span{background:rgba(255,255,255,.85);padding:1px 5px;border-radius:6px;white-space:nowrap}
+.city.here i{background:var(--acc);box-shadow:0 0 0 4px rgba(255,210,63,.45);animation:here 1s ease-in-out infinite alternate}
+@keyframes here{to{box-shadow:0 0 0 8px rgba(255,210,63,.15)}}
+.city.been i{background:var(--ok)}
+.city.sel span{background:var(--acc)}
+.bus{position:absolute;z-index:4;width:30px;height:20px;transition:left 1.4s ease-in-out,top 1.4s ease-in-out;transform:translate(-50%,-50%)}
+.citycard{margin-top:8px;font-size:13px;line-height:1.6}
+.citycard b{color:var(--acc)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip2{font-size:12px;padding:3px 8px;border-radius:10px;background:rgba(61,220,132,.12);color:var(--ok);font-weight:700}
+.reco{margin:14px 14px 0;background:linear-gradient(120deg,rgba(255,210,63,.14),rgba(255,210,63,.03));border:1.5px solid rgba(255,210,63,.5);border-radius:14px;padding:12px;font-size:13px;line-height:1.6}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="label">수사 3팀 · 철수(재시작) 새 아이디어 — 시간을 빨리 돌린 시험판</span>
+  <div class="tabs" id="tabs"><button data-t="1" class="on">① 되감기</button><button data-t="2">② 세대교체</button><button data-t="3">③ 증거판</button><button data-t="4">④ 전근</button></div>
+</div>
+
+<!-- ① 되감기 -->
+<section class="pane on" id="p-1">
+  <div class="about"><h3>써드의 되감기</h3>써드가 "같은 날"을 되풀이시킨다는 이야기 장치예요. 철수 = <b>그날로 되감기</b>.
+    <ul><li>되감으면 진척 · 팀 · 수사비가 그날 아침으로. 대신 <b>데자뷔</b>가 쌓여요(데자뷔마다 팀 속도 +30%).</li>
+    <li><b>되감기를 해야만 열리는 일지 줄</b>이 있어요. 같은 하루인데 매번 하나씩 새로 눈에 띄는 것 — 다시 하는 이유가 이야기 자체.</li>
+    <li>"왜 리셋하지?"에 이야기가 답해요. 써드의 정체를 되감기로 조금씩 알아가요.</li></ul></div>
+  <div class="card">
+    <div class="loop-clock" id="l-clock"><i class="h" id="l-h"></i><i class="m" id="l-m"></i><b></b></div>
+    <div class="dayline" id="l-day">11월 3일 · 되감기 0번</div>
+    <div class="row"><span>오늘 잡은 수</span><b id="l-caught">0 / 3,000</b></div>
+    <div class="bar"><i id="l-bar"></i></div>
+    <div class="row"><span>데자뷔</span><b id="l-dv">0 (팀 속도 +0%)</b></div>
+    <button class="big" id="l-go" disabled>그날 아침으로 되감기<small id="l-sub"></small></button>
+    <span class="label" style="display:block;margin-top:12px">수사 일지 — 같은 하루, 되감을 때마다 하나씩 더 보여요</span>
+    <div class="journal" id="l-journal"></div>
+  </div>
+</section>
+
+<!-- ② 세대교체 -->
+<section class="pane" id="p-2">
+  <div class="about"><h3>세대교체 · 명예의 전당</h3>철수 = <b>은퇴식</b>. 지금 형사들이 은퇴해 사무실 벽 명예의 전당에 걸려요.
+    <ul><li>형사마다 이름과 <b>특기</b>가 있어요(밤 잠복 +20%, 커피 효과 2배, 유치장 +5칸…). 일할수록 경력이 쌓여 특기가 세져요.</li>
+    <li>은퇴하면 그 특기가 <b>영구 보너스</b>로 남아요. 신입은 새 특기를 들고 와요 — 공짜 뽑기 같은 맛.</li>
+    <li>명예의 전당이 B(살아 있는 사무실) 벽에 액자로 걸려요. 쌓일수록 사무실이 내 역사가 돼요.</li></ul></div>
+  <div class="card">
+    <div class="row"><span>3팀 경력(이번 세대)</span><b id="g-xp">0</b></div>
+    <div class="bar"><i id="g-bar"></i></div>
+    <div class="squad" id="g-squad"></div>
+    <button class="big" id="g-go" disabled>은퇴식 열기<small id="g-sub"></small></button>
+  </div>
+  <div class="card"><span class="label">명예의 전당 · 남긴 특기(영구)</span><div class="hall" id="g-hall"></div><div class="combo" id="g-sum"></div></div>
+</section>
+
+<!-- ③ 증거 보드 -->
+<section class="pane" id="p-3">
+  <div class="about"><h3>증거 보드 · 붉은 실</h3>철수할 때 받는 건 <b>단서</b>. 단서로 코르크 보드에 증거를 <b>핀으로 꽂아요</b>(영구 보너스).
+    <ul><li>같은 색 증거가 <b>가로 · 세로로 이웃하면 붉은 실</b>로 이어져 콤보가 붙어요. 3개 이으면 크게.</li>
+    <li>보너스 고르는 게 목록 누르기가 아니라 <b>배치 퍼즐</b> — 수사 게임다운 성장 화면.</li>
+    <li>단서는 한정, 핀은 언제든 다시 꽂을 수 있어요(철수 직후 한 번 무료).</li></ul></div>
+  <div class="card">
+    <div class="row"><span>남은 단서</span><b id="e-left">6</b></div>
+    <div class="cork" id="cork"><svg class="strings" id="e-str"></svg><div class="ev" id="e-ev"></div></div>
+    <div class="combo" id="e-sum"></div>
+    <button class="big" id="e-reset">핀 모두 뽑기(다시 배치)<small>시안에서는 언제든 — 게임에서는 철수 직후 무료</small></button>
+  </div>
+</section>
+
+<!-- ④ 전근 -->
+<section class="pane" id="p-4">
+  <div class="about"><h3>전근 · 발령</h3>철수 = <b>다른 도시 경찰서로 발령</b>. 팀은 새로 꾸리지만 <b>거쳐 간 도시마다 인맥</b>(영구 보너스)이 남아요.
+    <ul><li>도시마다 규칙이 달라요: 해무항(비 · 안개, 밤에 강함), 모래시(낮이 길고 출동 시간 −10초), 백야군(겨울만, 자리 비움 +2시간)…</li>
+    <li>어디로 갈지 고르는 게 전략 — 내가 원하는 보너스 조합을 모으는 맛.</li>
+    <li>사건 · 이야기와 자연스럽게: 써드를 쫓아 도시를 옮겨 다니는 그림.</li></ul></div>
+  <div class="card">
+    <div class="map" id="map"><i class="land"></i><i class="snowl"></i><i class="desert"></i>
+      <svg class="bus" id="bus" viewBox="0 0 30 20"><rect x="1" y="3" width="28" height="12" rx="3" fill="#F4EFE2" stroke="#1B1E24" stroke-width="1.6"/><rect x="1" y="8" width="28" height="3" fill="#2F6FD6"/><circle cx="8" cy="16" r="3" fill="#1B1E24"/><circle cx="22" cy="16" r="3" fill="#1B1E24"/></svg></div>
+    <div class="row" style="margin-top:8px"><span>지금 근무지에서 쌓은 실적</span><b id="t-xp">0</b></div>
+    <div class="bar"><i id="t-bar"></i></div>
+    <div class="citycard" id="t-card"></div>
+    <button class="big" id="t-go" disabled>발령 신청<small id="t-sub"></small></button>
+    <span class="label" style="display:block;margin-top:10px">쌓인 인맥(영구)</span><div class="chips" id="t-chips"></div>
+  </div>
+</section>
+
+<div class="reco" id="reco"><b>제 추천:</b> <b>② 세대교체 + ③ 증거 보드</b>를 함께. 은퇴식이 철수, 받는 단서로 보드를 채우는 구조예요. 둘 다 B(살아 있는 사무실)와 붙어요 — 은퇴한 형사는 벽에 액자로, 증거 보드는 사무실 코르크 보드로. ① 되감기는 이야기(써드)와 묶어 사건 4쯤에 한 번 쓰기 좋은 장치예요.</div>
+
+<script>
+'use strict';
+var $ = function (id) { return document.getElementById(id); };
+function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
+function toast(t) { var e = document.createElement('div'); e.className = 'toast'; e.textContent = t; document.body.appendChild(e); setTimeout(function () { e.remove(); }, 2100); }
+var tab = '1';
+$('tabs').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; tab = b.dataset.t; document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.toggle('on', x === b); }); ['1', '2', '3', '4'].forEach(function (k) { $('p-' + k).classList.toggle('on', k === tab); }); if (tab === '3') drawEv(); };
+
+/* 작은 형사 그림(사무실 시안과 같은 계열) */
+var SKIN = ['#F2D3B6', '#E8BE98', '#D9A57E'], HAIR = ['#2B2420', '#4A3426', '#1B1E24', '#6B4A2E'], COAT = ['#C8A97A', '#3D4E6E', '#6E7480', '#7A4E3A'];
+function face(i) {
+  var sk = SKIN[i % 3], hr = HAIR[(i * 3 + 1) % 4], ct = COAT[(i * 5 + 2) % 4], hat = i % 4 === 1, gl = i % 3 === 2;
+  return '<svg viewBox="0 0 40 46" aria-hidden="true"><path d="M6 46c0-10 6-15 14-15s14 5 14 15z" fill="' + ct + '"/><path d="M17 31l3 6 3-6z" fill="#F4EFE2"/><circle cx="20" cy="20" r="9.5" fill="' + sk + '"/>' +
+    (hat ? '<path d="M11.5 15.5c0-6 3.8-9 8.5-9s8.5 3 8.5 9z" fill="#3A332C"/><path d="M7 15.5h26" stroke="#3A332C" stroke-width="3" stroke-linecap="round"/>' : '<path d="M10.5 19c0-7 4.3-10 9.5-10s9.5 3 9.5 10c-2-3-5-4.5-9.5-4.5S12.5 16 10.5 19z" fill="' + hr + '"/>') +
+    '<circle cx="16.5" cy="21" r="1.3" fill="#1B1E24"/><circle cx="23.5" cy="21" r="1.3" fill="#1B1E24"/>' +
+    (gl ? '<circle cx="16.5" cy="21" r="3" fill="none" stroke="#1B1E24" stroke-width="1.2"/><circle cx="23.5" cy="21" r="3" fill="none" stroke="#1B1E24" stroke-width="1.2"/>' : '') +
+    '<path d="M18 25.5q2 1.2 4 0" stroke="#8A5A40" stroke-width="1.1" fill="none"/></svg>';
+}
+
+/* ================= ① 되감기 ================= */
+var L = { caught: 0, goal: 3000, dv: 0, loops: 0, t: 0 };
+var JOURNAL = [
+  { need: 0, text: '새벽 세 시, 골목 상가 여섯 곳이 한꺼번에 털렸다. CCTV에는 늘 세 명이 찍혔다.' },
+  { need: 0, text: '잡혀 온 놈들은 같은 말을 했다. "시키는 대로 했을 뿐이에요."' },
+  { need: 1, text: '(되감기 1) 이상하다. 이 장면을 본 적이 있다. 잡혀 온 놈이 의자에 앉기 전에, 나는 그가 왼쪽 다리를 저는 걸 알고 있었다.' },
+  { need: 2, text: '(되감기 2) 벽시계가 오후 4시 13분에 멈춘다. 매번 같은 시각. 그 시각에 서장실 전화가 한 번 울리고 끊긴다.' },
+  { need: 3, text: '(되감기 3) 전화를 먼저 받았다. 수화기 너머로 웃음소리. "이번엔 빨리 알아챘네, 팀장." — 써드' },
+  { need: 5, text: '(되감기 5) 하루가 되풀이되는 동안 써드만 늘 하나씩 다르게 움직인다. 그가 이 하루 밖에 있다는 뜻이다.' }
+];
+function lRate() { return 3 * (1 + 0.3 * L.dv); }   // 시험: 1초에 3명 × 데자뷔
+function lGain() { return Math.floor(L.caught / 600); }
+function drawL(newIdx) {
+  $('l-caught').textContent = fmt(L.caught) + ' / ' + fmt(L.goal);
+  $('l-bar').style.width = Math.min(100, L.caught / L.goal * 100) + '%';
+  $('l-dv').textContent = L.dv + ' (팀 속도 +' + L.dv * 30 + '%)';
+  $('l-day').textContent = '11월 3일 · 되감기 ' + L.loops + '번';
+  var g = lGain(); $('l-go').disabled = g < 1;
+  $('l-sub').textContent = g < 1 ? '600명을 잡으면 데자뷔 +1부터' : '지금 되감으면 데자뷔 +' + g + (L.caught >= L.goal ? ' · (이미 다 잡았어요!)' : '');
+  $('l-journal').innerHTML = JOURNAL.map(function (j, i) {
+    if (L.loops < j.need) return '<div class="jl lock">되감기 ' + j.need + '번째에 보이는 줄</div>';
+    return '<div class="jl' + (newIdx && newIdx.indexOf(i) >= 0 ? ' new' : '') + '">' + j.text + '</div>';
+  }).join('');
+}
+$('l-go').onclick = function () {
+  var g = lGain(); if (g < 1) return;
+  var before = JOURNAL.filter(function (j) { return L.loops >= j.need; }).length;
+  L.dv += g; L.loops++; L.caught = 0;
+  var c = $('l-clock'); c.classList.remove('rew'); void c.offsetWidth; c.classList.add('rew');
+  var s = document.createElement('div'); s.className = 'sepia'; document.body.appendChild(s); setTimeout(function () { s.remove(); }, 1400);
+  var opened = []; JOURNAL.forEach(function (j, i) { if (L.loops === j.need) opened.push(i); });
+  toast('되감기! 데자뷔 +' + g + (opened.length ? ' · 새 일지 줄' : ''));
+  drawL(opened);
+};
+
+/* ================= ② 세대교체 ================= */
+var NAMES = ['강', '김', '박', '이', '최', '정', '윤', '한', '오', '서', '장', '임'], GIVEN = ['도윤', '서연', '민준', '지우', '하준', '수아', '예준', '하린', '태오', '나연'];
+var TRAITS = [
+  ['밤샘 잠복', '밤 팀 속도 +', 20], ['커피 애호가', '커피 효과 ×', 2], ['넓은 발', '유치장 +', 5], ['탐문 달인', '팀 수사비 +', 15], ['날카로운 눈', '출동 단서 +', 1],
+  ['베테랑 운전', '이송 보너스 +', 25], ['아침형', '낮 팀 속도 +', 15], ['수다쟁이', '증인 진술 +', 1], ['서류의 신', '자리 비움 +', 30]];
+var G = { xp: 0, need: 400, gen: 1, squad: [], hall: [], seed: 3 };
+function rnd() { G.seed = (G.seed * 9301 + 49297) % 233280; return G.seed / 233280; }
+function rookie(i) { var t = TRAITS[Math.floor(rnd() * TRAITS.length)]; return { name: NAMES[Math.floor(rnd() * NAMES.length)] + GIVEN[Math.floor(rnd() * GIVEN.length)], trait: t, lv: 0, look: Math.floor(rnd() * 12), fresh: true }; }
+for (var gi = 0; gi < 4; gi++) G.squad.push(rookie(gi));
+function traitText(d) { var t = d.trait, v = t[2] * (1 + d.lv * 0.25); return t[0] + ' · ' + t[1] + (t[1].slice(-1) === '×' ? v.toFixed(1) : Math.round(v)) + (t[1].indexOf('%') >= 0 || /속도|수사비|보너스/.test(t[1]) ? '%' : t[1].indexOf('유치장') >= 0 ? '칸' : t[1].indexOf('자리') >= 0 ? '분' : ''); }
+function drawG() {
+  $('g-xp').textContent = fmt(G.xp) + ' / ' + fmt(G.need);
+  $('g-bar').style.width = Math.min(100, G.xp / G.need * 100) + '%';
+  $('g-squad').innerHTML = G.squad.map(function (d) { return '<div class="det' + (d.fresh ? ' rookie' : '') + '">' + face(d.look) + '<div class="tx"><b>' + d.name + ' 형사 · ' + (d.lv + 1) + '년차</b><small>' + traitText(d) + '</small><div class="lv"><i style="width:' + (d.prog || 0) * 100 + '%"></i></div></div></div>'; }).join('');
+  G.squad.forEach(function (d) { d.fresh = false; });
+  var can = G.xp >= G.need; $('g-go').disabled = !can;
+  $('g-sub').textContent = can ? G.squad.length + '명이 명예의 전당으로 · 특기가 영구히 남아요' : '경력 ' + fmt(G.need) + '이면 은퇴식을 열 수 있어요';
+}
+function drawHall(newN) {
+  $('g-hall').innerHTML = G.hall.length ? G.hall.map(function (d, i) { return '<div class="frame' + (i >= G.hall.length - (newN || 0) ? ' new' : '') + '" style="animation-delay:' + (i * 80) + 'ms">' + face(d.look) + '<b>' + d.name + '</b><small>' + traitText(d) + '</small></div>'; }).join('') : '<span class="label">아직 비었어요</span>';
+  var sum = {}; G.hall.forEach(function (d) { sum[d.trait[1]] = (sum[d.trait[1]] || 0) + d.trait[2] * (1 + d.lv * 0.25); });
+  $('g-sum').innerHTML = Object.keys(sum).length ? '합계: ' + Object.keys(sum).map(function (k) { return '<b>' + k + (k.slice(-1) === '×' ? sum[k].toFixed(1) : Math.round(sum[k])) + '</b>'; }).join(' · ') : '';
+}
+$('g-go').onclick = function () {
+  if (G.xp < G.need) return;
+  var n = G.squad.length;
+  G.hall = G.hall.concat(G.squad); G.squad = []; G.xp = 0; G.gen++; G.need = Math.round(G.need * 1.6);
+  for (var i = 0; i < 4; i++) G.squad.push(rookie(i));
+  toast('은퇴식! ' + n + '명이 명예의 전당에 · 신입 4명 출근');
+  drawHall(n); drawG();
+};
+
+/* ================= ③ 증거 보드 ================= */
+var COL = { r: '#E5484F', b: '#2F6FD6', y: '#E0A100', g: '#2E9E5B' };
+var EV = [
+  ['r', '지문', '팀 속도 +10%'], ['r', '피 묻은 장갑', '팀 속도 +10%'], ['b', '녹음 테이프', '출동 시간 +5초'],
+  ['y', '영수증', '팀 수사비 +15%'], ['r', '족적', '팀 속도 +10%'], ['b', 'CCTV 사진', '단서 +1'],
+  ['y', '계좌 내역', '팀 수사비 +15%'], ['g', '열쇠', '자리 비움 +30분'], ['g', '지도', '이송 보너스 +20%']];
+var E = { clues: 6, pin: {} };
+function neighbors(i) { var r = Math.floor(i / 3), c = i % 3, o = []; if (c < 2) o.push(i + 1); if (r < 2) o.push(i + 3); return o; }
+function links() { var out = []; Object.keys(E.pin).forEach(function (k) { var i = +k; neighbors(i).forEach(function (j) { if (E.pin[j] && EV[i][0] === EV[j][0]) out.push([i, j]); }); }); return out; }
+function groups() {   // 이어진 같은 색 묶음의 크기
+  var seen = {}, out = [];
+  Object.keys(E.pin).forEach(function (k) {
+    if (seen[k]) return; var st = [+k], n = 0, col = EV[+k][0]; seen[k] = 1;
+    while (st.length) { var i = st.pop(); n++; [i - 3, i + 3, i % 3 ? i - 1 : -1, i % 3 < 2 ? i + 1 : -1].forEach(function (j) { if (j >= 0 && j < 9 && E.pin[j] && !seen[j] && EV[j][0] === col) { seen[j] = 1; st.push(j); } }); }
+    out.push({ col: col, n: n });
+  });
+  return out;
+}
+function drawEv(popI) {
+  $('e-ev').innerHTML = EV.map(function (e, i) {
+    return '<button class="clue' + (E.pin[i] ? ' pin' : '') + (popI === i ? ' pop' : '') + '" data-i="' + i + '" style="--r:' + ((i * 7 % 7) - 3) + 'deg;--c:' + COL[e[0]] + '"><i class="dot"></i><b>' + e[1] + '</b><small>' + e[2] + '</small></button>';
+  }).join('');
+  $('e-left').textContent = E.clues;
+  requestAnimationFrame(function () {
+    var svg = $('e-str'), base = $('cork').getBoundingClientRect(), btns = $('e-ev').querySelectorAll('.clue');
+    svg.setAttribute('viewBox', '0 0 ' + base.width + ' ' + base.height);
+    svg.innerHTML = links().map(function (l) {
+      var a = btns[l[0]].getBoundingClientRect(), b = btns[l[1]].getBoundingClientRect();
+      var x1 = a.left - base.left + a.width / 2, y1 = a.top - base.top + 2, x2 = b.left - base.left + b.width / 2, y2 = b.top - base.top + 2;
+      return '<path d="M' + x1 + ' ' + y1 + ' Q' + (x1 + x2) / 2 + ' ' + ((y1 + y2) / 2 + 14) + ' ' + x2 + ' ' + y2 + '"/>';
+    }).join('');
+  });
+  var gs = groups().filter(function (g) { return g.n >= 2; });
+  $('e-sum').innerHTML = '핀 ' + Object.keys(E.pin).length + '개 · 붉은 실 ' + links().length + '줄' +
+    (gs.length ? '<br>콤보: ' + gs.map(function (g) { return '<b>' + g.n + '개 연결 → 그 효과 ×' + (g.n >= 3 ? 2 : 1.5) + '</b>'; }).join(' · ') : '<br>같은 색을 이웃하게 꽂아 보세요');
+}
+$('e-ev').onclick = function (e) {
+  var b = e.target.closest('.clue'); if (!b) return; var i = +b.dataset.i;
+  if (E.pin[i]) { delete E.pin[i]; E.clues++; drawEv(); return; }
+  if (E.clues <= 0) { toast('단서가 모자라요 — 철수하면 더 받아요'); return; }
+  var before = links().length;
+  E.pin[i] = 1; E.clues--; drawEv(i);
+  if (links().length > before) toast('붉은 실 연결!');
+};
+$('e-reset').onclick = function () { E.clues += Object.keys(E.pin).length; E.pin = {}; drawEv(); };
+
+/* ================= ④ 전근 ================= */
+var CITIES = [
+  { id: 'c', name: '중앙서', x: 46, y: 60, rule: '기본 근무지. 특별한 규칙 없음', perk: '팀 수사비 +10%' },
+  { id: 'h', name: '해무항', x: 20, y: 72, rule: '늘 안개 · 비. 밤에 팀 속도 +30%, 낮에 −10%', perk: '밤 팀 속도 +15%' },
+  { id: 's', name: '모래시', x: 80, y: 74, rule: '낮이 길어요. 출동 시간 −10초, 출동 수사비 +40%', perk: '출동 수사비 +20%' },
+  { id: 'w', name: '백야군', x: 36, y: 22, rule: '늘 겨울. 자리 비움 한도 +2시간, 팀 속도 −15%', perk: '자리 비움 +1시간' },
+  { id: 'm', name: '산마루', x: 70, y: 30, rule: '좁은 산길. 유치장 10칸, 이송 보너스 ×2', perk: '이송 보너스 +30%' }];
+var T = { here: 'c', sel: null, xp: 0, need: 500, been: { c: 1 }, perks: [] };
+function cityOf(id) { return CITIES.filter(function (c) { return c.id === id; })[0]; }
+function drawMap() {
+  var m = $('map');
+  m.querySelectorAll('.city').forEach(function (e) { e.remove(); });
+  CITIES.forEach(function (c) {
+    var b = document.createElement('button'); b.className = 'city' + (c.id === T.here ? ' here' : '') + (T.been[c.id] && c.id !== T.here ? ' been' : '') + (c.id === T.sel ? ' sel' : '');
+    b.style.left = c.x + '%'; b.style.top = c.y + '%'; b.dataset.id = c.id;
+    b.innerHTML = '<i>' + (T.been[c.id] ? '✓' : '') + '</i><span>' + c.name + '</span>'; m.appendChild(b);
+  });
+  var h = cityOf(T.here), bus = $('bus'); bus.style.left = h.x + '%'; bus.style.top = (h.y - 9) + '%';
+  var s = cityOf(T.sel || T.here);
+  $('t-card').innerHTML = '<b>' + s.name + '</b>' + (s.id === T.here ? ' (지금 근무지)' : '') + '<br>규칙: ' + s.rule + '<br>떠날 때 남는 인맥: <b>' + s.perk + '</b>';
+  $('t-xp').textContent = fmt(T.xp) + ' / ' + fmt(T.need);
+  $('t-bar').style.width = Math.min(100, T.xp / T.need * 100) + '%';
+  var can = T.xp >= T.need && T.sel && T.sel !== T.here;
+  $('t-go').disabled = !can;
+  $('t-sub').textContent = T.xp < T.need ? '실적 ' + fmt(T.need) + '이면 발령 신청 가능' : !T.sel || T.sel === T.here ? '지도에서 갈 도시를 고르세요' : cityOf(T.here).name + ' → ' + cityOf(T.sel).name + ' · ' + cityOf(T.here).perk + ' 인맥이 남아요';
+  $('t-chips').innerHTML = T.perks.length ? T.perks.map(function (p) { return '<span class="chip2">' + p + '</span>'; }).join('') : '<span class="label">아직 없어요</span>';
+}
+$('map').onclick = function (e) { var b = e.target.closest('.city'); if (!b) return; T.sel = b.dataset.id; drawMap(); };
+$('t-go').onclick = function () {
+  if ($('t-go').disabled) return;
+  var from = cityOf(T.here); T.perks.push(from.name + ': ' + from.perk);
+  T.here = T.sel; T.been[T.here] = 1; T.sel = null; T.xp = 0; T.need = Math.round(T.need * 1.5);
+  toast(cityOf(T.here).name + '(으)로 발령! 인맥 +1');
+  drawMap();
+};
+
+/* ---------- 시계 ---------- */
+var last = performance.now(), acc = 0;
+function frame(now) {
+  var dt = Math.min(0.25, (now - last) / 1000); last = now; acc += dt;
+  if (L.caught < L.goal) L.caught = Math.min(L.goal, L.caught + lRate() * dt * 20);
+  L.t += dt * 60;
+  G.xp += dt * 30; G.squad.forEach(function (d, i) { d.prog = (d.prog || 0) + dt * (0.08 + i * 0.01); if (d.prog >= 1) { d.prog = 0; d.lv++; } });
+  T.xp += dt * 35 * (1 + T.perks.length * 0.2);
+  var m = (L.t / 60) % 60, h = (9 + L.t / 3600) % 12;
+  $('l-m').style.transform = 'translateX(-50%) rotate(' + m * 6 + 'deg)'; $('l-h').style.transform = 'translateX(-50%) rotate(' + h * 30 + 'deg)';
+  if (acc > 0.25) { acc = 0; if (tab === '1') drawL(); if (tab === '2') drawG(); if (tab === '4') drawMap(); }
+  requestAnimationFrame(frame);
+}
+drawL(); drawG(); drawHall(); drawEv(); drawMap();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

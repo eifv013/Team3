@@ -130,7 +130,7 @@
     return o.join(' ');
   }
   function drawPass() {
-    var s = S(), day = ctx.day(), ps = M.passOf(s, day), se = M.season(day), tier = M.tierOf(ps.xp), can = M.claimable(s, day).length;
+    var s = S(), day = ctx.day(), ps = M.passOf(s, day), se = M.seasonOf(s, day), tier = M.tierOf(ps.xp), can = M.claimable(s, day).length;
     var into = ps.xp - tier * M.TIER_XP, pct = tier >= M.TIERS ? 100 : Math.round(into / M.TIER_XP * 100);
     var html = '<div class="pass-top"><div><span class="label">시즌 ' + se.no + ' · ' + se.left + '일 남음</span><b>' + tier + ' / ' + M.TIERS + '단계</b>' +
       '<div class="ach-bar"><i style="width:' + pct + '%"></i></div><small class="muted">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '다음 단계까지 ' + (M.TIER_XP - into) + 'XP · 출동마다 10~40XP, 특별 출동 메달 +30') + '</small></div></div>' +

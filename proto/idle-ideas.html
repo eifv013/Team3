@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수사 3팀 · 방치형 보강 시안 A · B · C</title>
+<!--
+  방치형 보강 시안 세 가지(직접 해 볼 수 있게).
+  A 수사 부서: 순찰조 → 형사 → 분석관 → 특수수사대 → 국제 공조. 줄마다 막대가 차면 수사비, 10 · 25 · 50 · 100명마다 속도 ×2.
+  B 살아 있는 사무실: 책상마다 형사가 일하고, 잡은 용의자가 유치장으로 걸어 들어간다. 유치장이 차면 이송(모아 받기). 책상을 누르면 커피(잠깐 3배).
+  C 팀 재편성(훈장): 사건을 닫을 때 팀을 새로 짜면 훈장을 받는다. 훈장마다 모든 수사비 +10%, 특기에 쓴다. 다시 오를 때 더 빨리 오른다.
+  그림: 용의자는 게임 카드 그림(ui.js), 파트너는 게임 동물 그림(petart.js), 재화는 게임 아이콘(icons.js) 그대로.
+  빌드: python3 tools/proto_build.py → proto/idle-ideas.html
+-->
+<style>
+:root{--bg:#12151C;--panel:#1C212B;--panel2:#252B37;--line:#323A48;--text:#EEF1F6;--muted:#97A1B3;--acc:#FFD23F;--ink:#1B1E24;--ok:#3DDC84;--miss:#FF6B6B}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans KR','Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+body{max-width:440px;margin:0 auto;min-height:100vh;padding-bottom:40px}
+button{font:inherit;cursor:pointer}
+.ic{display:inline-flex;width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:.18em;flex:none}.ic svg{width:100%;height:100%;display:block}
+.top{position:sticky;top:0;z-index:10;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+.label{font-size:12px;color:var(--muted);font-weight:600}
+.tabs{display:flex;gap:6px;margin-top:8px}
+.tabs button{flex:1;height:40px;border-radius:10px;border:1.5px solid var(--line);background:none;color:var(--muted);font-weight:800}
+.tabs button.on{border-color:var(--acc);color:var(--acc);background:rgba(255,210,63,.08)}
+.pane{display:none;padding:12px 14px}.pane.on{display:block}
+.about{background:var(--panel);border-radius:14px;padding:12px;font-size:13px;line-height:1.6;color:#C9D0DC}
+.about b{color:var(--text)}
+.about ul{margin:6px 0 0;padding-left:18px}
+.wallet{display:flex;align-items:baseline;justify-content:space-between;margin:12px 2px 8px}
+.wallet .money{font:800 28px/1 'IBM Plex Sans KR',sans-serif;color:var(--acc);font-variant-numeric:tabular-nums}
+.wallet small{color:var(--muted);font-size:12px}
+.speed{display:flex;gap:6px}
+.chip{height:30px;padding:0 10px;border-radius:15px;border:1.5px solid var(--line);background:none;color:var(--muted);font-weight:700;font-size:12px}
+.chip.on{border-color:var(--acc);color:var(--acc)}
+.toast{position:fixed;left:50%;top:120px;transform:translateX(-50%);z-index:50;background:var(--acc);color:var(--ink);font-weight:800;padding:10px 16px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.4);animation:toast 1.8s ease-out forwards;pointer-events:none;white-space:nowrap}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-10px) scale(.9)}12%{opacity:1;transform:translate(-50%,0) scale(1.04)}20%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0}}
+
+/* ---------- A 수사 부서 ---------- */
+.mode{display:flex;gap:6px;margin-bottom:8px}
+.dept{position:relative;display:flex;gap:10px;align-items:center;padding:10px;border-radius:14px;background:var(--panel);margin-bottom:8px;border:1px solid var(--line)}
+.dept.locked{opacity:.45}
+.d-ico{position:relative;width:52px;height:52px;flex:none;border-radius:14px;background:var(--panel2);display:flex;align-items:center;justify-content:center}
+.d-ico svg{width:28px;height:28px;stroke:var(--acc);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.d-ico b{position:absolute;right:-5px;bottom:-5px;min-width:24px;height:20px;padding:0 5px;border-radius:10px;background:var(--acc);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.d-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.d-name{font-weight:800;font-size:15px}
+.d-name small{font-weight:600;color:var(--muted);font-size:11px;margin-left:4px}
+.d-bar{position:relative;height:18px;border-radius:9px;background:var(--panel2);overflow:hidden}
+.d-bar i{position:absolute;inset:0;background:linear-gradient(90deg,#FFB13F,var(--acc));transform-origin:left;transform:scaleX(0)}
+.d-bar.fast i{transform:none;background:repeating-linear-gradient(115deg,#FFB13F 0 10px,var(--acc) 10px 20px);background-size:200% 100%;animation:fast .5s linear infinite}
+@keyframes fast{to{background-position:-28px 0}}
+.d-bar span{position:relative;display:block;text-align:center;font-size:11px;font-weight:800;line-height:18px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.85)}
+.d-mile{font-size:11px;color:var(--muted)}
+.d-mile em{font-style:normal;color:var(--acc);font-weight:700}
+.d-buy{width:92px;flex:none;height:52px;border-radius:12px;border:0;background:var(--acc);color:var(--ink);font-weight:800;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.d-buy small{font-size:11px;font-weight:700}
+.d-buy:disabled{background:#2A2F3A;color:#8A919E;border:1.5px dashed #4A5160;cursor:default}
+.d-buy:disabled small{color:#FF9A8B}
+.pop{position:absolute;right:110px;top:6px;font-weight:800;font-size:13px;color:var(--acc);pointer-events:none;animation:pop .8s ease-out forwards}
+@keyframes pop{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-22px)}}
+.mile-stamp{position:absolute;inset:0;border-radius:14px;box-shadow:0 0 0 2px var(--acc),0 0 22px rgba(255,210,63,.6);animation:mile 1.2s ease-out forwards;pointer-events:none}
+@keyframes mile{from{opacity:1}to{opacity:0}}
+
+/* ---------- B 살아 있는 사무실 ---------- */
+.office{position:relative;height:420px;border-radius:16px;overflow:hidden;background:#2A2F3B;border:1px solid var(--line);user-select:none}
+.wallb{position:absolute;left:0;right:0;top:0;height:86px;background:linear-gradient(180deg,#3A4152,#323848);border-bottom:6px solid #262B36}
+.win{position:absolute;top:14px;width:84px;height:54px;border-radius:6px;border:4px solid #262B36;overflow:hidden}
+.win i{position:absolute;inset:0}
+.win::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:4px;background:#262B36}
+.clock{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;background:#F4EFE2;border:3px solid #262B36}
+.clock i{position:absolute;left:50%;bottom:50%;width:2px;background:#1B1E24;transform-origin:bottom;border-radius:1px}
+.board-w{position:absolute;right:14px;top:12px;width:70px;height:58px;border-radius:4px;background:#C9B48A;border:3px solid #6E5A3A;display:flex;flex-wrap:wrap;gap:3px;padding:4px}
+.board-w span{width:16px;height:16px;border-radius:2px;background:#F4EFE2;transform:rotate(-4deg)}
+.floor{position:absolute;left:0;right:0;top:92px;bottom:0;background:repeating-linear-gradient(90deg,#3A3F4C 0 1px,transparent 1px 40px),repeating-linear-gradient(0deg,#3A3F4C 0 1px,#30353F 1px 40px)}
+.desks{position:absolute;left:10px;top:104px;width:226px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px 10px}
+.desk{position:relative;height:66px;cursor:pointer}
+.desk .tbl{position:absolute;left:4px;right:4px;bottom:4px;height:26px;border-radius:5px;background:#8A6A47;box-shadow:inset 0 -5px 0 #6E5236}
+.desk .pc{position:absolute;left:50%;bottom:24px;width:30px;height:20px;transform:translateX(-50%);border-radius:3px;background:#1B1E24;border:2px solid #4A5263}
+.desk .pc::after{content:'';position:absolute;inset:2px;background:#7FD3FF;opacity:.6;animation:screen 1.6s steps(3) infinite}
+@keyframes screen{50%{opacity:.9}}
+.desk .cop{position:absolute;left:10px;bottom:20px;width:34px;height:42px}
+.desk .cop .hands{animation:type .28s steps(2) infinite}
+@keyframes type{50%{transform:translateY(-2px)}}
+.desk .ring{position:absolute;right:6px;top:0;width:22px;height:22px}
+.desk .ring circle{fill:none;stroke-width:3.5}
+.desk.coffee .cop{filter:drop-shadow(0 0 5px #FFB13F)}
+.desk.coffee .cop .hands{animation-duration:.1s}
+.desk .steam{position:absolute;right:36px;bottom:30px;width:10px;height:12px;border-radius:3px 3px 4px 4px;background:#F4EFE2;display:none}
+.desk.coffee .steam{display:block}
+.desk.coffee .steam::before{content:'';position:absolute;left:2px;top:-12px;width:6px;height:10px;border-radius:50%;background:rgba(255,255,255,.5);animation:steam 1s ease-out infinite}
+@keyframes steam{from{opacity:.8;transform:none}to{opacity:0;transform:translateY(-10px) scale(1.6)}}
+.desk.stuck .cop .hands{animation:none}
+.desk.stuck::after{content:'Zz';position:absolute;left:30px;top:0;font-weight:800;font-size:12px;color:#9CD3F2}
+.desk.empty{cursor:default;opacity:.55}.desk.empty .cop,.desk.empty .ring,.desk.empty .pc::after{display:none}
+.desk.empty::before{content:'영입하면 여기';position:absolute;left:0;right:0;top:2px;text-align:center;font-size:11px;font-weight:700;color:#C9D0DC}
+.coin{position:absolute;font-weight:800;font-size:13px;color:var(--acc);text-shadow:0 1px 2px #000;pointer-events:none;animation:pop .9s ease-out forwards;z-index:6}
+.cell{position:absolute;right:8px;top:104px;width:124px;height:206px;border-radius:8px;background:#22262F;border:3px solid #4A5263;overflow:hidden}
+.cell .bars{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 20px,rgba(107,115,131,.85) 20px 23px);z-index:3;pointer-events:none}
+.cell .tag{position:absolute;left:0;right:0;top:0;z-index:4;text-align:center;background:#4A5263;color:#fff;font-size:11px;font-weight:800;padding:2px 0}
+.cell .in{position:absolute;left:5px;right:5px;bottom:5px;top:24px;display:flex;flex-wrap:wrap-reverse;align-content:flex-start;gap:3px}
+.cell .in .s{width:32px;height:34px;border-radius:6px;background:#D9D6CE}
+.cell .in .s svg{width:100%;height:100%}
+.cell.full{border-color:var(--miss);animation:full 1s ease-in-out infinite alternate}
+@keyframes full{to{box-shadow:0 0 16px rgba(255,107,107,.6)}}
+.walker{position:absolute;width:26px;height:28px;z-index:5;transition:left .9s ease-in,top .9s ease-in;pointer-events:none}
+.walker svg{width:100%;height:100%}
+.walker.go{animation:bob .25s ease-in-out infinite alternate}
+@keyframes bob{to{margin-top:-3px}}
+.pet{position:absolute;bottom:14px;width:56px;height:56px;z-index:4;cursor:pointer;transition:left 3.5s linear}
+.pet svg{width:100%;height:100%;overflow:visible}
+.pet.flip svg{transform:scaleX(-1)}
+.heart{position:absolute;font-size:15px;color:#FF6B8A;pointer-events:none;animation:pop 1.1s ease-out forwards;z-index:7}
+.van{position:absolute;bottom:62px;left:-140px;width:130px;height:56px;z-index:8;pointer-events:none}
+.van.go{animation:van 1.8s ease-in-out forwards}
+@keyframes van{0%{left:-140px}40%,55%{left:150px}100%{left:460px}}
+.b-actions{display:flex;gap:8px;margin-top:10px}
+.b-actions button{flex:1;height:52px;border-radius:12px;border:0;background:var(--acc);color:var(--ink);font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.b-actions button small{font-size:11px;font-weight:700}
+.b-actions button:disabled{background:#2A2F3A;color:#8A919E;border:1.5px dashed #4A5160}
+.b-actions button:disabled small{color:#FF9A8B}
+.b-actions .send.ready{animation:ready .8s ease-in-out infinite alternate}
+@keyframes ready{to{box-shadow:0 0 0 4px rgba(255,210,63,.35),0 0 18px rgba(255,210,63,.6)}}
+
+/* ---------- C 팀 재편성 ---------- */
+.c-card{background:var(--panel);border-radius:14px;padding:12px;margin-top:10px;border:1px solid var(--line)}
+.c-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:4px 0}
+.c-row b{font-variant-numeric:tabular-nums}
+.medal{display:inline-flex;align-items:center;gap:4px;color:var(--acc);font-weight:800}
+.medal i{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFF0A8,#FFD23F 45%,#C9971A);box-shadow:0 0 0 2px #8A6A10;display:inline-block}
+canvas{display:block;width:100%;height:170px;background:var(--panel2);border-radius:10px;margin-top:8px}
+.legend{display:flex;gap:10px;font-size:11px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+.legend span::before{content:'';display:inline-block;width:10px;height:3px;margin-right:4px;vertical-align:middle;background:var(--c)}
+.rebirth{width:100%;height:56px;border-radius:14px;border:0;margin-top:10px;background:linear-gradient(90deg,#FFB13F,var(--acc));color:var(--ink);font-weight:900;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rebirth small{font-size:12px;font-weight:700}
+.rebirth:disabled{background:#2A2F3A;color:#8A919E;border:1.5px dashed #4A5160}
+.skills{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.skill{border-radius:12px;border:1.5px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-height:104px}
+.skill b{font-size:13px}.skill small{font-size:11px;color:var(--muted);line-height:1.35}
+.skill em{font-style:normal;font-size:11px;font-weight:800;color:var(--acc)}
+.skill.got{border-color:var(--ok);background:rgba(61,220,132,.08)}.skill.got em{color:var(--ok)}
+.skill:disabled{opacity:.55;cursor:default}
+.flashw{position:fixed;inset:0;background:#FFF3C2;z-index:40;pointer-events:none;animation:flashw .8s ease-out forwards}
+@keyframes flashw{from{opacity:.9}to{opacity:0}}
+.reco{margin-top:14px;background:linear-gradient(120deg,rgba(255,210,63,.14),rgba(255,210,63,.03));border:1.5px solid rgba(255,210,63,.5);border-radius:14px;padding:12px;font-size:13px;line-height:1.6}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="label">수사 3팀 · 방치형 보강 시안</span>
+  <div class="tabs" id="tabs"><button data-t="a" class="on">A 부서</button><button data-t="b">B 사무실</button><button data-t="c">C 재편성</button></div>
+</div>
+
+<!-- A -->
+<section class="pane on" id="p-a">
+  <div class="about"><b>숫자가 여러 갈래로 불어나는 맛.</b> 지금은 "형사" 한 줄뿐이라 돈을 어디에 쓸지 고민이 없어요.
+    <ul><li>순찰조 → 형사 → 분석관 → 특수수사대 → 국제 공조, 위로 갈수록 느리지만 크게 벌어요.</li>
+    <li><b>10 · 25 · 50 · 100명</b>을 채우면 그 부서 속도 ×2. 막대가 너무 빨라지면 "쉴 새 없이" 줄무늬.</li>
+    <li>×1 · ×10 · 최대 영입. 모자라면 단추에 얼마가 모자란지.</li></ul></div>
+  <div class="wallet"><div><span class="label">수사비</span><div class="money" id="a-money">0</div></div><div style="text-align:right"><small id="a-rate">초당 0</small><div class="speed" style="margin-top:6px"><button class="chip on" data-s="1">보통</button><button class="chip" data-s="10">빨리 ×10</button></div></div></div>
+  <div class="mode" id="a-mode"><button class="chip on" data-m="1">×1</button><button class="chip" data-m="10">×10</button><button class="chip" data-m="max">최대</button></div>
+  <div id="a-list"></div>
+</section>
+
+<!-- B -->
+<section class="pane" id="p-b">
+  <div class="about"><b>팀이 일하는 게 눈에 보이는 맛.</b> 사무실이 숫자 목록이 아니라 진짜 사무실이 돼요.
+    <ul><li>책상마다 형사가 타자를 치고, 머리 위 동그라미가 차면 용의자가 <b>유치장으로 걸어 들어가요</b>.</li>
+    <li>유치장(20명)이 차면 팀이 쉬어요(Zz). <b>이송</b>을 누르면 모인 만큼 한꺼번에 수사비 — 돌아와서 누르는 재미.</li>
+    <li>책상을 톡 누르면 커피: 5초 동안 3배. 파트너 동물이 바닥을 돌아다녀요(누르면 하트).</li>
+    <li>창밖은 지금 시각대로 낮 · 저녁 · 밤.</li></ul></div>
+  <div class="wallet"><div><span class="label">수사비</span><div class="money" id="b-money">0</div></div><div style="text-align:right"><small id="b-rate">1분에 0</small><div class="speed" style="margin-top:6px"><button class="chip on" data-s="1">보통</button><button class="chip" data-s="8">빨리 ×8</button></div></div></div>
+  <div class="office" id="office">
+    <div class="wallb"><div class="win" style="left:14px"><i id="sky1"></i></div><div class="clock" id="clock"><i id="hh" style="height:12px"></i><i id="mm" style="height:17px"></i></div><div class="board-w"><span></span><span></span><span style="background:#FFD9D9"></span><span></span><span style="background:#D9ECFF"></span><span></span></div></div>
+    <div class="floor"></div>
+    <div class="desks" id="desks"></div>
+    <div class="cell" id="cell"><div class="tag" id="cell-tag">유치장 0/20</div><div class="in" id="cell-in"></div><div class="bars"></div></div>
+    <div class="pet" id="pet" style="left:40px"></div>
+    <svg class="van" id="van" viewBox="0 0 130 56" aria-hidden="true"><rect x="4" y="10" width="92" height="34" rx="6" fill="#F4EFE2" stroke="#1B1E24" stroke-width="2.5"/><path d="M96 18h18l12 12v14H96z" fill="#F4EFE2" stroke="#1B1E24" stroke-width="2.5"/><rect x="100" y="21" width="13" height="9" rx="2" fill="#7FD3FF"/><rect x="4" y="26" width="92" height="6" fill="#2F6FD6"/><text x="48" y="22" font-size="9" font-weight="800" text-anchor="middle" fill="#1B1E24">호송</text><rect x="38" y="4" width="20" height="6" rx="2" fill="#E5484F"/><circle cx="26" cy="46" r="8" fill="#1B1E24"/><circle cx="104" cy="46" r="8" fill="#1B1E24"/></svg>
+  </div>
+  <div class="b-actions"><button id="b-hire">형사 영입<small id="b-hire-c"></small></button><button id="b-send" class="send">이송<small id="b-send-c">유치장이 비었어요</small></button></div>
+</section>
+
+<!-- C -->
+<section class="pane" id="p-c">
+  <div class="about"><b>다시 오를 때 더 빨리 오르는 맛.</b> 사건을 닫을 때 "팀 재편성"을 하면, 형사 · 훈련 · 수사비는 처음으로 돌아가지만 <b>훈장</b>을 받아요.
+    <ul><li>훈장 하나마다 모든 수사비 <b>+25%</b>(영구). 이번 판에 번 수사비가 클수록 훈장이 많아요.</li>
+    <li>훈장으로 특기를 배워요: 빠른 출근 · 잠복 전문 · 현장 감각.</li>
+    <li>사건 진척 · 이야기 · 동물 · 배지는 그대로. 게임에서는 사건을 닫는 순간에만 고를 수 있게.</li>
+    <li>아래는 시간을 120배로 돌린 시험이에요(1초 = 2분). 재편성 뒤 선이 더 가파르게 올라가는 걸 보세요.</li></ul></div>
+  <div class="c-card">
+    <div class="c-row"><span>수사비</span><b id="c-money">0</b></div>
+    <div class="c-row"><span>형사 · 훈련</span><b id="c-team">1명 · 0단계</b></div>
+    <div class="c-row"><span>이번 판에 번 수사비</span><b id="c-earned">0</b></div>
+    <div class="c-row"><span>가진 훈장</span><span class="medal"><i></i><b id="c-medals">0</b> <small style="color:var(--muted);font-weight:600">(모든 수사비 +<span id="c-pct">0</span>%)</small></span></div>
+    <canvas id="chart" width="800" height="340"></canvas>
+    <div class="legend" id="legend"></div>
+    <button class="rebirth" id="rebirth" disabled>팀 재편성<small id="reb-sub">훈장 1개부터 할 수 있어요</small></button>
+  </div>
+  <div class="c-card"><span class="label">특기 (훈장으로 배우기)</span><div class="skills" id="skills"></div></div>
+</section>
+
+<section class="pane on" style="display:block;padding-top:0">
+  <div class="reco"><b>제 추천:</b> <b>B → A</b> 순서. 방치형에서 지금 가장 비어 있는 건 "보는 맛"(B)이고, 그다음이 "돈 쓸 곳"(A)이에요. C(재편성)는 사건이 더 쌓였을 때 넣어야 사건 진척과 덜 부딪혀요.</div>
+</section>
+
+<script>
+/*
+ * SuspectsCore — "수사 3팀" 퍼즐(현장 출동 한 판)의 규칙 계산. 화면과 무관한 순수 로직.
+ *
+ * 구조
+ *   카드(용의자) = 0~80 정수 id. 3진수 네 자리가 곧 네 속성(시간대·모자·얼굴·흔적)의 값이다.
+ *   검거 규칙   = 보는 속성마다 "두 명만 같으면 안 된다" ⇔ 세 값의 합이 3의 배수(모두 같음 또는 모두 다름).
+ *   단계(level) = 보는 속성의 수(1~4). 처음 하는 사람을 위해 모자 → 얼굴 → 시간대 → 흔적 순으로 하나씩 늘린다.
+ *                 안 보는 속성은 화면에 그리지 않고 판정에서도 뺀다(active 목록).
+ *   판(board)   = 서로 다른 카드 9장. 검거하면 그 세 자리만 새 카드로 채운다.
+ *   게임 상태   = 점수·연속·남은 시간(종료 시각)·단계·단서. submit / declareNone / hint 가 바꾼다.
+ *   튜토리얼    = makeLesson: 두 명을 주고 "셋째는 누구?"를 고르는 문제를 만든다.
+ *
+ * 화면(ui.js)은 이 모듈의 결과만 읽는다. 무작위는 rng 인자로 받아 테스트가 결과를 고정할 수 있다.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.SuspectsCore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var ATTRS = [
+    { key: 'time', name: '시간대', values: ['낮', '저녁', '밤'] },
+    { key: 'hat',  name: '모자',   values: ['맨머리', '비니', '중절모'] },   // 1.6: 캡 모자 → 비니(작게 보면 헬멧 같아서, 아이콘과 통일)
+    { key: 'face', name: '얼굴',   values: ['맨얼굴', '안경', '마스크'] },
+    { key: 'mark', name: '흔적',   values: ['지문', '유리 조각', '타이어 자국'] }
+  ];
+  var ALL = [0, 1, 2, 3];
+  // 단계마다 하나씩 늘어나는 속성 순서: 모자 → 얼굴 → 시간대 → 흔적 (눈에 잘 띄는 것부터)
+  var ORDER = [1, 2, 0, 3];
+  var DECK_SIZE = 81;   // 3^4
+  var BOARD_SIZE = 9;
+
+  // 한 판의 수치. 밸런스는 여기만 고치면 된다.
+  var RULES = {
+    duration: 90,          // 시작 시간(초)
+    base: 100,             // 검거 1건 기본 점수
+    noneBonus: 300,        // "검거 불가" 적중 기본 점수
+    hitTime: 2,            // 검거 성공 시 늘어나는 시간(초)
+    noneTime: 5,           // 검거 불가 적중 시 늘어나는 시간(초)
+    missPenalty: 5,        // 오인 체포 시 줄어드는 시간(초)
+    wrongNonePenalty: 10,  // 검거 불가 오판 시 줄어드는 시간(초)
+    comboStep: 0.5,        // 연속 검거 1회당 배수 증가
+    comboMax: 3,           // 배수 상한
+    hintPenalty: 3,        // 단서 한 번에 줄어드는 시간(초)
+    // 이 단계에 오르는 데 필요한 누적 검거 수(단계 1은 0). 2명→얼굴, 4명→시간대, 7명→흔적
+    levelAt: { 1: 0, 2: 2, 3: 4, 4: 7 }
+  };
+
+  /* ---------- 오류 ---------- */
+  // 화면이 code 로 분기할 수 있게 오류에 종류를 붙인다.
+  function GameError(code, message) {
+    var e = new Error(message);
+    e.name = 'GameError';
+    e.code = code;
+    return e;
+  }
+
+  /* ---------- 단계 ---------- */
+  function assertLevel(level) {
+    if (level !== 1 && level !== 2 && level !== 3 && level !== 4) throw GameError('BAD_LEVEL', '단계는 1~4: ' + level);
+  }
+  // 단계 → 보는 속성 번호 목록(ATTRS 순서로 정렬해서 화면 표시 순서가 늘 같게)
+  function activeFor(level) {
+    assertLevel(level);
+    return ORDER.slice(0, level).sort(function (a, b) { return a - b; });
+  }
+
+  /* ---------- 카드 ---------- */
+  function assertId(id) {
+    if (typeof id !== 'number' || !isFinite(id) || Math.floor(id) !== id || id < 0 || id >= DECK_SIZE) {
+      throw GameError('BAD_CARD', '카드 id 는 0~80 정수여야 한다: ' + id);
+    }
+  }
+
+  // id → [시간대, 모자, 얼굴, 흔적] 각 0~2
+  function decode(id) {
+    assertId(id);
+    return [id % 3, Math.floor(id / 3) % 3, Math.floor(id / 9) % 3, Math.floor(id / 27) % 3];
+  }
+
+  function encode(v) {
+    if (!Array.isArray(v) || v.length !== ATTRS.length) throw GameError('BAD_CARD', '속성은 4개여야 한다');
+    for (var i = 0; i < v.length; i++) {
+      if (v[i] !== 0 && v[i] !== 1 && v[i] !== 2) throw GameError('BAD_CARD', '속성 값은 0~2: ' + v[i]);
+    }
+    return v[0] + v[1] * 3 + v[2] * 9 + v[3] * 27;
+  }
+
+  // 보는 속성만 남긴 모양(안 보는 속성은 0). 화면은 이 값으로 그린다.
+  function project(id, active) {
+    var v = decode(id), a = active || ALL, out = [0, 0, 0, 0];
+    for (var i = 0; i < a.length; i++) out[a[i]] = v[a[i]];
+    return out;
+  }
+  function projKey(id, active) { return project(id, active).join(''); }
+
+  /*
+   * 세 장이 한 패인가(보는 속성만 따진다).
+   * 속성마다 (x+y+z) % 3 === 0 이면 "모두 같음" 또는 "모두 다름"이다(둘만 같으면 합이 3의 배수가 될 수 없다).
+   * 같은 카드를 두 번 고른 경우는 판 위 자리가 다르면 생기지 않지만, 방어적으로 막는다.
+   */
+  function isSet(a, b, c, active) {
+    if (a === b || b === c || a === c) return false;
+    var x = decode(a), y = decode(b), z = decode(c), act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n];
+      if ((x[i] + y[i] + z[i]) % 3 !== 0) return false;
+    }
+    return true;
+  }
+
+  /*
+   * 왜 틀렸는지: 규칙을 어긴 속성(= 둘만 같은 속성)과 그 값.
+   * 오인 체포 때 "모자: 비니 둘만 같아요"처럼 보여 줘서 규칙을 몸으로 익히게 한다.
+   */
+  function explain(a, b, c, active) {
+    var x = decode(a), y = decode(b), z = decode(c), out = [], act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n];
+      if ((x[i] + y[i] + z[i]) % 3 !== 0) {
+        var same = x[i] === y[i] ? x[i] : (y[i] === z[i] ? y[i] : x[i]);
+        out.push({ index: i, key: ATTRS[i].key, name: ATTRS[i].name, value: ATTRS[i].values[same] });
+      }
+    }
+    return out;
+  }
+
+  // 두 장이 정해지면 셋째 장은 하나로 정해진다(속성마다 (3 - (x+y)%3) % 3).
+  function thirdCard(a, b) {
+    if (a === b) throw GameError('SAME_CARD', '서로 다른 두 장이어야 한다');
+    var x = decode(a), y = decode(b), v = [];
+    for (var i = 0; i < ATTRS.length; i++) v.push((3 - (x[i] + y[i]) % 3) % 3);
+    return encode(v);
+  }
+
+  /*
+   * 두 장을 골랐을 때 셋째가 갖춰야 할 조건(보조 줄·튜토리얼 해설에 쓴다).
+   * 반환: [{ index, name, same, value }] — same=true 면 "둘이 같으니 셋째도 같게", false 면 "둘이 다르니 남은 하나로"
+   */
+  function needs(a, b, active) {
+    var x = decode(a), y = decode(b), out = [], act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n], same = x[i] === y[i];
+      var v = same ? x[i] : (3 - (x[i] + y[i]) % 3) % 3;
+      out.push({ index: i, key: ATTRS[i].key, name: ATTRS[i].name, same: same, value: ATTRS[i].values[v] });
+    }
+    return out;
+  }
+
+  // 판 위의 한 패를 모두 찾는다(9장 → 84개 조합, 충분히 가볍다).
+  function findSets(board, active) {
+    var out = [];
+    for (var i = 0; i < board.length; i++)
+      for (var j = i + 1; j < board.length; j++)
+        for (var k = j + 1; k < board.length; k++)
+          if (isSet(board[i], board[j], board[k], active)) out.push([i, j, k]);
+    return out;
+  }
+
+  /* ---------- 무작위 ---------- */
+  // 시드 고정 난수(mulberry32). 테스트와 공통 판에 쓴다.
+  function makeRng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () {
+      s = (s + 0x6D2B79F5) >>> 0;
+      var t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function assertRng(rng) {
+    if (typeof rng !== 'function') throw GameError('BAD_RNG', 'rng 는 0 이상 1 미만을 돌려주는 함수여야 한다');
+  }
+  // rng 가 범위를 벗어나도 판이 깨지지 않게 0~n-1 로 맞춘다
+  function pickIndex(rng, n) {
+    var r = rng();
+    if (!(r >= 0 && r < 1)) r = 0;
+    return Math.floor(r * n);
+  }
+
+  // exclude 에 없는 카드를 0 ~ limit-1 에서 count 장 뽑는다(서로 겹치지 않게). limit 기본 81.
+  function drawDistinct(rng, exclude, count, limit) {
+    assertRng(rng);
+    limit = limit == null ? DECK_SIZE : limit;
+    var used = {}, pool = [];
+    for (var i = 0; i < exclude.length; i++) used[exclude[i]] = true;
+    for (var id = 0; id < limit; id++) if (!used[id]) pool.push(id);
+    if (pool.length < count) throw GameError('DECK_EMPTY', '뽑을 카드가 모자란다');
+    var out = [];
+    for (var n = 0; n < count; n++) {
+      var pick = pickIndex(rng, pool.length);
+      out.push(pool[pick]);
+      pool.splice(pick, 1);
+    }
+    return out;
+  }
+
+  function newBoard(rng, limit) {
+    return drawDistinct(rng, [], BOARD_SIZE, limit);
+  }
+
+  // 검거한 세 자리만 새 카드로 바꾼 판(원본은 그대로). 판 전체를 제외해 방금 잡힌 카드가 바로 다시 나오지 않게 한다.
+  function refill(board, idxs, rng, limit) {
+    var fresh = drawDistinct(rng, board, idxs.length, limit);
+    var next = board.slice();
+    for (var i = 0; i < idxs.length; i++) next[idxs[i]] = fresh[i];
+    return next;
+  }
+
+  /*
+   * 단계에 맞춰 카드를 뽑는다: 화면에 보이는 모양(project)이 판 위에서 겹치지 않는 카드를 먼저 고른다.
+   * 모양 가짓수가 모자라면(1단계는 3가지뿐) 겹침을 허용한다. 1단계는 "같은 모자 셋"이 곧 한 패라 괜찮다.
+   */
+  function drawForLevel(rng, excludeIds, keepProj, count, level) {
+    assertRng(rng);
+    var active = activeFor(level), used = {}, seen = {}, out = [];
+    for (var i = 0; i < excludeIds.length; i++) used[excludeIds[i]] = true;
+    for (var j = 0; j < keepProj.length; j++) seen[keepProj[j]] = true;
+    var pool = [];
+    for (var id = 0; id < DECK_SIZE; id++) if (!used[id]) pool.push(id);
+    for (var n = 0; n < count; n++) {
+      var fresh = pool.filter(function (c) { return !seen[projKey(c, active)]; });
+      var from = fresh.length ? fresh : pool;
+      if (!from.length) throw GameError('DECK_EMPTY', '뽑을 카드가 모자란다');
+      var pick = from[pickIndex(rng, from.length)];
+      out.push(pick);
+      seen[projKey(pick, active)] = true;
+      pool.splice(pool.indexOf(pick), 1);
+    }
+    return out;
+  }
+
+  function dealBoard(rng, level) {
+    return drawForLevel(rng, [], [], BOARD_SIZE, level);
+  }
+
+  function refillBoard(board, idxs, rng, level) {
+    var active = activeFor(level), keep = [];
+    for (var i = 0; i < board.length; i++) if (idxs.indexOf(i) < 0) keep.push(projKey(board[i], active));
+    var fresh = drawForLevel(rng, board, keep, idxs.length, level);
+    var next = board.slice();
+    for (var k = 0; k < idxs.length; k++) next[idxs[k]] = fresh[k];
+    return next;
+  }
+
+  /* ---------- 게임 ---------- */
+  // 연속 검거 n 번째의 점수 배수: 1, 1.5, 2, 2.5, 3, 3, ...
+  // 연속 검거 배수(평소 규칙). 판의 상한이 다르면 multiplierFor 를 쓴다
+  //   (인자를 하나만 받는다: [..].map(multiplier) 처럼 써도 두 번째 인자가 끼어들지 않게)
+  function multiplier(combo) { return multiplierFor(combo, RULES.comboMax); }
+  function multiplierFor(combo, max) {
+    if (combo < 1) return 1;
+    return Math.min(max == null ? RULES.comboMax : max, 1 + RULES.comboStep * (combo - 1));
+  }
+
+  /*
+   * 판마다 바꿀 수 있는 규칙(0.1.19: 하루 한 번 특별 출동 · 출동 준비물).
+   *   scoreMult  점수 배수(기본 1)          comboMax  연속 배수 상한(기본 RULES.comboMax)
+   *   hitTime    검거 때 늘어나는 초          missPenalty 오인 체포 때 줄어드는 초
+   *   noneMult   검거 불가 적중 점수 배수      noHints   단서 못 씀
+   *   shield     오인 체포 벌점을 면제하는 횟수(준비물 "변호사 대기")
+   * 모르는 키는 버리고, 값이 이상하면 BAD_OPTION 을 던진다(판을 만들 때 한 번만 검사).
+   */
+  var MOD_DEFAULTS = { scoreMult: 1, comboMax: null, hitTime: null, missPenalty: null, noneMult: 1, noHints: false, shield: 0 };
+  function readMods(m) {
+    m = m && typeof m === 'object' ? m : {};
+    var out = {};
+    Object.keys(MOD_DEFAULTS).forEach(function (k) { out[k] = m[k] == null ? MOD_DEFAULTS[k] : m[k]; });
+    var num = function (v, min, max) { return typeof v === 'number' && isFinite(v) && v >= min && v <= max; };
+    if (!num(out.scoreMult, 0.1, 10) || !num(out.noneMult, 0.1, 10)) throw GameError('BAD_OPTION', '점수 배수는 0.1~10');
+    if (out.comboMax != null && !num(out.comboMax, 1, 20)) throw GameError('BAD_OPTION', '연속 배수 상한은 1~20');
+    if (out.hitTime != null && !num(out.hitTime, 0, 30)) throw GameError('BAD_OPTION', '검거 시간은 0~30초');
+    if (out.missPenalty != null && !num(out.missPenalty, 0, 60)) throw GameError('BAD_OPTION', '오인 벌점은 0~60초');
+    if (!num(out.shield, 0, 10) || Math.floor(out.shield) !== out.shield) throw GameError('BAD_OPTION', '면제 횟수는 0~10 정수');
+    out.noHints = out.noHints === true;
+    return out;
+  }
+
+  function assertNow(now) {
+    if (typeof now !== 'number' || !isFinite(now)) throw GameError('BAD_TIME', 'now 는 밀리초 숫자여야 한다');
+  }
+
+  /*
+   * 새 게임. opts:
+   *   rng, now(ms)        — 필수
+   *   duration(초)        — 기본 90 (사무실 장비 "수사 기간 연장"이 늘린다)
+   *   level               — 시작 단계 1~4, 기본 1. 노말은 4.
+   *   freeHints           — 시간이 줄지 않는 단서 횟수(장비 "베테랑 형사")
+   *   nonePenalty(초)     — 검거 불가 오판 벌점(장비 "증거 보관실"이 줄인다)
+   *   mods                — 판마다 바꾸는 규칙(readMods 참고). 없으면 평소 규칙
+   * 남은 시간은 "종료 시각(endAt)"으로 들고 있다. 매 프레임 깎지 않아도 되고, 탭을 떠나도 정확하다.
+   */
+  function createGame(opts) {
+    opts = opts || {};
+    assertRng(opts.rng);
+    assertNow(opts.now);
+    var duration = opts.duration == null ? RULES.duration : opts.duration;
+    if (!(duration > 0)) throw GameError('BAD_DURATION', '시간은 0보다 커야 한다');
+    var level = opts.level == null ? 1 : opts.level;
+    assertLevel(level);
+    var freeHints = opts.freeHints == null ? 0 : opts.freeHints;
+    var nonePenalty = opts.nonePenalty == null ? RULES.wrongNonePenalty : opts.nonePenalty;
+    if (!(freeHints >= 0) || !(nonePenalty >= 0)) throw GameError('BAD_OPTION', '단서·벌점 값은 0 이상');
+    var mods = readMods(opts.mods);
+    return {
+      mods: mods, shield: mods.shield, shieldUsed: 0,
+      rng: opts.rng,
+      level: level,
+      startLevel: level,
+      board: dealBoard(opts.rng, level),
+      clue: null,       // 단서: { set:[i,j,k], shown:n } — 판이 바뀌면 null
+      hints: 0, freeHints: freeHints, nonePenalty: nonePenalty,
+      score: 0, combo: 0, bestCombo: 0,
+      hits: 0, misses: 0, noneHits: 0, noneMisses: 0,
+      endAt: opts.now + duration * 1000,
+      pausedAt: null,   // 일시정지 중이면 멈춘 시각(ms), 아니면 null
+      over: false
+    };
+  }
+
+  function active(state) { return activeFor(state.level); }
+
+  // 일시정지 중에는 멈춘 시각 기준으로 남은 시간을 센다(시간이 흐르지 않는다)
+  function timeLeft(state, now) {
+    assertNow(now);
+    var at = state.pausedAt != null ? state.pausedAt : now;
+    return Math.max(0, (state.endAt - at) / 1000);
+  }
+
+  // "처음으로" 확인 창이 떠 있는 동안 시간을 멈춘다. 재개하면 멈춘 만큼 종료 시각을 뒤로 민다.
+  function pause(state, now) {
+    assertNow(now);
+    if (state.over) throw GameError('GAME_OVER', '이미 끝난 판이다');
+    if (state.pausedAt == null) state.pausedAt = now;
+  }
+
+  function resume(state, now) {
+    assertNow(now);
+    if (state.pausedAt == null) return;
+    state.endAt += Math.max(0, now - state.pausedAt);
+    state.pausedAt = null;
+  }
+
+  // 시간이 다 됐으면 끝낸다. 끝났는지 돌려준다.
+  function tick(state, now) {
+    if (state.pausedAt != null) return state.over;
+    if (!state.over && timeLeft(state, now) <= 0) state.over = true;
+    return state.over;
+  }
+
+  function guard(state, now, what) {
+    if (state.pausedAt != null) throw GameError('PAUSED', '멈춘 판에서는 ' + what + ' 수 없다');
+    if (tick(state, now)) throw GameError('GAME_OVER', '이미 끝난 판이다');
+  }
+
+  function addCombo(state) {
+    state.combo += 1;
+    if (state.combo > state.bestCombo) state.bestCombo = state.combo;
+    return multiplierFor(state.combo, state.mods ? state.mods.comboMax : null);
+  }
+
+  // 누적 검거 수로 다음 단계를 정한다(올라가기만 한다)
+  function levelForHits(startLevel, hits) {
+    var lv = startLevel;
+    for (var l = startLevel + 1; l <= 4; l++) if (hits >= RULES.levelAt[l]) lv = l;
+    return lv;
+  }
+
+  /*
+   * 검거 시도. idxs = 판 위의 자리 세 개(0~8, 서로 다름). state 를 직접 바꾼다.
+   * 반환: 성공 { ok:true, gain, combo, mult, replaced, levelUp? }, 실패 { ok:false, reasons, penalty }
+   */
+  function submit(state, idxs, now) {
+    guard(state, now, '고를');
+    if (!Array.isArray(idxs) || idxs.length !== 3) throw GameError('BAD_PICK', '세 명을 골라야 한다');
+    for (var i = 0; i < 3; i++) {
+      var v = idxs[i];
+      if (typeof v !== 'number' || Math.floor(v) !== v || v < 0 || v >= state.board.length) {
+        throw GameError('BAD_PICK', '판에 없는 자리: ' + v);
+      }
+    }
+    if (idxs[0] === idxs[1] || idxs[1] === idxs[2] || idxs[0] === idxs[2]) throw GameError('BAD_PICK', '같은 자리를 두 번 골랐다');
+
+    var act = active(state);
+    var a = state.board[idxs[0]], b = state.board[idxs[1]], c = state.board[idxs[2]];
+    if (isSet(a, b, c, act)) {
+      var mult = addCombo(state);
+      var md = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.base * mult * md.scoreMult);
+      state.score += gain;
+      state.hits += 1;
+      state.endAt += (md.hitTime == null ? RULES.hitTime : md.hitTime) * 1000;
+      state.clue = null;
+      var next = levelForHits(state.startLevel, state.hits);
+      if (next !== state.level) {
+        // 새 속성이 열리는 순간: 판 전체를 새 단계에 맞춰 깐다
+        state.level = next;
+        state.board = dealBoard(state.rng, next);
+        return { ok: true, gain: gain, combo: state.combo, mult: mult, levelUp: next, replaced: [0, 1, 2, 3, 4, 5, 6, 7, 8] };
+      }
+      state.board = refillBoard(state.board, idxs, state.rng, state.level);
+      return { ok: true, gain: gain, combo: state.combo, mult: mult, replaced: idxs.slice() };
+    }
+    state.combo = 0;
+    state.misses += 1;
+    // 변호사 대기(준비물): 남은 면제 횟수가 있으면 시간을 깎지 않는다(연속은 끊긴다)
+    var md2 = state.mods || MOD_DEFAULTS, pen = md2.missPenalty == null ? RULES.missPenalty : md2.missPenalty, shielded = false;
+    if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
+    state.endAt -= pen * 1000;
+    tick(state, now);
+    return { ok: false, reasons: explain(a, b, c, act), penalty: pen, shielded: shielded };
+  }
+
+  /*
+   * "검거 불가" 선언. 판에 한 패가 없으면 적중: 큰 점수 + 판 전체를 새로 깐다.
+   * 하나라도 있으면 오판: 시간이 크게 줄고 연속이 끊긴다(몇 패 남았는지만 알려 준다).
+   */
+  function declareNone(state, now) {
+    guard(state, now, '선언할');
+    var sets = findSets(state.board, active(state));
+    if (sets.length === 0) {
+      var mult = addCombo(state);
+      var mdn = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.noneBonus * mult * mdn.scoreMult * mdn.noneMult);
+      state.score += gain;
+      state.noneHits += 1;
+      state.endAt += RULES.noneTime * 1000;
+      state.board = dealBoard(state.rng, state.level);
+      state.clue = null;
+      return { ok: true, gain: gain, combo: state.combo, mult: mult };
+    }
+    state.combo = 0;
+    state.noneMisses += 1;
+    state.endAt -= state.nonePenalty * 1000;
+    tick(state, now);
+    return { ok: false, remaining: sets.length, penalty: state.nonePenalty };
+  }
+
+  // 단서 한 번의 값: 무료 단서가 남았으면 0초, 아니면 hintPenalty 초
+  function chargeHint(state, now) {
+    var p = 0;
+    if (state.freeHints > 0) state.freeHints -= 1;
+    else { p = RULES.hintPenalty; state.endAt -= p * 1000; }
+    state.hints += 1;
+    tick(state, now);
+    return p;
+  }
+
+  /*
+   * 단서: 누를 때마다 한 패의 한 명씩, 최대 두 명까지 짚어 준다.
+   *   두 명이 보이면 셋째는 하나로 정해지므로 직접 찾게 둔다(규칙을 익히는 연습).
+   *   판에 한 패가 없으면 그 사실을 알려 준다(검거 불가를 누르라는 뜻).
+   *   이미 두 명을 보여 줬으면 다시 눌러도 깎지 않고 같은 두 명을 돌려준다.
+   * 반환: { none:true, penalty } 또는 { indices:[...], penalty }
+   */
+  function hint(state, now) {
+    guard(state, now, '단서를 볼');
+    if (state.mods && state.mods.noHints) throw GameError('NO_HINTS', '이 출동은 단서를 쓸 수 없다');
+    if (!state.clue) {
+      var sets = findSets(state.board, active(state));
+      if (sets.length === 0) return { none: true, penalty: chargeHint(state, now) };
+      state.clue = { set: sets[pickIndex(state.rng, sets.length)], shown: 0 };
+    }
+    var penalty = 0;
+    if (state.clue.shown < 2) {
+      state.clue.shown += 1;
+      penalty = chargeHint(state, now);
+    }
+    return { indices: state.clue.set.slice(0, state.clue.shown), penalty: penalty };
+  }
+
+  /* ---------- 튜토리얼 ---------- */
+  function shuffle(rng, arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = pickIndex(rng, i + 1), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /*
+   * "두 명의 한 패, 셋째는 누구?" 문제 하나.
+   *   a, b       : 주어진 두 명(안 보는 속성은 0 으로 맞춰 그림이 단순하다)
+   *   answer     : 정답(셋째)
+   *   options    : 정답 + 오답들을 섞은 것. 오답은 정답에서 속성 하나만 바꾼 "아깝게 틀린" 사람이라
+   *                고르면 explain() 으로 정확히 한 가지 이유가 나온다.
+   *   2단계 이상은 "같은 속성"과 "다른 속성"이 적어도 하나씩 섞이게 만들어 두 요령을 다 보게 한다.
+   */
+  function makeLesson(rng, level) {
+    assertRng(rng);
+    var act = activeFor(level);
+    var a, b, x, y, sameN, diffN;
+    for (var guardN = 0; guardN < 500; guardN++) {
+      x = [0, 0, 0, 0]; y = [0, 0, 0, 0];
+      for (var n = 0; n < act.length; n++) { x[act[n]] = pickIndex(rng, 3); y[act[n]] = pickIndex(rng, 3); }
+      sameN = 0; diffN = 0;
+      for (var m = 0; m < act.length; m++) { if (x[act[m]] === y[act[m]]) sameN++; else diffN++; }
+      if (diffN === 0) continue;                    // 두 명이 똑같으면 문제가 아니다
+      if (act.length >= 2 && sameN === 0) continue;  // 같은 것도 하나는 있게
+      break;
+    }
+    a = encode(x); b = encode(y);
+    var answer = thirdCard(a, b);
+    var ans = decode(answer), wrong = [];
+    for (var k = 0; k < act.length; k++) {
+      var i = act[k];
+      for (var v = 0; v < 3; v++) {
+        if (v === ans[i]) continue;
+        var d = ans.slice(); d[i] = v;
+        var id = encode(d);
+        // 1단계는 모자 3가지뿐이라 오답이 주어진 두 명과 똑같은 카드가 된다.
+        // 안 보는 흔적 자리만 바꿔 다른 id 로 만든다(그림은 같고 "둘만 같다"는 이유로 틀린다).
+        if (id === a || id === b) {
+          if (act.indexOf(3) >= 0) continue;
+          d[3] = id === a ? 1 : 2;
+          id = encode(d);
+        }
+        wrong.push(id);
+      }
+    }
+    wrong = shuffle(rng, wrong).slice(0, act.length === 1 ? 2 : 3);
+    return { level: level, active: act, a: a, b: b, answer: answer, options: shuffle(rng, [answer].concat(wrong)) };
+  }
+
+  return {
+    ATTRS: ATTRS, ORDER: ORDER, DECK_SIZE: DECK_SIZE, BOARD_SIZE: BOARD_SIZE, RULES: RULES,
+    activeFor: activeFor, decode: decode, encode: encode, project: project,
+    isSet: isSet, explain: explain, thirdCard: thirdCard, needs: needs, findSets: findSets,
+    makeRng: makeRng, drawDistinct: drawDistinct, newBoard: newBoard, refill: refill,
+    dealBoard: dealBoard, refillBoard: refillBoard,
+    multiplier: multiplier, multiplierFor: multiplierFor, readMods: readMods, MOD_DEFAULTS: MOD_DEFAULTS, createGame: createGame, active: active, timeLeft: timeLeft, tick: tick,
+    pause: pause, resume: resume, submit: submit, declareNone: declareNone, hint: hint,
+    makeLesson: makeLesson
+  };
+});
+
+</script>
+<script>
+/*
+ * Team3PetArt(0.3.0) — 말랑 동물 그림(SVG 문자열). 그림만 그린다(규칙·저장은 Team3Pets).
+ *   draw(id, { grade:'c'|'r'|'h'|'l', mood:'happy'|'huh', anim:bool, outfit }) → '<svg …>'
+ *   틀: 머리와 몸을 한 윤곽(MOCHI, 찹쌀떡)으로 그리고 같은 계열 진한 색 테두리. 눈·코·입은 얼굴 아래쪽에 작게.
+ *   등급 꾸밈: 일반 = 동 배지 / 희귀 = 경찰모 · 은 배지 / 영웅 = 경찰모 · 빨간 망토 · 금 배지 / 전설 = 금빛 후광 · 금 경찰모 · 반짝임.
+ *   proto/mascot.html 시안에서 옮겨 왔다(시안과 같은 그림).
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Team3PetArt = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+  var SKY = '#9CD3F2', SKY_D = '#4F86A8', INK = '#1B1E24';
+
+  /* ---------- 의상: 머리 위 기준점(cx, top)과 머리 너비(w)에 맞춰 그린다 ---------- */
+  function beanie(cx, top, w, c) {
+    var h = w * 0.5, s = '<g>';
+    s += '<path d="M' + (cx - w / 2) + ' ' + (top + h) + 'c0-' + (h * 1.1) + ' ' + (w * 0.2) + '-' + (h * 1.35) + ' ' + (w / 2) + '-' + (h * 1.35) + 's' + (w / 2) + ' ' + (h * 0.25) + ' ' + (w / 2) + ' ' + (h * 1.35) + 'z" fill="' + c + '"/>';
+    s += '<rect x="' + (cx - w / 2 - 3) + '" y="' + (top + h - 8) + '" width="' + (w + 6) + '" height="13" rx="5" fill="' + c + '" stroke="#F4EFE2" stroke-width="2"/>';
+    for (var x = cx - w / 2 + 4; x < cx + w / 2; x += 8) s += '<line x1="' + x + '" y1="' + (top + h - 6) + '" x2="' + x + '" y2="' + (top + h + 3) + '" stroke="#F4EFE2" stroke-width="1.3"/>';
+    s += '<circle cx="' + cx + '" cy="' + (top - h * 0.38) + '" r="9" fill="#F0525A"/><circle cx="' + (cx - 3) + '" cy="' + (top - h * 0.38 - 3) + '" r="3" fill="#fff" opacity=".5"/></g>';
+    return s;
+  }
+  function fedora(cx, top, w, c) {
+    return '<g><path d="M' + (cx - w * 0.36) + ' ' + (top + 2) + 'l6-' + (w * 0.36) + 'q' + (w * 0.15) + '-8 ' + (w * 0.3) + ' 0q' + (w * 0.15) + '-8 ' + (w * 0.3) + ' 0l6 ' + (w * 0.36) + 'z" fill="' + c + '"/>' +
+      '<path d="M' + (cx - w * 0.36) + ' ' + (top - 6) + 'h' + (w * 0.72) + '" stroke="#F4EFE2" stroke-width="4"/>' +
+      '<path d="M' + (cx - w * 0.75) + ' ' + (top + 4) + 'h' + (w * 1.5) + '" stroke="' + c + '" stroke-width="9" stroke-linecap="round"/></g>';
+  }
+  function glasses(cx, ey, gap, r) {
+    return '<g><circle cx="' + (cx - gap) + '" cy="' + ey + '" r="' + r + '" fill="' + SKY + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<circle cx="' + (cx + gap) + '" cy="' + ey + '" r="' + r + '" fill="' + SKY + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<line x1="' + (cx - gap + r) + '" y1="' + ey + '" x2="' + (cx + gap - r) + '" y2="' + ey + '" stroke="' + INK + '" stroke-width="3"/>' +
+      '<circle cx="' + (cx - gap) + '" cy="' + ey + '" r="3" fill="' + INK + '"/><circle cx="' + (cx + gap) + '" cy="' + ey + '" r="3" fill="' + INK + '"/></g>';
+  }
+  function mask(cx, y, w) {
+    return '<g><path d="M' + (cx - w / 2) + ' ' + y + 'h' + w + 'v10c0 10-' + (w * 0.22) + ' 16-' + (w / 2) + ' 16s-' + (w / 2) + '-6-' + (w / 2) + '-16z" fill="' + SKY + '" stroke="' + INK + '" stroke-width="1.6"/>' +
+      '<path d="M' + (cx - w * 0.38) + ' ' + (y + 7) + 'h' + (w * 0.76) + 'M' + (cx - w * 0.34) + ' ' + (y + 13) + 'h' + (w * 0.68) + '" stroke="' + SKY_D + '" stroke-width="2" stroke-linecap="round"/></g>';
+  }
+
+  /*
+   * 0.3 시안: 머리와 몸을 한 덩어리로 잇는다.
+   *  - 머리와 몸이 같은 그라디언트(userSpaceOnUse: 그림 전체에 빛 하나)를 써서 겹치는 곳에 이음매가 생기지 않는다.
+   *  - 목줄처럼 가로로 끊는 띠는 없앴다. 대신 주둥이 → 가슴으로 이어지는 흰 털(턱받이)이 머리와 몸을 이어 준다.
+   *  - 고양이(랙돌)는 목 갈기, 너구리는 밝은 배 털이 같은 역할을 한다.
+   */
+  function rg(id, a, b, c) {
+    return '<radialGradient id="' + id + '" gradientUnits="userSpaceOnUse" cx="82" cy="52" r="165"><stop offset="0" stop-color="' + a + '"/><stop offset=".55" stop-color="' + b + '"/><stop offset="1" stop-color="' + c + '"/></radialGradient>';
+  }
+  var DEFS = '<defs>' +
+    rg('gCorgi', '#F4B66C', '#E0913F', '#B96A26') + rg('gShiba', '#F0A766', '#D27A35', '#A65A22') +
+    rg('gCream', '#FFFDF7', '#F6ECDA', '#DCCBAE') + rg('gRag', '#FFFCF5', '#F1E6D4', '#D5C3A6') + rg('gSiam', '#FBF1DF', '#EBD9BB', '#CDB48F') +
+    rg('gPoint', '#8C6A52', '#5E4433', '#3E2C22') + rg('gRagPt', '#9C8778', '#76645A', '#54463F') + rg('gRac', '#B5BAC2', '#8E949E', '#6A707A') +
+    rg('gRacBelly', '#F3EEE4', '#E1D9CA', '#C5BBA8') + rg('gDark', '#4A4C55', '#2C2E35', '#1C1D22') +
+    '<radialGradient id="gBlue" cx="50%" cy="35%" r="65%"><stop offset="0" stop-color="#BFE8FF"/><stop offset=".6" stop-color="#5BB2E8"/><stop offset="1" stop-color="#2F7CC0"/></radialGradient>' +
+    '<radialGradient id="gNose" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#4A4F5C"/><stop offset="1" stop-color="#14171D"/></radialGradient>' +
+    '<radialGradient id="gShadow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="rgba(0,0,0,.32)"/><stop offset="1" stop-color="rgba(0,0,0,0)"/></radialGradient>' +
+    '<linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE48A"/><stop offset="1" stop-color="#D9A51E"/></linearGradient>' +
+    '<linearGradient id="gCoat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE066"/><stop offset="1" stop-color="#E0B21E"/></linearGradient>' +
+    '<radialGradient id="gPtSoft"><stop offset="0" stop-color="#9C8170" stop-opacity=".75"/><stop offset=".7" stop-color="#B39A88" stop-opacity=".45"/><stop offset="1" stop-color="#B39A88" stop-opacity="0"/></radialGradient>' +
+    '<radialGradient id="gPtSoftD"><stop offset="0" stop-color="#5E4233" stop-opacity=".95"/><stop offset=".65" stop-color="#7A5A46" stop-opacity=".7"/><stop offset="1" stop-color="#7A5A46" stop-opacity="0"/></radialGradient>' +
+    '</defs>';
+  // 큰 눈: 짙은 눈동자 + 큰 반짝임 + 작은 반짝임
+  function eye(x, y, rx, ry) {
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="#1B1E24"/>' +
+      '<ellipse cx="' + (x - rx * 0.3) + '" cy="' + (y - ry * 0.35) + '" rx="' + (rx * 0.42) + '" ry="' + (ry * 0.36) + '" fill="#fff"/>' +
+      '<circle cx="' + (x + rx * 0.35) + '" cy="' + (y + ry * 0.35) + '" r="' + (rx * 0.18) + '" fill="#fff" opacity=".85"/>';
+  }
+  // 파란 눈(랙돌 · 샴): 홍채 + 세로 동공 + 반짝임
+  function blueEye(x, y, rx, ry) {
+    return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '" fill="url(#gBlue)"/>' +
+      '<ellipse cx="' + x + '" cy="' + (y + 1) + '" rx="' + (rx * 0.45) + '" ry="' + (ry * 0.78) + '" fill="#1B1E24"/>' +
+      '<ellipse cx="' + (x - rx * 0.32) + '" cy="' + (y - ry * 0.4) + '" rx="' + (rx * 0.36) + '" ry="' + (ry * 0.28) + '" fill="#fff"/>' +
+      '<circle cx="' + (x + rx * 0.35) + '" cy="' + (y + ry * 0.38) + '" r="' + (rx * 0.16) + '" fill="#fff" opacity=".85"/>';
+  }
+  function happyEye(x, y, w, c) { return '<path d="M' + (x - w) + ' ' + y + ' q' + w + '-' + (w * 1.1) + ' ' + (w * 2) + ' 0" stroke="' + (c || '#1B1E24') + '" stroke-width="4" fill="none" stroke-linecap="round"/>'; }
+  function blush(x, y) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="5.5" fill="#FF8A8A" opacity=".45"/>'; }
+  function shadow() { return '<ellipse cx="100" cy="194" rx="58" ry="7" fill="url(#gShadow)"/>'; }
+  function wrap(o, inner) {
+    return '<svg viewBox="0 0 200 200" aria-hidden="true">' + DEFS + shadow() + '<g class="' + (o.mood === 'happy' ? 'pb-hop' : o.mood === 'huh' ? 'pb-tilt' : '') + '">' + inner + '</g></svg>';
+  }
+  function huhMark() { return '<g><circle cx="162" cy="40" r="15" fill="#FFD23F"/><text x="162" y="47" font-size="20" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="IBM Plex Sans KR">?</text></g>'; }
+  function sparkle(x, y) { return '<path d="M' + x + ' ' + (y - 9) + ' l2.6 6.4 6.4 2.6-6.4 2.6-2.6 6.4-2.6-6.4-6.4-2.6 6.4-2.6z" fill="#FFE27A"/>'; }
+  // 가슴의 3팀 배지(별 모양 경찰 배지). 띠 없이 털에 달려 있어 머리와 몸을 끊지 않는다.
+  function badge(x, y) {
+    return '<path d="M' + x + ' ' + (y - 11) + ' l3.3 6.6 7.3 1-5.3 5.2 1.3 7.2-6.6-3.5-6.6 3.5 1.3-7.2-5.3-5.2 7.3-1z" fill="url(#gGold)"/>' +
+      '<text x="' + x + '" y="' + (y + 4) + '" font-size="8" font-weight="700" text-anchor="middle" fill="#6B4E00" font-family="IBM Plex Sans KR">3</text>';
+  }
+  function mouth(o, y) {
+    if (o.outfit === 'mask') return '';
+    if (o.mood === 'happy') return '<path d="M88 ' + y + ' q12 12 24 0" fill="#7A2C34"/><path d="M95 ' + (y + 4) + ' q5 10 10 0z" fill="#FF8C95"/>';
+    if (o.mood === 'huh') return '<path d="M94 ' + (y + 3) + ' q6-3 12 0" stroke="#1B1E24" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return '<path d="M100 ' + (y - 6) + ' v4 M100 ' + (y - 2) + ' q-6 6-11 2 M100 ' + (y - 2) + ' q6 6 11 2" stroke="#1B1E24" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+  }
+  function extras(o, hat, eyeY, maskY, maskW, glassesOk) {
+    var s = '';
+    if (o.mood === 'huh') s += huhMark();
+    if (o.mood === 'happy') s += sparkle(36, 52) + sparkle(166, 42);
+    if (o.outfit === 'raincoat') s += '<path d="M46 72 q54-58 108 0 l4 12 q-58-28-116 0z" fill="url(#gCoat)"/>';
+    if (o.outfit === 'beanie') s += beanie(100, hat, 100, '#2F3646');
+    if (o.outfit === 'fedora') s += fedora(100, hat + 4, 88, '#3A2A1E');
+    if (glassesOk && (o.outfit === 'glasses' || o.outfit === 'fedora')) s += glasses(100, eyeY, 22, 14);
+    if (o.outfit === 'mask') s += mask(100, maskY, maskW);
+    return s;
+  }
+  // 공통 몸통: 어깨가 머리 뒤에서 시작해 아래로 넓어진다(머리와 같은 색이라 이음매가 안 보인다).
+  var BODY = 'M56 192 q-8-58 44-76 q52 18 44 76z';
+  var HEAD = 'M100 30 c38 0 60 22 60 56 c0 32-26 54-60 54 c-34 0-60-22-60-54 c0-34 22-56 60-56z';
+
+  /*
+   * 4차 "말랑" 스타일: 캐릭터 상품(스티커 · 인형) 말투.
+   *  - 머리와 몸을 처음부터 "한 개의 윤곽선"으로 그린다(찹쌀떡 모양). 이음매가 생길 수 없다.
+   *  - 머리가 전체의 2/3, 몸은 아래에 살짝만. 눈 · 코 · 입은 얼굴 아래쪽에 작게 모은다(아기 얼굴 비율).
+   *  - 몸 색보다 짙은 같은 계열 색의 테두리 선(3.5px)으로 스티커처럼 또렷하게.
+   */
+  var MOCHI = 'M100 26 C152 26 174 58 174 98 C174 124 162 140 148 148 C152 162 152 178 146 190 H54 C48 178 48 162 52 148 C38 140 26 124 26 98 C26 58 48 26 100 26 Z';
+  function k(fill, line) { return ' fill="' + fill + '" stroke="' + line + '" stroke-width="3.5" stroke-linejoin="round"'; }
+  function kEyes(o, y, blue) {
+    if (o.mood === 'happy') return happyEye(72, y + 2, 9, '#2A1E1A') + happyEye(128, y + 2, 9, '#2A1E1A');
+    var e = function (x) {
+      return blue
+        ? '<ellipse cx="' + x + '" cy="' + y + '" rx="10" ry="12" fill="url(#gBlue)" stroke="#2A1E1A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + (y + 1) + '" rx="5" ry="8" fill="#1B1E24"/>' +
+          '<ellipse cx="' + (x - 3.5) + '" cy="' + (y - 5) + '" rx="4" ry="3.6" fill="#fff"/><circle cx="' + (x + 4) + '" cy="' + (y + 5) + '" r="1.8" fill="#fff"/>'
+        : '<ellipse cx="' + x + '" cy="' + y + '" rx="9" ry="11" fill="#2A1E1A"/><ellipse cx="' + (x - 3) + '" cy="' + (y - 4.5) + '" rx="4" ry="3.8" fill="#fff"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 4.5) + '" r="1.8" fill="#fff"/>';
+    };
+    return '<g class="' + (o.anim ? 'pb-blink' : '') + '">' + e(72) + e(128) + '</g>';
+  }
+  function kFace(o, y, nose) {
+    var s = '<ellipse cx="56" cy="' + (y + 16) + '" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/><ellipse cx="144" cy="' + (y + 16) + '" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/>';
+    if (nose) s += '<ellipse cx="100" cy="' + (y + 10) + '" rx="5.5" ry="3.8" fill="' + nose + '"/>';
+    if (o.outfit === 'mask') return s;
+    if (o.mood === 'happy') s += '<path d="M92 ' + (y + 16) + ' q8 11 16 0z" fill="#B23A4C" stroke="#2A1E1A" stroke-width="2" stroke-linejoin="round"/>';
+    else if (o.mood === 'huh') s += '<path d="M95 ' + (y + 19) + ' q5-3 10 0" stroke="#2A1E1A" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    else s += '<path d="M92 ' + (y + 15) + ' q4 5 8 0 q4 5 8 0" stroke="#2A1E1A" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+    return s;
+  }
+  function kShine() { return '<ellipse cx="74" cy="46" rx="20" ry="8" fill="#fff" opacity=".35" transform="rotate(-18 74 46)"/>'; }
+  // 작은 두 손으로 가슴의 3팀 배지를 들고 있다 + 발
+  function kPaws(fill, line, foot) {
+    return badge(100, 164) +
+      '<ellipse cx="80" cy="166" rx="10" ry="8"' + k(fill, line) + '/><ellipse cx="120" cy="166" rx="10" ry="8"' + k(fill, line) + '/>' +
+      '<ellipse cx="74" cy="190" rx="13" ry="7"' + k(foot || fill, line) + '/><ellipse cx="126" cy="190" rx="13" ry="7"' + k(foot || fill, line) + '/>';
+  }
+  /*
+   * 의상(0.3.1): 모자(HATS)는 머리 위, 안경 · 선글라스 · 마스크는 눈높이(eyeY)에.
+   *   hatT: 머리 위에 눈이 있는 개구리처럼 모자를 옮길 때의 transform(없으면 그대로).
+   */
+  var HATS = { raincoat: 1, beanie: 1, fedora: 1, bow: 1 };
+  function sunglasses(cx, ey) {
+    var lens = function (x) { return '<path d="M' + (x - 17) + ' ' + (ey - 9) + 'h34q2 0 1 3l-3 10q-3 8-14 8t-15-8l-3-10q-1-3 1-3z" fill="#1E2330" stroke="#0E1118" stroke-width="2.4" stroke-linejoin="round"/>' +
+      '<path d="M' + (x - 11) + ' ' + (ey - 4) + 'l9 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>'; };
+    return '<g>' + lens(cx - 28) + lens(cx + 28) + '<path d="M' + (cx - 11) + ' ' + (ey - 6) + 'q11-5 22 0" stroke="#0E1118" stroke-width="3" fill="none"/></g>';
+  }
+  function bow(x, y) {
+    return '<g transform="rotate(14 ' + x + ' ' + y + ')"><path d="M' + x + ' ' + y + 'l-22-14q-6 0-6 8v12q0 8 6 8z" fill="#FF6B8A" stroke="#C23A5A" stroke-width="2.6" stroke-linejoin="round"/>' +
+      '<path d="M' + x + ' ' + y + 'l22-14q6 0 6 8v12q0 8-6 8z" fill="#FF6B8A" stroke="#C23A5A" stroke-width="2.6" stroke-linejoin="round"/>' +
+      '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#FF8FA6" stroke="#C23A5A" stroke-width="2.6"/></g>';
+  }
+  /*
+   * 머리 위에 "얹는" 모자(0.3.1 다시 그림). 말랑 머리는 위 끝이 y=26, 눈은 y≈100.
+   *   모자 아래 끝이 y≈52~62 에서 멈춰 눈을 가리지 않고, 폭은 머리(52~148)보다 좁아 귀가 옆으로 나온다.
+   *   살짝 기울이고(rotate) 같은 계열 진한 색 테두리를 둘러 다른 그림과 말투를 맞춘다.
+   */
+  function knitBeanie() {
+    var L = '#232A3B', s = '<g transform="rotate(-7 100 40)">';
+    s += '<path d="M60 46 C58 16 78 4 100 4 C122 4 142 16 140 46 Z" fill="#45527A" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    for (var x = 72; x <= 128; x += 11) s += '<path d="M' + x + ' ' + (x === 72 || x === 127 ? 22 : 14) + ' V40" stroke="#5A6A96" stroke-width="3" stroke-linecap="round"/>';
+    s += '<rect x="54" y="38" width="92" height="17" rx="8.5" fill="#6475A3" stroke="' + L + '" stroke-width="3.5"/>';
+    for (var y = 62; y <= 138; y += 8) s += '<path d="M' + y + ' 42 v9" stroke="#4E5D86" stroke-width="2.4" stroke-linecap="round"/>';
+    s += '<circle cx="100" cy="2" r="11" fill="#F0525A" stroke="#9E2A33" stroke-width="3"/><circle cx="96" cy="-2" r="3.5" fill="#fff" opacity=".55"/>';
+    return s + '</g>';
+  }
+  function rainHat() {
+    var L = '#B8901C', s = '<g transform="rotate(-8 100 40)">';
+    s += '<path d="M66 50 C64 20 80 8 100 8 C120 8 136 20 134 50 Z" fill="url(#gCoat)" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M100 10 V46" stroke="#D9A51E" stroke-width="2.6" stroke-linecap="round"/>';
+    s += '<path d="M38 52 Q100 34 162 52 Q168 64 152 66 Q100 54 48 66 Q32 64 38 52 Z" fill="url(#gCoat)" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M70 44 Q100 52 130 44" stroke="' + L + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return s + '</g>';
+  }
+  function detectiveHat() {
+    var L = '#24170F', s = '<g transform="rotate(-9 100 40)">';
+    s += '<path d="M66 44 L70 14 Q74 6 86 8 Q100 14 114 8 Q126 6 130 14 L134 44 Z" fill="#5A4030" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M88 12 Q100 22 112 12" stroke="#3A2A1E" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M67 34 H133 V44 H67 Z" fill="#C0392B" stroke="' + L + '" stroke-width="3" stroke-linejoin="round"/>';
+    s += '<path d="M36 50 Q100 30 164 50 Q166 58 156 58 Q100 44 44 58 Q34 58 36 50 Z" fill="#6B4C38" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M118 28 l4 -14 l6 10z" fill="#E8D9B0" stroke="' + L + '" stroke-width="2"/>';   // 띠에 꽂은 깃털 · 쪽지
+    return s + '</g>';
+  }
+  function hatOf(o) {
+    return o.outfit === 'raincoat' ? rainHat() : o.outfit === 'beanie' ? knitBeanie() : o.outfit === 'fedora' ? detectiveHat() : o.outfit === 'bow' ? bow(138, 36) : '';
+  }
+  var lastEyeY = 0;   // 검수용(eyes): 마지막으로 그린 동물의 눈 높이
+  function kWrap(o, inner, eyeY, hatT, maskY) {
+    lastEyeY = eyeY;
+    var s = inner, hat = hatT === 'behind' ? '' : hatOf(o);   // 'behind': 그림 쪽에서 이미 모자를 뒤에 그렸다(개구리)
+    if (o.mood === 'huh') s += huhMark();
+    if (o.mood === 'happy') s += sparkle(30, 48) + sparkle(170, 40);
+    if (hat) s += hatT && hatT !== 'behind' ? '<g transform="' + hatT + '">' + hat + '</g>' : hat;
+    if (o.outfit === 'glasses') s += glasses(100, eyeY, 28, 15);
+    if (o.outfit === 'sunglasses') s += sunglasses(100, eyeY);
+    if (o.outfit === 'mask') s += mask(100, maskY || eyeY + 14, 62);
+    return wrap(o, s);
+  }
+
+  function kDog(o, breed) {
+    o = o || {};
+    var sh = breed === 'shiba', F = sh ? '#F0A25E' : '#F7B46E', L = sh ? '#A85F27' : '#B9722F', C = '#FFF7EA', s = '';
+    if (sh) s += '<path class="' + (o.anim ? 'pb-wag' : '') + '" d="M146 172 q30 0 28-26 q-2-16-16-14 q-10 2-6 12 q6 2 4 8 q-4 8-14 8z"' + k(F, L) + '/>';
+    else s += '<ellipse class="' + (o.anim ? 'pb-wag' : '') + '" cx="150" cy="176" rx="13" ry="10"' + k(C, L) + '/>';
+    // 귀: 코기는 크고 둥근 삼각, 시바는 작은 세모
+    var ear = sh ? 'M44 62 Q40 24 56 22 Q70 26 82 42 Z' : 'M40 70 Q26 12 52 12 Q72 18 86 44 Z';
+    var inn = sh ? 'M52 54 Q50 32 58 30 Q66 34 72 42 Z' : 'M50 58 Q42 24 56 24 Q66 28 76 44 Z';
+    s += '<path d="' + ear + '"' + k(F, L) + '/><path d="' + ear + '" transform="translate(200 0) scale(-1 1)"' + k(F, L) + '/>';
+    s += '<path d="' + inn + '" fill="#FFC2C2"/><path d="' + inn + '" transform="translate(200 0) scale(-1 1)" fill="#FFC2C2"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 흰 털: 아랫얼굴 + 배(코기는 이마 줄까지)
+    if (!sh) s += '<path d="M100 40 q7 0 8 26 q2 22 4 30 q-12 6-24 0 q2-8 4-30 q1-26 8-26z" fill="' + C + '"/>';
+    s += '<path d="M100 96 c30 0 54 12 54 30 c0 14-14 22-26 24 q8 20 6 40 h-68 q-2-20 6-40 c-12-2-26-10-26-24 c0-18 24-30 54-30z" fill="' + C + '"/>';
+    if (sh) s += '<ellipse cx="74" cy="84" rx="6" ry="4" fill="' + C + '"/><ellipse cx="126" cy="84" rx="6" ry="4" fill="' + C + '"/>';
+    s += kEyes(o, 104) + kFace(o, 106, '#2A1E1A') + kPaws(C, L);
+    return kWrap(o, s, 104);
+  }
+
+  function kCat(o, breed) {
+    o = o || {};
+    var rag = breed === 'ragdoll', F = rag ? '#FFFBF4' : '#FBF0DC', L = rag ? '#B8A28A' : '#A3835F', P = rag ? '#A98F7D' : '#6E5040', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="' + (rag ? 'M140 182 q40 2 38-38 q-1-14 10-12 q14 46-44 60z' : 'M142 184 q34-2 32-38 q0-10 7-9 q8 40-36 54z') + '"' + k(P, L) + '/>';
+    var ear = rag ? 'M38 72 L36 26 Q40 20 48 24 L84 44 Z' : 'M36 78 L30 16 Q34 10 42 14 L86 46 Z';
+    var inn = rag ? 'M46 60 L45 32 L72 46 Z' : 'M44 64 L40 26 L74 48 Z';
+    s += '<path d="' + ear + '"' + k(P, L) + '/><path d="' + ear + '" transform="translate(200 0) scale(-1 1)"' + k(P, L) + '/>';
+    s += '<path d="' + inn + '" fill="#F2B8BE"/><path d="' + inn + '" transform="translate(200 0) scale(-1 1)" fill="#F2B8BE"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 얼굴 포인트를 가장자리가 흐린 그라디언트로(부드럽게)
+    s += rag
+      ? '<ellipse cx="72" cy="102" rx="22" ry="18" fill="url(#gPtSoft)"/><ellipse cx="128" cy="102" rx="22" ry="18" fill="url(#gPtSoft)"/><path d="M100 60 q8 20 6 46 q-6 4-12 0 q-2-26 6-46z" fill="' + F + '"/>'
+      : '<ellipse cx="100" cy="110" rx="46" ry="34" fill="url(#gPtSoftD)"/>';
+    // 랙돌 목 갈기: 둥근 털 뭉치 선
+    if (rag) s += '<path d="M60 146 q8 8 16 2 q8 8 16 2 q8 8 16 2 q8 8 16 2 q8 8 16-2" stroke="' + L + '" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>';
+    s += kEyes(o, 104, true) + kFace(o, 104, rag ? '#F29AAA' : '#3A2A22');
+    s += '<path d="M44 114 h-16M44 121 l-14 4M156 114 h16M156 121 l14 4" stroke="' + L + '" stroke-width="2" stroke-linecap="round"/>';
+    s += kPaws(rag ? F : F, L, rag ? F : P);
+    return kWrap(o, s, 104);
+  }
+
+  function kRaccoon(o) {
+    o = o || {};
+    var F = '#C3C8D1', L = '#6B717D', D = '#3A3D46', W = '#FBF8F2', s = '';
+    s += '<g class="' + (o.anim ? 'pb-sway' : '') + '"><path d="M140 184 q42 0 40-40 q0-12 10-10 q14 46-46 58z"' + k(F, L) + '/>' +
+      '<path d="M172 164 l12-8M176 148 l12-4" stroke="' + D + '" stroke-width="7" stroke-linecap="round"/></g>';
+    s += '<circle cx="50" cy="40" r="18"' + k(F, L) + '/><circle cx="150" cy="40" r="18"' + k(F, L) + '/><circle cx="50" cy="42" r="9" fill="' + D + '"/><circle cx="150" cy="42" r="9" fill="' + D + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 72 c38 0 62 16 62 38 c0 20-24 34-62 34 c-38 0-62-14-62-34 c0-22 24-38 62-38z" fill="' + W + '"/>';
+    s += '<path d="M100 150 q26 0 28 40 h-56 q2-40 28-40z" fill="' + W + '"/>';
+    // 둥근 눈가리개
+    s += '<path d="M40 104 q0-20 30-20 q18 0 30 12 q12-12 30-12 q30 0 30 20 q0 14-28 14 q-20 0-32-10 q-12 10-32 10 q-28 0-28-14z" fill="' + D + '"/>';
+    s += '<path d="M100 44 q6 16 0 30 q-6-14 0-30z" fill="' + L + '" opacity=".6"/>';
+    if (o.mood === 'happy') s += happyEye(72, 104, 9, '#fff') + happyEye(128, 104, 9, '#fff');
+    else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><ellipse cx="72" cy="102" rx="9" ry="10.5" fill="#fff"/><ellipse cx="128" cy="102" rx="9" ry="10.5" fill="#fff"/><ellipse cx="73" cy="104" rx="6.5" ry="8" fill="#2A1E1A"/><ellipse cx="127" cy="104" rx="6.5" ry="8" fill="#2A1E1A"/><circle cx="71" cy="100" r="2.6" fill="#fff"/><circle cx="125" cy="100" r="2.6" fill="#fff"/></g>';
+    s += kFace(o, 112, '#2A1E1A');
+    s += kPaws(F, L, D).replace(/<ellipse cx="(80|120)" cy="166" rx="10" ry="8" fill="#C3C8D1"/g, '<ellipse cx="$1" cy="166" rx="10" ry="8" fill="' + D + '"');
+    return kWrap(o, s, 102);
+  }
+
+  /* ---------- 뽑기용 추가 동물(같은 말랑 틀: MOCHI 윤곽 + 귀 + 얼굴 무늬) ---------- */
+  function mirror(d, attrs) { return '<path d="' + d + '"' + attrs + '/><path d="' + d + '" transform="translate(200 0) scale(-1 1)"' + attrs + '/>'; }
+  function beak(y, c) { return '<path d="M92 ' + y + ' q8-4 16 0 q-2 8-8 11 q-6-3-8-11z" fill="' + c + '" stroke="#A8601E" stroke-width="2" stroke-linejoin="round"/>'; }
+  function amberEyes(o, y) {
+    if (o.mood === 'happy') return happyEye(72, y + 2, 9, '#2A1E1A') + happyEye(128, y + 2, 9, '#2A1E1A');
+    var e = function (x) { return '<circle cx="' + x + '" cy="' + y + '" r="14" fill="#FFD66B" stroke="#A8762A" stroke-width="2"/><ellipse cx="' + x + '" cy="' + y + '" rx="8" ry="9" fill="#2A1E1A"/><ellipse cx="' + (x - 3) + '" cy="' + (y - 4) + '" rx="3.6" ry="3.4" fill="#fff"/><circle cx="' + (x + 3.5) + '" cy="' + (y + 4) + '" r="1.6" fill="#fff"/>'; };
+    return '<g class="' + (o.anim ? 'pb-blink' : '') + '">' + e(72) + e(128) + '</g>';
+  }
+  function kOwl(o) {
+    o = o || {}; var F = '#B5875F', L = '#6E4A2E', C = '#FFF1DC', s = '';
+    s += mirror('M34 66 L30 22 Q34 16 42 22 L70 44 Z', k(F, L));
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<circle cx="72" cy="102" r="26" fill="' + C + '"/><circle cx="128" cy="102" r="26" fill="' + C + '"/>';
+    s += '<path d="M100 140 c26 0 34 18 32 50 h-64 c-2-32 6-50 32-50z" fill="' + C + '"/>';
+    for (var yy = 152; yy < 186; yy += 12) s += '<path d="M86 ' + yy + ' q4 5 8 0M106 ' + yy + ' q4 5 8 0" stroke="' + F + '" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    s += amberEyes(o, 102) + kFace(o, 112, null) + beak(112, '#F2A33A');
+    s += mirror('M30 120 q-10 30 18 52 q6-24-4-50z', k('#9B7049', L));
+    s += '<ellipse cx="80" cy="191" rx="11" ry="6"' + k('#F2A33A', '#A8601E') + '/><ellipse cx="120" cy="191" rx="11" ry="6"' + k('#F2A33A', '#A8601E') + '/>';
+    return kWrap(o, s, 102);
+  }
+  function kPanda(o) {
+    o = o || {}; var F = '#FFFFFF', L = '#4A4C55', D = '#2E3038', s = '';
+    s += '<circle cx="48" cy="40" r="19"' + k(D, D) + '/><circle cx="152" cy="40" r="19"' + k(D, D) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="70" cy="102" rx="17" ry="21" fill="' + D + '" transform="rotate(28 70 102)"/><ellipse cx="130" cy="102" rx="17" ry="21" fill="' + D + '" transform="rotate(-28 130 102)"/>';
+    if (o.mood === 'happy') s += happyEye(72, 104, 8, '#fff') + happyEye(128, 104, 8, '#fff');
+    else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><ellipse cx="73" cy="103" rx="7" ry="8.5" fill="#fff"/><ellipse cx="127" cy="103" rx="7" ry="8.5" fill="#fff"/><ellipse cx="74" cy="104" rx="5" ry="6.5" fill="#1B1E24"/><ellipse cx="126" cy="104" rx="5" ry="6.5" fill="#1B1E24"/><circle cx="72" cy="101" r="2" fill="#fff"/><circle cx="124" cy="101" r="2" fill="#fff"/></g>';
+    s += kFace(o, 108, D);
+    s += kPaws(D, D, D);
+    return kWrap(o, s, 103);
+  }
+  function kMonkey(o) {
+    o = o || {}; var F = '#B47B4F', L = '#6B4325', C = '#FFD9B8', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M146 180 q36 4 34-30 q-2-18-18-14 q-10 4-4 12 q8-2 8 6 q-2 14-20 16z"' + k(F, L) + '/>';
+    s += '<circle cx="28" cy="98" r="20"' + k(F, L) + '/><circle cx="172" cy="98" r="20"' + k(F, L) + '/><circle cx="30" cy="98" r="11" fill="' + C + '"/><circle cx="170" cy="98" r="11" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    // 하트 모양 얼굴
+    s += '<path d="M100 84 c6-14 22-20 34-12 c14 10 12 26 4 34 c14 4 18 18 10 28 c-10 14-30 16-48 16 c-18 0-38-2-48-16 c-8-10-4-24 10-28 c-8-8-10-24 4-34 c12-8 28-2 34 12z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q22 0 24 40 h-48 q2-40 24-40z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 108, '#6B4325') + kPaws(F, L);
+    return kWrap(o, s, 102);
+  }
+  function kHamster(o) {
+    o = o || {}; var F = '#F6C58C', L = '#B9803F', C = '#FFF6E6', s = '';
+    s += '<circle cx="58" cy="40" r="14"' + k(F, L) + '/><circle cx="142" cy="40" r="14"' + k(F, L) + '/><circle cx="58" cy="41" r="7" fill="#FFB8B8"/><circle cx="142" cy="41" r="7" fill="#FFB8B8"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 92 c40 0 68 14 68 34 c0 16-14 22-30 24 q10 18 8 40 h-92 q-2-22 8-40 c-16-2-30-8-30-24 c0-20 28-34 68-34z" fill="' + C + '"/>';
+    s += '<ellipse cx="46" cy="122" rx="22" ry="18" fill="' + C + '"/><ellipse cx="154" cy="122" rx="22" ry="18" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 104, '#F08A9A') + kPaws(C, L, '#FFC4B0');
+    return kWrap(o, s, 102);
+  }
+  function kRabbit(o) {
+    o = o || {}; var F = '#FFFFFF', L = '#C49BA2', s = '';
+    s += mirror('M56 56 Q38 -10 58 -14 Q76 -12 76 46 Z', k(F, L)) + mirror('M60 46 Q48 0 60 -4 Q70 -2 70 42 Z', ' fill="#FFC9D2"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += kEyes(o, 104) + kFace(o, 104, '#F08A9A') + kPaws(F, L);
+    s += '<ellipse cx="150" cy="180" rx="12" ry="10"' + k(F, L) + '/>';
+    return kWrap(o, s, 104);
+  }
+  function kFox(o) {
+    o = o || {}; var F = '#F49447', L = '#A9521C', C = '#FFF8EE', D = '#4A2E22', s = '';
+    s += '<g class="' + (o.anim ? 'pb-sway' : '') + '"><path d="M140 184 q46 2 44-42 q-2-20-14-18 q14 40-30 60z"' + k(F, L) + '/><path d="M170 124 q14 2 14 18 q-8-4-18-4z"' + k(C, L) + '/></g>';
+    s += mirror('M36 74 L30 14 Q34 8 42 12 L86 44 Z', k(F, L)) + mirror('M36 30 L34 14 L48 22 Z', ' fill="' + D + '"') + mirror('M44 62 L40 26 L72 46 Z', ' fill="#FFD3C2"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M28 104 q30 4 58 22 q6 8 14 8 q8 0 14-8 q28-18 58-22 q-4 34-36 44 q-18 6-36 6 q-18 0-36-6 q-32-10-36-44z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q22 0 24 40 h-48 q2-40 24-40z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 108, '#2A1E1A') + kPaws(F, L, D);
+    return kWrap(o, s, 102);
+  }
+  function kPenguin(o) {
+    o = o || {}; var F = '#3D4A63', L = '#222A3B', C = '#FFFFFF', s = '';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 64 c10-14 34-14 46 0 c16 18 14 44 6 60 c-6 14-14 22-14 30 c4 16 4 26 0 36 h-76 c-4-10-4-20 0-36 c0-8-8-16-14-30 c-8-16-10-42 6-60 c12-14 36-14 46 0z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 112, null) + beak(110, '#FFB23F');
+    s += kPaws(F, L, '#FFB23F').replace(/stroke="#222A3B" stroke-width="3.5" stroke-linejoin="round"\/><ellipse cx="74" cy="190"/, 'stroke="#222A3B" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="74" cy="190"');
+    return kWrap(o, s, 102);
+  }
+  function kBear(o) {
+    o = o || {}; var F = '#A87650', L = '#62402A', C = '#F1D7B8', s = '';
+    s += '<circle cx="48" cy="42" r="18"' + k(F, L) + '/><circle cx="152" cy="42" r="18"' + k(F, L) + '/><circle cx="48" cy="44" r="9" fill="' + C + '"/><circle cx="152" cy="44" r="9" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="100" cy="120" rx="26" ry="19" fill="' + C + '"/><path d="M100 150 q24 0 26 40 h-52 q2-40 26-40z" fill="' + C + '"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#3A2418') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+
+  /* ---------- 2차 추가: 고슴도치 · 다람쥐 · 수달 · 오리 · 개구리 · 코알라 · 호랑이 ---------- */
+  function kHedgehog(o) {
+    o = o || {}; var F = '#9C7556', L = '#5E4330', C = '#FFEBD2', s = '';
+    // 가시: 머리 뒤로 톱니 테두리
+    var sp = '';
+    for (var a = -170; a <= -10; a += 16) {
+      var r1 = 70, r2 = 92, c = Math.PI / 180;
+      sp += (a === -170 ? 'M' : 'L') + (100 + r1 * Math.cos((a - 8) * c)).toFixed(1) + ' ' + (98 + r1 * Math.sin((a - 8) * c)).toFixed(1) +
+        'L' + (100 + r2 * Math.cos(a * c)).toFixed(1) + ' ' + (98 + r2 * Math.sin(a * c)).toFixed(1) +
+        'L' + (100 + r1 * Math.cos((a + 8) * c)).toFixed(1) + ' ' + (98 + r1 * Math.sin((a + 8) * c)).toFixed(1);
+    }
+    s += '<path d="' + sp + 'L100 120Z"' + k('#6E4E36', L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 74 c40 0 64 20 64 44 c0 18-16 28-34 32 q10 18 6 40 h-72 q-4-22 6-40 c-18-4-34-14-34-32 c0-24 24-44 64-44z" fill="' + C + '"/>';
+    s += '<circle cx="52" cy="70" r="9"' + k(C, L) + '/><circle cx="148" cy="70" r="9"' + k(C, L) + '/>';
+    s += kEyes(o, 106) + kFace(o, 106, '#2A1E1A') + kPaws(C, L, F);
+    return kWrap(o, s, 106);
+  }
+  function kSquirrel(o) {
+    o = o || {}; var F = '#DC8E50', L = '#97541F', C = '#FFF3E2', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M128 190 q50 4 56-50 q4-40-26-52 q-26-8-30 14 q20-2 24 18 q4 28-24 70z"' + k(F, L) + '/>';
+    s += '<path d="M150 100 q14 4 16 18" stroke="' + C + '" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/>';
+    s += mirror('M44 60 L38 22 Q42 16 50 20 L74 42 Z', k(F, L)) + mirror('M40 24 L34 8 L46 16 Z', k(F, L)) + mirror('M48 52 L45 30 L64 44 Z', ' fill="#FFC9B8"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 38 q6 14 0 28 q-6-14 0-28z" fill="#8E4E1E" opacity=".55"/>';
+    s += '<path d="M100 98 c34 0 58 10 58 28 c0 14-14 22-30 24 q8 20 6 40 h-68 q-2-20 6-40 c-16-2-30-10-30-24 c0-18 24-28 58-28z" fill="' + C + '"/>';
+    s += kEyes(o, 102) + kFace(o, 106, '#3A2418');
+    s += kPaws(F, L).replace(/(<path d="M)/, '$1');
+    // 손에 도토리
+    s += '<ellipse cx="100" cy="168" rx="9" ry="11" fill="#B06A2E" stroke="' + L + '" stroke-width="2"/><path d="M90 160 q10-8 20 0 q-10 4-20 0z" fill="#6E4325"/>';
+    return kWrap(o, s, 102);
+  }
+  function kOtter(o) {
+    o = o || {}; var F = '#9C6B48', L = '#5A3B24', C = '#F4DFC6', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M140 186 q36 2 40-30 q0-10 8-8 q4 40-48 46z"' + k(F, L) + '/>';
+    s += '<circle cx="40" cy="70" r="12"' + k(F, L) + '/><circle cx="160" cy="70" r="12"' + k(F, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 92 c34 0 54 10 54 26 c0 18-26 28-54 28 c-28 0-54-10-54-28 c0-16 20-26 54-26z" fill="' + C + '"/>';
+    s += '<path d="M100 148 q24 0 26 42 h-52 q2-42 26-42z" fill="' + C + '"/>';
+    s += kEyes(o, 98) + kFace(o, 106, '#2A1E1A');
+    s += '<g fill="' + L + '" opacity=".6"><circle cx="82" cy="120" r="1.6"/><circle cx="86" cy="126" r="1.6"/><circle cx="118" cy="120" r="1.6"/><circle cx="114" cy="126" r="1.6"/></g>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 98);
+  }
+  function kDuck(o) {
+    o = o || {}; var F = '#FFE06E', L = '#C3961C', s = '';
+    s += '<path d="M92 28 q6-18 14-8 q4-12 10 2" stroke="' + L + '" stroke-width="3" fill="' + F + '" stroke-linejoin="round"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += kEyes(o, 98) + kFace(o, 116, null);
+    s += '<path d="M80 112 q20-10 40 0 q4 10-8 14 q-12 4-24 0 q-12-4-8-14z" fill="#FF9A3C" stroke="#B85E14" stroke-width="2.4" stroke-linejoin="round"/>';
+    s += kPaws('#FFD24A', L, '#FF9A3C');
+    return kWrap(o, s, 98);
+  }
+  /*
+   * 개구리 모자(0.3.1): 눈이 머리 위에 튀어나와 있어서 모자를 두 눈 "위"에 얹는다.
+   *   모자 아래 끝(bottom)을 눈 흰자 위(y=30)에 맞추고 조금 줄인다 → 챙 아래로 두 눈이 그대로 보인다.
+   *   tools/art_check.py 가 크기(A) · 눈 가림(B) · 넘침(C)을 본다.
+   */
+  // [크기, 모자 아래 끝 y, 눈 위 어디에 맞출지 y] — 비니는 방울이 높아 조금 더 내려 쓴다
+  var FROG_HAT = { beanie: [0.78, 55, 34], fedora: [0.85, 58, 30], raincoat: [0.8, 66, 30], cap: [0.8, 62, 30] };
+  function frogHat(kind) {
+    var f = FROG_HAT[kind];
+    return f ? 'translate(100 ' + f[2] + ') scale(' + f[0] + ') translate(-100 -' + f[1] + ')' : '';
+  }
+  function kFrog(o) {
+    o = o || {}; var F = '#93D26D', L = '#4C8A30', C = '#E9F7D8', s = '';
+    s += '<circle cx="66" cy="44" r="24"' + k(F, L) + '/><circle cx="134" cy="44" r="24"' + k(F, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>';
+    s += '<circle cx="66" cy="44" r="21" fill="' + F + '"/><circle cx="134" cy="44" r="21" fill="' + F + '"/>';
+    if (o.mood === 'happy') s += happyEye(66, 48, 10, '#2A1E1A') + happyEye(134, 48, 10, '#2A1E1A');
+    else s += '<g class="' + (o.anim ? 'pb-blink' : '') + '"><circle cx="66" cy="44" r="15" fill="#fff"/><circle cx="134" cy="44" r="15" fill="#fff"/><ellipse cx="67" cy="46" rx="9" ry="10" fill="#2A1E1A"/><ellipse cx="133" cy="46" rx="9" ry="10" fill="#2A1E1A"/><circle cx="64" cy="42" r="3.4" fill="#fff"/><circle cx="130" cy="42" r="3.4" fill="#fff"/></g>';
+    s += '<path d="M100 120 c30 0 48 8 48 24 c0 10-8 16-18 18 q6 14 4 28 h-68 q-2-14 4-28 c-10-2-18-8-18-18 c0-16 18-24 48-24z" fill="' + C + '"/>';
+    s += '<ellipse cx="52" cy="98" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/><ellipse cx="148" cy="98" rx="12" ry="7" fill="#FF8FA3" opacity=".5"/>';
+    if (o.outfit !== 'mask') s += o.mood === 'huh' ? '<path d="M88 104 q12-6 24 0" stroke="#2A1E1A" stroke-width="2.6" fill="none" stroke-linecap="round"/>' : '<path d="M76 96 q24 18 48 0" stroke="#2A1E1A" stroke-width="2.8" fill="' + (o.mood === 'happy' ? '#B23A4C' : 'none') + '" stroke-linecap="round"/>';
+    s += '<circle cx="90" cy="80" r="1.8" fill="' + L + '"/><circle cx="110" cy="80" r="1.8" fill="' + L + '"/>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 44, o.outfit === 'bow' ? 'translate(-70 -14)' : frogHat(o.outfit), 90);   // 개구리: 모자는 눈 뒤(위에서 그림), 리본은 오른쪽 눈 옆, 마스크는 입
+  }
+  function kKoala(o) {
+    o = o || {}; var F = '#AEB5BF', L = '#5E6570', C = '#F6F3EE', s = '';
+    s += '<circle cx="36" cy="64" r="28"' + k(F, L) + '/><circle cx="164" cy="64" r="28"' + k(F, L) + '/><circle cx="38" cy="66" r="17" fill="' + C + '"/><circle cx="162" cy="66" r="17" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 150 q26 0 28 40 h-56 q2-40 28-40z" fill="' + C + '"/>';
+    s += kEyes(o, 98) + kFace(o, 112, null);
+    s += '<path d="M100 96 c12 0 16 8 16 16 c0 10-6 14-16 14 c-10 0-16-4-16-14 c0-8 4-16 16-16z" fill="url(#gNose)"/><ellipse cx="95" cy="104" rx="4" ry="2.4" fill="#fff" opacity=".5"/>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 98);
+  }
+  function kTiger(o) {
+    o = o || {}; var F = '#F5A04A', L = '#A85A1C', C = '#FFF7EC', D = '#3B2A22', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M140 186 q40 0 40-38 q0-12 9-10 q12 44-46 56z"' + k(F, L) + '/><path d="M172 160 l12-6M176 146 l10-6" stroke="' + D + '" stroke-width="5" stroke-linecap="round"/>';
+    s += '<circle cx="48" cy="44" r="17"' + k(F, L) + '/><circle cx="152" cy="44" r="17"' + k(F, L) + '/><circle cx="48" cy="46" r="8" fill="' + C + '"/><circle cx="152" cy="46" r="8" fill="' + C + '"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M86 34 q6 10 4 22M100 30 v24M114 34 q-6 10-4 22" stroke="' + D + '" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M28 96 q12 2 20 8M28 110 q12 0 18 4M172 96 q-12 2-20 8M172 110 q-12 0-18 4" stroke="' + D + '" stroke-width="4.5" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M100 104 c26 0 44 8 44 22 c0 16-20 24-44 24 c-24 0-44-8-44-24 c0-14 18-22 44-22z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q24 0 26 40 h-52 q2-40 26-40z" fill="' + C + '"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#E46C7C') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+
+
+  /* ---------- 3차 추가(0.4.0): 양 · 돼지 · 레서판다 · 알파카 · 물범 · 하마 · 거북이 · 생쥐 · 사자 · 사슴 ---------- */
+  function kSheep(o) {
+    o = o || {}; var F = '#FFFFFF', L = '#B3A79A', C = '#F3DFC8', s = '';
+    // 귀(옆으로 늘어진)
+    s += '<ellipse cx="34" cy="96" rx="20" ry="10" transform="rotate(-24 34 96)"' + k(C, L) + '/><ellipse cx="166" cy="96" rx="20" ry="10" transform="rotate(24 166 96)"' + k(C, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>';
+    // 이마 곱슬 털
+    s += '<g' + k(F, L) + '><circle cx="78" cy="44" r="15"/><circle cx="100" cy="36" r="16"/><circle cx="122" cy="44" r="15"/></g>';
+    s += '<path d="M100 74 c30 0 46 16 46 38 c0 22-20 34-46 34 c-26 0-46-12-46-34 c0-22 16-38 46-38z" fill="' + C + '"/>';
+    s += kShine() + kEyes(o, 104) + kFace(o, 108, '#E58C9C') + kPaws(F, L, C);
+    return kWrap(o, s, 104);
+  }
+  function kPig(o) {
+    o = o || {}; var F = '#FFC6D0', L = '#D47388', s = '';
+    s += mirror('M44 60 Q30 26 50 22 Q66 26 80 42 Z', k(F, L)) + mirror('M50 52 Q42 32 54 30 Q64 34 72 42 Z', ' fill="#FF9DB0"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += kEyes(o, 96);
+    s += '<ellipse cx="100" cy="116" rx="18" ry="12" fill="#FFADBE"' + ' stroke="' + L + '" stroke-width="2.6"/><ellipse cx="94" cy="116" rx="3.2" ry="4.4" fill="#B4556B"/><ellipse cx="106" cy="116" rx="3.2" ry="4.4" fill="#B4556B"/>';
+    s += kFace(o, 116, null) + kPaws(F, L);
+    s += '<path class="' + (o.anim ? 'pb-wag' : '') + '" d="M146 176 q12-2 10-12 q-2-8-8-4 q-4 4 2 6" stroke="' + L + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    return kWrap(o, s, 96);
+  }
+  function kRedPanda(o) {
+    o = o || {}; var F = '#D9773A', L = '#8A4218', C = '#FFF6EA', D = '#5A2C12', s = '';
+    s += '<g class="' + (o.anim ? 'pb-sway' : '') + '"><path d="M140 184 q42 0 42-40 q0-12 10-10 q14 46-46 58z"' + k(F, L) + '/><path d="M170 160 l12-6M174 146 l12-4" stroke="#F3C39C" stroke-width="6" stroke-linecap="round"/></g>';
+    s += mirror('M40 66 L36 26 Q40 18 50 22 L80 44 Z', k(F, L)) + mirror('M46 58 L44 32 L68 46 Z', ' fill="' + C + '"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="74" cy="78" rx="9" ry="6" fill="' + C + '"/><ellipse cx="126" cy="78" rx="9" ry="6" fill="' + C + '"/>';   // 눈썹 흰 점
+    s += '<path d="M100 104 c26 0 46 8 46 22 c0 16-22 24-46 24 c-24 0-46-8-46-24 c0-14 20-22 46-22z" fill="' + C + '"/>';
+    s += '<path d="M66 108 q-6 14-2 26M134 108 q6 14 2 26" stroke="' + D + '" stroke-width="6" stroke-linecap="round" fill="none" opacity=".75"/>';   // 눈물 줄무늬
+    s += kEyes(o, 100) + kFace(o, 108, '#2A1E1A') + kPaws(F, L, D);
+    return kWrap(o, s, 100);
+  }
+  function kAlpaca(o) {
+    o = o || {}; var F = '#F5E8D2', L = '#AE9470', C = '#FFFBF3', s = '';
+    s += mirror('M58 54 Q48 14 60 10 Q72 12 74 46 Z', k(F, L)) + mirror('M61 46 Q56 22 62 20 Q67 22 68 44 Z', ' fill="#F2C9B4"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>';
+    s += '<g' + k(C, L) + '><circle cx="84" cy="36" r="14"/><circle cx="116" cy="36" r="14"/><circle cx="100" cy="28" r="16"/></g>';   // 머리 털 뭉치
+    s += '<ellipse cx="100" cy="122" rx="24" ry="17" fill="' + C + '"/>';
+    s += kShine() + kEyes(o, 100) + kFace(o, 108, '#6E4E36') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+  function kSeal(o) {
+    o = o || {}; var F = '#CFD8E0', L = '#6C7B8A', s = '';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<g fill="#A9B6C3"><circle cx="62" cy="62" r="5"/><circle cx="140" cy="70" r="4"/><circle cx="150" cy="56" r="3"/><circle cx="56" cy="160" r="4"/></g>';
+    s += '<ellipse cx="100" cy="120" rx="22" ry="14" fill="#F1F5F8"/>';
+    s += kEyes(o, 100) + kFace(o, 108, '#2A2E36');
+    s += '<g fill="' + L + '" opacity=".7"><circle cx="86" cy="120" r="1.8"/><circle cx="90" cy="126" r="1.8"/><circle cx="114" cy="120" r="1.8"/><circle cx="110" cy="126" r="1.8"/></g>';
+    s += '<path d="M60 118 h-18M60 124 l-16 4M140 118 h18M140 124 l16 4" stroke="' + L + '" stroke-width="2" stroke-linecap="round"/>';
+    s += kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+  function kHippo(o) {
+    o = o || {}; var F = '#BBA9DC', L = '#6A5791', C = '#DCD0F0', s = '';
+    s += '<circle cx="56" cy="40" r="13"' + k(F, L) + '/><circle cx="144" cy="40" r="13"' + k(F, L) + '/><circle cx="56" cy="41" r="6" fill="#F2B6C6"/><circle cx="144" cy="41" r="6" fill="#F2B6C6"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 104 c34 0 52 10 52 26 c0 16-24 24-52 24 c-28 0-52-8-52-24 c0-16 18-26 52-26z" fill="' + C + '" stroke="' + L + '" stroke-width="2.4"/>';
+    s += '<ellipse cx="84" cy="114" rx="4" ry="3" fill="' + L + '"/><ellipse cx="116" cy="114" rx="4" ry="3" fill="' + L + '"/>';
+    s += kEyes(o, 88) + kFace(o, 116, null) + kPaws(F, L);
+    return kWrap(o, s, 88);
+  }
+  function kTurtle(o) {
+    o = o || {}; var F = '#A7D873', L = '#4F8A2E', S = '#B98049', SL = '#6E4620', s = '';
+    // 등딱지(몸 뒤): 몸 양옆과 아래로 보인다
+    s += '<path d="M14 140 q0-58 86-60 q86 2 86 60 q0 44-86 50 q-86-6-86-50z" fill="' + S + '" stroke="' + SL + '" stroke-width="3.5"/>';
+    s += '<path d="M14 140 q86 26 172 0" stroke="#E7C38E" stroke-width="5" fill="none"/>';   // 등딱지 테두리 띠
+    s += '<path d="M26 112 l18 10 l-4 18 M174 112 l-18 10 l4 18 M30 166 l18 -6 M170 166 l-18 -6" stroke="' + SL + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 150 q26 0 28 40 h-56 q2-40 28-40z" fill="#E9F2C9"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#2E5A1A') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+  function kMouse(o) {
+    o = o || {}; var F = '#CBCBD4', L = '#75758A', s = '';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M146 182 q30 6 34-16 q2-14-10-16" stroke="' + L + '" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+    s += '<circle cx="42" cy="46" r="24"' + k(F, L) + '/><circle cx="158" cy="46" r="24"' + k(F, L) + '/><circle cx="42" cy="47" r="14" fill="#F6B8C6"/><circle cx="158" cy="47" r="14" fill="#F6B8C6"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M100 150 q24 0 26 40 h-52 q2-40 26-40z" fill="#EEEEF3"/>';
+    s += kEyes(o, 100) + kFace(o, 106, '#F08A9A');
+    s += '<path d="M64 112 h-20M64 118 l-18 5M136 112 h20M136 118 l18 5" stroke="' + L + '" stroke-width="1.8" stroke-linecap="round"/>';
+    s += kPaws(F, L, '#F6B8C6');
+    return kWrap(o, s, 100);
+  }
+  function kLion(o) {
+    o = o || {}; var F = '#F7C76E', L = '#A8711A', M = '#D9782B', ML = '#8E4512', s = '';
+    // 갈기: 머리 뒤 둥근 꽃잎
+    var mane = '';
+    for (var a = 0; a < 360; a += 30) {
+      var r = Math.PI / 180 * a, cx = (100 + 66 * Math.cos(r)).toFixed(1), cy = (92 + 62 * Math.sin(r)).toFixed(1);
+      mane += '<circle cx="' + cx + '" cy="' + cy + '" r="24"/>';
+    }
+    s += '<g fill="' + M + '" stroke="' + ML + '" stroke-width="3.5">' + mane + '</g><circle cx="100" cy="92" r="66" fill="' + M + '"/>';
+    s += '<path class="' + (o.anim ? 'pb-sway' : '') + '" d="M146 182 q30 0 32-26" stroke="' + L + '" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="178" cy="152" r="7" fill="' + M + '" stroke="' + ML + '" stroke-width="3"/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<ellipse cx="100" cy="120" rx="24" ry="17" fill="#FFF1D2"/>';
+    s += kEyes(o, 100) + kFace(o, 108, '#6E3A12') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+  function kDeer(o) {
+    o = o || {}; var F = '#D89B62', L = '#86562C', C = '#FFF3E4', A = '#EBD3A8', AL = '#9A7240', s = '';
+    // 뿔(작은 가지)
+    s += mirror('M74 34 L66 6 M68 16 L56 10 M70 24 L60 24', ' stroke="' + AL + '" stroke-width="8" stroke-linecap="round" fill="none"') +
+      mirror('M74 34 L66 6 M68 16 L56 10 M70 24 L60 24', ' stroke="' + A + '" stroke-width="4" stroke-linecap="round" fill="none"');
+    s += '<ellipse cx="34" cy="74" rx="20" ry="10" transform="rotate(-28 34 74)"' + k(F, L) + '/><ellipse cx="166" cy="74" rx="20" ry="10" transform="rotate(28 166 74)"' + k(F, L) + '/>';
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<g fill="' + C + '"><circle cx="88" cy="48" r="4"/><circle cx="104" cy="42" r="3.5"/><circle cx="116" cy="52" r="4"/><circle cx="60" cy="160" r="4"/><circle cx="142" cy="164" r="3.5"/></g>';
+    s += '<ellipse cx="100" cy="122" rx="22" ry="16" fill="' + C + '"/>';
+    s += kEyes(o, 100) + kFace(o, 108, '#3A2418') + kPaws(F, L);
+    return kWrap(o, s, 100);
+  }
+
+  /* ---------- 등급 꾸밈 ---------- */
+  var GDEFS = '<defs>' +
+    '<linearGradient id="gBronze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C08A"/><stop offset="1" stop-color="#B07034"/></linearGradient>' +
+    '<linearGradient id="gSilver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F7FB"/><stop offset="1" stop-color="#A8B3C2"/></linearGradient>' +
+    '<linearGradient id="gCape" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5484F"/><stop offset="1" stop-color="#9E1F27"/></linearGradient>' +
+    '<radialGradient id="gAura"><stop offset="0" stop-color="#FFE48A" stop-opacity=".95"/><stop offset=".6" stop-color="#FFD23F" stop-opacity=".45"/><stop offset="1" stop-color="#FFD23F" stop-opacity="0"/></radialGradient>' +
+    '</defs>';
+  // 머리 위에 눈이 달린 개구리는 모자를 이마(눈 사이 아래)로 작게
+  var CAP_AT = {};   // (0.3.1) 개구리 경찰모는 이마가 아니라 두 눈 뒤에 — decorate 에서 뒤쪽에 그린다
+  function cap(gold, id) {
+    var at = CAP_AT[id] ? '<g transform="' + CAP_AT[id] + '">' : '<g>';
+    return at + capInner(gold) + '</g>';
+  }
+  function capInner(gold) {
+    var body = gold ? 'url(#gGold)' : '#26324A', line = gold ? '#A87A10' : '#121826';
+    return '<g transform="rotate(-8 100 36)"><path d="M64 44 q36-30 72 0 l-4 10 q-32-9-64 0z" fill="' + body + '" stroke="' + line + '" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path d="M60 54 q40-11 80 0 l-3 8 q-37-9-74 0z" fill="' + (gold ? '#C99A1C' : '#121826') + '"/>' +
+      '<path d="M100 30 l3.4 6.6 7.2 1-5.2 5.2 1.2 7.2-6.6-3.4-6.6 3.4 1.2-7.2-5.2-5.2 7.2-1z" fill="' + (gold ? '#FFF6D0' : 'url(#gGold)') + '"/></g>';
+  }
+  var CAPE = '<path d="M30 108 q-28 52-8 86 h156 q20-34-8-86 q-70 32-140 0z" fill="url(#gCape)" stroke="#7A1219" stroke-width="3" stroke-linejoin="round"/>';
+  var AURA = '<circle cx="100" cy="104" r="98" fill="url(#gAura)"/>';
+  function decorate(svg, g, id, outfit) {
+    if (!g) return svg;
+    var badgeFill = { c: 'url(#gBronze)', r: 'url(#gSilver)', h: 'url(#gGold)', l: 'url(#gGold)' }[g] || 'url(#gGold)';
+    // 배지 색(별 모양 배지의 첫 path 만 gGold 를 쓴다 — 노란 우비 gCoat 등은 그대로)
+    svg = svg.replace(/(<path d="M[\d.]+ [\d.]+ l3\.3 6\.6[^"]*" fill=")url\(#gGold\)"/g, '$1' + badgeFill + '"');
+    var back = g === 'l' ? AURA : g === 'h' ? CAPE : '';
+    var hatOn = !!HATS[outfit];   // 모자 의상을 입으면 등급 경찰모는 벗는다
+    var capStr = (g === 'r' || g === 'h' || g === 'l') && !hatOn ? cap(g === 'l', id) : '';
+    if (id === 'frog' && capStr) capStr = '<g transform="' + frogHat('cap') + '">' + capStr + '</g>';   // 개구리: 두 눈 위에
+    var front = capStr + (g === 'l' ? sparkle(28, 40) + sparkle(172, 62) + sparkle(160, 150) : '');
+    // 뒤: 그림자 다음(첫 <g class=…> 앞), 앞: 마지막 </g> 앞
+    var at = svg.indexOf('<g class=');
+    svg = svg.slice(0, at) + back + svg.slice(at);
+    var end = svg.lastIndexOf('</g></svg>');
+    svg = svg.slice(0, end) + front + svg.slice(end);
+    return svg.replace('<svg viewBox="0 0 200 200" aria-hidden="true">', '<svg viewBox="0 0 200 200" aria-hidden="true">' + GDEFS);
+  }
+
+  var DRAW = {
+    corgi: function (o) { return kDog(o, 'corgi'); }, shiba: function (o) { return kDog(o, 'shiba'); },
+    ragdoll: function (o) { return kCat(o, 'ragdoll'); }, siamese: function (o) { return kCat(o, 'siamese'); },
+    raccoon: kRaccoon, owl: kOwl, panda: kPanda, monkey: kMonkey, hamster: kHamster, rabbit: kRabbit, fox: kFox, penguin: kPenguin, bear: kBear,
+    hedgehog: kHedgehog, squirrel: kSquirrel, otter: kOtter, duck: kDuck, frog: kFrog, koala: kKoala, tiger: kTiger,
+    sheep: kSheep, pig: kPig, redpanda: kRedPanda, alpaca: kAlpaca, seal: kSeal, hippo: kHippo, turtle: kTurtle, mouse: kMouse, lion: kLion, deer: kDeer
+  };
+  /** 동물 그림. 모르는 종류면 빈 문자열 */
+  function draw(id, o) {
+    o = o || {};
+    var f = DRAW[id];
+    if (!f) return '';
+    return decorate(f({ mood: o.mood, anim: o.anim, outfit: o.outfit }), o.grade, id, o.outfit);
+  }
+  /** 검수용: 그 동물의 눈 자리 { y, x:[왼, 오], r } (tools/art_check.py 가 "모자가 눈을 가리나"를 볼 때 쓴다) */
+  function eyes(id) {
+    if (!DRAW[id]) return null;
+    DRAW[id]({});
+    var frog = id === 'frog';
+    // mouth: 얼굴 아래 끝(입 높이) — 모자 · 경찰모가 눈~입 사이(얼굴)에 내려오면 안 된다
+    return { y: lastEyeY, x: frog ? [66, 134] : [72, 128], r: frog ? 15 : id === 'owl' ? 14 : 11, mouth: frog ? 100 : lastEyeY + 22,
+      faceTop: frog ? 62 : lastEyeY - (id === 'owl' ? 14 : 11) };   // 개구리는 눈이 머리 위라 얼굴은 눈 아래부터
+  }
+  return { draw: draw, ids: Object.keys(DRAW), HATS: HATS, eyes: eyes };
+});
+
+</script>
+<script>
+/*
+ * Team3Icons(0.4.1) — 재화 아이콘(인라인 SVG 문자열). 글자(◆ 등) 대신 화면 곳곳에 같은 모양으로 쓴다.
+ *   gem    배지(◆)       : 파란 방패 + 금별 — 이름 그대로 "경찰 배지"
+ *   ticket 뽑기권         : 주황 표 + 발바닥 — 동물 뽑기
+ *   treat  간식           : 뼈다귀 쿠키
+ *   money  수사비         : ₩ 금화
+ *   tag    이름표         : 끈 달린 이름표
+ *   pick   전설 선택권    : 금빛 표 + 별
+ *   xp     시즌 패스 경험치: 번개
+ * 모양이 서로 달라 색을 못 봐도 구분된다. 크기는 글자 크기를 따른다(1.15em).
+ *   icon(name)        → '<i class="ic ic-gem">…svg…</i>'
+ *   amount(name, n)   → 아이콘 + 숫자(천 단위 쉼표)
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Team3Icons = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+  var SVG = {
+    gem: '<path d="M12 2.2l8 3v6.2c0 5-3.4 8.6-8 10.4C7.4 20 4 16.4 4 11.4V5.2z" fill="#3E8EDE" stroke="#1D4F86" stroke-width="1.6" stroke-linejoin="round"/>' +
+      '<path d="M12 7.2l1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5z" fill="#FFD23F" stroke="#B8860B" stroke-width=".8" stroke-linejoin="round"/>',
+    ticket: '<path d="M3 7.5a1.5 1.5 0 0 1 1.5-1.5h15A1.5 1.5 0 0 1 21 7.5v2a2.5 2.5 0 0 0 0 5v2a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16.5v-2a2.5 2.5 0 0 0 0-5z" fill="#FF9A3C" stroke="#B85E14" stroke-width="1.5" stroke-linejoin="round"/>' +
+      '<path d="M15.5 6.5v11" stroke="#B85E14" stroke-width="1.2" stroke-dasharray="1.6 1.6"/>' +
+      '<g fill="#FFF3E0"><ellipse cx="9.5" cy="13.4" rx="2.2" ry="1.8"/><circle cx="7.3" cy="10.6" r=".95"/><circle cx="9" cy="9.6" r=".95"/><circle cx="10.9" cy="9.7" r=".95"/><circle cx="12.4" cy="10.9" r=".95"/></g>',
+    treat: '<path d="M6.2 9.2a2.4 2.4 0 1 1 2.6-3.4l6.4 6.4a2.4 2.4 0 1 1 3.4 2.6 2.4 2.4 0 1 1-2.6 3.4l-6.4-6.4a2.4 2.4 0 1 1-3.4-2.6z" fill="#E8B47A" stroke="#8E5A26" stroke-width="1.5" stroke-linejoin="round"/>' +
+      '<circle cx="11" cy="11.6" r=".8" fill="#8E5A26"/><circle cx="13.2" cy="13.2" r=".8" fill="#8E5A26"/>',
+    money: '<circle cx="12" cy="12" r="9" fill="#FFCF3F" stroke="#B8860B" stroke-width="1.6"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="#E0A800" stroke-width="1"/>' +
+      '<path d="M8 8.6l1.6 6.6 2.4-5 2.4 5L16 8.6M7.4 11.4h9.2" stroke="#8A6200" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    tag: '<path d="M3.5 8.5A1.5 1.5 0 0 1 5 7h12.5l3.5 5-3.5 5H5a1.5 1.5 0 0 1-1.5-1.5z" fill="#F4E9D2" stroke="#8E7B5A" stroke-width="1.5" stroke-linejoin="round"/>' +
+      '<circle cx="17.3" cy="12" r="1.3" fill="#8E7B5A"/><path d="M6.5 10.5h7M6.5 13.5h5" stroke="#C0392B" stroke-width="1.5" stroke-linecap="round"/>',
+    pick: '<path d="M3 7.5a1.5 1.5 0 0 1 1.5-1.5h15A1.5 1.5 0 0 1 21 7.5v2a2.5 2.5 0 0 0 0 5v2a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16.5v-2a2.5 2.5 0 0 0 0-5z" fill="#FFD23F" stroke="#A87A10" stroke-width="1.5" stroke-linejoin="round"/>' +
+      '<path d="M12 7.4l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff" stroke="#A87A10" stroke-width=".9" stroke-linejoin="round"/>',
+    xp: '<path d="M13.5 2.5L5 13.2h6l-1.5 8.3L19 10.4h-6z" fill="#9CD3F2" stroke="#2F6E95" stroke-width="1.5" stroke-linejoin="round"/>'
+  };
+  var NAME = { gem: '배지', ticket: '뽑기권', treat: '간식', money: '수사비', tag: '이름표', pick: '전설 선택권', xp: '경험치' };
+  function icon(name, title) {
+    var s = SVG[name];
+    if (!s) return '';
+    return '<i class="ic ic-' + name + '" role="img" aria-label="' + (title || NAME[name]) + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + s + '</svg></i>';
+  }
+  function amount(name, n) { return icon(name) + '<b class="ic-n">' + Math.floor(n || 0).toLocaleString('ko-KR') + '</b>'; }
+  return { icon: icon, amount: amount, names: Object.keys(SVG), NAME: NAME };
+});
+
+</script>
+<script>
+'use strict';
+var C = SuspectsCore;
+  var BG = ['#F4EFE2', '#E4A97C', '#2F3646'], FG = ['#1B1E24', '#1B1E24', '#EDE7D9'];
+  var PLAIN_BG = '#D9D6CE';
+  var TIME_CHIP = ['rgba(255,255,255,.7)', 'rgba(255,255,255,.45)', 'rgba(255,255,255,.1)'];
+  var TIME_INK = ['#C46A00', '#9A2E12', '#F3E2A0'];
+  var SKY = '#9CD3F2', SKY_DARK = '#4F86A8';
+
+  function timeIcon(t) {
+    if (t === 0) {
+      var rays = '';
+      for (var a = 0; a < 360; a += 45) rays += '<line x1="12" y1="1.8" x2="12" y2="4.6" transform="rotate(' + a + ' 12 12)"/>';
+      return '<circle cx="12" cy="12" r="4.4" fill="currentColor"/>' + rays;
+    }
+    if (t === 1) {
+      return '<path d="M5.5 16a6.5 6.5 0 0 1 13 0z" fill="currentColor"/><line x1="2" y1="16" x2="22" y2="16"/>' +
+        '<line x1="12" y1="5" x2="12" y2="7.2"/><line x1="4.6" y1="8.6" x2="6.2" y2="10.2"/><line x1="19.4" y1="8.6" x2="17.8" y2="10.2"/>' +
+        '<line x1="6" y1="19.5" x2="18" y2="19.5" opacity=".55"/>';
+    }
+    return '<path d="M16.5 15.5A7 7 0 1 1 10 4.5a5.5 5.5 0 0 0 6.5 11z" fill="currentColor"/>' +
+      '<path d="M18.5 4.5l.7 1.5 1.5.7-1.5.7-.7 1.5-.7-1.5-1.5-.7 1.5-.7z" fill="currentColor" stroke="none"/>';
+  }
+  function markIcon(m) {
+    if (m === 0) return '<path d="M7 17c-1-1.6-1.5-3.3-1.5-5a6.5 6.5 0 0 1 13 0c0 1.3-.2 2.6-.6 3.8"/><path d="M9.5 18.5c-.9-1.9-1.4-3.8-1.4-6a3.9 3.9 0 0 1 7.8 0c0 2.6-.5 4.6-1.4 6.6"/><path d="M12 12.3v1.2c0 2.2.5 4 1.3 5.5"/>';
+    if (m === 1) return '<path d="M5 19L9.5 4l3 7.5-2.5 1z" fill="currentColor"/><path d="M13.5 20l2-8 4 3.5z" fill="currentColor"/>';
+    return '<path d="M5 8l3.5-3 3.5 3 3.5-3L19 8"/><path d="M5 13.5l3.5-3 3.5 3 3.5-3 3.5 3"/><path d="M5 19l3.5-3 3.5 3 3.5-3 3.5 3"/>';
+  }
+  // 사람 실루엣(100×100). fg = 실루엣 색, bg = 카드 바탕(파낸 부분)
+  function figure(h, f, fg, bg) {
+    var s = '<path d="M14 100c0-21 15-31 36-31s36 10 36 31z" fill="' + fg + '"/>' +
+            '<circle cx="50" cy="48" r="19" fill="' + fg + '"/>';
+    if (f !== 1) s += '<circle cx="43" cy="46.5" r="2.8" fill="' + bg + '"/><circle cx="57" cy="46.5" r="2.8" fill="' + bg + '"/>';
+    if (f === 0) s += '<path d="M44.5 56q5.5 3.5 11 0" fill="none" stroke="' + bg + '" stroke-width="2.4" stroke-linecap="round"/>';
+    if (f === 1) {
+      s += '<circle cx="42" cy="47" r="7" fill="' + SKY + '" stroke="' + bg + '" stroke-width="3"/>' +
+           '<circle cx="58" cy="47" r="7" fill="' + SKY + '" stroke="' + bg + '" stroke-width="3"/>' +
+           '<line x1="49" y1="47" x2="51" y2="47" stroke="' + bg + '" stroke-width="3"/>' +
+           '<path d="M45 57q5 2.5 10 0" fill="none" stroke="' + bg + '" stroke-width="2.4" stroke-linecap="round"/>';
+    }
+    if (f === 2) {
+      s += '<path d="M34 52.5l-4.5-5.5M66 52.5l4.5-5.5" stroke="' + SKY + '" stroke-width="2.4" stroke-linecap="round"/>' +
+           '<path d="M33.5 51h33v6.5c0 6.5-7.5 10-16.5 10s-16.5-3.5-16.5-10z" fill="' + SKY + '" stroke="#1B1E24" stroke-width="1.4"/>' +
+           '<path d="M37 56h26M38 60.5h24" stroke="' + SKY_DARK + '" stroke-width="1.6" stroke-linecap="round"/>';
+    }
+    // 모자: 아래끝이 y≈40 을 넘지 않게 해서 안경(위끝 y=40)을 가리지 않는다
+    if (h === 1) {
+      // 비니(1.6, 예전 캡 모자): 둥근 몸통 + 골지 단 + 방울. 맨머리·중절모와 윤곽이 확실히 다르다
+      s += '<path d="M31 38c0-13 8.5-21 19-21s19 8 19 21z" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>' +
+           '<rect x="29.5" y="33" width="41" height="7.5" rx="3" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>';
+      for (var r = 35; r <= 65; r += 6) s += '<line x1="' + r + '" y1="34.6" x2="' + r + '" y2="38.9" stroke="' + bg + '" stroke-width="1.4"/>';
+      s += '<circle cx="50" cy="15" r="5" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>';
+    }
+    if (h === 2) {
+      s += '<path d="M33.5 36l3.5-17.5q6.5-3 13 0q6.5-3 13 0L66.5 36z" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.5"/>' +
+           '<path d="M35 31.5h30" stroke="' + bg + '" stroke-width="3"/>' +
+           '<path d="M16 37h68" stroke="' + fg + '" stroke-width="6.5" stroke-linecap="round"/>';
+    }
+    return s;
+  }
+
+  var ALL = [0, 1, 2, 3];
+  // 그릴 때 필요한 것: 보는 속성만 남긴 값과 바탕·글자 색
+  function look(id, active) {
+    var act = active || ALL, v = C.project(id, act);
+    var showTime = act.indexOf(0) >= 0, showMark = act.indexOf(3) >= 0;
+    return { v: v, showTime: showTime, showMark: showMark, bg: showTime ? BG[v[0]] : PLAIN_BG, fg: showTime ? FG[v[0]] : FG[0] };
+  }
+  function describe(id, active) {
+    var act = active || ALL, v = C.decode(id);
+    return act.map(function (i) { return C.ATTRS[i].values[v[i]]; }).join(', ');
+  }
+  // 카드 한 장의 속 내용(번호는 판 위에서만)
+  function cardInner(id, no, active) {
+    var L = look(id, active), v = L.v;
+    var stroke = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+    return (L.showTime ? '<span class="t" style="background:' + TIME_CHIP[v[0]] + ';color:' + TIME_INK[v[0]] + '"><svg width="20" height="20" viewBox="0 0 24 24" ' + stroke + '>' + timeIcon(v[0]) + '</svg></span>' : '') +
+      (no ? '<span class="no" style="color:' + L.fg + '">' + no + '</span>' : '') +
+      '<svg class="fig" viewBox="0 0 100 100" aria-hidden="true">' + figure(v[1], v[2], L.fg, L.bg) + '</svg>' +
+      (L.showMark ? '<span class="m" style="background:' + L.fg + ';color:' + L.bg + ';box-shadow:0 0 0 2px ' + L.bg + '"><svg width="19" height="19" viewBox="0 0 24 24" ' + stroke + '>' + markIcon(v[3]) + '</svg></span>' : '') +
+      '<span class="pick"></span>';
+  }
+
+var $ = function (id) { return document.getElementById(id); };
+var IC = function (n) { return Team3Icons.icon(n); };
+// 큰 수: 만 · 억 · 조
+function fmt(n) {
+  n = Math.floor(n);
+  if (n < 10000) return n.toLocaleString('ko-KR');
+  var u = [['조', 1e12], ['억', 1e8], ['만', 1e4]];
+  for (var i = 0; i < u.length; i++) if (n >= u[i][1]) { var v = n / u[i][1]; return (v >= 100 ? Math.floor(v) : Math.floor(v * 10) / 10).toLocaleString('ko-KR') + u[i][0]; }
+  return String(n);
+}
+function toast(t) { var e = document.createElement('div'); e.className = 'toast'; e.textContent = t; document.body.appendChild(e); setTimeout(function () { e.remove(); }, 1900); }
+var tab = 'a';
+$('tabs').onclick = function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  tab = b.dataset.t;
+  document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+  ['a', 'b', 'c'].forEach(function (k) { $('p-' + k).classList.toggle('on', k === tab); });
+  if (tab === 'b') layoutDesks();
+};
+function speedChips(sel, set) {
+  document.querySelectorAll(sel + ' .chip').forEach(function (b) { b.onclick = function () { document.querySelectorAll(sel + ' .chip').forEach(function (x) { x.classList.toggle('on', x === b); }); set(+b.dataset.s); }; });
+}
+
+/* ================= A 수사 부서 ================= */
+var ICONS_A = {
+  patrol: '<path d="M5 17h14l-2-6H7z"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/><path d="M10 8h4l1 3H9z"/>',
+  det: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 4-7 8-7s7 2 8 7"/>',
+  ana: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M7 13l3-3 3 2 4-5M8 20h8M12 16v4"/>',
+  swat: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  intl: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'
+};
+var DEPTS = [
+  { id: 'patrol', name: '순찰조', what: '골목 순찰', cost: 50, sec: 1.2, pay: 3 },
+  { id: 'det', name: '형사', what: '용의자 검거', cost: 300, sec: 4, pay: 25 },
+  { id: 'ana', name: '분석관', what: 'CCTV 분석', cost: 4000, sec: 12, pay: 420 },
+  { id: 'swat', name: '특수수사대', what: '조직 소탕', cost: 60000, sec: 40, pay: 7600 },
+  { id: 'intl', name: '국제 공조', what: '해외 수배', cost: 1500000, sec: 120, pay: 190000 }
+];
+var MILES = [10, 25, 50, 100, 200, 300];
+var GROW = 1.12;
+var A = { money: 500, speed: 1, mode: '1', d: DEPTS.map(function (x, i) { return { n: i === 0 ? 1 : 0, t: 0, seen: i < 2 }; }) };
+function mileMult(n) { var m = 1; MILES.forEach(function (x) { if (n >= x) m *= 2; }); return m; }
+function nextMile(n) { for (var i = 0; i < MILES.length; i++) if (n < MILES[i]) return MILES[i]; return null; }
+function costOf(k, n, q) { var b = DEPTS[k].cost * Math.pow(GROW, n); return b * (Math.pow(GROW, q) - 1) / (GROW - 1); }
+function maxQ(k) { var n = A.d[k].n, q = 0; while (q < 500 && costOf(k, n, q + 1) <= A.money) q++; return q; }
+function qty(k) { return A.mode === 'max' ? Math.max(1, maxQ(k)) : +A.mode; }
+function cycle(k) { return DEPTS[k].sec / mileMult(A.d[k].n); }
+function perSec() { var s = 0; DEPTS.forEach(function (x, k) { if (A.d[k].n) s += x.pay * A.d[k].n / cycle(k); }); return s; }
+function drawA() {
+  $('a-list').innerHTML = DEPTS.map(function (x, k) {
+    var d = A.d[k];
+    if (!d.seen) return '<div class="dept locked"><div class="d-ico"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><div class="d-mid"><div class="d-name">???</div><div class="d-mile">수사비 ' + fmt(x.cost / 2) + '을 모으면 보여요</div></div></div>';
+    return '<div class="dept" id="dept-' + k + '"><div class="d-ico"><svg viewBox="0 0 24 24">' + ICONS_A[x.id] + '</svg><b>' + d.n + '</b></div>' +
+      '<div class="d-mid"><div class="d-name">' + x.name + '<small>' + x.what + '</small></div><div class="d-bar" id="bar-' + k + '"><i></i><span></span></div><div class="d-mile" id="mile-' + k + '"></div></div>' +
+      '<button class="d-buy" id="buy-' + k + '" data-k="' + k + '"></button></div>';
+  }).join('');
+  updA(true);
+}
+function updA(all) {
+  $('a-money').innerHTML = IC('money') + fmt(A.money);
+  $('a-rate').textContent = '초당 ' + fmt(perSec());
+  DEPTS.forEach(function (x, k) {
+    var d = A.d[k]; if (!d.seen) return;
+    var bar = $('bar-' + k); if (!bar) return;
+    var cyc = cycle(k), fast = cyc < 0.25 && d.n > 0;
+    var badge = document.querySelector('#dept-' + k + ' .d-ico b'); if (badge) badge.textContent = d.n;
+    bar.classList.toggle('fast', fast);
+    bar.querySelector('i').style.transform = fast ? '' : 'scaleX(' + (d.n ? d.t / cyc : 0) + ')';
+    bar.querySelector('span').textContent = d.n ? (fast ? '쉴 새 없이 · 초당 ' + fmt(x.pay * d.n / cyc) : '+' + fmt(x.pay * d.n) + ' · ' + (cyc >= 1 ? cyc.toFixed(1) + '초' : cyc.toFixed(2) + '초')) : '아직 없어요';
+    var nm = nextMile(d.n);
+    $('mile-' + k).innerHTML = nm ? nm + '명까지 <em>' + (nm - d.n) + '명</em> · 채우면 속도 ×2' : '모든 목표 달성 · 속도 ×' + mileMult(d.n);
+    var q = qty(k), c = costOf(k, d.n, q), ok = A.money >= c && (A.mode !== 'max' || maxQ(k) > 0), b = $('buy-' + k);
+    b.disabled = !ok;
+    b.innerHTML = ok ? '영입 ×' + q + '<small>' + fmt(c) + '</small>' : '부족<small>' + fmt(A.money) + '/' + fmt(c) + '</small>';
+  });
+}
+$('a-list').onclick = function (e) {
+  var b = e.target.closest('.d-buy'); if (!b || b.disabled) return;
+  var k = +b.dataset.k, d = A.d[k], q = qty(k), c = costOf(k, d.n, q);
+  if (c > A.money) return;
+  var before = mileMult(d.n);
+  A.money -= c; d.n += q;
+  if (mileMult(d.n) > before) {
+    var row = $('dept-' + k), s = document.createElement('i'); s.className = 'mile-stamp'; row.appendChild(s); setTimeout(function () { s.remove(); }, 1300);
+    toast(DEPTS[k].name + ' ' + d.n + '명 달성! 속도 ×2');
+  }
+  updA();
+};
+$('a-mode').onclick = function (e) { var b = e.target.closest('.chip'); if (!b) return; A.mode = b.dataset.m; document.querySelectorAll('#a-mode .chip').forEach(function (x) { x.classList.toggle('on', x === b); }); updA(); };
+speedChips('#p-a .speed', function (v) { A.speed = v; });
+function stepA(dt) {
+  dt *= A.speed;
+  DEPTS.forEach(function (x, k) {
+    var d = A.d[k]; if (!d.n) return;
+    var cyc = cycle(k); d.t += dt;
+    if (d.t >= cyc) {
+      var times = Math.floor(d.t / cyc); d.t -= times * cyc;
+      var gain = x.pay * d.n * times; A.money += gain;
+      if (cyc / A.speed >= 0.6 && tab === 'a') { var row = $('dept-' + k); if (row) { var p = document.createElement('span'); p.className = 'pop'; p.textContent = '+' + fmt(gain); row.appendChild(p); setTimeout(function () { p.remove(); }, 800); } }
+    }
+  });
+  var redraw = false;
+  DEPTS.forEach(function (x, k) { if (!A.d[k].seen && A.money >= x.cost / 2) { A.d[k].seen = true; redraw = true; } });
+  if (redraw && tab === 'a') drawA();
+}
+
+/* ================= B 살아 있는 사무실 ================= */
+var B = { money: 300, speed: 1, cops: 2, desks: [], cell: [], cap: 20, sec: 6, pay: 15, coffee: {} };
+var COP = '<svg viewBox="0 0 34 42" aria-hidden="true"><ellipse cx="17" cy="40" rx="12" ry="2.5" fill="rgba(0,0,0,.3)"/><path d="M5 40c0-9 5-14 12-14s12 5 12 14z" fill="#2F4A7A"/><path d="M14 27l3 5 3-5" fill="#F4EFE2"/><circle cx="17" cy="18" r="8.5" fill="#F2D3B6"/><path d="M7.5 15c0-6 4.5-9 9.5-9s9.5 3 9.5 9z" fill="#22355A"/><rect x="6" y="13.5" width="22" height="3.5" rx="1.5" fill="#1B2742"/><circle cx="17" cy="10" r="2" fill="#FFD23F"/><circle cx="14" cy="19.5" r="1.3" fill="#1B1E24"/><circle cx="20" cy="19.5" r="1.3" fill="#1B1E24"/><g class="hands"><circle cx="10" cy="34" r="3" fill="#F2D3B6"/><circle cx="24" cy="34" r="3" fill="#F2D3B6"/></g></svg>';
+function suspectSvg(id) { var L = look(id); return '<svg viewBox="0 0 100 100" aria-hidden="true">' + figure(L.v[1], L.v[2], '#1B1E24', '#D9D6CE') + '</svg>'; }
+function hireCostB() { return Math.round(300 * Math.pow(1.6, B.cops - 2)); }
+function layoutDesks() {
+  var n = Math.min(8, B.cops), box = $('desks'), html = '';
+  for (var i = 0; i < Math.min(8, n + 1); i++) {
+    var on = i < n;
+    html += '<div class="desk' + (on ? '' : ' empty') + '" data-i="' + i + '"><div class="tbl"></div><div class="pc"></div>' + (on ? '<div class="cop">' + COP + '</div><svg class="ring" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" stroke="#3A4152"/><circle cx="11" cy="11" r="8" stroke="#FFD23F" stroke-dasharray="50.3" stroke-dashoffset="50.3" transform="rotate(-90 11 11)" id="ring-' + i + '"/></svg><div class="steam"></div>' : '') + '</div>';
+  }
+  box.innerHTML = html;
+  while (B.desks.length < n) B.desks.push({ t: Math.random() * B.sec });
+}
+function drawCell() {
+  $('cell-in').innerHTML = B.cell.slice(-15).map(function (id) { return '<span class="s">' + suspectSvg(id) + '</span>'; }).join('');
+  $('cell-tag').textContent = '유치장 ' + B.cell.length + '/' + B.cap;
+  $('cell').classList.toggle('full', B.cell.length >= B.cap);
+  var full = B.cell.length >= B.cap;
+  document.querySelectorAll('#desks .desk:not(.empty)').forEach(function (d) { d.classList.toggle('stuck', full); });
+  var sb = $('b-send');
+  sb.disabled = B.cell.length === 0;
+  sb.classList.toggle('ready', full);
+  $('b-send-c').textContent = B.cell.length ? B.cell.length + '명 · ' + IC('money').replace(/<[^>]+>/g, '') + '+' + fmt(B.cell.length * B.pay * 2) + (full ? ' · 가득 찼어요!' : '') : '유치장이 비었어요';
+}
+function updB() {
+  $('b-money').innerHTML = IC('money') + fmt(B.money);
+  $('b-rate').textContent = '1분에 형사 ' + B.cops + '명 × ' + (60 / B.sec).toFixed(0) + '명';
+  var c = hireCostB(), hb = $('b-hire');
+  hb.disabled = B.money < c;
+  $('b-hire-c').textContent = B.money < c ? '부족 ' + fmt(B.money) + '/' + fmt(c) : fmt(c) + (B.cops >= 8 ? ' · 책상은 8개까지 보여요' : '');
+}
+function catchAt(i) {
+  var desk = document.querySelector('#desks .desk[data-i="' + i + '"]'), office = $('office');
+  if (!desk) return;
+  var r = desk.getBoundingClientRect(), o = office.getBoundingClientRect(), cr = $('cell').getBoundingClientRect();
+  var id = Math.floor(Math.random() * 81);
+  var w = document.createElement('div'); w.className = 'walker go'; w.innerHTML = suspectSvg(id);
+  w.style.left = (r.left - o.left + r.width / 2 - 13) + 'px'; w.style.top = (r.top - o.top + 4) + 'px';
+  office.appendChild(w);
+  var coin = document.createElement('span'); coin.className = 'coin'; coin.textContent = '+1명';
+  coin.style.left = (r.left - o.left + r.width / 2) + 'px'; coin.style.top = (r.top - o.top - 6) + 'px'; office.appendChild(coin); setTimeout(function () { coin.remove(); }, 900);
+  requestAnimationFrame(function () { requestAnimationFrame(function () { w.style.left = (cr.left - o.left + 20 + Math.random() * 60) + 'px'; w.style.top = (cr.top - o.top + 120 + Math.random() * 40) + 'px'; }); });
+  B.pending = (B.pending || 0) + 1;
+  setTimeout(function () { w.remove(); B.pending--; B.cell.push(id); drawCell(); }, 950);
+}
+function stepB(dt) {
+  dt *= B.speed;
+  var now = performance.now();
+  B.desks.forEach(function (d, i) {
+    if (B.cell.length + (B.pending || 0) >= B.cap) return;   // 걸어가는 중인 사람까지 세서 20명을 넘지 않게
+    var mult = B.coffee[i] && B.coffee[i] > now ? 3 : 1;
+    d.t += dt * mult;
+    if (d.t >= B.sec) { d.t -= B.sec; B.money += B.pay; if (tab === 'b' && i < 8) catchAt(i); else B.cell.push(Math.floor(Math.random() * 81)); }
+    var ring = $('ring-' + i); if (ring) ring.setAttribute('stroke-dashoffset', String(50.3 * (1 - d.t / B.sec)));
+    var dk = document.querySelector('#desks .desk[data-i="' + i + '"]'); if (dk) dk.classList.toggle('coffee', mult > 1);
+  });
+  // 8명이 넘으면 화면 밖 형사 몫은 바로 유치장으로
+  if (B.cops > 8 && B.cell.length + (B.pending || 0) < B.cap) { B.extra = (B.extra || 0) + dt * (B.cops - 8) / B.sec; while (B.extra >= 1 && B.cell.length < B.cap) { B.extra -= 1; B.money += B.pay; B.cell.push(Math.floor(Math.random() * 81)); } }
+}
+$('desks').onclick = function (e) {
+  var d = e.target.closest('.desk'); if (!d || d.classList.contains('empty')) return;
+  var i = +d.dataset.i; B.coffee[i] = performance.now() + 5000;
+  var o = $('office').getBoundingClientRect(), r = d.getBoundingClientRect();
+  var c = document.createElement('span'); c.className = 'coin'; c.textContent = '커피! ×3'; c.style.left = (r.left - o.left + 10) + 'px'; c.style.top = (r.top - o.top) + 'px'; $('office').appendChild(c); setTimeout(function () { c.remove(); }, 900);
+};
+$('b-hire').onclick = function () { var c = hireCostB(); if (B.money < c) return; B.money -= c; B.cops++; layoutDesks(); updB(); drawCell(); toast('형사 ' + B.cops + '명!'); };
+$('b-send').onclick = function () {
+  if (!B.cell.length) return;
+  var n = B.cell.length, gain = n * B.pay * 2;
+  var v = $('van'); v.classList.remove('go'); void v.getBoundingClientRect(); v.classList.add('go');
+  setTimeout(function () { B.cell = []; B.money += gain; drawCell(); updB(); toast('이송 완료 · ' + n + '명 · +' + fmt(gain)); }, 800);
+};
+// 파트너 동물: 바닥을 왔다 갔다, 누르면 하트
+(function () {
+  var pet = $('pet'); pet.innerHTML = Team3PetArt.draw('corgi', { grade: 'h', anim: true });
+  var x = 40;
+  function walk() { var nx = 20 + Math.random() * 270; pet.classList.toggle('flip', nx < x); x = nx; pet.style.left = nx + 'px'; setTimeout(walk, 4200 + Math.random() * 3000); }
+  setTimeout(walk, 800);
+  pet.onclick = function () { for (var i = 0; i < 3; i++) { var h = document.createElement('i'); h.className = 'heart'; h.textContent = '♥'; h.style.left = (pet.offsetLeft + 10 + i * 12) + 'px'; h.style.bottom = '64px'; h.style.animationDelay = i * 100 + 'ms'; $('office').appendChild(h); setTimeout(function (e) { return function () { e.remove(); }; }(h), 1300); } };
+})();
+// 창밖 하늘 · 시계: 지금 시각
+function sky() {
+  var d = new Date(), h = d.getHours(), m = d.getMinutes();
+  var c = h >= 7 && h < 17 ? 'linear-gradient(#8FD0FF,#CDEBFF)' : h >= 17 && h < 20 ? 'linear-gradient(#FF9F6B,#5B4A8A)' : 'linear-gradient(#0E1530,#27305A)';
+  $('sky1').style.background = c + (h >= 20 || h < 7 ? ',radial-gradient(circle at 70% 30%,#FFF6C8 0 4px,transparent 5px)' : '');
+  $('hh').style.transform = 'translateX(-50%) rotate(' + ((h % 12) * 30 + m / 2) + 'deg)';
+  $('mm').style.transform = 'translateX(-50%) rotate(' + (m * 6) + 'deg)';
+}
+speedChips('#p-b .speed', function (v) { B.speed = v; });
+
+/* ================= C 팀 재편성 ================= */
+var CC = { money: 0, dets: 1, train: 0, earned: 0, medals: 0, spent: 0, runs: [[]], t: 0, skills: {} };
+var SK = [
+  { id: 'start', name: '빠른 출근', desc: '재편성 뒤 형사 5명으로 시작', cost: 2 },
+  { id: 'night', name: '잠복 전문', desc: '자리 비움 한도 4 → 6시간', cost: 3 },
+  { id: 'field', name: '현장 감각', desc: '현장 출동 수사비 +20%', cost: 5 }
+];
+var COLORS = ['#97A1B3', '#FFD23F', '#3DDC84', '#7FD3FF', '#FF9A8B'];
+function medalsFor(earned) { return Math.floor(Math.sqrt(earned / 10000)); }
+function cMult() { return 1 + 0.25 * CC.medals; }
+function cHire() { return 300 * Math.pow(1.45, CC.dets - 1); }
+function cTrain() { return 600 * Math.pow(2.2, CC.train); }
+function stepC(dt) {
+  var sim = dt * 120;   // 시험용 120배(1초 = 2분)
+  CC.t += sim;
+  var inc = CC.dets * 0.1 * (1 + 0.25 * CC.train) * 15 * cMult() * sim;
+  CC.money += inc; CC.earned += inc;
+  // 시험: 살 수 있으면 알아서 산다(실제 게임에서는 플레이어가 산다)
+  for (var g = 0; g < 5; g++) { if (CC.money >= cTrain() && CC.train < 10 && cTrain() < cHire() * 3) { CC.money -= cTrain(); CC.train++; } else if (CC.money >= cHire()) { CC.money -= cHire(); CC.dets++; } else break; }
+  var run = CC.runs[CC.runs.length - 1];
+  if (!run.length || CC.t - run[run.length - 1][0] > 20) run.push([CC.t, CC.earned]);
+}
+function drawC() {
+  $('c-money').innerHTML = IC('money') + fmt(CC.money);
+  $('c-team').textContent = CC.dets + '명 · ' + CC.train + '단계';
+  $('c-earned').textContent = fmt(CC.earned);
+  $('c-medals').textContent = CC.medals; $('c-pct').textContent = CC.medals * 25;
+  var g = medalsFor(CC.earned), rb = $('rebirth');
+  rb.disabled = g < 1;
+  $('reb-sub').textContent = g < 1 ? '훈장 1개부터 할 수 있어요 · 다음 훈장까지 ' + fmt(10000 * Math.pow(g + 1, 2) - CC.earned) : '지금 하면 훈장 +' + g + ' → 모든 수사비 +' + (CC.medals + g) * 25 + '%';
+  // 그래프: 판마다 번 수사비(로그 눈금), 가로 = 경과 시간(분, 시험 시간)
+  var cv = $('chart'), x = cv.getContext('2d'), W = cv.width, H = cv.height;
+  x.clearRect(0, 0, W, H);
+  // 가로 끝 = 지금까지 가장 오래 간 판(최소 30분), 세로 = 번 수사비(로그)
+  var maxT = 1800, maxV = 1e6;
+  CC.runs.forEach(function (r) { r.forEach(function (p) { if (p[0] > maxT) maxT = p[0]; if (p[1] > maxV) maxV = p[1] * 3; }); });
+  x.strokeStyle = 'rgba(255,255,255,.08)'; x.lineWidth = 1; x.fillStyle = '#97A1B3'; x.font = '20px sans-serif';
+  [1e3, 1e5, 1e7].forEach(function (v) { var y = H - 20 - (Math.log10(v) / Math.log10(maxV)) * (H - 40); x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); x.fillText(fmt(v), 8, y - 6); });
+  CC.runs.forEach(function (run, i) {
+    if (run.length < 2) return;
+    x.strokeStyle = COLORS[i % COLORS.length]; x.lineWidth = i === CC.runs.length - 1 ? 5 : 3; x.beginPath();
+    run.forEach(function (p, j) { var px = Math.min(W, p[0] / maxT * W), py = H - 20 - (Math.log10(Math.max(1, p[1])) / Math.log10(maxV)) * (H - 40); if (j) x.lineTo(px, py); else x.moveTo(px, py); });
+    x.stroke();
+  });
+  // 판마다 수사비 1만을 버는 데 걸린 시간(시험 시간) — 재편성할수록 짧아지는 걸 숫자로
+  $('legend').innerHTML = CC.runs.map(function (r, i) {
+    var hit = r.filter(function (p) { return p[1] >= 10000; })[0];
+    return '<span style="--c:' + COLORS[i % COLORS.length] + '">' + (i + 1) + '번째 판' + (i ? '(훈장 ' + (r.medals || 0) + ')' : '') + ' · 1만까지 ' + (hit ? Math.round(hit[0] / 60) + '분' : '…') + '</span>';
+  }).join('');
+  $('skills').innerHTML = SK.map(function (s) { var got = CC.skills[s.id], can = CC.medals - CC.spent >= s.cost; return '<button class="skill' + (got ? ' got' : '') + '" data-id="' + s.id + '"' + (got || !can ? ' disabled' : '') + '><b>' + s.name + '</b><small>' + s.desc + '</small><em>' + (got ? '배움 ✓' : '훈장 ' + s.cost) + '</em></button>'; }).join('');
+}
+$('rebirth').onclick = function () {
+  var g = medalsFor(CC.earned); if (g < 1) return;
+  CC.medals += g;
+  CC.money = 0; CC.earned = 0; CC.train = 0; CC.dets = CC.skills.start ? 5 : 1; CC.t = 0;
+  var r = []; r.medals = CC.medals; CC.runs.push(r);
+  var f = document.createElement('div'); f.className = 'flashw'; document.body.appendChild(f); setTimeout(function () { f.remove(); }, 900);
+  toast('팀 재편성! 훈장 +' + g + ' · 모든 수사비 +' + CC.medals * 25 + '%');
+  drawC();
+};
+$('skills').onclick = function (e) { var b = e.target.closest('.skill'); if (!b || b.disabled) return; var s = SK.filter(function (x) { return x.id === b.dataset.id; })[0]; CC.skills[s.id] = true; CC.spent += s.cost; toast(s.name + ' 배움!'); drawC(); };
+
+/* ---------- 공통 시계 ---------- */
+var last = performance.now(), acc = 0;
+function frame(now) {
+  var dt = Math.min(0.25, (now - last) / 1000); last = now;
+  stepA(dt); stepB(dt); stepC(dt);
+  acc += dt;
+  if (tab === 'a') updA();
+  if (acc > 0.2) { acc = 0; if (tab === 'b') { updB(); drawCell(); } if (tab === 'c') drawC(); }
+  requestAnimationFrame(frame);
+}
+drawA(); layoutDesks(); drawCell(); updB(); sky(); setInterval(sky, 30000); drawC();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

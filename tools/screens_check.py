@@ -64,7 +64,7 @@ def main():
         need(pg.locator('#h-pet-art').count() == 1, '사무실: 파트너 그림이 없음')
         pg.click('#h-pet-art'); pg.clock.run_for(300)
         need(pg.locator('#h-pet-bubble').is_visible(), '사무실: 쓰다듬어도 말풍선이 안 뜸')
-        need('친밀도' in pg.text_content('#h-pet'), '사무실: 친밀도 줄이 없음')
+        need('단계' in pg.text_content('#h-pet .pet-bond'), '사무실: 친밀도 줄이 없음')   # 0.6.0 "♥ N단계 · …" 로 짧게
         no_hscroll(pg, '사무실')
         pg.screenshot(path=SHOT + 's_hub.png')
 
@@ -165,6 +165,18 @@ def main():
             pg.click('#res-double'); pg.clock.run_for(3600)
             need(money(pg) > m0, '결과: 2배 받기 뒤 수사비가 늘지 않음')
         pg.screenshot(path=SHOT + 's_result.png')
+
+        # 0.6.0 살아 있는 사무실: 책상 수 = 형사 수(최대 8), 유치장 · 이송 단추, 커피를 누르면 수사비
+        pg.evaluate("() => SuspectsUI.goHome()"); pg.clock.run_for(800)
+        det = pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}')).detectives")
+        need(pg.locator('#h-office .of-desk:not(.empty)').count() == min(det, 8), '사무실: 책상 수가 형사 수와 다름')
+        need(pg.locator('#of-cell').count() == 1 and pg.locator('#of-send').count() == 1, '사무실: 유치장 · 이송이 없음')
+        m1 = money(pg)
+        pg.locator('#h-office .of-desk[data-i="0"]').dispatch_event('click'); pg.clock.run_for(600)
+        pg.evaluate("() => Team3Save()")
+        need(money(pg) > m1, '사무실: 커피를 눌러도 수사비가 안 늘어남')
+        no_hscroll(pg, '사무실')
+        pg.locator('#h-office').screenshot(path=SHOT + 's_office.png')
 
         # 0.5.0 사건 3 면통 라인업: 틀리면 그 자리 X · 같은 줄, 맞히면 다음 줄, 단서는 아닌 자리를 지움
         pg.evaluate("() => SuspectsUI.startRun({ duration: 300, freeHints: 0, mode: 'lineup', missPenalty: 5, lineupHitBonus: 0, preOut: 0 })")

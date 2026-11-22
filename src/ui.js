@@ -588,12 +588,15 @@
       : '검거 ' + game.hits + ' · 불가 적중 ' + game.noneHits + ' · 실수 ' + (game.misses + game.noneMisses);
   }
 
+  var quietUntil = 0;   // 판정 소리가 나는 동안은 초침을 쉰다
   function bumpCombo() {
+    quietUntil = performance.now() + 350;
     var c = $('combo');
     c.classList.add('pop');
     setTimeout(function () { c.classList.remove('pop'); }, 150);
   }
   function flashTimer() {
+    quietUntil = performance.now() + 350;
     var t = $('timer');
     t.classList.add('flash');
     setTimeout(function () { t.classList.remove('flash'); }, 600);
@@ -607,7 +610,9 @@
     var fill = $('fill');
     fill.style.transform = 'scaleX(' + Math.min(1, left / cfg.duration) + ')';
     fill.classList.toggle('low', left <= 10);
-    if (left <= 10 && sec !== lastSec && sec > 0) sfx.clock(left);   // 마지막 10초: 초가 바뀔 때마다 시계 초침
+    // 마지막 10초: 1초씩 줄어들 때만 시계 초침(0.6.0). 예전엔 "초가 바뀌면" 울려서, 검거(+초) · 오판(−초)으로
+    // 초가 튀는 순간 판정 소리와 초침이 겹쳤다. 판정 직후 0.35초도 울리지 않는다.
+    if (left <= 10 && sec > 0 && sec === lastSec - 1 && performance.now() > quietUntil) sfx.clock(left);
     music.duck(left <= 10);   // 마지막 10초엔 음악을 낮춰 초침이 묻히지 않게(시간이 늘어 10초를 넘으면 되돌린다)
     lastSec = sec;
     if (MM() && !lock && MT.shown(game, now()) !== paperShown) renderPaper(false);   // 특징이 하나 더 그려질 때

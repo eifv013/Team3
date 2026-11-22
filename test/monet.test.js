@@ -53,8 +53,11 @@ test('광고 자리: 하루 한도, 날이 바뀌면 다시, 광고 없이 받�
 
 test('시즌 패스: 경험치 · 단계 · 무료/프리미엄 · 산 뒤 지난 단계도 · 새 시즌에 처음부터', () => {
   const s = fresh(), d = '2026-11-22';
-  const se = M.season(d);
-  assert.ok(se.left >= 1 && se.left <= 28);
+  // 0.6.0: 시즌은 처음 연 날부터 — 시즌 1, 28일 남음. 27일 뒤 1일 남음, 28일 뒤 시즌 2
+  const se = M.seasonOf(s, d);
+  assert.deepEqual(se, { no: 1, idx: 0, left: 28 });
+  assert.deepEqual(M.season('2026-12-19', d), { no: 1, idx: 0, left: 1 });
+  assert.deepEqual(M.season('2026-12-20', d), { no: 2, idx: 1, left: 28 });
   assert.equal(M.runXp(0), 10); assert.equal(M.runXp(20000), 40); assert.equal(M.runXp(3000, '금'), 46);
   const r = M.addXp(s, d, 350);
   assert.deepEqual(r, { tier: 3, up: 3 });
@@ -97,4 +100,13 @@ test('저장: load 로 넘어오고 clean 이 깨진 값을 고친다', () => {
   assert.deepEqual(c.bought, { gems60: 2 });
   assert.equal(c.ads.day, '');
   assert.deepEqual(c.pass.free, { 1: true });
+});
+
+test('시즌 패스(0.6.0): 예전 저장(전체 기준 시즌 12)은 경험치 · 받은 보상을 그대로 시즌 1로', () => {
+  const s = { gems: 0, pets: { tickets: 0, treats: 0 }, shop: { pass: { season: 11, xp: 550, free: { 1: true, 2: true }, prem: {}, premium: true } } };
+  M.clean(s, T0);
+  const ps = M.passOf(s, '2026-11-22');
+  assert.equal(ps.xp, 550); assert.equal(ps.premium, true); assert.deepEqual(ps.free, { 1: true, 2: true });
+  assert.deepEqual(M.seasonOf(s, '2026-11-22'), { no: 1, idx: 0, left: 28 });
+  assert.equal(s.shop.passStart, '2026-11-22');
 });

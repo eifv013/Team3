@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수사 3팀 · 방치형 보강 시안 A · B · C</title>
+<!--
+  방치형 보강 시안 세 가지(직접 해 볼 수 있게).
+  A 수사 부서: 순찰조 → 형사 → 분석관 → 특수수사대 → 국제 공조. 줄마다 막대가 차면 수사비, 10 · 25 · 50 · 100명마다 속도 ×2.
+  B 살아 있는 사무실: 책상마다 형사가 일하고, 잡은 용의자가 유치장으로 걸어 들어간다. 유치장이 차면 이송(모아 받기). 책상을 누르면 커피(잠깐 3배).
+  C 팀 재편성(훈장): 사건을 닫을 때 팀을 새로 짜면 훈장을 받는다. 훈장마다 모든 수사비 +10%, 특기에 쓴다. 다시 오를 때 더 빨리 오른다.
+  그림: 용의자는 게임 카드 그림(ui.js), 파트너는 게임 동물 그림(petart.js), 재화는 게임 아이콘(icons.js) 그대로.
+  빌드: python3 tools/proto_build.py → proto/idle-ideas.html
+-->
+<style>
+:root{--bg:#12151C;--panel:#1C212B;--panel2:#252B37;--line:#323A48;--text:#EEF1F6;--muted:#97A1B3;--acc:#FFD23F;--ink:#1B1E24;--ok:#3DDC84;--miss:#FF6B6B}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans KR','Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+body{max-width:440px;margin:0 auto;min-height:100vh;padding-bottom:40px}
+button{font:inherit;cursor:pointer}
+.ic{display:inline-flex;width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:.18em;flex:none}.ic svg{width:100%;height:100%;display:block}
+.top{position:sticky;top:0;z-index:10;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+.label{font-size:12px;color:var(--muted);font-weight:600}
+.tabs{display:flex;gap:6px;margin-top:8px}
+.tabs button{flex:1;height:40px;border-radius:10px;border:1.5px solid var(--line);background:none;color:var(--muted);font-weight:800}
+.tabs button.on{border-color:var(--acc);color:var(--acc);background:rgba(255,210,63,.08)}
+.pane{display:none;padding:12px 14px}.pane.on{display:block}
+.about{background:var(--panel);border-radius:14px;padding:12px;font-size:13px;line-height:1.6;color:#C9D0DC}
+.about b{color:var(--text)}
+.about ul{margin:6px 0 0;padding-left:18px}
+.wallet{display:flex;align-items:baseline;justify-content:space-between;margin:12px 2px 8px}
+.wallet .money{font:800 28px/1 'IBM Plex Sans KR',sans-serif;color:var(--acc);font-variant-numeric:tabular-nums}
+.wallet small{color:var(--muted);font-size:12px}
+.speed{display:flex;gap:6px}
+.chip{height:30px;padding:0 10px;border-radius:15px;border:1.5px solid var(--line);background:none;color:var(--muted);font-weight:700;font-size:12px}
+.chip.on{border-color:var(--acc);color:var(--acc)}
+.toast{position:fixed;left:50%;top:120px;transform:translateX(-50%);z-index:50;background:var(--acc);color:var(--ink);font-weight:800;padding:10px 16px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.4);animation:toast 1.8s ease-out forwards;pointer-events:none;white-space:nowrap}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-10px) scale(.9)}12%{opacity:1;transform:translate(-50%,0) scale(1.04)}20%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0}}
+
+/* ---------- A 수사 부서 ---------- */
+.mode{display:flex;gap:6px;margin-bottom:8px}
+.dept{position:relative;display:flex;gap:10px;align-items:center;padding:10px;border-radius:14px;background:var(--panel);margin-bottom:8px;border:1px solid var(--line)}
+.dept.locked{opacity:.45}
+.d-ico{position:relative;width:52px;height:52px;flex:none;border-radius:14px;background:var(--panel2);display:flex;align-items:center;justify-content:center}
+.d-ico svg{width:28px;height:28px;stroke:var(--acc);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.d-ico b{position:absolute;right:-5px;bottom:-5px;min-width:24px;height:20px;padding:0 5px;border-radius:10px;background:var(--acc);color:var(--ink);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.d-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.d-name{font-weight:800;font-size:15px}
+.d-name small{font-weight:600;color:var(--muted);font-size:11px;margin-left:4px}
+.d-bar{position:relative;height:18px;border-radius:9px;background:var(--panel2);overflow:hidden}
+.d-bar i{position:absolute;inset:0;background:linear-gradient(90deg,#FFB13F,var(--acc));transform-origin:left;transform:scaleX(0)}
+.d-bar.fast i{transform:none;background:repeating-linear-gradient(115deg,#FFB13F 0 10px,var(--acc) 10px 20px);background-size:200% 100%;animation:fast .5s linear infinite}
+@keyframes fast{to{background-position:-28px 0}}
+.d-bar span{position:relative;display:block;text-align:center;font-size:11px;font-weight:800;line-height:18px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.85)}
+.d-mile{font-size:11px;color:var(--muted)}
+.d-mile em{font-style:normal;color:var(--acc);font-weight:700}
+.d-buy{width:92px;flex:none;height:52px;border-radius:12px;border:0;background:var(--acc);color:var(--ink);font-weight:800;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.d-buy small{font-size:11px;font-weight:700}
+.d-buy:disabled{background:#2A2F3A;color:#8A919E;border:1.5px dashed #4A5160;cursor:default}
+.d-buy:disabled small{color:#FF9A8B}
+.pop{position:absolute;right:110px;top:6px;font-weight:800;font-size:13px;color:var(--acc);pointer-events:none;animation:pop .8s ease-out forwards}
+@keyframes pop{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-22px)}}
+.mile-stamp{position:absolute;inset:0;border-radius:14px;box-shadow:0 0 0 2px var(--acc),0 0 22px rgba(255,210,63,.6);animation:mile 1.2s ease-out forwards;pointer-events:none}
+@keyframes mile{from{opacity:1}to{opacity:0}}
+
+/* ---------- B 살아 있는 사무실 ---------- */
+.office{position:relative;height:420px;border-radius:16px;overflow:hidden;background:#2A2F3B;border:1px solid var(--line);user-select:none}
+.wallb{position:absolute;left:0;right:0;top:0;height:86px;background:linear-gradient(180deg,#3A4152,#323848);border-bottom:6px solid #262B36}
+.win{position:absolute;top:14px;width:84px;height:54px;border-radius:6px;border:4px solid #262B36;overflow:hidden}
+.win i{position:absolute;inset:0}
+.win::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:4px;background:#262B36}
+.clock{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;background:#F4EFE2;border:3px solid #262B36}
+.clock i{position:absolute;left:50%;bottom:50%;width:2px;background:#1B1E24;transform-origin:bottom;border-radius:1px}
+.board-w{position:absolute;right:14px;top:12px;width:70px;height:58px;border-radius:4px;background:#C9B48A;border:3px solid #6E5A3A;display:flex;flex-wrap:wrap;gap:3px;padding:4px}
+.board-w span{width:16px;height:16px;border-radius:2px;background:#F4EFE2;transform:rotate(-4deg)}
+.floor{position:absolute;left:0;right:0;top:92px;bottom:0;background:repeating-linear-gradient(90deg,#3A3F4C 0 1px,transparent 1px 40px),repeating-linear-gradient(0deg,#3A3F4C 0 1px,#30353F 1px 40px)}
+.desks{position:absolute;left:10px;top:104px;width:226px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px 10px}
+.desk{position:relative;height:66px;cursor:pointer}
+.desk .tbl{position:absolute;left:4px;right:4px;bottom:4px;height:26px;border-radius:5px;background:#8A6A47;box-shadow:inset 0 -5px 0 #6E5236}
+.desk .pc{position:absolute;left:50%;bottom:24px;width:30px;height:20px;transform:translateX(-50%);border-radius:3px;background:#1B1E24;border:2px solid #4A5263}
+.desk .pc::after{content:'';position:absolute;inset:2px;background:#7FD3FF;opacity:.6;animation:screen 1.6s steps(3) infinite}
+@keyframes screen{50%{opacity:.9}}
+.desk .cop{position:absolute;left:10px;bottom:20px;width:34px;height:42px}
+.desk .cop .hands{animation:type .28s steps(2) infinite}
+@keyframes type{50%{transform:translateY(-2px)}}
+.desk .ring{position:absolute;right:6px;top:0;width:22px;height:22px}
+.desk .ring circle{fill:none;stroke-width:3.5}
+.desk.coffee .cop{filter:drop-shadow(0 0 5px #FFB13F)}
+.desk.coffee .cop .hands{animation-duration:.1s}
+.desk .steam{position:absolute;right:36px;bottom:30px;width:10px;height:12px;border-radius:3px 3px 4px 4px;background:#F4EFE2;display:none}
+.desk.coffee .steam{display:block}
+.desk.coffee .steam::before{content:'';position:absolute;left:2px;top:-12px;width:6px;height:10px;border-radius:50%;background:rgba(255,255,255,.5);animation:steam 1s ease-out infinite}
+@keyframes steam{from{opacity:.8;transform:none}to{opacity:0;transform:translateY(-10px) scale(1.6)}}
+.desk.stuck .cop .hands{animation:none}
+.desk.stuck::after{content:'Zz';position:absolute;left:30px;top:0;font-weight:800;font-size:12px;color:#9CD3F2}
+.desk.empty{cursor:default;opacity:.55}.desk.empty .cop,.desk.empty .ring,.desk.empty .pc::after{display:none}
+.desk.empty::before{content:'영입하면 여기';position:absolute;left:0;right:0;top:2px;text-align:center;font-size:11px;font-weight:700;color:#C9D0DC}
+.coin{position:absolute;font-weight:800;font-size:13px;color:var(--acc);text-shadow:0 1px 2px #000;pointer-events:none;animation:pop .9s ease-out forwards;z-index:6}
+.cell{position:absolute;right:8px;top:104px;width:124px;height:206px;border-radius:8px;background:#22262F;border:3px solid #4A5263;overflow:hidden}
+.cell .bars{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 20px,rgba(107,115,131,.85) 20px 23px);z-index:3;pointer-events:none}
+.cell .tag{position:absolute;left:0;right:0;top:0;z-index:4;text-align:center;background:#4A5263;color:#fff;font-size:11px;font-weight:800;padding:2px 0}
+.cell .in{position:absolute;left:5px;right:5px;bottom:5px;top:24px;display:flex;flex-wrap:wrap-reverse;align-content:flex-start;gap:3px}
+.cell .in .s{width:32px;height:34px;border-radius:6px;background:#D9D6CE}
+.cell .in .s svg{width:100%;height:100%}
+.cell.full{border-color:var(--miss);animation:full 1s ease-in-out infinite alternate}
+@keyframes full{to{box-shadow:0 0 16px rgba(255,107,107,.6)}}
+.walker{position:absolute;width:26px;height:28px;z-index:5;transition:left .9s ease-in,top .9s ease-in;pointer-events:none}
+.walker svg{width:100%;height:100%}
+.walker.go{animation:bob .25s ease-in-out infinite alternate}
+@keyframes bob{to{margin-top:-3px}}
+.pet{position:absolute;bottom:14px;width:56px;height:56px;z-index:4;cursor:pointer;transition:left 3.5s linear}
+.pet svg{width:100%;height:100%;overflow:visible}
+.pet.flip svg{transform:scaleX(-1)}
+.heart{position:absolute;font-size:15px;color:#FF6B8A;pointer-events:none;animation:pop 1.1s ease-out forwards;z-index:7}
+.van{position:absolute;bottom:62px;left:-140px;width:130px;height:56px;z-index:8;pointer-events:none}
+.van.go{animation:van 1.8s ease-in-out forwards}
+@keyframes van{0%{left:-140px}40%,55%{left:150px}100%{left:460px}}
+.b-actions{display:flex;gap:8px;margin-top:10px}
+.b-actions button{flex:1;height:52px;border-radius:12px;border:0;background:var(--acc);color:var(--ink);font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.b-actions button small{font-size:11px;font-weight:700}
+.b-actions button:disabled{background:#2A2F3A;color:#8A919E;border:1.5px dashed #4A5160}
+.b-actions button:disabled small{color:#FF9A8B}
+.b-actions .send.ready{animation:ready .8s ease-in-out infinite alternate}
+@keyframes ready{to{box-shadow:0 0 0 4px rgba(255,210,63,.35),0 0 18px rgba(255,210,63,.6)}}
+
+/* ---------- C 팀 재편성 ---------- */
+.c-card{background:var(--panel);border-radius:14px;padding:12px;margin-top:10px;border:1px solid var(--line)}
+.c-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:4px 0}
+.c-row b{font-variant-numeric:tabular-nums}
+.medal{display:inline-flex;align-items:center;gap:4px;color:var(--acc);font-weight:800}
+.medal i{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFF0A8,#FFD23F 45%,#C9971A);box-shadow:0 0 0 2px #8A6A10;display:inline-block}
+canvas{display:block;width:100%;height:170px;background:var(--panel2);border-radius:10px;margin-top:8px}
+.legend{display:flex;gap:10px;font-size:11px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+.legend span::before{content:'';display:inline-block;width:10px;height:3px;margin-right:4px;vertical-align:middle;background:var(--c)}
+.rebirth{width:100%;height:56px;border-radius:14px;border:0;margin-top:10px;background:linear-gradient(90deg,#FFB13F,var(--acc));color:var(--ink);font-weight:900;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rebirth small{font-size:12px;font-weight:700}
+.rebirth:disabled{background:#2A2F3A;color:#8A919E;border:1.5px dashed #4A5160}
+.skills{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.skill{border-radius:12px;border:1.5px solid var(--line);background:var(--panel2);color:var(--text);padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-height:104px}
+.skill b{font-size:13px}.skill small{font-size:11px;color:var(--muted);line-height:1.35}
+.skill em{font-style:normal;font-size:11px;font-weight:800;color:var(--acc)}
+.skill.got{border-color:var(--ok);background:rgba(61,220,132,.08)}.skill.got em{color:var(--ok)}
+.skill:disabled{opacity:.55;cursor:default}
+.flashw{position:fixed;inset:0;background:#FFF3C2;z-index:40;pointer-events:none;animation:flashw .8s ease-out forwards}
+@keyframes flashw{from{opacity:.9}to{opacity:0}}
+.reco{margin-top:14px;background:linear-gradient(120deg,rgba(255,210,63,.14),rgba(255,210,63,.03));border:1.5px solid rgba(255,210,63,.5);border-radius:14px;padding:12px;font-size:13px;line-height:1.6}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="label">수사 3팀 · 방치형 보강 시안</span>
+  <div class="tabs" id="tabs"><button data-t="a" class="on">A 부서</button><button data-t="b">B 사무실</button><button data-t="c">C 재편성</button></div>
+</div>
+
+<!-- A -->
+<section class="pane on" id="p-a">
+  <div class="about"><b>숫자가 여러 갈래로 불어나는 맛.</b> 지금은 "형사" 한 줄뿐이라 돈을 어디에 쓸지 고민이 없어요.
+    <ul><li>순찰조 → 형사 → 분석관 → 특수수사대 → 국제 공조, 위로 갈수록 느리지만 크게 벌어요.</li>
+    <li><b>10 · 25 · 50 · 100명</b>을 채우면 그 부서 속도 ×2. 막대가 너무 빨라지면 "쉴 새 없이" 줄무늬.</li>
+    <li>×1 · ×10 · 최대 영입. 모자라면 단추에 얼마가 모자란지.</li></ul></div>
+  <div class="wallet"><div><span class="label">수사비</span><div class="money" id="a-money">0</div></div><div style="text-align:right"><small id="a-rate">초당 0</small><div class="speed" style="margin-top:6px"><button class="chip on" data-s="1">보통</button><button class="chip" data-s="10">빨리 ×10</button></div></div></div>
+  <div class="mode" id="a-mode"><button class="chip on" data-m="1">×1</button><button class="chip" data-m="10">×10</button><button class="chip" data-m="max">최대</button></div>
+  <div id="a-list"></div>
+</section>
+
+<!-- B -->
+<section class="pane" id="p-b">
+  <div class="about"><b>팀이 일하는 게 눈에 보이는 맛.</b> 사무실이 숫자 목록이 아니라 진짜 사무실이 돼요.
+    <ul><li>책상마다 형사가 타자를 치고, 머리 위 동그라미가 차면 용의자가 <b>유치장으로 걸어 들어가요</b>.</li>
+    <li>유치장(20명)이 차면 팀이 쉬어요(Zz). <b>이송</b>을 누르면 모인 만큼 한꺼번에 수사비 — 돌아와서 누르는 재미.</li>
+    <li>책상을 톡 누르면 커피: 5초 동안 3배. 파트너 동물이 바닥을 돌아다녀요(누르면 하트).</li>
+    <li>창밖은 지금 시각대로 낮 · 저녁 · 밤.</li></ul></div>
+  <div class="wallet"><div><span class="label">수사비</span><div class="money" id="b-money">0</div></div><div style="text-align:right"><small id="b-rate">1분에 0</small><div class="speed" style="margin-top:6px"><button class="chip on" data-s="1">보통</button><button class="chip" data-s="8">빨리 ×8</button></div></div></div>
+  <div class="office" id="office">
+    <div class="wallb"><div class="win" style="left:14px"><i id="sky1"></i></div><div class="clock" id="clock"><i id="hh" style="height:12px"></i><i id="mm" style="height:17px"></i></div><div class="board-w"><span></span><span></span><span style="background:#FFD9D9"></span><span></span><span style="background:#D9ECFF"></span><span></span></div></div>
+    <div class="floor"></div>
+    <div class="desks" id="desks"></div>
+    <div class="cell" id="cell"><div class="tag" id="cell-tag">유치장 0/20</div><div class="in" id="cell-in"></div><div class="bars"></div></div>
+    <div class="pet" id="pet" style="left:40px"></div>
+    <svg class="van" id="van" viewBox="0 0 130 56" aria-hidden="true"><rect x="4" y="10" width="92" height="34" rx="6" fill="#F4EFE2" stroke="#1B1E24" stroke-width="2.5"/><path d="M96 18h18l12 12v14H96z" fill="#F4EFE2" stroke="#1B1E24" stroke-width="2.5"/><rect x="100" y="21" width="13" height="9" rx="2" fill="#7FD3FF"/><rect x="4" y="26" width="92" height="6" fill="#2F6FD6"/><text x="48" y="22" font-size="9" font-weight="800" text-anchor="middle" fill="#1B1E24">호송</text><rect x="38" y="4" width="20" height="6" rx="2" fill="#E5484F"/><circle cx="26" cy="46" r="8" fill="#1B1E24"/><circle cx="104" cy="46" r="8" fill="#1B1E24"/></svg>
+  </div>
+  <div class="b-actions"><button id="b-hire">형사 영입<small id="b-hire-c"></small></button><button id="b-send" class="send">이송<small id="b-send-c">유치장이 비었어요</small></button></div>
+</section>
+
+<!-- C -->
+<section class="pane" id="p-c">
+  <div class="about"><b>다시 오를 때 더 빨리 오르는 맛.</b> 사건을 닫을 때 "팀 재편성"을 하면, 형사 · 훈련 · 수사비는 처음으로 돌아가지만 <b>훈장</b>을 받아요.
+    <ul><li>훈장 하나마다 모든 수사비 <b>+25%</b>(영구). 이번 판에 번 수사비가 클수록 훈장이 많아요.</li>
+    <li>훈장으로 특기를 배워요: 빠른 출근 · 잠복 전문 · 현장 감각.</li>
+    <li>사건 진척 · 이야기 · 동물 · 배지는 그대로. 게임에서는 사건을 닫는 순간에만 고를 수 있게.</li>
+    <li>아래는 시간을 120배로 돌린 시험이에요(1초 = 2분). 재편성 뒤 선이 더 가파르게 올라가는 걸 보세요.</li></ul></div>
+  <div class="c-card">
+    <div class="c-row"><span>수사비</span><b id="c-money">0</b></div>
+    <div class="c-row"><span>형사 · 훈련</span><b id="c-team">1명 · 0단계</b></div>
+    <div class="c-row"><span>이번 판에 번 수사비</span><b id="c-earned">0</b></div>
+    <div class="c-row"><span>가진 훈장</span><span class="medal"><i></i><b id="c-medals">0</b> <small style="color:var(--muted);font-weight:600">(모든 수사비 +<span id="c-pct">0</span>%)</small></span></div>
+    <canvas id="chart" width="800" height="340"></canvas>
+    <div class="legend" id="legend"></div>
+    <button class="rebirth" id="rebirth" disabled>팀 재편성<small id="reb-sub">훈장 1개부터 할 수 있어요</small></button>
+  </div>
+  <div class="c-card"><span class="label">특기 (훈장으로 배우기)</span><div class="skills" id="skills"></div></div>
+</section>
+
+<section class="pane on" style="display:block;padding-top:0">
+  <div class="reco"><b>제 추천:</b> <b>B → A</b> 순서. 방치형에서 지금 가장 비어 있는 건 "보는 맛"(B)이고, 그다음이 "돈 쓸 곳"(A)이에요. C(재편성)는 사건이 더 쌓였을 때 넣어야 사건 진척과 덜 부딪혀요.</div>
+</section>
+
+<script>
+/*CORE*/
+</script>
+<script>
+/*PETART*/
+</script>
+<script>
+/*ICONS*/
+</script>
+<script>
+'use strict';
+var C = SuspectsCore;
+/*CARDART*/
+var $ = function (id) { return document.getElementById(id); };
+var IC = function (n) { return Team3Icons.icon(n); };
+// 큰 수: 만 · 억 · 조
+function fmt(n) {
+  n = Math.floor(n);
+  if (n < 10000) return n.toLocaleString('ko-KR');
+  var u = [['조', 1e12], ['억', 1e8], ['만', 1e4]];
+  for (var i = 0; i < u.length; i++) if (n >= u[i][1]) { var v = n / u[i][1]; return (v >= 100 ? Math.floor(v) : Math.floor(v * 10) / 10).toLocaleString('ko-KR') + u[i][0]; }
+  return String(n);
+}
+function toast(t) { var e = document.createElement('div'); e.className = 'toast'; e.textContent = t; document.body.appendChild(e); setTimeout(function () { e.remove(); }, 1900); }
+var tab = 'a';
+$('tabs').onclick = function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  tab = b.dataset.t;
+  document.querySelectorAll('#tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+  ['a', 'b', 'c'].forEach(function (k) { $('p-' + k).classList.toggle('on', k === tab); });
+  if (tab === 'b') layoutDesks();
+};
+function speedChips(sel, set) {
+  document.querySelectorAll(sel + ' .chip').forEach(function (b) { b.onclick = function () { document.querySelectorAll(sel + ' .chip').forEach(function (x) { x.classList.toggle('on', x === b); }); set(+b.dataset.s); }; });
+}
+
+/* ================= A 수사 부서 ================= */
+var ICONS_A = {
+  patrol: '<path d="M5 17h14l-2-6H7z"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/><path d="M10 8h4l1 3H9z"/>',
+  det: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 4-7 8-7s7 2 8 7"/>',
+  ana: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M7 13l3-3 3 2 4-5M8 20h8M12 16v4"/>',
+  swat: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  intl: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'
+};
+var DEPTS = [
+  { id: 'patrol', name: '순찰조', what: '골목 순찰', cost: 50, sec: 1.2, pay: 3 },
+  { id: 'det', name: '형사', what: '용의자 검거', cost: 300, sec: 4, pay: 25 },
+  { id: 'ana', name: '분석관', what: 'CCTV 분석', cost: 4000, sec: 12, pay: 420 },
+  { id: 'swat', name: '특수수사대', what: '조직 소탕', cost: 60000, sec: 40, pay: 7600 },
+  { id: 'intl', name: '국제 공조', what: '해외 수배', cost: 1500000, sec: 120, pay: 190000 }
+];
+var MILES = [10, 25, 50, 100, 200, 300];
+var GROW = 1.12;
+var A = { money: 500, speed: 1, mode: '1', d: DEPTS.map(function (x, i) { return { n: i === 0 ? 1 : 0, t: 0, seen: i < 2 }; }) };
+function mileMult(n) { var m = 1; MILES.forEach(function (x) { if (n >= x) m *= 2; }); return m; }
+function nextMile(n) { for (var i = 0; i < MILES.length; i++) if (n < MILES[i]) return MILES[i]; return null; }
+function costOf(k, n, q) { var b = DEPTS[k].cost * Math.pow(GROW, n); return b * (Math.pow(GROW, q) - 1) / (GROW - 1); }
+function maxQ(k) { var n = A.d[k].n, q = 0; while (q < 500 && costOf(k, n, q + 1) <= A.money) q++; return q; }
+function qty(k) { return A.mode === 'max' ? Math.max(1, maxQ(k)) : +A.mode; }
+function cycle(k) { return DEPTS[k].sec / mileMult(A.d[k].n); }
+function perSec() { var s = 0; DEPTS.forEach(function (x, k) { if (A.d[k].n) s += x.pay * A.d[k].n / cycle(k); }); return s; }
+function drawA() {
+  $('a-list').innerHTML = DEPTS.map(function (x, k) {
+    var d = A.d[k];
+    if (!d.seen) return '<div class="dept locked"><div class="d-ico"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><div class="d-mid"><div class="d-name">???</div><div class="d-mile">수사비 ' + fmt(x.cost / 2) + '을 모으면 보여요</div></div></div>';
+    return '<div class="dept" id="dept-' + k + '"><div class="d-ico"><svg viewBox="0 0 24 24">' + ICONS_A[x.id] + '</svg><b>' + d.n + '</b></div>' +
+      '<div class="d-mid"><div class="d-name">' + x.name + '<small>' + x.what + '</small></div><div class="d-bar" id="bar-' + k + '"><i></i><span></span></div><div class="d-mile" id="mile-' + k + '"></div></div>' +
+      '<button class="d-buy" id="buy-' + k + '" data-k="' + k + '"></button></div>';
+  }).join('');
+  updA(true);
+}
+function updA(all) {
+  $('a-money').innerHTML = IC('money') + fmt(A.money);
+  $('a-rate').textContent = '초당 ' + fmt(perSec());
+  DEPTS.forEach(function (x, k) {
+    var d = A.d[k]; if (!d.seen) return;
+    var bar = $('bar-' + k); if (!bar) return;
+    var cyc = cycle(k), fast = cyc < 0.25 && d.n > 0;
+    var badge = document.querySelector('#dept-' + k + ' .d-ico b'); if (badge) badge.textContent = d.n;
+    bar.classList.toggle('fast', fast);
+    bar.querySelector('i').style.transform = fast ? '' : 'scaleX(' + (d.n ? d.t / cyc : 0) + ')';
+    bar.querySelector('span').textContent = d.n ? (fast ? '쉴 새 없이 · 초당 ' + fmt(x.pay * d.n / cyc) : '+' + fmt(x.pay * d.n) + ' · ' + (cyc >= 1 ? cyc.toFixed(1) + '초' : cyc.toFixed(2) + '초')) : '아직 없어요';
+    var nm = nextMile(d.n);
+    $('mile-' + k).innerHTML = nm ? nm + '명까지 <em>' + (nm - d.n) + '명</em> · 채우면 속도 ×2' : '모든 목표 달성 · 속도 ×' + mileMult(d.n);
+    var q = qty(k), c = costOf(k, d.n, q), ok = A.money >= c && (A.mode !== 'max' || maxQ(k) > 0), b = $('buy-' + k);
+    b.disabled = !ok;
+    b.innerHTML = ok ? '영입 ×' + q + '<small>' + fmt(c) + '</small>' : '부족<small>' + fmt(A.money) + '/' + fmt(c) + '</small>';
+  });
+}
+$('a-list').onclick = function (e) {
+  var b = e.target.closest('.d-buy'); if (!b || b.disabled) return;
+  var k = +b.dataset.k, d = A.d[k], q = qty(k), c = costOf(k, d.n, q);
+  if (c > A.money) return;
+  var before = mileMult(d.n);
+  A.money -= c; d.n += q;
+  if (mileMult(d.n) > before) {
+    var row = $('dept-' + k), s = document.createElement('i'); s.className = 'mile-stamp'; row.appendChild(s); setTimeout(function () { s.remove(); }, 1300);
+    toast(DEPTS[k].name + ' ' + d.n + '명 달성! 속도 ×2');
+  }
+  updA();
+};
+$('a-mode').onclick = function (e) { var b = e.target.closest('.chip'); if (!b) return; A.mode = b.dataset.m; document.querySelectorAll('#a-mode .chip').forEach(function (x) { x.classList.toggle('on', x === b); }); updA(); };
+speedChips('#p-a .speed', function (v) { A.speed = v; });
+function stepA(dt) {
+  dt *= A.speed;
+  DEPTS.forEach(function (x, k) {
+    var d = A.d[k]; if (!d.n) return;
+    var cyc = cycle(k); d.t += dt;
+    if (d.t >= cyc) {
+      var times = Math.floor(d.t / cyc); d.t -= times * cyc;
+      var gain = x.pay * d.n * times; A.money += gain;
+      if (cyc / A.speed >= 0.6 && tab === 'a') { var row = $('dept-' + k); if (row) { var p = document.createElement('span'); p.className = 'pop'; p.textContent = '+' + fmt(gain); row.appendChild(p); setTimeout(function () { p.remove(); }, 800); } }
+    }
+  });
+  var redraw = false;
+  DEPTS.forEach(function (x, k) { if (!A.d[k].seen && A.money >= x.cost / 2) { A.d[k].seen = true; redraw = true; } });
+  if (redraw && tab === 'a') drawA();
+}
+
+/* ================= B 살아 있는 사무실 ================= */
+var B = { money: 300, speed: 1, cops: 2, desks: [], cell: [], cap: 20, sec: 6, pay: 15, coffee: {} };
+var COP = '<svg viewBox="0 0 34 42" aria-hidden="true"><ellipse cx="17" cy="40" rx="12" ry="2.5" fill="rgba(0,0,0,.3)"/><path d="M5 40c0-9 5-14 12-14s12 5 12 14z" fill="#2F4A7A"/><path d="M14 27l3 5 3-5" fill="#F4EFE2"/><circle cx="17" cy="18" r="8.5" fill="#F2D3B6"/><path d="M7.5 15c0-6 4.5-9 9.5-9s9.5 3 9.5 9z" fill="#22355A"/><rect x="6" y="13.5" width="22" height="3.5" rx="1.5" fill="#1B2742"/><circle cx="17" cy="10" r="2" fill="#FFD23F"/><circle cx="14" cy="19.5" r="1.3" fill="#1B1E24"/><circle cx="20" cy="19.5" r="1.3" fill="#1B1E24"/><g class="hands"><circle cx="10" cy="34" r="3" fill="#F2D3B6"/><circle cx="24" cy="34" r="3" fill="#F2D3B6"/></g></svg>';
+function suspectSvg(id) { var L = look(id); return '<svg viewBox="0 0 100 100" aria-hidden="true">' + figure(L.v[1], L.v[2], '#1B1E24', '#D9D6CE') + '</svg>'; }
+function hireCostB() { return Math.round(300 * Math.pow(1.6, B.cops - 2)); }
+function layoutDesks() {
+  var n = Math.min(8, B.cops), box = $('desks'), html = '';
+  for (var i = 0; i < Math.min(8, n + 1); i++) {
+    var on = i < n;
+    html += '<div class="desk' + (on ? '' : ' empty') + '" data-i="' + i + '"><div class="tbl"></div><div class="pc"></div>' + (on ? '<div class="cop">' + COP + '</div><svg class="ring" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" stroke="#3A4152"/><circle cx="11" cy="11" r="8" stroke="#FFD23F" stroke-dasharray="50.3" stroke-dashoffset="50.3" transform="rotate(-90 11 11)" id="ring-' + i + '"/></svg><div class="steam"></div>' : '') + '</div>';
+  }
+  box.innerHTML = html;
+  while (B.desks.length < n) B.desks.push({ t: Math.random() * B.sec });
+}
+function drawCell() {
+  $('cell-in').innerHTML = B.cell.slice(-15).map(function (id) { return '<span class="s">' + suspectSvg(id) + '</span>'; }).join('');
+  $('cell-tag').textContent = '유치장 ' + B.cell.length + '/' + B.cap;
+  $('cell').classList.toggle('full', B.cell.length >= B.cap);
+  var full = B.cell.length >= B.cap;
+  document.querySelectorAll('#desks .desk:not(.empty)').forEach(function (d) { d.classList.toggle('stuck', full); });
+  var sb = $('b-send');
+  sb.disabled = B.cell.length === 0;
+  sb.classList.toggle('ready', full);
+  $('b-send-c').textContent = B.cell.length ? B.cell.length + '명 · ' + IC('money').replace(/<[^>]+>/g, '') + '+' + fmt(B.cell.length * B.pay * 2) + (full ? ' · 가득 찼어요!' : '') : '유치장이 비었어요';
+}
+function updB() {
+  $('b-money').innerHTML = IC('money') + fmt(B.money);
+  $('b-rate').textContent = '1분에 형사 ' + B.cops + '명 × ' + (60 / B.sec).toFixed(0) + '명';
+  var c = hireCostB(), hb = $('b-hire');
+  hb.disabled = B.money < c;
+  $('b-hire-c').textContent = B.money < c ? '부족 ' + fmt(B.money) + '/' + fmt(c) : fmt(c) + (B.cops >= 8 ? ' · 책상은 8개까지 보여요' : '');
+}
+function catchAt(i) {
+  var desk = document.querySelector('#desks .desk[data-i="' + i + '"]'), office = $('office');
+  if (!desk) return;
+  var r = desk.getBoundingClientRect(), o = office.getBoundingClientRect(), cr = $('cell').getBoundingClientRect();
+  var id = Math.floor(Math.random() * 81);
+  var w = document.createElement('div'); w.className = 'walker go'; w.innerHTML = suspectSvg(id);
+  w.style.left = (r.left - o.left + r.width / 2 - 13) + 'px'; w.style.top = (r.top - o.top + 4) + 'px';
+  office.appendChild(w);
+  var coin = document.createElement('span'); coin.className = 'coin'; coin.textContent = '+1명';
+  coin.style.left = (r.left - o.left + r.width / 2) + 'px'; coin.style.top = (r.top - o.top - 6) + 'px'; office.appendChild(coin); setTimeout(function () { coin.remove(); }, 900);
+  requestAnimationFrame(function () { requestAnimationFrame(function () { w.style.left = (cr.left - o.left + 20 + Math.random() * 60) + 'px'; w.style.top = (cr.top - o.top + 120 + Math.random() * 40) + 'px'; }); });
+  B.pending = (B.pending || 0) + 1;
+  setTimeout(function () { w.remove(); B.pending--; B.cell.push(id); drawCell(); }, 950);
+}
+function stepB(dt) {
+  dt *= B.speed;
+  var now = performance.now();
+  B.desks.forEach(function (d, i) {
+    if (B.cell.length + (B.pending || 0) >= B.cap) return;   // 걸어가는 중인 사람까지 세서 20명을 넘지 않게
+    var mult = B.coffee[i] && B.coffee[i] > now ? 3 : 1;
+    d.t += dt * mult;
+    if (d.t >= B.sec) { d.t -= B.sec; B.money += B.pay; if (tab === 'b' && i < 8) catchAt(i); else B.cell.push(Math.floor(Math.random() * 81)); }
+    var ring = $('ring-' + i); if (ring) ring.setAttribute('stroke-dashoffset', String(50.3 * (1 - d.t / B.sec)));
+    var dk = document.querySelector('#desks .desk[data-i="' + i + '"]'); if (dk) dk.classList.toggle('coffee', mult > 1);
+  });
+  // 8명이 넘으면 화면 밖 형사 몫은 바로 유치장으로
+  if (B.cops > 8 && B.cell.length + (B.pending || 0) < B.cap) { B.extra = (B.extra || 0) + dt * (B.cops - 8) / B.sec; while (B.extra >= 1 && B.cell.length < B.cap) { B.extra -= 1; B.money += B.pay; B.cell.push(Math.floor(Math.random() * 81)); } }
+}
+$('desks').onclick = function (e) {
+  var d = e.target.closest('.desk'); if (!d || d.classList.contains('empty')) return;
+  var i = +d.dataset.i; B.coffee[i] = performance.now() + 5000;
+  var o = $('office').getBoundingClientRect(), r = d.getBoundingClientRect();
+  var c = document.createElement('span'); c.className = 'coin'; c.textContent = '커피! ×3'; c.style.left = (r.left - o.left + 10) + 'px'; c.style.top = (r.top - o.top) + 'px'; $('office').appendChild(c); setTimeout(function () { c.remove(); }, 900);
+};
+$('b-hire').onclick = function () { var c = hireCostB(); if (B.money < c) return; B.money -= c; B.cops++; layoutDesks(); updB(); drawCell(); toast('형사 ' + B.cops + '명!'); };
+$('b-send').onclick = function () {
+  if (!B.cell.length) return;
+  var n = B.cell.length, gain = n * B.pay * 2;
+  var v = $('van'); v.classList.remove('go'); void v.getBoundingClientRect(); v.classList.add('go');
+  setTimeout(function () { B.cell = []; B.money += gain; drawCell(); updB(); toast('이송 완료 · ' + n + '명 · +' + fmt(gain)); }, 800);
+};
+// 파트너 동물: 바닥을 왔다 갔다, 누르면 하트
+(function () {
+  var pet = $('pet'); pet.innerHTML = Team3PetArt.draw('corgi', { grade: 'h', anim: true });
+  var x = 40;
+  function walk() { var nx = 20 + Math.random() * 270; pet.classList.toggle('flip', nx < x); x = nx; pet.style.left = nx + 'px'; setTimeout(walk, 4200 + Math.random() * 3000); }
+  setTimeout(walk, 800);
+  pet.onclick = function () { for (var i = 0; i < 3; i++) { var h = document.createElement('i'); h.className = 'heart'; h.textContent = '♥'; h.style.left = (pet.offsetLeft + 10 + i * 12) + 'px'; h.style.bottom = '64px'; h.style.animationDelay = i * 100 + 'ms'; $('office').appendChild(h); setTimeout(function (e) { return function () { e.remove(); }; }(h), 1300); } };
+})();
+// 창밖 하늘 · 시계: 지금 시각
+function sky() {
+  var d = new Date(), h = d.getHours(), m = d.getMinutes();
+  var c = h >= 7 && h < 17 ? 'linear-gradient(#8FD0FF,#CDEBFF)' : h >= 17 && h < 20 ? 'linear-gradient(#FF9F6B,#5B4A8A)' : 'linear-gradient(#0E1530,#27305A)';
+  $('sky1').style.background = c + (h >= 20 || h < 7 ? ',radial-gradient(circle at 70% 30%,#FFF6C8 0 4px,transparent 5px)' : '');
+  $('hh').style.transform = 'translateX(-50%) rotate(' + ((h % 12) * 30 + m / 2) + 'deg)';
+  $('mm').style.transform = 'translateX(-50%) rotate(' + (m * 6) + 'deg)';
+}
+speedChips('#p-b .speed', function (v) { B.speed = v; });
+
+/* ================= C 팀 재편성 ================= */
+var CC = { money: 0, dets: 1, train: 0, earned: 0, medals: 0, spent: 0, runs: [[]], t: 0, skills: {} };
+var SK = [
+  { id: 'start', name: '빠른 출근', desc: '재편성 뒤 형사 5명으로 시작', cost: 2 },
+  { id: 'night', name: '잠복 전문', desc: '자리 비움 한도 4 → 6시간', cost: 3 },
+  { id: 'field', name: '현장 감각', desc: '현장 출동 수사비 +20%', cost: 5 }
+];
+var COLORS = ['#97A1B3', '#FFD23F', '#3DDC84', '#7FD3FF', '#FF9A8B'];
+function medalsFor(earned) { return Math.floor(Math.sqrt(earned / 10000)); }
+function cMult() { return 1 + 0.25 * CC.medals; }
+function cHire() { return 300 * Math.pow(1.45, CC.dets - 1); }
+function cTrain() { return 600 * Math.pow(2.2, CC.train); }
+function stepC(dt) {
+  var sim = dt * 120;   // 시험용 120배(1초 = 2분)
+  CC.t += sim;
+  var inc = CC.dets * 0.1 * (1 + 0.25 * CC.train) * 15 * cMult() * sim;
+  CC.money += inc; CC.earned += inc;
+  // 시험: 살 수 있으면 알아서 산다(실제 게임에서는 플레이어가 산다)
+  for (var g = 0; g < 5; g++) { if (CC.money >= cTrain() && CC.train < 10 && cTrain() < cHire() * 3) { CC.money -= cTrain(); CC.train++; } else if (CC.money >= cHire()) { CC.money -= cHire(); CC.dets++; } else break; }
+  var run = CC.runs[CC.runs.length - 1];
+  if (!run.length || CC.t - run[run.length - 1][0] > 20) run.push([CC.t, CC.earned]);
+}
+function drawC() {
+  $('c-money').innerHTML = IC('money') + fmt(CC.money);
+  $('c-team').textContent = CC.dets + '명 · ' + CC.train + '단계';
+  $('c-earned').textContent = fmt(CC.earned);
+  $('c-medals').textContent = CC.medals; $('c-pct').textContent = CC.medals * 25;
+  var g = medalsFor(CC.earned), rb = $('rebirth');
+  rb.disabled = g < 1;
+  $('reb-sub').textContent = g < 1 ? '훈장 1개부터 할 수 있어요 · 다음 훈장까지 ' + fmt(10000 * Math.pow(g + 1, 2) - CC.earned) : '지금 하면 훈장 +' + g + ' → 모든 수사비 +' + (CC.medals + g) * 25 + '%';
+  // 그래프: 판마다 번 수사비(로그 눈금), 가로 = 경과 시간(분, 시험 시간)
+  var cv = $('chart'), x = cv.getContext('2d'), W = cv.width, H = cv.height;
+  x.clearRect(0, 0, W, H);
+  // 가로 끝 = 지금까지 가장 오래 간 판(최소 30분), 세로 = 번 수사비(로그)
+  var maxT = 1800, maxV = 1e6;
+  CC.runs.forEach(function (r) { r.forEach(function (p) { if (p[0] > maxT) maxT = p[0]; if (p[1] > maxV) maxV = p[1] * 3; }); });
+  x.strokeStyle = 'rgba(255,255,255,.08)'; x.lineWidth = 1; x.fillStyle = '#97A1B3'; x.font = '20px sans-serif';
+  [1e3, 1e5, 1e7].forEach(function (v) { var y = H - 20 - (Math.log10(v) / Math.log10(maxV)) * (H - 40); x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); x.fillText(fmt(v), 8, y - 6); });
+  CC.runs.forEach(function (run, i) {
+    if (run.length < 2) return;
+    x.strokeStyle = COLORS[i % COLORS.length]; x.lineWidth = i === CC.runs.length - 1 ? 5 : 3; x.beginPath();
+    run.forEach(function (p, j) { var px = Math.min(W, p[0] / maxT * W), py = H - 20 - (Math.log10(Math.max(1, p[1])) / Math.log10(maxV)) * (H - 40); if (j) x.lineTo(px, py); else x.moveTo(px, py); });
+    x.stroke();
+  });
+  // 판마다 수사비 1만을 버는 데 걸린 시간(시험 시간) — 재편성할수록 짧아지는 걸 숫자로
+  $('legend').innerHTML = CC.runs.map(function (r, i) {
+    var hit = r.filter(function (p) { return p[1] >= 10000; })[0];
+    return '<span style="--c:' + COLORS[i % COLORS.length] + '">' + (i + 1) + '번째 판' + (i ? '(훈장 ' + (r.medals || 0) + ')' : '') + ' · 1만까지 ' + (hit ? Math.round(hit[0] / 60) + '분' : '…') + '</span>';
+  }).join('');
+  $('skills').innerHTML = SK.map(function (s) { var got = CC.skills[s.id], can = CC.medals - CC.spent >= s.cost; return '<button class="skill' + (got ? ' got' : '') + '" data-id="' + s.id + '"' + (got || !can ? ' disabled' : '') + '><b>' + s.name + '</b><small>' + s.desc + '</small><em>' + (got ? '배움 ✓' : '훈장 ' + s.cost) + '</em></button>'; }).join('');
+}
+$('rebirth').onclick = function () {
+  var g = medalsFor(CC.earned); if (g < 1) return;
+  CC.medals += g;
+  CC.money = 0; CC.earned = 0; CC.train = 0; CC.dets = CC.skills.start ? 5 : 1; CC.t = 0;
+  var r = []; r.medals = CC.medals; CC.runs.push(r);
+  var f = document.createElement('div'); f.className = 'flashw'; document.body.appendChild(f); setTimeout(function () { f.remove(); }, 900);
+  toast('팀 재편성! 훈장 +' + g + ' · 모든 수사비 +' + CC.medals * 25 + '%');
+  drawC();
+};
+$('skills').onclick = function (e) { var b = e.target.closest('.skill'); if (!b || b.disabled) return; var s = SK.filter(function (x) { return x.id === b.dataset.id; })[0]; CC.skills[s.id] = true; CC.spent += s.cost; toast(s.name + ' 배움!'); drawC(); };
+
+/* ---------- 공통 시계 ---------- */
+var last = performance.now(), acc = 0;
+function frame(now) {
+  var dt = Math.min(0.25, (now - last) / 1000); last = now;
+  stepA(dt); stepB(dt); stepC(dt);
+  acc += dt;
+  if (tab === 'a') updA();
+  if (acc > 0.2) { acc = 0; if (tab === 'b') { updB(); drawCell(); } if (tab === 'c') drawC(); }
+  requestAnimationFrame(frame);
+}
+drawA(); layoutDesks(); drawCell(); updB(); sky(); setInterval(sky, 30000); drawC();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

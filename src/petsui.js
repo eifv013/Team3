@@ -47,7 +47,7 @@
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + A.draw(x.id, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
       '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b><small>' + esc(eff.join(' · ')) + '</small>' +
-        '<small class="pet-bond">♥ 친밀도 ' + bd.lv + (bd.days ? ' · 함께 ' + bd.days + '일' : ' · 오늘 쓰다듬어 주세요') + (bd.last === today() ? ' · 오늘 ✓' : '') + '</small></div>' +
+        '<small class="pet-bond">♥ ' + bd.lv + '단계 · ' + (bd.last === today() ? '함께 ' + bd.days + '일 ✓' : '쓰다듬어 줘요') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
       '<button class="buy" id="h-pet-open">동물' + dot + '</button>';
   }
@@ -240,7 +240,7 @@
   }
   function cardFace(x, cls) {
     var sp = P.BY_ID[x.id], g = P.GRADE[x.g];
-    var tag = x.isNew ? '<em class="isnew">NEW</em>' : x.treats ? '<em>간식 +' + x.treats + '</em>' : '<em>★' + x.star + '</em>';
+    var tag = x.isNew ? '<em class="isnew">NEW</em>' : x.treats ? '<em>' + ic('treat') + '+' + x.treats + '</em>' : '<em>★' + x.star + '</em>';
     return '<div class="' + cls + ' g-' + x.g + '" style="--gc:' + g.color + '">' +
       A.draw(x.id, { grade: x.g, mood: x.g === 'l' || x.g === 'h' ? 'happy' : null }) +
       '<span><b style="color:' + g.color + '">' + g.name + '</b> ' + esc(P.nameOf(S(), x.key) || sp.name) + '</span>' + tag + '</div>';
@@ -349,8 +349,8 @@
       var btns = have
         ? (p.eq ? (cur === o.id ? '<button class="ghost" data-wear="">벗기기</button>' : '<button class="primary" data-wear="' + o.id + '">파트너에게</button>') : '<button class="ghost" disabled>보유</button>')
         : !open ? '<button class="ghost" disabled>사건 ' + o.need + '부터</button>'
-        : '<button class="ghost" data-outfit="' + o.id + '" data-pay="treats"' + (p.treats < o.treats ? ' disabled' : '') + '>간식 ' + o.treats + '</button>' +
-          '<button class="ghost" data-outfit="' + o.id + '" data-pay="gems"' + (S().gems < o.gems ? ' disabled' : '') + '>◆' + o.gems + '</button>';
+        : '<button class="ghost" data-outfit="' + o.id + '" data-pay="treats"' + (p.treats < o.treats ? ' disabled' : '') + '>' + ic('treat') + o.treats + '</button>' +
+          '<button class="ghost" data-outfit="' + o.id + '" data-pay="gems"' + (S().gems < o.gems ? ' disabled' : '') + '>' + ic('gem') + o.gems + '</button>';
       html += '<div class="pet-cloth' + (have ? ' have' : '') + (cur === o.id ? ' on' : '') + '"><div class="pet-cloth-art">' + A.draw(x.id, { grade: x.g, outfit: o.id }) + '</div>' +
         '<b>' + esc(o.name) + '</b><div class="pet-cloth-btns">' + btns + '</div></div>';
     });
@@ -406,7 +406,7 @@
       '<div class="pet-acts">' +
         (st ? (p.eq === detailKey ? '<button class="ghost" disabled>지금 파트너</button>' : '<button class="primary" id="pets-equip">파트너로</button>') : '') +
         (x.g === 'l' && canSwap && p.picks && p.picks.l > 0 ? '<button class="primary" id="pets-pick">전설 선택권으로 ' + (st ? '★ 올리기' : '데려오기') + ' (' + p.picks.l + '장)</button>' : '') +
-        (canSwap ? '<button class="ghost" id="pets-swap"' + (p.treats < swapCost ? ' disabled' : '') + '>간식 ' + swapCost + '개로 ' + (st ? '★ 올리기' : '데려오기') + '</button>' : '') +
+        (canSwap ? '<button class="ghost" id="pets-swap"' + (p.treats < swapCost ? ' disabled' : '') + '>' + ic('treat') + swapCost + '개로 ' + (st ? '★ 올리기' : '데려오기') + '</button>' : '') +
       '</div>';
   }
   function outfitSelect() {
@@ -419,12 +419,12 @@
   var naming = false;
   function nameRow() {
     var c = P.renameCost(S()), custom = !!(pets().names[detailKey]), tags = S().nameTags || 0, I = root.SuspectsIdle;
-    var price = !c ? '첫 한 번 무료' : tags ? '이름표 1장 (' + tags + '장)' : '◆' + c;
+    var price = !c ? '첫 한 번 무료' : tags ? ic('tag') + '이름표 1장 (' + tags + '장)' : ic('gem') + c;
     if (!naming) return '<div class="pet-name"><button class="linkish" id="pets-name">이름 짓기 · ' + price + '</button>' +
       (custom ? '<button class="linkish muted" id="pets-name-reset">기본 이름으로</button>' : '') + '</div>' +
-      (c && !tags && I && I.NAME_TAGS ? '<div class="pet-name"><button class="linkish muted" id="pets-tags"' + (S().gems < I.NAME_TAGS.gems ? ' disabled' : '') + '>이름표 ' + I.NAME_TAGS.n + '장 · ◆' + I.NAME_TAGS.gems + ' (팀장 이름에도 써요)</button></div>' : '');
+      (c && !tags && I && I.NAME_TAGS ? '<div class="pet-name"><button class="linkish muted" id="pets-tags"' + (S().gems < I.NAME_TAGS.gems ? ' disabled' : '') + '>' + ic('tag') + '이름표 ' + I.NAME_TAGS.n + '장 · ' + ic('gem') + I.NAME_TAGS.gems + ' (팀장 이름에도 써요)</button></div>' : '');
     return '<div class="pet-name on"><input id="pets-name-in" maxlength="' + (P.NAME_MAX * 2) + '" autocomplete="off" placeholder="' + P.NAME_MAX + '자까지">' +
-      '<button class="primary" id="pets-name-ok">' + (!c ? '무료' : tags ? '이름표' : '◆' + c) + '</button><button class="ghost" id="pets-name-no">취소</button></div>';
+      '<button class="primary" id="pets-name-ok">' + (!c ? '무료' : tags ? ic('tag') + '이름표' : ic('gem') + c) + '</button><button class="ghost" id="pets-name-no">취소</button></div>';
   }
   function startNaming() {
     naming = true; drawDetail();
@@ -516,5 +516,5 @@
     idleLoop();
   }
 
-  root.Team3PetsUI = { mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, isBusy: function () { return busy; } };
+  root.Team3PetsUI = { mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
 })(typeof self !== 'undefined' ? self : this);

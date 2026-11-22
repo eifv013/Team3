@@ -14,19 +14,25 @@ test('업적 id 는 겹치지 않고, 칭호는 10자 안', () => {
   H.LIST.concat(H.SHOP).forEach(a => assert.ok(Array.from(a.title).length <= H.TITLE_MAX, a.title));
 });
 
-test('달성하면 한 번만 보상(배지 · 뽑기권)', () => {
+test('달성하면 칭호는 바로, 보상은 눌러 받기(한 번만) · 모두 받기 · 예전 저장은 받은 것으로(0.6.0)', () => {
   const s = fresh();
-  assert.deepEqual(H.check(s, P.addTickets), []);
+  assert.deepEqual(H.check(s), []);
   s.runs = 1;
-  const got = H.check(s, P.addTickets);
-  assert.deepEqual(got.map(a => a.id), ['run1']);
+  assert.deepEqual(H.check(s).map(a => a.id), ['run1']);
+  assert.ok(H.has(s, 'run1')); assert.equal(s.pets.tickets, 0); assert.equal(H.unclaimed(s), 1);
+  assert.deepEqual(H.claim(s, 'run1', P.addTickets), { n: 1, tickets: 1, gems: 0 });
   assert.equal(s.pets.tickets, 1);
-  assert.deepEqual(H.check(s, P.addTickets), []);
+  assert.throws(() => H.claim(s, 'run1', P.addTickets), { code: 'ALREADY' });
+  assert.throws(() => H.claim(s, 'score3k', P.addTickets), { code: 'NOT_DONE' });
   s.bestScore = 20000;
-  const g2 = H.check(s, P.addTickets).map(a => a.id);
-  assert.deepEqual(g2, ['score3k', 'score10k', 'score20k']);
-  assert.equal(s.gems, 30);
-  assert.equal(s.pets.tickets, 1 + 1 + 3 + 5);
+  assert.deepEqual(H.check(s).map(a => a.id), ['score3k', 'score10k', 'score20k', 'score5k']);
+  assert.equal(H.unclaimed(s), 4);
+  assert.deepEqual(H.claim(s, null, P.addTickets), { n: 4, tickets: 1 + 3 + 5 + 2, gems: 30 });
+  assert.equal(s.gems, 30); assert.equal(H.unclaimed(s), 0);
+  const old = { ach: { got: { run1: true } } }; H.clean(old);
+  assert.equal(H.unclaimed(old), 0, '예전 저장은 이미 받았다');
+  const back = { ach: JSON.parse(JSON.stringify(s.ach)) }; back.ach.claimed = {}; H.clean(back);
+  assert.equal(H.unclaimed(back), 5, '받기 전 저장은 그대로 남는다');
 });
 
 test('사건 종결 · 동물 · 특별 출동 기록', () => {

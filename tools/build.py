@@ -8,7 +8,7 @@ import json, pathlib, re, shutil, subprocess, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / 'dist'
 SCRIPTS = (('/*NOTES*/', 'notes.js'), ('/*UPDATE*/', 'update.js'), ('/*CORE*/', 'core.js'),
-           ('/*IDLE*/', 'idle.js'), ('/*ECONOMY*/', 'economy.js'), ('/*ICONS*/', 'icons.js'), ('/*PETS*/', 'pets.js'), ('/*PETART*/', 'petart.js'), ('/*ACH*/', 'ach.js'), ('/*MONET*/', 'monet.js'), ('/*TRANSIT*/', 'transit.js'), ('/*WITNESS*/', 'witness.js'), ('/*FORGERY*/', 'forgery.js'), ('/*LINEUP*/', 'lineup.js'), ('/*MONTAGE*/', 'montage.js'), ('/*FX*/', 'fx.js'), ('/*SOUNDS*/', 'sounds.js'), ('/*SETTINGS*/', 'settings.js'), ('/*MUSIC*/', 'music.js'), ('/*BGM*/', 'bgm.js'), ('/*UI*/', 'ui.js'), ('/*ACHUI*/', 'achui.js'), ('/*PETSUI*/', 'petsui.js'), ('/*SHOPUI*/', 'shopui.js'), ('/*HUB*/', 'hub.js'))
+           ('/*IDLE*/', 'idle.js'), ('/*ECONOMY*/', 'economy.js'), ('/*ICONS*/', 'icons.js'), ('/*OFFICE*/', 'office.js'), ('/*PETS*/', 'pets.js'), ('/*PETART*/', 'petart.js'), ('/*ACH*/', 'ach.js'), ('/*MONET*/', 'monet.js'), ('/*TRANSIT*/', 'transit.js'), ('/*WITNESS*/', 'witness.js'), ('/*FORGERY*/', 'forgery.js'), ('/*LINEUP*/', 'lineup.js'), ('/*MONTAGE*/', 'montage.js'), ('/*FX*/', 'fx.js'), ('/*SOUNDS*/', 'sounds.js'), ('/*SETTINGS*/', 'settings.js'), ('/*MUSIC*/', 'music.js'), ('/*BGM*/', 'bgm.js'), ('/*UI*/', 'ui.js'), ('/*ACHUI*/', 'achui.js'), ('/*PETSUI*/', 'petsui.js'), ('/*SHOPUI*/', 'shopui.js'), ('/*OFFICEUI*/', 'officeui.js'), ('/*HUB*/', 'hub.js'))
 ICONS = ('icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png',
          'apple-touch-icon.png', 'favicon-32.png', 'favicon-64.png')
 

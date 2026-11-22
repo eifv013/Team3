@@ -216,7 +216,7 @@
       prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
       prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
       daily: { day: '', done: false, best: 0, tries: 0 },  // 오늘의 특별 출동
-      pets: null,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
+      pets: null, office: null,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
       profileEdits: 0,     // 0.3.0 프로필 이름을 바꾼 횟수(0 이면 다음 한 번은 무료)
       ach: null,           // 0.3.0 업적 · 칭호(Team3Ach.clean)
       shop: null,          // 0.4.0 상점 · 광고 자리 · 월정액 · 시즌 패스(Team3Monet.clean)
@@ -302,7 +302,8 @@
     // 0.3.0: 동물 저장은 객체만 그대로 넘긴다(안쪽 검사는 Team3Pets.clean)
     s.pets = data.pets && typeof data.pets === 'object' && !Array.isArray(data.pets) ? data.pets : null;
     s.ach = data.ach && typeof data.ach === 'object' && !Array.isArray(data.ach) ? data.ach : null;
-    s.shop = data.shop && typeof data.shop === 'object' && !Array.isArray(data.shop) ? data.shop : null;   // 0.4.0 상점 · 패스(검사는 Team3Monet.clean)   // 0.3.0 업적(검사는 Team3Ach.clean)
+    s.shop = data.shop && typeof data.shop === 'object' && !Array.isArray(data.shop) ? data.shop : null;
+    s.office = data.office && typeof data.office === 'object' && !Array.isArray(data.office) ? data.office : null;   // 0.6.0 살아 있는 사무실(검사는 Team3Office.clean)   // 0.4.0 상점 · 패스(검사는 Team3Monet.clean)   // 0.3.0 업적(검사는 Team3Ach.clean)
     return { save: s, reset: false };
   }
 
