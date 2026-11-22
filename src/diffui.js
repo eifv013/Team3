@@ -11,7 +11,7 @@
   'use strict';
   var Df = window.Team3Diff;
   if (!Df) return;
-  var ctx = null, mode = 'first', sel = 'normal';
+  var ctx = null, mode = 'first', sel = 'normal', lastTap = { k: null, t: 0 };
   function $(id) { return document.getElementById(id); }
   function S() { return ctx.getSave(); }
 
@@ -69,7 +69,7 @@
       '<p class="df-sub">현장 출동(퍼즐)만 달라져요. <b>팀 · 부서 수입은 똑같아요.</b><br>설정에서 언제든지 바꿀 수 있어요.</p>' +
       Df.ORDER.map(function (k) { return card(k, cur); }).join('') +
       '<button class="df-go" id="df-go"' + (mode !== 'first' && sel === cur ? ' disabled' : '') + '>' + btn + '</button>' +
-      '<div class="df-note"><span>💡</span><span>보상은 그 판을 출동한 난이도로 매겨요. 출동 결과에 난이도가 함께 표시돼요.</span></div>';
+      '<div class="df-note"><span>💡</span><span>카드를 두 번 톡톡 눌러도 바로 정해져요. 보상은 그 판을 출동한 난이도로 매기고, 출동 결과에 함께 표시돼요.</span></div>';
   }
 
   // 처음 고른 뒤: 배정 안내(어디서 바꾸는지)
@@ -102,8 +102,12 @@
     var t = e.target;
     var f = t.closest('[data-df]');
     if (f) {
-      if (sel === f.getAttribute('data-df')) return;
-      sel = f.getAttribute('data-df');
+      // 0.8.0 두 번 톡톡: 같은 카드를 0.45초 안에 다시 누르면 고르고 바로 확인(아래 확인 단추도 그대로)
+      var k = f.getAttribute('data-df'), now = Date.now();
+      if (lastTap.k === k && now - lastTap.t < 450) { lastTap = { k: null, t: 0 }; var gb = $('df-go'); if (gb && !gb.disabled) gb.click(); return; }
+      lastTap = { k: k, t: now };
+      if (sel === k) return;
+      sel = k;
       try { ctx.UI.sfx.tap && ctx.UI.sfx.tap(); } catch (er) { /* 소리 실패는 무시 */ }
       ctx.UI.buzz(8);
       var sc = $('df-sheet-in').scrollTop;

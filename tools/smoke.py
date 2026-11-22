@@ -202,7 +202,7 @@ with sync_playwright() as p:
             if pg.evaluate('() => window.__sw') != 1: problems.append('전환 %s: 화면 바꾸기가 한 번이 아님' % k)
             if not pg.evaluate('() => window.__done'): problems.append('전환 %s: 3초 안에 안 끝남' % k)
             if pg.locator('.tr-layer').count(): problems.append('전환 %s: 덮개가 남음' % k)
-        pg.click('#h-go'); pg.clock.run_for(100)   # 평소 출동: A·B·C 중 하나
+        pg.click('#h-go-home'); pg.clock.run_for(100)   # 평소 출동: A·B·C 중 하나
         kind = pg.evaluate("() => { const l = document.querySelector('.tr-layer'); return l ? l.dataset.kind : '' }")
         if kind not in ('A', 'B', 'C'): problems.append('평소 출동 전환이 A·B·C 가 아님: ' + kind)
         pg.clock.run_for(1600)
@@ -256,12 +256,14 @@ with sync_playwright() as p:
         if pg.locator('#h-story-all .new').count(): problems.append('일지를 읽었는데 NEW 가 남음')
         if caught.startswith('0 '): problems.append('출동했는데 사건 진척이 0: ' + caught)
         if pg.locator('#h-buff').is_hidden(): problems.append('출동 뒤 사기 충전 표시가 없음')
+        pg.evaluate("Team3MenuUI.go('team')"); pg.clock.run_for(100)   # 0.8.0 형사 영입은 팀 탭
         if pg.locator('#h-hire').is_enabled():
             det0 = pg.text_content('#h-det'); pg.click('#h-hire'); pg.clock.run_for(100)
             if pg.text_content('#h-det') == det0: problems.append('영입했는데 형사 수가 그대로')
         else:
             problems.append('출동 한 번 뒤에도 영입을 못 함(수사비 ' + pg.text_content('#h-money') + ')')
         pg.screenshot(path=SHOT + 'hub2.png', full_page=True)
+        pg.evaluate("Team3MenuUI.go('home')"); pg.clock.run_for(100)
         # 잠복 보고: 창을 닫고 2시간 뒤 새로 켬(열어 둔 채 시간을 돌리면 1초마다 이미 반영되므로)
         t_close = pg.evaluate('Date.now()')
         pg.close()
@@ -325,17 +327,17 @@ with sync_playwright() as p:
         if not pg.locator('#info-sheet').is_hidden(): close_info(pg); pg.clock.run_for(100)
         # 2500명을 넘겼으니 팀(방치)은 더 못 올린다: 빨간 알림 줄 + 출동 단추 맥박, 70초 지나도 2999 그대로
         if not pg.locator('#h-cap-note').is_visible(): problems.append('방치 상한인데 "현장 출동으로만" 알림이 없음')
-        if 'urgent' not in (pg.get_attribute('#h-go', 'class') or ''): problems.append('방치 상한인데 출동 단추 강조가 없음')
+        if 'urgent' not in (pg.get_attribute('#h-go-home', 'class') or ''): problems.append('방치 상한인데 출동 단추 강조가 없음')
         pg.clock.run_for(70_000)
         if '2,999' not in pg.text_content('#h-caught'): problems.append('방치 상한을 넘어 팀이 사건을 올림: ' + pg.text_content('#h-caught'))
         if not pg.locator('#info-sheet').is_hidden(): problems.append('팀(방치)만으로 사건이 종결됨')
         # 출동 단추가 눌려 납작해지지 않았는지(사무실은 세로로 쌓이는 칸이라 줄어들 수 있다)
-        gh = pg.locator('#h-go').bounding_box()['height']
+        gh = pg.locator('#h-go-home').bounding_box()['height']
         if gh < 60: problems.append('출동 단추가 납작함: %.0fpx' % gh)
-        pg.locator('.casebox').scroll_into_view_if_needed(); pg.evaluate("() => document.querySelector('#s-hub').scrollTop = 0")
+        pg.locator('.casebox').scroll_into_view_if_needed(); pg.evaluate("() => document.querySelector('#t-home').scrollTop = 0")
         pg.screenshot(path=SHOT + 'capped.png')
         # 마지막 한 명은 출동으로: 경광등 번쩍 → 한 패 잡고 → 시간 끝 → 사무실로 → 사건 종결 창
-        pg.click('#h-go'); pg.clock.run_for(100)   # 주범 조 출동: E·F·G 중 하나
+        pg.click('#h-go-home'); pg.clock.run_for(100)   # 주범 조 출동: E·F·G 중 하나
         kind = pg.evaluate("() => { const l = document.querySelector('.tr-layer'); return l ? l.dataset.kind : '' }")
         if kind not in ('E', 'F', 'G'): problems.append('주범 조 출동 전환이 E·F·G 가 아님: ' + kind)
         pg.clock.run_for(3000)
@@ -354,8 +356,8 @@ with sync_playwright() as p:
         if '처음부터' not in (pg.text_content('#toast') or ''): problems.append('깨진 저장 알림이 없음')
         # 낮은 화면(iOS 앱 안)에서도 사무실이 스크롤되고 출동 단추에 닿는다
         pg.set_viewport_size({'width': 375, 'height': 560}); pg.clock.run_for(100)
-        pg.locator('#h-go').scroll_into_view_if_needed()
-        box = pg.locator('#h-go').bounding_box()
+        pg.locator('#h-go-home').scroll_into_view_if_needed()
+        box = pg.locator('#h-go-home').bounding_box()
         if not box or box['y'] < 0 or box['y'] + box['height'] > 561: problems.append('낮은 화면에서 출동 단추에 닿지 못함')
         pg.set_viewport_size({'width': 844, 'height': 390}); pg.clock.run_for(100)
         if not pg.locator('.rotate').is_visible(): problems.append('가로 화면 안내가 안 뜸')

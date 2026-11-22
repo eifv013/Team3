@@ -44,7 +44,9 @@
     // best: 강력 사건 이상에서 낸 최고 점수(실력 업적용). 처음 정리할 때는 예전 최고 점수를 그대로(난이도가 없던 때 = 강력 사건)
     var best = typeof d.best === 'number' && isFinite(d.best) ? int(d.best, 0, 1e12) : int(save.bestScore, 0, 1e12);
     save.diff = { k: LIST[d.k] ? d.k : 'normal', set: d.set === true, hardRuns: int(d.hardRuns, 0, 1e7), hardGold: int(d.hardGold, 0, 1e6), hardCase: hc,
-                  best: best, easyRuns: int(d.easyRuns, 0, 1e7), stepUp: d.stepUp === true };
+                  best: best, easyRuns: int(d.easyRuns, 0, 1e7), stepUp: d.stepUp === true,
+                  // 0.8.0 출동 기록판: 난이도마다 최고 점수(예전 최고 점수는 강력 사건으로)
+                  bests: { easy: int(d.bests && d.bests.easy, 0, 1e12), normal: d.bests && typeof d.bests.normal === 'number' ? int(d.bests.normal, 0, 1e12) : best, hard: int(d.bests && d.bests.hard, 0, 1e12) } };
     return save.diff;
   }
   function D(save) { return save.diff && LIST[save.diff.k] && save.diff.hardCase ? save.diff : clean(save); }
@@ -87,6 +89,7 @@
   function noteRun(save, k, score) {
     var d = D(save);
     if (k === 'hard') d.hardRuns += 1;
+    if (typeof score === 'number' && LIST[k] && score > d.bests[k]) d.bests[k] = Math.floor(score);
     if (k === 'easy') { d.easyRuns += 1; return; }
     if (d.easyRuns > 0) d.stepUp = true;
     if (typeof score === 'number' && score > d.best) d.best = Math.floor(score);

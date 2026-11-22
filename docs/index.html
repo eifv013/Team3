@@ -37,7 +37,7 @@ button:disabled{cursor:default;opacity:.45}
 /* 0.6.0 붙는 줄: 높이 0 인 sticky 상자 안에서 내려오므로 아래 칸을 밀지 않는다 */
 .hub-mini{position:sticky;top:0;z-index:4;height:0;margin:0 -16px;overflow:visible;pointer-events:none}
 .hub-mini>.hm-bar,.hub-mini>.hm-case{pointer-events:auto}
-#s-hub{scroll-padding-top:66px}   /* 붙는 줄 밑으로 가려지지 않게(스크롤해 보여 줄 때 줄 아래로) */
+
 .hm-bar{position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(18,21,28,.94);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid var(--line);transform:translateY(-64px);visibility:hidden;transition:transform .22s ease-out,visibility 0s .22s}
 .hm-case{position:absolute;left:0;right:0;top:44px;height:16px;padding:0 14px;display:flex;align-items:center;gap:8px;background:rgba(18,21,28,.94);border-bottom:1px solid var(--line);transform:translateY(-64px);visibility:hidden;transition:transform .22s ease-out,visibility 0s .22s;font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
 .hm-case i{position:absolute;left:0;bottom:0;height:2px;background:var(--acc);width:0}
@@ -251,6 +251,107 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .set-code:focus{outline:none;border-color:var(--acc)}
 .ghost.danger{color:var(--miss);border-color:rgba(255,122,89,.45)}
 .ghost.armed{background:var(--miss);color:var(--ink);border-color:var(--miss)}
+/* ===== 0.8.0 아래 메뉴 · 탭 ===== */
+#s-hub{gap:8px}
+#s-hub .hub-mini{display:none}
+.tabs{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+.tab{display:none;flex:1;min-height:0;flex-direction:column;gap:12px;padding-top:4px!important;padding-bottom:18px!important}
+.tab.on{display:flex;animation:tabIn .22s ease-out}
+.tab>*{flex:none}
+@keyframes tabIn{from{opacity:0;transform:translateX(var(--dx,10px))}to{opacity:1;transform:none}}
+.hub-nav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);margin:0 -16px -16px;padding:6px 4px calc(8px + env(safe-area-inset-bottom));background:#0F1218;border-top:1px solid #222834;position:relative;z-index:5}
+.hub-nav button{position:relative;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding:4px 0;color:var(--muted);font-size:11px;font-weight:700;font-family:inherit}
+.hub-nav button i{font-style:normal;font-size:21px;line-height:1;filter:grayscale(.6);opacity:.75;transition:transform .2s}
+.hub-nav button.on{color:var(--acc)}
+.hub-nav button.on i{filter:none;opacity:1;transform:translateY(-2px) scale(1.08)}
+.hub-nav button.on::before{content:'';position:absolute;top:-7px;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--acc)}
+.hub-nav button.main{margin-top:-30px}
+.hub-nav button.main i{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:26px;filter:none;opacity:1;background:radial-gradient(circle at 35% 30%,#2B3446,#1A1F29);border:2px solid #3A4352;box-shadow:0 6px 14px rgba(0,0,0,.5)}
+.hub-nav button.main.on i{background:radial-gradient(circle at 35% 30%,#FFE38A,var(--acc));border-color:#FFE9A6;box-shadow:0 6px 16px rgba(255,210,63,.35)}
+.hub-nav button.main.on::before{display:none}
+.hub-nav em{position:absolute;top:0;right:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--miss);color:#fff;font-size:10px;font-weight:800;font-style:normal;display:grid;place-items:center}
+.hub-nav em.can{background:var(--ok);color:var(--ink)}
+.hub-nav button.main em{top:-2px;right:calc(50% - 30px)}
+.hub-nav button.glow i{animation:navglow 1.2s ease-in-out infinite}
+@keyframes navglow{50%{filter:drop-shadow(0 0 8px #9FD8FF);transform:scale(1.15)}}
+/* 팀 탭 */
+.t-sum{display:grid;grid-template-columns:repeat(3,1fr);background:var(--panel);border:1px solid #262D39;border-radius:14px;overflow:hidden}
+.t-sum div{padding:8px 10px;border-right:1px solid #262D39;min-width:0}.t-sum div:last-child{border-right:0}
+.t-sum small{display:block;font-size:11px;color:var(--muted)}.t-sum b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:14px;background:#0E1117;border:1px solid #232A36;position:sticky;top:0;z-index:3}
+.t-seg button{height:38px;border:0;border-radius:10px;background:none;color:var(--muted);font-weight:800;font-size:13.5px;font-family:inherit}
+.t-seg button.on{background:var(--panel2);color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.t-seg em{font-style:normal;margin-left:4px;font-size:10.5px;padding:1px 6px;border-radius:8px;background:var(--ok);color:var(--ink)}
+.t-sub{display:none;flex-direction:column;gap:10px}.t-sub.on{display:flex}
+.reco-rib{position:relative}
+.reco-rib::after{content:'추천 · 수입이 가장 많이 늘어요';position:absolute;left:10px;top:-9px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--ok);color:var(--ink);pointer-events:none;white-space:nowrap}
+.item.reco-rib,.dept.reco-rib{outline:1.5px solid rgba(61,220,132,.55);outline-offset:-1px}
+.spot{animation:spot 1.4s ease-out}
+@keyframes spot{0%,40%{box-shadow:0 0 0 4px var(--acc),0 0 24px rgba(255,210,63,.6)}100%{box-shadow:0 0 0 0 transparent}}
+.t-seg em.new{background:#9FD8FF}
+/* 0.8.0 팀원 직무 · 공용 장비 · 수사 기법(crewui.js) */
+.cr-sub{font-weight:600;color:var(--muted);font-size:11.5px;margin-left:6px}
+.cr-row{position:relative;flex-wrap:wrap}
+.cr-row .ic.cr-ic{font-size:21px}
+.cr-row .ic.cr-card{background:#F4EEDC;border-top:4px solid var(--c)}
+.cr-row .tx{min-width:0}
+.cr-row .tx b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-row .tx small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-eff{flex:1 0 100%;font-size:12.5px;color:#C9D0DC;padding:6px 10px;border-radius:10px;background:#161A22;margin-top:2px}
+.cr-eff em{font-style:normal;color:var(--ok);font-weight:800}
+.cr-pips{display:flex;gap:3px;margin-top:4px}.cr-pips i{flex:1;max-width:14px;height:5px;border-radius:3px;background:#363E4C}.cr-pips i.f{background:var(--acc)}
+.cr-new{outline:1.5px solid rgba(159,216,255,.7);outline-offset:-1px}
+.cr-new::after{content:attr(data-tag);position:absolute;right:10px;top:-9px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:#9FD8FF;color:var(--ink);white-space:nowrap;pointer-events:none}
+.cr-row.bought{animation:dbought .45s ease-out}
+.cr-lock{opacity:.5;border:1px dashed #3A4352}
+.cr-lock .ic{filter:grayscale(1) brightness(.7)}
+.cr-lockb{flex:none;font-size:12px;font-weight:700;color:var(--muted);border:1.5px dashed #3A4352;border-radius:12px;padding:10px 10px;white-space:nowrap}
+.cr-next{margin-top:6px}
+.cr-head{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 0}
+.cr-head b{font-size:13px;color:var(--muted)}.cr-head small{font-size:12px;color:var(--muted)}
+.cr-empty{margin:0;font-size:13px;color:var(--muted);line-height:1.6;background:var(--panel);border-radius:14px;padding:14px}
+.cr-go-evid{margin-top:2px}
+/* 상황실 탭 */
+.go-home{height:64px}
+.t-todo{background:var(--panel);border:1px solid #262D39;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.t-todo h4{margin:0;font-size:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.t-todo h4 small{color:var(--muted);font-weight:700;font-size:12px}
+.t-todo h4 .chev{display:inline-block;margin-left:6px;transition:transform .2s}
+.t-todo.fold h4 .chev{transform:rotate(-90deg)}
+.t-todo .next{display:none;font-size:12.5px;color:#C9D0DC;cursor:pointer}.t-todo .next b{color:var(--acc)}
+.t-todo.fold .next{display:block}.t-todo.fold button{display:none}
+.t-todo button{display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;border-radius:10px;background:var(--panel2);font-size:13px;color:var(--text);text-align:left;font-family:inherit}
+.t-todo button span{flex:1;min-width:0}.t-todo button em{font-style:normal;font-size:12px;font-weight:800;color:var(--acc);white-space:nowrap}
+.t-todo button.done{opacity:.45}.t-todo button.done span{text-decoration:line-through}.t-todo button.done em{color:var(--ok)}
+.t-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.t-quick button{border:1px solid #262D39;background:var(--panel);border-radius:14px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;font-family:inherit;color:var(--text)}
+.t-quick button b{font-size:14px}.t-quick button small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-quick button.hot{border-color:rgba(61,220,132,.5)}.t-quick button.hot small{color:var(--ok);font-weight:700}
+.t-quick button.glow{border-color:rgba(159,216,255,.6)}.t-quick button.glow small{color:#9FD8FF;font-weight:700}
+/* 출동 기록판 */
+.t-rec{background:var(--panel);border:1px solid #262D39;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.t-rec h4{margin:0;font-size:14px;display:flex;justify-content:space-between}.t-rec h4 small{color:var(--muted);font-weight:700;font-size:12px}
+.rec-bars{display:flex;align-items:flex-end;gap:8px;height:84px;padding-top:16px}
+.rec-bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
+.rec-bars i{width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--acc),#B8901A);position:relative;min-height:3px}
+.rec-bars i em{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-style:normal;font-size:10px;font-weight:800;color:var(--text);white-space:nowrap}
+.rec-bars i.last{background:linear-gradient(180deg,#9FF0C0,var(--ok))}
+.rec-bars small{font-size:10px;color:var(--muted);white-space:nowrap}
+.rec-best{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rec-best div{border-radius:10px;padding:7px 8px;background:var(--panel2);border-left:3px solid var(--c);min-width:0}
+.rec-best small{display:block;font-size:11px;color:var(--muted);white-space:nowrap}.rec-best b{font-size:14px}
+/* 파트너 탭 */
+#t-pets .pet-card{flex-direction:column;align-items:center;text-align:center;padding:18px 14px}
+#t-pets .pet-card .pet-stage{transform:scale(1.5);margin:26px 0 22px}
+#t-pets .pet-card .pet-tx{align-items:center}
+#t-pets .pet-card #h-pet-open{display:none}
+.t-plinks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.t-plinks button{border:1px solid #262D39;background:var(--panel);border-radius:14px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px;font-family:inherit;color:var(--text)}
+.t-plinks b{font-size:14px}.t-plinks small{font-size:12px;color:var(--muted)}
+.t-plinks button.hot{border-color:rgba(255,107,107,.55)}.t-plinks button.hot small{color:#FF8A80;font-weight:700}
+.t-peff{display:flex;flex-direction:column;gap:6px}
+.t-peff div{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:8px 10px;border-radius:10px;background:var(--panel)}
+.t-peff b{color:var(--ok);white-space:nowrap}
 /* ===== 0.7.0 난이도(단순 · 강력 · 미제 사건) ===== */
 .head-chips{display:flex;align-items:center;gap:6px}
 .head-chips .gem-chip{margin:0;align-self:center}
@@ -1264,7 +1365,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 
 
   <!-- 사무실(방치형) -->
-  <section class="screen scroll" id="s-hub" aria-label="3팀 사무실">
+  <!-- 0.8.0 사무실 = 머리(늘 보임) + 탭 다섯(팀 · 출동 · 상황실 · 증거 · 파트너) + 아래 메뉴. 탭 이동 · 뒤로 · 밀기는 menuui.js -->
+  <section class="screen" id="s-hub" aria-label="3팀 사무실">
     <!-- 0.6.0 내려가면 위에 붙는 얇은 줄: 수사비 · 배지 · 1분 수사비(동물 몫) · 사건 진척(가는 막대) · 파트너 얼굴 -->
     <div class="hub-mini" id="h-mini" aria-hidden="true"><div class="hm-bar"><span class="hm-pet" id="hm-pet"></span><span class="hm-money" id="hm-money"></span><span class="hm-gems" id="hm-gems"></span><span class="hm-diff" id="hm-diff"></span><span class="hm-rate" id="hm-rate"></span></div><div class="hm-case"><i id="hm-fill"></i><span id="hm-case"></span></div></div>
     <!-- 0.7.0 머리: 격자 두 칸. [이름표 | 아이콘 셋] · [수사비 | 난이도 · 배지 칩] · [팀 속도 줄(전체 폭)]
@@ -1284,44 +1386,12 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
           <span class="feed" id="h-feed" aria-live="polite"></span>
         </span>
     </div>
-    <!-- 0.3.0 파트너 동물: 그림을 누르면 기뻐하고, 단추로 동물 · 뽑기 창 -->
-    <div class="pet-card" id="h-pet"></div>
-
-    <div class="casebox">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
-        <b style="font-size:15px" id="h-case">사건 1 · 골목길 연쇄 절도</b>
-        <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="h-caught">0 / 300</span>
-      </div>
-      <div class="bar"><span class="cap" id="h-cap"></span><i id="h-bar" style="width:0%"></i></div>
-      <div class="cap-note" id="h-cap-note"><i></i><span id="h-cap-text">남은 주범 조는 현장 출동으로만 잡을 수 있어요</span></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <button class="linkish" id="h-story-all">수사 일지 보기</button>
-        <span class="city-chip" id="h-city">중앙서</span>
-      </div>
-      <button class="ghost next-case" id="h-next-case" hidden>사건 2 · 해무항으로 파견</button>
-    </div>
-
-    <!-- 출동 준비물(0.1.19): 다음 출동 한 번에 챙겨 가는 소모품. 누르면 챙기고, 챙긴 걸 누르면 무른다 -->
-    <div class="prep">
-      <div class="prep-head"><span class="prep-title"><span class="section-t" style="margin:0">출동 준비물</span><button class="prep-help" id="h-prep-help" aria-label="출동 준비물 효과 보기">?</button></span><span class="medals" id="h-medals"></span></div>
-      <div class="prep-row" id="h-prep"></div>
-      <p class="prep-now" id="h-prep-now"></p>
-    </div>
-
-    <button class="go-btn" id="h-go">
-      <b>현장 출동</b>
-      <small id="h-go-sub">90초 · 잡은 만큼 수사비</small>
-    </button>
-
-    <!-- 하루 한 번 특별 출동(0.1.19): 날마다 규칙이 바뀐다. 준비물·장비 없이 실력으로 -->
-    <div class="daily" id="h-daily">
-      <div class="daily-tx"><span class="label">오늘의 특별 출동</span><b id="h-daily-name">60초 속공</b><small id="h-daily-desc"></small><small class="daily-goal" id="h-daily-goal"></small></div>
-      <button class="buy" id="h-daily-go">도전</button>
-    </div>
-
-    <span class="section-t">3팀</span>
-    <!-- 0.6.0 살아 있는 사무실: 책상 · 유치장 · 창밖 날씨 · 파트너 동물(officeui.js 가 그린다) -->
-    <div class="office" id="h-office" aria-label="3팀 사무실"></div>
+    <div class="tabs" id="h-tabs">
+      <div class="tab scroll" id="t-team" data-tab="team" aria-label="팀">
+        <div class="t-sum" id="h-tsum"></div>
+        <div class="t-seg" id="h-seg" role="tablist"><button class="on" data-sub="team">3팀<em hidden></em></button><button data-sub="tech">기법<em hidden></em></button><button data-sub="dept">부서<em hidden></em></button><button data-sub="sup">지원<em hidden></em></button></div>
+        <div class="t-sub on" data-sub="team">
+          <span class="section-t">형사 · 훈련</span>
     <div class="shop">
       <div class="item">
         <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-4 3-6 6.5-6s6.5 2 6.5 6"/><path d="M18 8v6M15 11h6"/></svg></div>
@@ -1335,23 +1405,84 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
         <button class="buy" id="h-trainb">훈련</button>
       </div>
     </div>
-
-    <!-- 0.7.0 수사 부서: 수사비를 버는 갈래(evidui.js) -->
-    <span class="section-t">부서</span>
+          <span class="section-t">팀원 직무 <small class="cr-sub">사건마다 2개씩 열려요</small></span>
+          <div class="shop" id="h-crew"></div>
+        </div>
+        <div class="t-sub" data-sub="tech">
+          <div class="shop" id="h-tech"></div>
+        </div>
+        <div class="t-sub" data-sub="dept">
+          <span class="section-t">부서</span>
     <div class="dept-mode" id="h-dept-mode"></div>
     <div class="shop" id="h-dept"></div>
-
+        </div>
+        <div class="t-sub" data-sub="sup">
+          <span class="section-t">지원</span>
+    <div class="shop" id="h-support"></div>
+        </div>
+      </div>
+      <div class="tab scroll" id="t-run" data-tab="run" aria-label="출동">
+    <!-- 출동 준비물(0.1.19): 다음 출동 한 번에 챙겨 가는 소모품. 누르면 챙기고, 챙긴 걸 누르면 무른다 -->
+    <div class="prep">
+      <div class="prep-head"><span class="prep-title"><span class="section-t" style="margin:0">출동 준비물</span><button class="prep-help" id="h-prep-help" aria-label="출동 준비물 효과 보기">?</button></span><span class="medals" id="h-medals"></span></div>
+      <div class="prep-row" id="h-prep"></div>
+      <p class="prep-now" id="h-prep-now"></p>
+    </div>
+    <button class="go-btn" id="h-go">
+      <b>현장 출동</b>
+      <small id="h-go-sub">90초 · 잡은 만큼 수사비</small>
+    </button>
+    <!-- 하루 한 번 특별 출동(0.1.19): 날마다 규칙이 바뀐다. 준비물·장비 없이 실력으로 -->
+    <div class="daily" id="h-daily">
+      <div class="daily-tx"><span class="label">오늘의 특별 출동</span><b id="h-daily-name">60초 속공</b><small id="h-daily-desc"></small><small class="daily-goal" id="h-daily-goal"></small></div>
+      <button class="buy" id="h-daily-go">도전</button>
+    </div>
+        <span class="section-t">출동 장비</span>
+    <div class="shop" id="h-gear"></div>
+        <span class="section-t">공용 장비 <small class="cr-sub">사건마다 2개씩 열려요</small></span>
+        <div class="shop" id="h-kit"></div>
+        <div class="t-rec" id="h-rec"></div>
+      </div>
+      <div class="tab scroll on" id="t-home" data-tab="home" aria-label="상황실">
+    <div class="casebox">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+        <b style="font-size:15px" id="h-case">사건 1 · 골목길 연쇄 절도</b>
+        <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="h-caught">0 / 300</span>
+      </div>
+      <div class="bar"><span class="cap" id="h-cap"></span><i id="h-bar" style="width:0%"></i></div>
+      <div class="cap-note" id="h-cap-note"><i></i><span id="h-cap-text">남은 주범 조는 현장 출동으로만 잡을 수 있어요</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <button class="linkish" id="h-story-all">수사 일지 보기</button>
+        <span class="city-chip" id="h-city">중앙서</span>
+      </div>
+      <button class="ghost next-case" id="h-next-case" hidden>사건 2 · 해무항으로 파견</button>
+    </div>
+    <!-- 0.6.0 살아 있는 사무실: 책상 · 유치장 · 창밖 날씨 · 파트너 동물(officeui.js 가 그린다) -->
+    <div class="office" id="h-office" aria-label="3팀 사무실"></div>
+        <button class="go-btn go-home" id="h-go-home"><b>현장 출동</b><small id="h-go-home-sub">90초 · 잡은 만큼 수사비</small></button>
+        <div class="t-todo fold" id="h-todo"></div>
+        <div class="t-quick"><button id="h-q-team"><b>팀</b><small></small></button><button id="h-q-evid"><b>증거</b><small></small></button></div>
+    <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
+      </div>
+      <div class="tab scroll" id="t-evid" data-tab="evid" aria-label="증거">
     <!-- 0.7.0 재수사 · 단서 · 증거판 -->
     <div class="retreat" id="h-retreat"></div>
-
-    <span class="section-t">출동 장비</span>
-    <div class="shop" id="h-gear"></div>
-
-    <span class="section-t">지원</span>
-    <div class="shop" id="h-support"></div>
-
-    <!-- 튜토리얼·처음부터 단추는 0.1.18 부터 설정 창(톱니바퀴)으로 옮겼다 -->
-    <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
+        <div id="evid-body" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <div class="tab scroll" id="t-pets" data-tab="pets" aria-label="파트너">
+    <!-- 0.3.0 파트너 동물: 그림을 누르면 기뻐하고, 단추로 동물 · 뽑기 창 -->
+    <div class="pet-card" id="h-pet"></div>
+        <div class="t-plinks"><button data-pet="draw"><b>뽑기</b><small id="h-pl-draw"></small></button><button data-pet="dex"><b>도감</b><small id="h-pl-dex"></small></button><button data-pet="closet"><b>옷장</b><small id="h-pl-closet"></small></button><button data-pet="shop"><b>매점</b><small id="h-pl-shop"></small></button></div>
+        <div class="t-peff" id="h-peff"></div>
+      </div>
+    </div>
+    <nav class="hub-nav" id="h-nav" aria-label="메뉴">
+      <button data-go="team"><i aria-hidden="true">👥</i><span>팀</span><em hidden></em></button>
+      <button data-go="run"><i aria-hidden="true">🚨</i><span>출동</span><em hidden></em></button>
+      <button data-go="home" class="main on"><i aria-hidden="true">🏢</i><span>상황실</span><em hidden></em></button>
+      <button data-go="evid"><i aria-hidden="true">📌</i><span>증거</span><em hidden></em></button>
+      <button data-go="pets"><i aria-hidden="true">🐾</i><span>파트너</span><em hidden></em></button>
+    </nav>
   </section>
 
   <!-- 튜토리얼: 두 명을 주고 셋째 고르기 -->
@@ -1580,7 +1711,6 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 <button class="x-btn" id="evid-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label">재수사 · 단서</span>
       <h2 id="evid-title" style="font-size:26px">증거판</h2>
-      <div id="evid-body" style="display:flex;flex-direction:column;gap:10px"></div>
     </div>
   </div>
   <!-- 0.7.0 난이도 고르기(diffui.js 가 그린다): 튜토리얼 뒤 한 번 · 설정 · 출동 단추 아래에서 연다 -->
@@ -1633,6 +1763,23 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.8.0', date: '2026-11-22', title: '아래 메뉴 · 상황실이 메인',
+      items: [
+        '아래 메뉴가 생겼어요: 팀 · 출동 · 상황실(가운데) · 증거 · 파트너. 화면을 좌우로 밀어도 옮겨져요. 맨 위 수사비 · 난이도 · 배지는 어느 탭에서나 보여요.',
+        '뒤로 가기: 열었던 탭을 하나씩 되돌아가고, 마지막엔 상황실. 상황실에서 두 번 누르면 종료돼요.',
+        '메뉴 숫자: 팀 · 출동은 지금 살 수 있는 개수, 파트너는 뽑기권과 쓰다듬기. 재수사로 받을 단서가 지난번보다 많아지면 증거가 반짝여요.',
+        '상황실: 오늘 할 일(누르면 그 칸으로 데려가요) · 팀 · 증거 바로 가기.',
+        '팀: 맨 위 요약(팀 속도 · 팀 수사비 · 부서 수입)과 작은 탭(3팀 · 부서 · 지원). 1분 수입이 값에 비해 가장 많이 느는 칸에 "추천" 띠가 붙어요.',
+        '출동: 준비물 · 현장 출동 · 특별 출동 · 장비 아래에 출동 기록(최근 5판 · 난이도마다 최고 점수).',
+        '증거: 재수사와 증거판을 창을 열지 않고 한 화면에서.',
+        '파트너: 파트너를 크게 보고, 뽑기 · 도감 · 옷장 · 매점 · 파트너 효과를 한곳에서.',
+        '팀원 직무: 사건마다 새 직무 2개가 3팀에 열려요(신참 교육관 · 잠복조부터). 영입할수록 효과가 쌓여요.',
+        '공용 장비: 사건마다 새 출동 장비 2개(무전기 세트 · 수사 수첩부터).',
+        '수사 기법: 증거판에서 증거 카드를 얻을 때마다 그 증거의 수사 기법이 팀 탭 \'기법\'에 열려요(모두 51개). 수사비로 10단계까지 올려요.',
+        '재수사하면 직무 · 장비 · 기법 단계는 처음부터지만, 열린 칸은 그대로 남아요.',
+        '난이도 카드를 두 번 톡톡 눌러도 바로 정해져요.',
+        '소리: 효과음과 배경음을 1.5배로 키우고, 마지막 10초 초침 소리는 절반으로 줄였어요.'
+      ] },
     { ver: '0.7.1', date: '2026-11-22', title: '파트너 끌어 옮기기 · 반응 빠르게',
       items: [
         '상황실의 파트너를 누른 채 끌면 집어 들 수 있어요. 상황판 · 책상 어디든 내려놓으면 잠시 있다가 톡 뛰어내려요. 살짝 누르면 원래처럼 쓰다듬기예요.',
@@ -2732,7 +2879,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
       prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
       prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
       daily: { day: '', done: false, best: 0, tries: 0 },  // 오늘의 특별 출동
-      pets: null, office: null, dept: null, evid: null, diff: null, caseBest: 0, dfrac: 0,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
+      pets: null, office: null, dept: null, evid: null, diff: null, crew: null, caseBest: 0, dfrac: 0,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
       profileEdits: 0,     // 0.3.0 프로필 이름을 바꾼 횟수(0 이면 다음 한 번은 무료)
       ach: null,           // 0.3.0 업적 · 칭호(Team3Ach.clean)
       shop: null,          // 0.4.0 상점 · 광고 자리 · 월정액 · 시즌 패스(Team3Monet.clean)
@@ -2822,7 +2969,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     s.office = data.office && typeof data.office === 'object' && !Array.isArray(data.office) ? data.office : null;
     s.dept = data.dept && typeof data.dept === 'object' && !Array.isArray(data.dept) ? data.dept : null;   // 0.7.0 부서(검사는 Team3Dept.clean)
     s.evid = data.evid && typeof data.evid === 'object' && !Array.isArray(data.evid) ? data.evid : null;   // 0.7.0 재수사 · 증거판(검사는 Team3Evidence.clean)
-    s.diff = data.diff && typeof data.diff === 'object' && !Array.isArray(data.diff) ? data.diff : null;   // 0.7.0 난이도(검사는 Team3Diff.clean)
+    s.diff = data.diff && typeof data.diff === 'object' && !Array.isArray(data.diff) ? data.diff : null;
+    s.crew = data.crew && typeof data.crew === 'object' && !Array.isArray(data.crew) ? data.crew : null;   // 0.8.0 팀원 직무 · 공용 장비 · 수사 기법(검사는 Team3Crew.clean)   // 0.7.0 난이도(검사는 Team3Diff.clean)
     s.caseBest = int(data.caseBest, 0, 0, 1e9); s.caseBest = Math.max(s.caseBest, s.caught);
     s.dfrac = typeof data.dfrac === 'number' && data.dfrac >= 0 && data.dfrac < 1 ? data.dfrac : 0;   // 0.6.0 살아 있는 사무실(검사는 Team3Office.clean)   // 0.4.0 상점 · 패스(검사는 Team3Monet.clean)   // 0.3.0 업적(검사는 Team3Ach.clean)
     return { save: s, reset: false };
@@ -3911,7 +4059,9 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     // best: 강력 사건 이상에서 낸 최고 점수(실력 업적용). 처음 정리할 때는 예전 최고 점수를 그대로(난이도가 없던 때 = 강력 사건)
     var best = typeof d.best === 'number' && isFinite(d.best) ? int(d.best, 0, 1e12) : int(save.bestScore, 0, 1e12);
     save.diff = { k: LIST[d.k] ? d.k : 'normal', set: d.set === true, hardRuns: int(d.hardRuns, 0, 1e7), hardGold: int(d.hardGold, 0, 1e6), hardCase: hc,
-                  best: best, easyRuns: int(d.easyRuns, 0, 1e7), stepUp: d.stepUp === true };
+                  best: best, easyRuns: int(d.easyRuns, 0, 1e7), stepUp: d.stepUp === true,
+                  // 0.8.0 출동 기록판: 난이도마다 최고 점수(예전 최고 점수는 강력 사건으로)
+                  bests: { easy: int(d.bests && d.bests.easy, 0, 1e12), normal: d.bests && typeof d.bests.normal === 'number' ? int(d.bests.normal, 0, 1e12) : best, hard: int(d.bests && d.bests.hard, 0, 1e12) } };
     return save.diff;
   }
   function D(save) { return save.diff && LIST[save.diff.k] && save.diff.hardCase ? save.diff : clean(save); }
@@ -3954,6 +4104,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
   function noteRun(save, k, score) {
     var d = D(save);
     if (k === 'hard') d.hardRuns += 1;
+    if (typeof score === 'number' && LIST[k] && score > d.bests[k]) d.bests[k] = Math.floor(score);
     if (k === 'easy') { d.easyRuns += 1; return; }
     if (d.easyRuns > 0) d.stepUp = true;
     if (typeof score === 'number' && score > d.best) d.best = Math.floor(score);
@@ -3987,6 +4138,173 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
   return { ORDER: ORDER, LIST: LIST, MIN_SEC: MIN_SEC, HARD_CARD_RUNS: HARD_CARD_RUNS,
            clean: clean, get: get, info: info, chosen: chosen, set: set, applyRun: applyRun,
            noteRun: noteRun, countsSkill: countsSkill, dailyBonus: dailyBonus, noteClose: noteClose, hardCases: hardCases, hardCardsOpen: hardCardsOpen, resultLine: resultLine };
+});
+
+/*
+ * Team3Crew(0.8.0) — 팀 탭 · 출동 탭을 채우는 세 가지. 화면 · 시계와 무관하다(그림은 crewui.js).
+ *
+ *   팀원 직무(ROLES): 사건마다 2개씩 열린다(그 사건에 오면 열리고, 다음 사건에서도 계속 남는다). 여러 단계 영입 · 값이 점점 오른다.
+ *   공용 장비(KITS): 사건마다 2개씩 열리는 출동 장비. 몇 단계까지 장착. 효과는 출동에 바로 붙는 것(시간 · 오인 면제 · 연속 상한 · 오인 벌점 · 출동 수사비).
+ *   수사 기법(TECHS): 증거 카드 한 장 = 기법 하나(51개). 그 증거를 얻으면 열리고 수사비로 10단계까지.
+ *
+ *   효과는 모두 증거판 · 동물과 같은 갈래(bonus 키)로 넘긴다: speed · idle · pay · dept(%) · cap(분) · off(%p) · gear(%) · buff(초) · time(초) · combo · shield(번) · miss(초).
+ *   재수사하면: 단계는 처음부터(reset), 열린 칸(사건 · 증거)은 남는다.
+ *
+ * save.crew = { r: { 직무: 단계 }, k: { 장비: 단계 }, t: { 증거 id: 단계 }, seen: { 'r:id' | 'k:id' | 't:id': true } }
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Team3Crew = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  // [id, 사건, 이름, 아이콘, 한 줄, 효과 키, 단계마다, 첫 값, 오름, 최대]
+  var ROLES = [
+    ['mentor', 1, '신참 교육관', '🧑‍🏫', '새 형사를 빨리 키워요', 'idle', 3, 2500, 1.2, 20],
+    ['stake', 1, '잠복조', '🔭', '자리를 비워도 계속 지켜봐요', 'cap', 10, 4000, 1.35, 12],
+    ['coast', 2, '해경 연락관', '⚓', '항구 쪽 제보를 모아요', 'idle', 3, 12000, 1.2, 20],
+    ['canvass', 2, '탐문 전담', '🚪', '집집마다 문을 두드려요', 'speed', 2, 18000, 1.2, 20],
+    ['profiler', 3, '프로파일러', '🧠', '범인의 다음 수를 읽어요', 'pay', 4, 90000, 1.22, 20],
+    ['night', 3, '야간 추적조', '🌙', '밤에도 쉬지 않아요', 'off', 1, 120000, 1.25, 20]
+  ].map(function (a) { return { id: a[0], caseNo: a[1], name: a[2], icon: a[3], desc: a[4], key: a[5], per: a[6], base: a[7], grow: a[8], max: a[9] }; });
+
+  // [id, 사건, 이름, 아이콘, 한 줄, 효과 키, 단계마다, 값들]
+  var KITS = [
+    ['radio', 1, '무전기 세트', '📻', '오인 체포를 한 번 막아 줘요', 'shield', 1, [5000, 20000]],
+    ['notebook', 1, '수사 수첩', '📒', '현장 기록이 수사비가 돼요', 'pay', 5, [3000, 9000, 27000]],
+    ['drone', 2, '수중 드론', '🚁', '현장을 더 오래 살펴요', 'time', 3, [25000, 75000, 225000]],
+    ['bodycam', 2, '보디캠', '📹', '오인 체포 벌점이 줄어요', 'miss', 0.5, [40000, 120000]],
+    ['thermal', 3, '열화상 카메라', '🌡️', '연속 검거를 더 길게 이어요', 'combo', 1, [150000, 600000]],
+    ['command', 3, '지휘 차량', '🚐', '현장 지휘로 수사비가 늘어요', 'pay', 8, [200000, 600000, 1800000]]
+  ].map(function (a) { return { id: a[0], caseNo: a[1], name: a[2], icon: a[3], desc: a[4], key: a[5], per: a[6], costs: a[7] }; });
+
+  // 수사 기법: 증거 id → [이름, 아이콘]. 효과 키는 그 증거 효과를 따른다(재수사 전용 효과는 팀 쪽으로 바꿈)
+  var TECH_NAME = {
+    print: ['지문 감식 교육', '🖐️'], witness: ['면담 기법', '🗣️'], glove: ['혈흔 분석', '🧤'], cctv: ['CCTV 판독반', '📷'], tape: ['음성 분석', '📼'],
+    log: ['통신 수사', '📞'], receipt: ['영수증 추적', '🧾'], bank: ['계좌 추적', '🏦'], coin: ['현금 흐름 분석', '👛'], key: ['잠복 근무', '🔑'],
+    map: ['동선 그리기', '🗺️'], shoe: ['족적 분석', '👣'], hair: ['DNA 대조', '🧬'], alibi: ['알리바이 깨기', '⏰'], sketch: ['몽타주 복원', '🎨'],
+    plate: ['차량 조회', '🚗'], email: ['디지털 복구', '💾'], gps: ['위치 추적', '📍'], ledger: ['장부 대조', '📒'], cash: ['돈세탁 추적', '💵'],
+    card: ['법인 조사', '💳'], ticket: ['대중교통 추적', '🚌'], badge: ['출입 기록 조회', '🪪'], glass: ['파편 감식', '🔍'], diary: ['심리 분석', '📔'],
+    photo3: ['인물 관계도', '🕸️'], voice: ['음성 변조 해제', '🎙️'], drone: ['항공 수색', '🛸'], server: ['서버 압수 수색', '🖥️'], radio: ['무전 감청', '📡'],
+    crypto: ['가상 자산 추적', '🪙'], contract: ['위장 회사 조사', '📜'], auction: ['경매 기록 조회', '🔨'], ship: ['해운 조사', '🚢'], warehouse: ['창고 수색', '🏚️'],
+    rope: ['매듭 감정', '🪢'], note3: ['필적 감정', '✍️'], scar: ['신체 특징 대조', '🩹'], team: ['옛 동료 탐문', '👥'], satellite: ['위성 분석', '🛰️'],
+    cctvall: ['도시 관제', '🏙️'], blackbox: ['블랙박스 수집', '📦'], offshore: ['국제 공조 수사', '🌐'], bribe: ['내부 감찰', '🕵️'], gold: ['귀금속 추적', '🥇'],
+    badge3: ['3팀의 전통', '⭐'], blueprint: ['건물 구조 분석', '📐'], frame: ['오래된 사건 복기', '🖼️'], coldbox: ['미제 파일 정리', '🗃️'], coldpost: ['공개 수배', '📰'], coldseal: ['봉인 증거 재감정', '🔏']
+  };
+  var TECH_KEY = { clue: 'idle', startMoney: 'idle', startDet: 'speed', shield: 'miss' };
+  // 효과 키마다 단계당 값(10단계면 이것 × 10)
+  var TECH_PER = { speed: 1, idle: 2, pay: 2, dept: 2, cap: 3, off: 1, gear: 1, buff: 2, time: 0.5, combo: 0.1, miss: 0.1 };
+  var TECH_BASE = [2000, 25000, 300000, 3000000, 3000000], TECH_GROW = 1.55, TECH_MAX = 10;
+
+  function CError(code, message) { var e = new Error(message); e.name = 'CrewError'; e.code = code; return e; }
+  function int(v, lo, hi) { v = typeof v === 'number' && isFinite(v) ? Math.floor(v) : 0; return Math.max(lo, Math.min(hi, v)); }
+
+  var EV = null;   // 증거 카드 목록(Team3Evidence) — 기법 목록을 만들 때 쓴다
+  function evidence() {
+    if (EV) return EV;
+    EV = typeof module === 'object' && module.exports ? require('./evidence.js') : (typeof self !== 'undefined' ? self.Team3Evidence : null);
+    return EV;
+  }
+  var TECHS = null;
+  function techs() {
+    if (TECHS) return TECHS;
+    var Ev = evidence(); if (!Ev) return [];
+    TECHS = Ev.CARDS.map(function (c) {
+      var n = TECH_NAME[c.id] || [c.name + ' 분석', '🔎'], key = TECH_KEY[c.key] || c.key;
+      return { id: c.id, card: c.name, color: c.color, tier: c.tier, name: n[0], icon: n[1], key: key, per: TECH_PER[key] || 1, base: TECH_BASE[c.tier] || TECH_BASE[0], grow: TECH_GROW, max: TECH_MAX };
+    });
+    return TECHS;
+  }
+  var R_BY = {}, K_BY = {};
+  ROLES.forEach(function (x) { R_BY[x.id] = x; });
+  KITS.forEach(function (x) { K_BY[x.id] = x; });
+
+  function clean(save) {
+    var d = save.crew && typeof save.crew === 'object' ? save.crew : {}, r = {}, k = {}, t = {}, seen = {};
+    ROLES.forEach(function (x) { r[x.id] = int(d.r && d.r[x.id], 0, x.max); });
+    KITS.forEach(function (x) { k[x.id] = int(d.k && d.k[x.id], 0, x.costs.length); });
+    techs().forEach(function (x) { t[x.id] = int(d.t && d.t[x.id], 0, x.max); });
+    var ds = d.seen && typeof d.seen === 'object' ? d.seen : {};
+    Object.keys(ds).forEach(function (q) { if (ds[q] === true && /^[rkt]:[a-z0-9]{1,16}$/.test(q)) seen[q] = true; });
+    save.crew = { r: r, k: k, t: t, seen: seen };
+    return save.crew;
+  }
+  function C(save) { return save.crew && save.crew.r && save.crew.t ? save.crew : clean(save); }
+  function caseNo(save) { return save.caseNo >= 1 ? save.caseNo : 1; }
+
+  /* ---------- 무엇이 열렸나 ---------- */
+  function rolesOpen(save) { var n = caseNo(save); return ROLES.filter(function (x) { return x.caseNo <= n; }); }
+  function kitsOpen(save) { var n = caseNo(save); return KITS.filter(function (x) { return x.caseNo <= n; }); }
+  function rolesNext(save) { var n = caseNo(save); return ROLES.filter(function (x) { return x.caseNo === n + 1; }); }
+  function kitsNext(save) { var n = caseNo(save); return KITS.filter(function (x) { return x.caseNo === n + 1; }); }
+  function techOpen(save, id) { var e = save.evid; return !!(e && e.own && e.own[id]); }
+  function techsOpen(save) { return techs().filter(function (x) { return techOpen(save, x.id); }); }
+  function techsLocked(save) { return techs().filter(function (x) { return !techOpen(save, x.id); }); }
+
+  /* ---------- 값 ---------- */
+  function disc(save, d) { return 1 - Math.min(0.5, Math.max(0, d || 0) / 100); }
+  function roleCost(save, id, d) { var x = R_BY[id], l = C(save).r[id]; return !x || l >= x.max ? null : Math.round(x.base * Math.pow(x.grow, l) * disc(save, d)); }
+  function kitCost(save, id, d) { var x = K_BY[id], l = C(save).k[id]; return !x || l >= x.costs.length ? null : Math.round(x.costs[l] * disc(save, d)); }
+  function techById(id) { var a = techs(); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; return null; }
+  function techCost(save, id) { var x = techById(id), l = C(save).t[id]; return !x || l >= x.max ? null : Math.round(x.base * Math.pow(x.grow, l)); }
+
+  /**
+   * 사기. kind: 'r' 직무 · 'k' 장비 · 't' 기법. d: 장비 할인 %(직무 · 장비만). 반환 새 단계
+   *   열리지 않았거나 다 올렸거나 수사비가 모자라면 오류(save 는 그대로).
+   */
+  function buy(save, kind, id, d) {
+    var c = C(save), cost, open;
+    if (kind === 'r') { open = R_BY[id] && R_BY[id].caseNo <= caseNo(save); cost = roleCost(save, id, d); }
+    else if (kind === 'k') { open = K_BY[id] && K_BY[id].caseNo <= caseNo(save); cost = kitCost(save, id, d); }
+    else if (kind === 't') { open = techById(id) && techOpen(save, id); cost = techCost(save, id); }
+    else throw CError('BAD_KIND', '모르는 종류');
+    if (!open) throw CError('LOCKED', '아직 안 열렸다');
+    if (cost == null) throw CError('MAXED', '다 올렸다');
+    if (save.money < cost) throw CError('NOT_ENOUGH', '수사비가 모자란다');
+    save.money -= cost;
+    c[kind][id] += 1;
+    c.seen[kind + ':' + id] = true;
+    return c[kind][id];
+  }
+
+  /* ---------- 효과 ---------- */
+  function bonus(save) {
+    var c = C(save), b = {};
+    var add = function (k, v) { b[k] = (b[k] || 0) + v; };
+    ROLES.forEach(function (x) { if (c.r[x.id]) add(x.key, x.per * c.r[x.id]); });
+    KITS.forEach(function (x) { if (c.k[x.id]) add(x.key, x.per * c.k[x.id]); });
+    techs().forEach(function (x) { if (c.t[x.id] && techOpen(save, x.id)) add(x.key, x.per * c.t[x.id]); });
+    if (b.combo) b.combo = Math.floor(b.combo + 1e-9);
+    if (b.time) b.time = Math.round(b.time * 2) / 2;
+    if (b.miss) b.miss = Math.round(b.miss * 10) / 10;
+    return b;
+  }
+  var NAME = { speed: '팀 속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서 수입', cap: '자리 비움 한도', off: '자리 비움 속도', gear: '장비 할인',
+               buff: '사기 충전', time: '출동 시간', combo: '연속 배수 상한', shield: '오인 면제', miss: '오인 벌점' };
+  var UNIT = { speed: '%', idle: '%', pay: '%', dept: '%', cap: '분', off: '%p', gear: '%', buff: '초', time: '초', combo: '', shield: '번', miss: '초' };
+  function fmtV(v) { return String(Math.round(v * 10) / 10); }
+  /** "팀 속도 +4%" 같은 한 줄. lv 단계일 때 */
+  function effText(x, lv) { return NAME[x.key] + (x.key === 'miss' ? ' −' : ' +') + fmtV(x.per * lv) + UNIT[x.key]; }
+
+  /* ---------- 새 칸 표시 ---------- */
+  function isNew(save, kind, id) { return !C(save).seen[kind + ':' + id]; }
+  function markSeen(save, kind, ids) { var c = C(save); ids.forEach(function (id) { c.seen[kind + ':' + id] = true; }); }
+  function newCount(save, kind) {
+    var list = kind === 'r' ? rolesOpen(save).filter(function (x) { return x.caseNo > 1 || save.caseNo > 1; }) : kind === 'k' ? kitsOpen(save) : techsOpen(save);
+    return list.filter(function (x) { return isNew(save, kind, x.id); }).length;
+  }
+
+  /** 재수사: 단계만 처음부터(열린 칸 · 본 표시는 남는다) */
+  function reset(save) {
+    var c = C(save);
+    Object.keys(c.r).forEach(function (k) { c.r[k] = 0; });
+    Object.keys(c.k).forEach(function (k) { c.k[k] = 0; });
+    Object.keys(c.t).forEach(function (k) { c.t[k] = 0; });
+  }
+
+  return { ROLES: ROLES, KITS: KITS, techs: techs, TECH_MAX: TECH_MAX, clean: clean, rolesOpen: rolesOpen, kitsOpen: kitsOpen, rolesNext: rolesNext, kitsNext: kitsNext,
+           techsOpen: techsOpen, techsLocked: techsLocked, techById: techById, roleCost: roleCost, kitCost: kitCost, techCost: techCost, buy: buy, bonus: bonus,
+           effText: effText, isNew: isNew, markSeen: markSeen, newCount: newCount, reset: reset, NAME: NAME, UNIT: UNIT };
 });
 
 /*
@@ -7432,7 +7750,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
    */
   // 0.1.20: 효과음 크기 50 에서 예전 기본(배수 2 × 0.8²≈1.28)의 2배 ≈ 2.5 가 되도록 5 × 0.5. 리미터가 찢어짐을 막는다
   // 0.1.21: 더 키워 달라는 의견으로 한 번 더 2배(5 → 10)
-  var MASTER_GAIN = 10;
+  var MASTER_GAIN = 15;   // 0.8.0: 효과음 전체 1.5배(10 → 15). 넘치는 건 뒤의 리미터가 누른다
   var ac = null, master = null;
   function audio() {
     if (silent()) return null;
@@ -7475,7 +7793,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
    */
   // 0.1.20: 음악 크기 50 에서 예전 기본(0.55 × 0.7²≈0.27)의 2배 ≈ 0.55 가 되도록 1.1 × 0.5
   // 0.1.21: 한 번 더 2배(1.1 → 2.2). 큰 소리는 bgm.js 의 리미터가 누른다
-  var BGM_GAIN = 2.2;
+  var BGM_GAIN = 3.3;   // 0.8.0: 배경음 1.5배(2.2 → 3.3)
   var music = window.Team3Bgm
     ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN * curve(settings.music) })
     : { want: function () {}, wake: function () {}, duck: function () {}, dim: function () {}, setVolume: function () {}, setMuted: function () {}, state: function () { return {}; } };
@@ -7569,8 +7887,9 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     // 시계 초침(0.1.14): 녹음된 "톡-틱-틱" 1초. 마지막 3초는 조금 크게. 녹음을 못 쓰면 예전 짧은 "삑"(5초 안쪽에서만)
     clock: function (left) {
       // 0.2.1: 초침이 다른 소리보다 커서 줄였다(0.7/1.0 → 0.3/0.45)
-      if (sample('clock', left <= 3 ? 0.45 : 0.3)) return;
-      if (left <= 5) sfx.tickLow();
+      // 0.8.0: 초침은 절반으로. 전체(master)가 1.5배가 됐으니 여기서 ÷3 → 들리는 크기는 예전의 절반(0.3/0.45 → 0.1/0.15)
+      if (sample('clock', left <= 3 ? 0.15 : 0.1)) return;
+      if (left <= 5) tone(880, 0.05, 'sine', 0.07 / 3);
     }
   };
   // 진동: 설정에서 끄면 아무것도 안 한다(0.1.18). 진동 없는 기기도 조용히 넘어간다
@@ -10413,7 +10732,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
   }
   function doRetreat(then) {
     var s = S(), r;
-    try { r = Ev.retreat(s, { now: ctx.nowMs(), newTeam: function (sv, st) { ctx.idle.resetTeam(sv, st); D.reset(sv); if (sv.office) sv.office.cell = 0; } }); }
+    try { r = Ev.retreat(s, { now: ctx.nowMs(), newTeam: function (sv, st) { ctx.idle.resetTeam(sv, st); D.reset(sv); if (root.Team3Crew) root.Team3Crew.reset(sv); if (sv.office) sv.office.cell = 0; } }); }
     catch (e) { toast('재수사할 수 없어요'); return; }
     ctx.persist();
     // 연출: 상황실 불이 꺼졌다 켜진다
@@ -10487,8 +10806,9 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
       }).join('');
     });
   }
-  function open() { sel = null; $('evid-sheet').hidden = false; draw(); $('evid-sheet').querySelector('.sheet').scrollTop = 0; }
-  function close() { $('evid-sheet').hidden = true; sel = null; ctx.render(); }
+  // 0.8.0 증거판은 아래 메뉴 '증거' 탭 안에 있다(창이 아니다). open = 그 탭으로 옮기고 다시 그리기
+  function open() { sel = null; if (ctx.showTab) ctx.showTab('evid'); draw(); }
+  function close() { sel = null; }
 
   function onBoardClick(e) {
     var s = S(), t;
@@ -10540,8 +10860,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
       if (e.target.closest('#h-board')) { open(); return; }
       if (e.target.closest('#h-retreat-go')) { confirmRetreat(false); return; }
     });
-    $('evid-x').addEventListener('click', close);
-    $('evid-sheet').addEventListener('click', function (e) {
+    $('evid-body').addEventListener('click', function (e) {
       // 같은 칸을 두 번 누르면 빼기
       var t = e.target.closest('[data-cell]');
       if (t && sel && S().evid.pins[+t.getAttribute('data-cell')] === sel) { Ev.unpin(S(), +t.getAttribute('data-cell')); ctx.persist(); sel = null; ctx.render(); draw(); toast('증거를 뺐어요'); return; }
@@ -10557,7 +10876,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     renderDept(); renderRetreat();
   }
 
-  root.Team3EvidUI = { mount: mount, render: function () { lastDraw = 0; render(); }, tick: render, open: open, close: close, retreatAtClose: retreatAtClose, isOpen: function () { return !$('evid-sheet').hidden; } };
+  root.Team3EvidUI = { mount: mount, render: function () { lastDraw = 0; render(); }, tick: render, open: open, close: close, retreatAtClose: retreatAtClose, isOpen: function () { return false; }, draw: function () { if (ctx) draw(); } };
 })(typeof self !== 'undefined' ? self : this);
 
 </script>
@@ -10575,7 +10894,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
   'use strict';
   var Df = window.Team3Diff;
   if (!Df) return;
-  var ctx = null, mode = 'first', sel = 'normal';
+  var ctx = null, mode = 'first', sel = 'normal', lastTap = { k: null, t: 0 };
   function $(id) { return document.getElementById(id); }
   function S() { return ctx.getSave(); }
 
@@ -10633,7 +10952,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
       '<p class="df-sub">현장 출동(퍼즐)만 달라져요. <b>팀 · 부서 수입은 똑같아요.</b><br>설정에서 언제든지 바꿀 수 있어요.</p>' +
       Df.ORDER.map(function (k) { return card(k, cur); }).join('') +
       '<button class="df-go" id="df-go"' + (mode !== 'first' && sel === cur ? ' disabled' : '') + '>' + btn + '</button>' +
-      '<div class="df-note"><span>💡</span><span>보상은 그 판을 출동한 난이도로 매겨요. 출동 결과에 난이도가 함께 표시돼요.</span></div>';
+      '<div class="df-note"><span>💡</span><span>카드를 두 번 톡톡 눌러도 바로 정해져요. 보상은 그 판을 출동한 난이도로 매기고, 출동 결과에 함께 표시돼요.</span></div>';
   }
 
   // 처음 고른 뒤: 배정 안내(어디서 바꾸는지)
@@ -10666,8 +10985,12 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     var t = e.target;
     var f = t.closest('[data-df]');
     if (f) {
-      if (sel === f.getAttribute('data-df')) return;
-      sel = f.getAttribute('data-df');
+      // 0.8.0 두 번 톡톡: 같은 카드를 0.45초 안에 다시 누르면 고르고 바로 확인(아래 확인 단추도 그대로)
+      var k = f.getAttribute('data-df'), now = Date.now();
+      if (lastTap.k === k && now - lastTap.t < 450) { lastTap = { k: null, t: 0 }; var gb = $('df-go'); if (gb && !gb.disabled) gb.click(); return; }
+      lastTap = { k: k, t: now };
+      if (sel === k) return;
+      sel = k;
       try { ctx.UI.sfx.tap && ctx.UI.sfx.tap(); } catch (er) { /* 소리 실패는 무시 */ }
       ctx.UI.buzz(8);
       var sc = $('df-sheet-in').scrollTop;
@@ -10716,6 +11039,346 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 </script>
 <script>
 /*
+ * Team3CrewUI(0.8.0) — 팀 탭의 팀원 직무(3팀 작은 탭 아래) · 수사 기법(기법 작은 탭) · 출동 탭의 공용 장비. 규칙은 crew.js.
+ *   칸 모양은 지금 사무실 칸(.item)과 같다. 새로 열린 칸은 파란 "새" 표시, 다음 사건에서 열릴 칸은 잠긴 채 미리 보인다.
+ *   1초마다 다시 그리되 내용이 같으면 그대로 둔다(누르는 도중 단추가 바뀌지 않게).
+ */
+(function (root) {
+  'use strict';
+  var Cr = root.Team3Crew;
+  if (!Cr) return;
+  var ctx = null;
+  function $(id) { return document.getElementById(id); }
+  function S() { return ctx.getSave(); }
+  function setHTML(el, h) { if (el && el._ch !== h) { el._ch = h; el.innerHTML = h; } }
+  function disc() { var b = ctx.bonus ? ctx.bonus() : null; return b && b.gear ? b.gear : 0; }
+  var COLOR = { r: '#E5484F', b: '#2F6FD6', y: '#E0A100', g: '#2E9E5B' };
+
+  function pips(l, max) { if (max > 12) return ''; var h = ''; for (var i = 0; i < max; i++) h += '<i class="' + (i < l ? 'f' : '') + '"></i>'; return '<span class="cr-pips">' + h + '</span>'; }
+  function row(o) {
+    var s = S(), c = o.cost, max = c == null, ok = !max && s.money >= c;
+    return '<div class="item cr-row' + (o.isNew ? ' cr-new' : '') + '" data-cr="' + o.kind + ':' + o.id + '"' + (o.tag ? ' data-tag="' + o.tag + '"' : '') + '>' +
+      '<div class="ic cr-ic' + (o.card ? ' cr-card' : '') + '"' + (o.card ? ' style="--c:' + o.card + '"' : '') + '><span aria-hidden="true">' + o.icon + '</span></div>' +
+      '<div class="tx"><b>' + o.name + (o.lvText ? ' ' + o.lvText : '') + '</b><small>' + o.sub + '</small>' + o.extra + '</div>' +
+      '<button class="buy' + (max ? ' max' : '') + '" data-crbuy="' + o.kind + ':' + o.id + '"' + (max || !ok ? ' disabled' : '') + ' aria-label="' + o.name + (max ? ' 다 올림' : ' ' + o.verb + ', ' + ctx.fmt(c)) + '">' +
+        (max ? '최고' : o.verb + ' ' + ctx.fmtShort(c)) + '</button>' +
+      '<span class="cr-eff">' + o.eff + '</span></div>';
+  }
+  function lockRow(o) {
+    return '<div class="item cr-row cr-lock"><div class="ic cr-ic' + (o.card ? ' cr-card' : '') + '"' + (o.card ? ' style="--c:' + o.card + '"' : '') + '><span aria-hidden="true">' + o.icon + '</span></div>' +
+      '<div class="tx"><b>' + o.name + '</b><small>' + o.sub + '</small></div><span class="cr-lockb">🔒 ' + o.lock + '</span><span class="cr-eff">' + o.eff + '</span></div>';
+  }
+  // 0단계면 "+0%" 대신 첫 단계 효과만, 그 뒤로는 지금 → 다음
+  function effLine(x, l, max) { return l <= 0 ? '첫 단계 <em>' + Cr.effText(x, 1) + '</em>' : '<em>' + Cr.effText(x, l) + '</em>' + (l < max ? ' → ' + Cr.effText(x, l + 1) : ' · 최고 단계'); }
+
+  function renderCrew() {
+    var s = S(), c = s.crew, d = disc();
+    var open = Cr.rolesOpen(s), next = Cr.rolesNext(s);
+    setHTML($('h-crew'), open.map(function (x) {
+      var l = c.r[x.id];
+      return row({ kind: 'r', id: x.id, icon: x.icon, name: x.name, lvText: l + '명', sub: x.desc, extra: '', cost: Cr.roleCost(s, x.id, d), verb: '영입',
+        eff: effLine(x, l, x.max), isNew: Cr.isNew(s, 'r', x.id), tag: '사건 ' + x.caseNo + '에서 새로' });
+    }).join('') + (next.length ? '<span class="section-t cr-next">다음 사건에서 열려요</span>' + next.map(function (x) {
+      return lockRow({ icon: x.icon, name: x.name, sub: x.desc, lock: '사건 ' + x.caseNo, eff: Cr.NAME[x.key] + ' 단계마다 +' + x.per + Cr.UNIT[x.key] });
+    }).join('') : ''));
+  }
+  function renderKit() {
+    var s = S(), c = s.crew, d = disc();
+    var open = Cr.kitsOpen(s), next = Cr.kitsNext(s);
+    setHTML($('h-kit'), open.map(function (x) {
+      var l = c.k[x.id], max = x.costs.length;
+      return row({ kind: 'k', id: x.id, icon: x.icon, name: x.name, lvText: l + '/' + max, sub: x.desc, extra: pips(l, max), cost: Cr.kitCost(s, x.id, d), verb: '장착',
+        eff: effLine(x, l, max), isNew: Cr.isNew(s, 'k', x.id), tag: '사건 ' + x.caseNo + '에서 새로' });
+    }).join('') + (next.length ? '<span class="section-t cr-next">다음 사건에서 열려요</span>' + next.map(function (x) {
+      return lockRow({ icon: x.icon, name: x.name, sub: x.desc, lock: '사건 ' + x.caseNo, eff: Cr.NAME[x.key] + ' 단계마다 +' + x.per + Cr.UNIT[x.key] });
+    }).join('') : ''));
+  }
+  function renderTech() {
+    var s = S(), c = s.crew, open = Cr.techsOpen(s), locked = Cr.techsLocked(s);
+    var tot = Cr.techs().length;
+    var head = '<div class="cr-head"><b>열린 기법 ' + open.length + ' / ' + tot + '</b><small>증거 1장 = 기법 1개</small></div>';
+    var body = open.length ? open.map(function (x) {
+      var l = c.t[x.id];
+      return row({ kind: 't', id: x.id, icon: x.icon, card: COLOR[x.color], name: x.name, lvText: l + '단계', sub: '증거 「' + x.card + '」', extra: pips(l, x.max),
+        cost: Cr.techCost(s, x.id), verb: l ? '올리기' : '익히기', eff: effLine(x, l, x.max), isNew: Cr.isNew(s, 't', x.id), tag: '새 기법' });
+    }).join('') : '<p class="cr-empty">증거판에서 증거 카드를 얻으면 그 증거의 수사 기법이 여기 열려요.</p>';
+    var peek = locked.slice(0, 3).map(function (x) {
+      return lockRow({ icon: x.icon, card: COLOR[x.color], name: x.name, sub: '증거 「' + x.card + '」 필요', lock: '증거', eff: Cr.NAME[x.key] + ' 단계마다 +' + x.per + Cr.UNIT[x.key] });
+    }).join('');
+    setHTML($('h-tech'), head + body + (locked.length ? '<span class="section-t cr-next">아직 못 연 기법 · ' + locked.length + '개</span>' + peek +
+      '<button class="ghost cr-go-evid" id="h-tech-evid">증거판에서 증거 얻기 ›</button>' : ''));
+  }
+
+  function render() {
+    if (!ctx || !$('h-crew')) return;
+    renderCrew(); renderKit(); renderTech();
+  }
+  function onBuy(e) {
+    var b = e.target.closest('[data-crbuy]');
+    if (e.target.closest('#h-tech-evid')) { if (ctx.showTab) ctx.showTab('evid'); return; }
+    if (!b || b.disabled) return;
+    var p = b.getAttribute('data-crbuy').split(':'), s = S(), x, lv;
+    try { lv = Cr.buy(s, p[0], p[1], p[0] === 't' ? 0 : disc()); }
+    catch (er) { if (er.code === 'NOT_ENOUGH') ctx.UI.toast('수사비가 모자라요'); return; }
+    x = p[0] === 'r' ? Cr.ROLES.filter(function (q) { return q.id === p[1]; })[0] : p[0] === 'k' ? Cr.KITS.filter(function (q) { return q.id === p[1]; })[0] : Cr.techById(p[1]);
+    try { ctx.UI.sfx.coin(); } catch (er2) { /* 무시 */ }
+    ctx.UI.buzz(10);
+    ctx.persist(); ctx.render(); render();
+    var r = document.querySelector('[data-cr="' + p[0] + ':' + p[1] + '"]');
+    if (r) { r.classList.remove('bought'); void r.offsetWidth; r.classList.add('bought'); }
+    if (x && (lv === 1 || p[0] === 'k')) ctx.UI.toast(x.name + (p[0] === 'k' ? ' 장착' : p[0] === 't' ? ' ' + lv + '단계' : ' 영입') + ' · ' + Cr.effText(x, lv));
+  }
+  // 그 칸을 한 번 보면 "새" 표시를 지운다(탭을 떠날 때)
+  function seen(kind) {
+    var s = S(), ids = kind === 'r' ? Cr.rolesOpen(s).map(function (x) { return x.id; }) : kind === 'k' ? Cr.kitsOpen(s).map(function (x) { return x.id; }) : Cr.techsOpen(s).map(function (x) { return x.id; });
+    Cr.markSeen(s, kind, ids); ctx.persist();
+  }
+  function mount(c) {
+    ctx = c;
+    ['h-crew', 'h-kit', 'h-tech'].forEach(function (id) { if ($(id)) $(id).addEventListener('click', onBuy); });
+    render();
+  }
+  root.Team3CrewUI = { mount: mount, render: render, seen: seen };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
+ * Team3MenuUI(0.8.0) — 사무실 아래 메뉴: 팀 · 출동 · 상황실(가운데, 메인) · 증거 · 파트너.
+ *
+ *   탭 옮기기: 아래 메뉴 · 화면 좌우로 밀기 · 바로 가기(오늘 할 일 · 팀/증거 단추)는 그 탭의 그 칸까지 굴려 노랗게 짚는다.
+ *   뒤로: 열었던 탭을 하나씩 되돌아가고, 마지막엔 상황실. 상황실에서는 앱이 종료를 맡는다(두 번 눌러 종료).
+ *   메뉴 숫자: 팀 · 출동 = 지금 살 수 있는 개수(초록), 파트너 = 뽑기권 · 오늘 안 쓰다듬음(빨강), 증거 = 받을 단서가 지난번보다 많으면 반짝.
+ *   팀 탭: 요약 한 줄(팀 속도 · 팀 수사비 · 부서 수입) · 작은 탭(3팀 · 부서 · 지원) · "추천" 띠(1분 수입이 값에 비해 가장 많이 느는 칸).
+ *   상황실 탭: 오늘 할 일(접힘 · 누르면 그 칸으로) · 팀/증거 바로 가기.
+ *   출동 탭: 출동 기록판(최근 5판 막대 · 난이도마다 최고).
+ *   파트너 탭: 파트너 칸(크게) · 뽑기/도감/옷장/매점 · 파트너 효과 목록.
+ * 규칙은 다른 모듈에 있다. 여기는 화면 배치와 이동만. hub.js 가 render 할 때 같이 부른다.
+ */
+(function (root) {
+  'use strict';
+  var ORDER = ['team', 'run', 'home', 'evid', 'pets'];
+  var ctx = null, cur = 'home', hist = [], sub = 'team', onShow = {};
+  function $(id) { return document.getElementById(id); }
+  function S() { return ctx.getSave(); }
+  function setHTML(el, h) { if (el && el._mh !== h) { el._mh = h; el.innerHTML = h; } }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // 0.8.0 작은 탭 · 탭을 떠날 때 그 안의 "새" 표시를 지운다(한 번 봤으니까)
+  function leaveSub(k) { if (!ctx.CUI || cur !== 'team') return; if (k === 'team') ctx.CUI.seen('r'); if (k === 'tech') ctx.CUI.seen('t'); }
+  /* ---------- 탭 ---------- */
+  function go(tab, opt) {
+    opt = opt || {};
+    if (ORDER.indexOf(tab) < 0 || !$('t-' + tab)) return;
+    var from = cur;
+    if (tab !== from && ctx.CUI) { if (from === 'team') leaveSub(sub); if (from === 'run') ctx.CUI.seen('k'); }
+    if (tab !== from) {
+      if (!opt.back) { hist = hist.filter(function (x) { return x !== from; }); hist.push(from); if (hist.length > 8) hist.shift(); }
+      var dx = ORDER.indexOf(tab) > ORDER.indexOf(from) ? '14px' : '-14px';
+      document.querySelectorAll('#h-tabs .tab').forEach(function (t) { var on = t.id === 't-' + tab; t.classList.toggle('on', on); if (on) t.style.setProperty('--dx', dx); });
+      cur = tab;
+    }
+    document.querySelectorAll('#h-nav button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-go') === tab); });
+    if (onShow[tab]) onShow[tab]();
+    render();
+  }
+  /** 뒤로: 처리했으면 true(앱이 종료로 넘기지 않게) */
+  function back() {
+    if (cur === 'home') return false;
+    var prev = hist.pop();
+    while (prev && (prev === cur)) prev = hist.pop();
+    go(prev || 'home', { back: true });
+    if (!prev) hist = [];
+    return true;
+  }
+  function setSub(k) {
+    if (sub !== k) leaveSub(sub);
+    sub = k;
+    document.querySelectorAll('#h-seg button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-sub') === k); });
+    document.querySelectorAll('#t-team .t-sub').forEach(function (d) { d.classList.toggle('on', d.getAttribute('data-sub') === k); });
+  }
+  // 그 탭으로 옮기고 그 칸을 탭 가운데로 굴려 노랗게 짚는다(탭 안에서만 굴린다 — 머리가 밀려 잘리지 않게)
+  function jump(tab, sel) {
+    var el = typeof sel === 'string' ? document.querySelector(sel) : sel;
+    if (el && tab === 'team') { var sb = el.closest('.t-sub'); if (sb) setSub(sb.getAttribute('data-sub')); }
+    go(tab);
+    if (!el) return;
+    setTimeout(function () {
+      var pg = el.closest('.tab'); if (!pg) return;
+      var r = el.getBoundingClientRect(), pr = pg.getBoundingClientRect();
+      pg.scrollTo({ top: pg.scrollTop + r.top - pr.top - Math.max(0, (pr.height - r.height) / 2), behavior: 'smooth' });
+      el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot');
+    }, 60);
+  }
+
+  /* ---------- 살 수 있는 것 · 추천 ---------- */
+  function can(btns) { var n = 0; btns.forEach(function (b) { if (b && !b.disabled && !b.classList.contains('short') && !b.classList.contains('max')) n += 1; }); return n; }
+  function q(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function teamBtns(k) {
+    if (k === 'team') return [$('h-hire'), $('h-trainb')].concat(q('#h-crew [data-crbuy]'));
+    if (k === 'tech') return q('#h-tech [data-crbuy]');
+    if (k === 'dept') return q('#h-dept [data-buy]');
+    return q('#h-support [data-support]');
+  }
+  /*
+   * 추천: 지금 살 수 있는 것 중 "1분 수입이 값에 비해 가장 많이 느는" 칸. 형사 · 훈련은 하나 늘린 셈 치고 1분 수입을 다시 재고,
+   *   부서는 한 명 늘린 셈 치고 부서 수입을 다시 잰다(저장은 바로 되돌린다).
+   */
+  function bestBuy() {
+    var s = S(), I = ctx.I, t = ctx.nowMs(), best = null, bestV = 0;
+    var base = I.incomePerMin(s, t) / 60 + (ctx.Dp ? ctx.Dp.perSec(s, ctx.deptMult(s)) : 0);
+    function tryOne(el, cost, bump, undo) {
+      if (!el || el.disabled || !(cost > 0) || cost > s.money) return;
+      bump(); var v = I.incomePerMin(s, t) / 60 + (ctx.Dp ? ctx.Dp.perSec(s, ctx.deptMult(s)) : 0); undo();
+      var gain = (v - base) / cost;
+      if (gain > bestV) { bestV = gain; best = el; }
+    }
+    try {
+      tryOne($('h-hire'), I.cost(s, 'hire'), function () { s.detectives += 1; }, function () { s.detectives -= 1; });
+      tryOne($('h-trainb'), I.cost(s, 'train'), function () { s.training += 1; }, function () { s.training -= 1; });
+      if (ctx.Dp) ctx.Dp.LIST.forEach(function (x) {
+        var el = document.querySelector('#h-dept [data-buy="' + x.id + '"]');
+        tryOne(el, ctx.Dp.cost(s, x.id, 1, 0), function () { s.dept.n[x.id] += 1; }, function () { s.dept.n[x.id] -= 1; });
+      });
+    } catch (e) { return null; }
+    return best;
+  }
+
+  /* ---------- 오늘 할 일 ---------- */
+  function todos() {
+    var s = S(), out = [], day = ctx.dayNow();
+    if (ctx.E) { var st = ctx.E.dailyStatus(s, day); out.push({ ic: '🏅', t: '오늘의 특별 출동', a: '도전', done: st.done, go: function () { jump('run', '#h-daily'); } }); }
+    if (ctx.PT && s.pets && s.pets.eq) { var bd = ctx.PT.bondOf(s, s.pets.eq); out.push({ ic: '🐾', t: '파트너 쓰다듬기', a: '쓰다듬기', done: bd.last === day, go: function () { jump('pets', '#h-pet'); } }); }
+    if (ctx.PT && ctx.PT.freeLeft) { var fl = ctx.PT.freeLeft(s, day, ctx.freeExtra ? ctx.freeExtra() : 0); out.push({ ic: '🎟️', t: '오늘 무료 뽑기', a: '뽑기', done: !(fl > 0), go: function () { go('pets'); if (ctx.PUI) ctx.PUI.open('draw'); } }); }
+    if (ctx.OF && s.office) { var full = (s.office.cell || 0) >= (ctx.OF.CELL_CAP || 20); out.push({ ic: '🚔', t: '유치장 이송', a: '이송', done: !full, go: function () { jump('home', '#h-office'); } }); }
+    if (ctx.H) { var un = ctx.H.unclaimed(s); if (un) out.push({ ic: '🏆', t: '업적 보상 ' + un + '개', a: '받기', done: false, go: function () { if (ctx.AUI) ctx.AUI.open(); } }); }
+    return out;
+  }
+  function renderTodo() {
+    var box = $('h-todo'); if (!box) return;
+    var list = todos(), left = list.filter(function (x) { return !x.done; }), nx = left[0];
+    box._list = list;
+    setHTML(box, '<h4 data-fold>오늘 할 일 <small>' + (list.length - left.length) + ' / ' + list.length + '<span class="chev">▾</span></small></h4>' +
+      '<div class="next" data-fold>' + (nx ? '다음: ' + nx.ic + ' <b>' + esc(nx.t) + '</b>' : '오늘 할 일을 다 했어요 ✓') + '</div>' +
+      list.map(function (x, i) { return '<button class="' + (x.done ? 'done' : '') + '" data-todo="' + i + '"><b aria-hidden="true">' + x.ic + '</b><span>' + esc(x.t) + '</span><em>' + (x.done ? '완료' : x.a + ' ›') + '</em></button>'; }).join(''));
+  }
+
+  /* ---------- 출동 기록판 ---------- */
+  function renderRec() {
+    var box = $('h-rec'); if (!box) return;
+    var s = S(), r = (s.recent || []).slice(-5), mx = Math.max.apply(null, r.concat([1]));
+    var b = s.diff && s.diff.bests ? s.diff.bests : { easy: 0, normal: s.bestScore || 0, hard: 0 };
+    var Df = ctx.Df, L = function (k) { return Df ? Df.info(k) : { icon: '', name: k, color: '#FFD23F' }; };
+    setHTML(box, '<h4>출동 기록 <small>최근 ' + (r.length || 0) + '판</small></h4>' +
+      (r.length ? '<div class="rec-bars">' + r.map(function (v, i) { var last = i === r.length - 1; return '<div><i class="' + (last ? 'last' : '') + '" style="height:' + Math.max(4, Math.round(v / mx * 70)) + '%"><em>' + ctx.fmtShort(v) + '</em></i><small>' + (last ? '방금' : (r.length - 1 - i) + '판 전') + '</small></div>'; }).join('') + '</div>'
+        : '<small style="color:var(--muted)">출동하면 점수가 여기 쌓여요</small>') +
+      '<div class="rec-best">' + ['easy', 'normal', 'hard'].map(function (k) { var l = L(k); return '<div style="--c:' + l.color + '"><small>' + l.icon + ' ' + l.name.replace(' 사건', '') + ' 최고</small><b>' + (b[k] ? ctx.fmt(b[k]) : '—') + '</b></div>'; }).join('') + '</div>');
+  }
+
+  /* ---------- 파트너 탭 ---------- */
+  function renderPets() {
+    var s = S(), p = s.pets || {}, PT = ctx.PT; if (!PT) return;
+    var day = ctx.dayNow(), fl = PT.freeLeft ? PT.freeLeft(s, day, ctx.freeExtra ? ctx.freeExtra() : 0) : 0, pr = PT.progress ? PT.progress(s) : null;
+    var set = function (id, t, hot) { var e = $(id); if (e) { e.textContent = t; e.parentNode.classList.toggle('hot', !!hot); } };
+    set('h-pl-draw', '뽑기권 ' + (p.tickets || 0) + '장' + (fl > 0 ? ' · 무료 ' + fl : ''), (p.tickets || 0) > 0 || fl > 0);
+    set('h-pl-dex', pr ? pr.have + ' / ' + pr.total : '');
+    set('h-pl-closet', '옷 ' + (p.closet ? Object.keys(p.closet).length : 0) + '벌');
+    set('h-pl-shop', '배지 · 시즌 패스');
+    var x = p.eq && PT.parse(p.eq), lines = [];
+    if (x) {
+      var eff = PT.describe(PT.eqEffect(x.id, x.g, p.own[p.eq])), bd = PT.bondOf(s, p.eq);
+      eff.forEach(function (t) { var m = /^(.*?)\s*([+−-].*)$/.exec(t); lines.push('<div><span>' + esc(m ? m[1] : t) + '</span><b>' + esc(m ? m[2] : '') + '</b></div>'); });
+      lines.push('<div><span>친밀도</span><b style="color:#FF8FB0">♥ ' + bd.lv + '단계 · 함께 ' + bd.days + '일</b></div>');
+    }
+    setHTML($('h-peff'), lines.length ? '<span class="section-t" style="margin:4px 0 0">파트너 효과</span>' + lines.join('') : '');
+  }
+
+  /* ---------- 매초 ---------- */
+  function render() {
+    if (!ctx || !$('h-nav')) return;
+    var s = S();
+    // 팀 · 출동: 살 수 있는 개수
+    var nt = can(teamBtns('team')) + can(teamBtns('tech')) + can(teamBtns('dept')) + can(teamBtns('sup'));
+    var nr = can(q('#h-gear button')) + can(q('#h-kit [data-crbuy]'));
+    var dailyLeft = ctx.E ? !ctx.E.dailyStatus(s, ctx.dayNow()).done : false;
+    var ev = ctx.Ev, gain = ev ? ev.gainNow(s) : 0, lg = s.evid && s.evid.log && s.evid.log.length ? s.evid.log[s.evid.log.length - 1].gain : 0;
+    var evGlow = gain >= 1 && (lg ? gain > lg : gain >= 3);
+    var p = s.pets || {}, unpat = ctx.PT && p.eq && ctx.PT.bondOf(s, p.eq).last !== ctx.dayNow();
+    var np = (p.tickets || 0) + (unpat ? 1 : 0);
+    var dot = function (k, n, cls) { var b = document.querySelector('#h-nav [data-go="' + k + '"] em'); if (!b) return; b.hidden = !n; b.textContent = n > 99 ? '99+' : n; b.className = cls || ''; };
+    dot('team', nt, 'can'); dot('run', nr + (dailyLeft ? 1 : 0), 'can'); dot('pets', np, '');
+    var eb = document.querySelector('#h-nav [data-go="evid"]'); if (eb) eb.classList.toggle('glow', evGlow);
+    // 작은 탭 숫자
+    // 작은 탭: 새로 열린 칸이 있으면 파란 "새 N", 아니면 살 수 있는 개수(초록)
+    var Cr = ctx.Cr, nNew = { team: Cr ? Cr.newCount(s, 'r') : 0, tech: Cr ? Cr.newCount(s, 't') : 0 };
+    q('#h-seg button').forEach(function (b) { var k = b.getAttribute('data-sub'), nn = nNew[k] || 0, n = can(teamBtns(k)), e = b.querySelector('em');
+      e.hidden = !(nn || n); e.textContent = nn ? '새 ' + nn : n; e.classList.toggle('new', !!nn); });
+    // 팀 요약
+    var I = ctx.I, t = ctx.nowMs(), rate = I.teamRate(s) * 60, inc = I.incomePerMin(s, t), dpm = ctx.Dp ? ctx.Dp.perSec(s, ctx.deptMult(s)) * 60 : 0;
+    setHTML($('h-tsum'), '<div><small>팀 속도</small><b>' + (rate < 10 ? rate.toFixed(1) : ctx.fmtShort(Math.round(rate))) + '명/분</b></div><div><small>팀 수사비</small><b>+' + ctx.fmtShort(inc) + '/분</b></div><div><small>부서 수입</small><b>+' + ctx.fmtShort(dpm) + '/분</b></div>');
+    // 추천 띠
+    var best = bestBuy();
+    q('.reco-rib').forEach(function (e) { if (!best || !best.closest || e !== best.closest('.item, .dept')) e.classList.remove('reco-rib'); });
+    var row = best && best.closest('.item, .dept'); if (row) row.classList.add('reco-rib');
+    // 바로 가기 · 상황실 출동 단추 글
+    var qt = $('h-q-team'), qe = $('h-q-evid');
+    if (qt) { qt.querySelector('small').textContent = nt ? '살 수 있는 것 ' + nt + '개 ›' : '수사비를 모으는 중'; qt.classList.toggle('hot', nt > 0); }
+    if (qe) { qe.querySelector('small').textContent = '재수사 단서 ' + gain + (evGlow ? ' · 지금 좋아요' : ''); qe.classList.toggle('glow', evGlow); }
+    var gs = $('h-go-sub'), hs = $('h-go-home-sub'); if (gs && hs) hs.textContent = gs.textContent;
+    var hg = $('h-go'), hh = $('h-go-home'); if (hg && hh) hh.classList.toggle('urgent', hg.classList.contains('urgent'));
+    renderTodo();
+    if (cur === 'run') renderRec();
+    if (cur === 'pets') renderPets();
+  }
+
+  /* ---------- 좌우로 밀기 ---------- */
+  function swipe() {
+    var box = $('h-tabs'), sx = null, sy = 0, st = 0;
+    box.addEventListener('touchstart', function (e) {
+      // 끌어 옮기는 것(파트너) · 증거판 칸 · 가로로 넘기는 줄 위에서는 밀기를 하지 않는다
+      if (e.target.closest('#of-pet, #ev-board, .office, input, textarea, .swap')) { sx = null; return; }
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+    }, { passive: true });
+    box.addEventListener('touchend', function (e) {
+      if (sx == null) return;
+      var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+      if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6 || Date.now() - st > 700) return;
+      var i = ORDER.indexOf(cur) + (dx < 0 ? 1 : -1);
+      if (i >= 0 && i < ORDER.length) go(ORDER[i]);
+    }, { passive: true });
+  }
+
+  function mount(c) {
+    ctx = c;
+    if (!$('h-nav')) return;
+    $('h-nav').addEventListener('click', function (e) { var b = e.target.closest('[data-go]'); if (b) go(b.getAttribute('data-go')); });
+    $('h-seg').addEventListener('click', function (e) { var b = e.target.closest('[data-sub]'); if (b) setSub(b.getAttribute('data-sub')); });
+    $('h-go-home').addEventListener('click', function () { $('h-go').click(); });
+    $('h-q-team').addEventListener('click', function () { var best = bestBuy(); jump('team', best ? best.closest('.item, .dept') : null); });
+    $('h-q-evid').addEventListener('click', function () { go('evid'); });
+    $('h-todo').addEventListener('click', function (e) {
+      if (e.target.closest('[data-fold]')) { $('h-todo').classList.toggle('fold'); return; }
+      var b = e.target.closest('[data-todo]'); if (!b) return;
+      var x = ($('h-todo')._list || [])[+b.getAttribute('data-todo')]; if (x) x.go();
+    });
+    document.querySelector('#t-pets .t-plinks').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-pet]'); if (!b) return;
+      var k = b.getAttribute('data-pet');
+      if (k === 'shop') { if (ctx.SUI) ctx.SUI.open('shop'); } else if (ctx.PUI) ctx.PUI.open(k);
+    });
+    onShow.run = renderRec;
+    onShow.pets = renderPets;
+    onShow.evid = function () { if (ctx.EUI && ctx.EUI.draw) ctx.EUI.draw(); };
+    swipe();
+    go('home', { back: true });
+  }
+
+  root.Team3MenuUI = { mount: mount, go: go, back: back, jump: jump, render: render, current: function () { return cur; } };
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+/*
  * 사무실 — 수사 3팀의 첫 화면(방치형, 사건 1). SuspectsIdle 의 저장을 들고 1초마다 팀의 일을 반영한다.
  *
  * 흐름: 켜면 저장을 읽고(깨졌으면 새로) → 자리를 비운 동안의 일(잠복 보고)을 보여 주고 → 사무실.
@@ -10728,7 +11391,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
   var PT = window.Team3Pets, PUI = window.Team3PetsUI;   // 0.3.0 동물 뽑기(규칙 · 화면)
   var OF = window.Team3Office, OUI = window.Team3OfficeUI;   // 0.6.0 살아 있는 사무실(유치장 · 커피 · 장면)
   var Dp = window.Team3Dept, Ev = window.Team3Evidence, EUI = window.Team3EvidUI;   // 0.7.0 부서 · 재수사 · 증거판
-  var Df = window.Team3Diff, DUI = window.Team3DiffUI;   // 0.7.0 난이도(단순 · 강력 · 미제 사건)
+  var Df = window.Team3Diff, DUI = window.Team3DiffUI, MUI = window.Team3MenuUI;   // MUI: 0.8.0 아래 메뉴
+  var Cr = window.Team3Crew, CUI = window.Team3CrewUI;   // 0.8.0 팀원 직무 · 공용 장비 · 수사 기법   // MUI: 0.8.0 아래 메뉴   // 0.7.0 난이도(단순 · 강력 · 미제 사건)
   var H = window.Team3Ach, AUI = window.Team3AchUI;      // 0.3.0 업적 · 칭호(규칙 · 화면)
   var M = window.Team3Monet, SUI = window.Team3ShopUI;   // 0.4.0 상점 · 광고 자리 · 월정액 · 시즌 패스(규칙 · 화면)
   if (!UI || !I) return;
@@ -10747,6 +11411,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     var pk = M && sv.shop ? M.perks(sv, Date.now()) : null;
     if (pk && pk.capMin) { b = b || (PT ? PT.zero() : { cap: 0 }); b.cap = (b.cap || 0) + pk.capMin; }
     // 0.7.0 증거판 · 재수사 경력도 같은 갈래로 더한다
+    // 0.8.0 팀원 직무 · 공용 장비 · 수사 기법도
+    if (Cr) { var cb = Cr.bonus(sv); b = b || (PT ? PT.zero() : {}); Object.keys(cb).forEach(function (k) { b[k] = (b[k] || 0) + (cb[k] || 0); }); }
     if (Ev && sv.evid) { var eb = Ev.bonus(sv); b = b || (PT ? PT.zero() : {}); Object.keys(eb).forEach(function (k) { b[k] = (b[k] || 0) + (eb[k] || 0); }); }
     return b;
   }
@@ -10769,11 +11435,11 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     var b = petBonus(save), mul = 1 + (b && b.party ? b.party / 100 : 0);
     save.partyUntil = Math.max(save.partyUntil || 0, nowMs()) + I.TUNE.partySec * mul * 1000;
   }
-  if (PT || Ev) I.setBonus(petBonus);
+  if (PT || Ev || Cr) I.setBonus(petBonus);
   // 0.7.0 부서 수입 · 번 수사비(재수사 단서) 훅
   if (Dp) I.setExtraIncome(function (sv) { return sv.dept ? Dp.perSec(sv, deptMult(sv)) : 0; });
   if (Ev) I.setEarn(function (sv, v) { Ev.earn(sv, v); });
-  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); if (OF) OF.clean(save); if (Dp) Dp.clean(save); if (Ev) Ev.clean(save); if (Df) Df.clean(save); }
+  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); if (OF) OF.clean(save); if (Dp) Dp.clean(save); if (Ev) Ev.clean(save); if (Df) Df.clean(save); if (Cr) Cr.clean(save); }
   /*
    * 업적 확인(0.3.0). 사무실을 그릴 때마다(1초) 본다 — 조건이 20개 남짓이라 가볍다.
    *   새로 달성하면 보상(배지 · 뽑기권)을 주고 저장, 사무실에서 차례로 알린다.
@@ -10909,6 +11575,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     var t = nowMs(), buff = I.buffed(save, t);
     if (OUI) OUI.tick();   // 0.6.0 사무실 장면(형사 수 · 날씨 · 사기 충전)
     if (EUI) EUI.tick();   // 0.7.0 부서 · 재수사 칸
+    if (CUI) CUI.render();
+    if (MUI) MUI.render();   // 0.8.0 메뉴 숫자 · 추천 · 오늘 할 일
     // 내 자리: 사용자가 넣은 이름이라 textContent 로만 넣는다
     $('h-station').textContent = save.profile.station + ' · 수사 3팀';
     var ld = $('h-leader');
@@ -10930,7 +11598,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     // 0.4.0 동물 효과가 보이게: 분당 수사비 중 동물(보유 + 파트너) 몫을 따로
     var inc = I.incomePerMin(save, t), pb = PT ? petBonus(save) : null, petInc = 0;
     if (pb && (pb.idle || pb.speed)) petInc = Math.round(inc - inc / ((1 + pb.idle / 100) * (1 + pb.speed / 100)));
-    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(inc) + '/분' + (petInc > 0 ? ' (동물 +' + fmt(petInc) + ')' : '');
+    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(inc) + '/분' + (petInc > 0 ? ' (효과 +' + fmt(petInc) + ')' : '');
     renderMini(inc, petInc);
     var b = $('h-buff');
     b.hidden = !buff;
@@ -11465,9 +12133,9 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
   // 0.7.0 수사비가 길어져 옆 칩과 부딪히면 글자를 줄인다(두 줄로 꺾지 않는다). 30px → 최소 18px
   function fitMoney() {
     var m = $('h-money'), w = m && m.parentNode; if (!w || !w.clientWidth) return;
-    var room = w.parentNode.clientWidth - w.nextElementSibling.offsetWidth - 10;
+    var room = w.parentNode.clientWidth - w.nextElementSibling.offsetWidth - 12;
     m.style.fontSize = '';
-    var full = m.scrollWidth;
+    var full = m.getBoundingClientRect().width;   // 0.8.0: 글자 칸(inline)은 scrollWidth 가 0 이라 실제 너비로 잰다
     if (full > room && room > 0) m.style.fontSize = Math.max(18, Math.floor(30 * room / full)) + 'px';
   }
   function diffGoSub() {
@@ -11677,6 +12345,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     if (PUI && PUI.isOpen()) { PUI.close(); return 'stay'; }
     if (AUI && AUI.isOpen()) { AUI.close(); return 'stay'; }
     if (SUI && SUI.isOpen()) { SUI.close(); return 'stay'; }
+    // 0.8.0 사무실이면: 열었던 탭을 하나씩 되돌아가고, 상황실이면 앱에 맡긴다(두 번 눌러 종료)
+    if (MUI && $('s-hub').classList.contains('on') && !UI.sheetOpen() && MUI.back()) return 'stay';
     return UI.back();
   };
 
@@ -11692,7 +12362,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
       get: function () { return d.get.call(el); },
       set: function (v) { if (el._h === v) return; el._h = v; d.set.call(el, v); } });
   }
-  ['h-gear', 'h-prep', 'h-prep-now', 'h-medals', 'h-support', 'h-dept', 'h-dept-mode', 'h-retreat'].forEach(guardHTML);
+  ['h-gear', 'h-prep', 'h-prep-now', 'h-medals', 'h-support', 'h-dept', 'h-dept-mode', 'h-retreat'].forEach(guardHTML);   // h-crew · h-kit · h-tech 는 crewui.js 가 스스로 막는다
 
   /* ---------- 시작 ---------- */
   var loaded = loadSave();
@@ -11705,11 +12375,16 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
   if (PUI) PUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, freeExtra: function () { return M ? M.perks(save, nowMs()).freePulls : 0; } });
   if (AUI) AUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
   if (EUI) EUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, idle: I, nowMs: nowMs, deptMult: deptMult, openInfo: openInfo,
+    showTab: function (t) { if (MUI) MUI.go(t); },
     incomePerSec: function (sv) { return I.incomePerMin(sv, nowMs()) / 60 + (Dp ? Dp.perSec(sv, deptMult(sv)) : 0); },
     onRetreat: function () { applyTheme(); if (PUI) PUI.renderPartner(); } });
   if (OUI) OUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, idle: I, pets: PT, art: window.Team3PetArt, petsUI: PUI,
     progress: function () { return I.progress(save); }, capped: function () { return I.idleCapped(save); }, buffed: function (t) { return I.buffed(save, t); } });
   if (DUI) DUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
+  // 0.8.0 아래 메뉴(탭 · 뒤로 · 밀기 · 메뉴 숫자 · 오늘 할 일 · 추천 · 출동 기록 · 파트너 탭)
+  if (CUI) CUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, fmt: fmt, fmtShort: fmtShort, bonus: function () { return petBonus(save); }, showTab: function (t) { if (MUI) MUI.go(t); } });
+  if (MUI) MUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, I: I, Cr: Cr, CUI: CUI, E: E, PT: PT, PUI: PUI, SUI: SUI, AUI: AUI, EUI: EUI, Ev: Ev, Dp: Dp, Df: Df, H: H, OF: OF, M: M,
+    deptMult: deptMult, nowMs: nowMs, dayNow: dayNow, fmt: fmt, fmtShort: fmtShort, freeExtra: function () { return M ? M.perks(save, nowMs()).freePulls : 0; } });
   if (SUI) SUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, grant: grant, freeParty: freeParty, day: dayNow });
   // 출동 결과의 "수사비 2배 받기"(광고 자리): 한 번만
   document.addEventListener('click', function (e) {

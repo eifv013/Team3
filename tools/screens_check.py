@@ -61,6 +61,7 @@ def main():
         pg.clock.run_for(3000)
 
         # 사무실 파트너
+        pg.evaluate("Team3MenuUI.go('pets')"); pg.clock.run_for(300)   # 0.8.0 파트너는 파트너 탭
         need(pg.locator('#h-pet-art').count() == 1, '사무실: 파트너 그림이 없음')
         pg.click('#h-pet-art'); pg.clock.run_for(300)
         need(pg.locator('#h-pet-bubble').is_visible(), '사무실: 쓰다듬어도 말풍선이 안 뜸')
@@ -88,7 +89,7 @@ def main():
         pg.click('#shop-x'); pg.clock.run_for(200)
 
         # 동물 창
-        pg.click('#h-pet-open'); pg.clock.run_for(300)
+        pg.click('#t-pets [data-pet="draw"]'); pg.clock.run_for(300)
         pg.click('#pets-tabs [data-tab=draw]'); pg.clock.run_for(200)
         need('이번 주 출동 동물' in pg.text_content('#pets-pickup'), '뽑기: 픽업 띠가 없음')
         need('무료' in pg.text_content('#pets-one'), '뽑기: 오늘 무료 뽑기가 없음')
@@ -144,7 +145,7 @@ def main():
         pg.click('#pets-x'); pg.clock.run_for(300)
 
         # 출동 → 결과(시간을 빨리 감는다)
-        pg.click('#h-go'); pg.clock.run_for(6000)
+        pg.evaluate("Team3MenuUI.go('home')"); pg.click('#h-go-home'); pg.clock.run_for(6000)
         # 판에서 맞는 한 패를 몇 번 잡는다(smoke.py 와 같은 방법)
         for _ in range(4):
             bd = pg.evaluate("() => [...document.querySelectorAll('#board .card')].map(b => +b.dataset.id)")

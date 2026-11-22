@@ -36,7 +36,7 @@
    */
   // 0.1.20: 효과음 크기 50 에서 예전 기본(배수 2 × 0.8²≈1.28)의 2배 ≈ 2.5 가 되도록 5 × 0.5. 리미터가 찢어짐을 막는다
   // 0.1.21: 더 키워 달라는 의견으로 한 번 더 2배(5 → 10)
-  var MASTER_GAIN = 10;
+  var MASTER_GAIN = 15;   // 0.8.0: 효과음 전체 1.5배(10 → 15). 넘치는 건 뒤의 리미터가 누른다
   var ac = null, master = null;
   function audio() {
     if (silent()) return null;
@@ -79,7 +79,7 @@
    */
   // 0.1.20: 음악 크기 50 에서 예전 기본(0.55 × 0.7²≈0.27)의 2배 ≈ 0.55 가 되도록 1.1 × 0.5
   // 0.1.21: 한 번 더 2배(1.1 → 2.2). 큰 소리는 bgm.js 의 리미터가 누른다
-  var BGM_GAIN = 2.2;
+  var BGM_GAIN = 3.3;   // 0.8.0: 배경음 1.5배(2.2 → 3.3)
   var music = window.Team3Bgm
     ? window.Team3Bgm.createPlayer({ context: function () { return audio(); }, music: window.Team3Music || {}, gain: BGM_GAIN * curve(settings.music) })
     : { want: function () {}, wake: function () {}, duck: function () {}, dim: function () {}, setVolume: function () {}, setMuted: function () {}, state: function () { return {}; } };
@@ -173,8 +173,9 @@
     // 시계 초침(0.1.14): 녹음된 "톡-틱-틱" 1초. 마지막 3초는 조금 크게. 녹음을 못 쓰면 예전 짧은 "삑"(5초 안쪽에서만)
     clock: function (left) {
       // 0.2.1: 초침이 다른 소리보다 커서 줄였다(0.7/1.0 → 0.3/0.45)
-      if (sample('clock', left <= 3 ? 0.45 : 0.3)) return;
-      if (left <= 5) sfx.tickLow();
+      // 0.8.0: 초침은 절반으로. 전체(master)가 1.5배가 됐으니 여기서 ÷3 → 들리는 크기는 예전의 절반(0.3/0.45 → 0.1/0.15)
+      if (sample('clock', left <= 3 ? 0.15 : 0.1)) return;
+      if (left <= 5) tone(880, 0.05, 'sine', 0.07 / 3);
     }
   };
   // 진동: 설정에서 끄면 아무것도 안 한다(0.1.18). 진동 없는 기기도 조용히 넘어간다

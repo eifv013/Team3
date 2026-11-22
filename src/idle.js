@@ -227,7 +227,7 @@
       prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
       prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
       daily: { day: '', done: false, best: 0, tries: 0 },  // 오늘의 특별 출동
-      pets: null, office: null, dept: null, evid: null, diff: null, caseBest: 0, dfrac: 0,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
+      pets: null, office: null, dept: null, evid: null, diff: null, crew: null, caseBest: 0, dfrac: 0,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
       profileEdits: 0,     // 0.3.0 프로필 이름을 바꾼 횟수(0 이면 다음 한 번은 무료)
       ach: null,           // 0.3.0 업적 · 칭호(Team3Ach.clean)
       shop: null,          // 0.4.0 상점 · 광고 자리 · 월정액 · 시즌 패스(Team3Monet.clean)
@@ -317,7 +317,8 @@
     s.office = data.office && typeof data.office === 'object' && !Array.isArray(data.office) ? data.office : null;
     s.dept = data.dept && typeof data.dept === 'object' && !Array.isArray(data.dept) ? data.dept : null;   // 0.7.0 부서(검사는 Team3Dept.clean)
     s.evid = data.evid && typeof data.evid === 'object' && !Array.isArray(data.evid) ? data.evid : null;   // 0.7.0 재수사 · 증거판(검사는 Team3Evidence.clean)
-    s.diff = data.diff && typeof data.diff === 'object' && !Array.isArray(data.diff) ? data.diff : null;   // 0.7.0 난이도(검사는 Team3Diff.clean)
+    s.diff = data.diff && typeof data.diff === 'object' && !Array.isArray(data.diff) ? data.diff : null;
+    s.crew = data.crew && typeof data.crew === 'object' && !Array.isArray(data.crew) ? data.crew : null;   // 0.8.0 팀원 직무 · 공용 장비 · 수사 기법(검사는 Team3Crew.clean)   // 0.7.0 난이도(검사는 Team3Diff.clean)
     s.caseBest = int(data.caseBest, 0, 0, 1e9); s.caseBest = Math.max(s.caseBest, s.caught);
     s.dfrac = typeof data.dfrac === 'number' && data.dfrac >= 0 && data.dfrac < 1 ? data.dfrac : 0;   // 0.6.0 살아 있는 사무실(검사는 Team3Office.clean)   // 0.4.0 상점 · 패스(검사는 Team3Monet.clean)   // 0.3.0 업적(검사는 Team3Ach.clean)
     return { save: s, reset: false };

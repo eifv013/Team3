@@ -104,7 +104,7 @@
   }
   function doRetreat(then) {
     var s = S(), r;
-    try { r = Ev.retreat(s, { now: ctx.nowMs(), newTeam: function (sv, st) { ctx.idle.resetTeam(sv, st); D.reset(sv); if (sv.office) sv.office.cell = 0; } }); }
+    try { r = Ev.retreat(s, { now: ctx.nowMs(), newTeam: function (sv, st) { ctx.idle.resetTeam(sv, st); D.reset(sv); if (root.Team3Crew) root.Team3Crew.reset(sv); if (sv.office) sv.office.cell = 0; } }); }
     catch (e) { toast('재수사할 수 없어요'); return; }
     ctx.persist();
     // 연출: 상황실 불이 꺼졌다 켜진다
@@ -178,8 +178,9 @@
       }).join('');
     });
   }
-  function open() { sel = null; $('evid-sheet').hidden = false; draw(); $('evid-sheet').querySelector('.sheet').scrollTop = 0; }
-  function close() { $('evid-sheet').hidden = true; sel = null; ctx.render(); }
+  // 0.8.0 증거판은 아래 메뉴 '증거' 탭 안에 있다(창이 아니다). open = 그 탭으로 옮기고 다시 그리기
+  function open() { sel = null; if (ctx.showTab) ctx.showTab('evid'); draw(); }
+  function close() { sel = null; }
 
   function onBoardClick(e) {
     var s = S(), t;
@@ -231,8 +232,7 @@
       if (e.target.closest('#h-board')) { open(); return; }
       if (e.target.closest('#h-retreat-go')) { confirmRetreat(false); return; }
     });
-    $('evid-x').addEventListener('click', close);
-    $('evid-sheet').addEventListener('click', function (e) {
+    $('evid-body').addEventListener('click', function (e) {
       // 같은 칸을 두 번 누르면 빼기
       var t = e.target.closest('[data-cell]');
       if (t && sel && S().evid.pins[+t.getAttribute('data-cell')] === sel) { Ev.unpin(S(), +t.getAttribute('data-cell')); ctx.persist(); sel = null; ctx.render(); draw(); toast('증거를 뺐어요'); return; }
@@ -248,5 +248,5 @@
     renderDept(); renderRetreat();
   }
 
-  root.Team3EvidUI = { mount: mount, render: function () { lastDraw = 0; render(); }, tick: render, open: open, close: close, retreatAtClose: retreatAtClose, isOpen: function () { return !$('evid-sheet').hidden; } };
+  root.Team3EvidUI = { mount: mount, render: function () { lastDraw = 0; render(); }, tick: render, open: open, close: close, retreatAtClose: retreatAtClose, isOpen: function () { return false; }, draw: function () { if (ctx) draw(); } };
 })(typeof self !== 'undefined' ? self : this);

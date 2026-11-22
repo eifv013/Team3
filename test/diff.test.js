@@ -19,7 +19,7 @@ test('저장: 기본은 강력 사건 · 고른 적 없음, 이상한 값은 고
   assert.equal(Df.get(s), 'normal'); assert.equal(Df.chosen(s), false);
   s.diff = { k: 'nightmare', set: 'yes', hardRuns: -4, hardCase: { 1: true, x: true, 2: 'y' } };
   Df.clean(s);
-  assert.deepEqual(s.diff, { k: 'normal', set: false, hardRuns: 0, hardGold: 0, hardCase: { 1: true }, best: 0, easyRuns: 0, stepUp: false });
+  assert.deepEqual(s.diff, { k: 'normal', set: false, hardRuns: 0, hardGold: 0, hardCase: { 1: true }, best: 0, easyRuns: 0, stepUp: false, bests: { easy: 0, normal: 0, hard: 0 } });
   assert.equal(Df.set(s, 'hard'), true); assert.equal(Df.chosen(s), true); assert.equal(Df.set(s, 'hard'), false);
   assert.throws(() => Df.set(s, 'x'), { code: 'BAD_DIFF' });
   // 저장 · 읽기를 지나도 남는다
@@ -165,4 +165,13 @@ test('실력 업적: 단순 사건 점수는 안 세고, 예전 최고 점수는
   assert.equal(s.diff.stepUp, true); assert.ok(s.ach.got.stepup);
   assert.equal(Df.countsSkill('easy'), false); assert.equal(Df.countsSkill('hard'), true);
   assert.ok(H.LIST.find(a => a.id === 'score3k').desc.startsWith('강력 사건 이상'));
+});
+
+test('출동 기록판: 난이도마다 최고 점수, 예전 최고 점수는 강력 사건', () => {
+  const s = I.newSave(T0); s.bestScore = 9000; Df.clean(s);
+  assert.deepEqual(s.diff.bests, { easy: 0, normal: 9000, hard: 0 });
+  Df.noteRun(s, 'easy', 12000); Df.noteRun(s, 'hard', 3000); Df.noteRun(s, 'hard', 2000); Df.noteRun(s, 'normal', 8000);
+  assert.deepEqual(s.diff.bests, { easy: 12000, normal: 9000, hard: 3000 });
+  const back = I.load(JSON.stringify(s), T0).save; Df.clean(back);
+  assert.deepEqual(back.diff.bests, { easy: 12000, normal: 9000, hard: 3000 });
 });

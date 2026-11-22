@@ -37,7 +37,7 @@ button:disabled{cursor:default;opacity:.45}
 /* 0.6.0 붙는 줄: 높이 0 인 sticky 상자 안에서 내려오므로 아래 칸을 밀지 않는다 */
 .hub-mini{position:sticky;top:0;z-index:4;height:0;margin:0 -16px;overflow:visible;pointer-events:none}
 .hub-mini>.hm-bar,.hub-mini>.hm-case{pointer-events:auto}
-#s-hub{scroll-padding-top:66px}   /* 붙는 줄 밑으로 가려지지 않게(스크롤해 보여 줄 때 줄 아래로) */
+
 .hm-bar{position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(18,21,28,.94);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid var(--line);transform:translateY(-64px);visibility:hidden;transition:transform .22s ease-out,visibility 0s .22s}
 .hm-case{position:absolute;left:0;right:0;top:44px;height:16px;padding:0 14px;display:flex;align-items:center;gap:8px;background:rgba(18,21,28,.94);border-bottom:1px solid var(--line);transform:translateY(-64px);visibility:hidden;transition:transform .22s ease-out,visibility 0s .22s;font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
 .hm-case i{position:absolute;left:0;bottom:0;height:2px;background:var(--acc);width:0}
@@ -251,6 +251,107 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .set-code:focus{outline:none;border-color:var(--acc)}
 .ghost.danger{color:var(--miss);border-color:rgba(255,122,89,.45)}
 .ghost.armed{background:var(--miss);color:var(--ink);border-color:var(--miss)}
+/* ===== 0.8.0 아래 메뉴 · 탭 ===== */
+#s-hub{gap:8px}
+#s-hub .hub-mini{display:none}
+.tabs{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+.tab{display:none;flex:1;min-height:0;flex-direction:column;gap:12px;padding-top:4px!important;padding-bottom:18px!important}
+.tab.on{display:flex;animation:tabIn .22s ease-out}
+.tab>*{flex:none}
+@keyframes tabIn{from{opacity:0;transform:translateX(var(--dx,10px))}to{opacity:1;transform:none}}
+.hub-nav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);margin:0 -16px -16px;padding:6px 4px calc(8px + env(safe-area-inset-bottom));background:#0F1218;border-top:1px solid #222834;position:relative;z-index:5}
+.hub-nav button{position:relative;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;padding:4px 0;color:var(--muted);font-size:11px;font-weight:700;font-family:inherit}
+.hub-nav button i{font-style:normal;font-size:21px;line-height:1;filter:grayscale(.6);opacity:.75;transition:transform .2s}
+.hub-nav button.on{color:var(--acc)}
+.hub-nav button.on i{filter:none;opacity:1;transform:translateY(-2px) scale(1.08)}
+.hub-nav button.on::before{content:'';position:absolute;top:-7px;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--acc)}
+.hub-nav button.main{margin-top:-30px}
+.hub-nav button.main i{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:26px;filter:none;opacity:1;background:radial-gradient(circle at 35% 30%,#2B3446,#1A1F29);border:2px solid #3A4352;box-shadow:0 6px 14px rgba(0,0,0,.5)}
+.hub-nav button.main.on i{background:radial-gradient(circle at 35% 30%,#FFE38A,var(--acc));border-color:#FFE9A6;box-shadow:0 6px 16px rgba(255,210,63,.35)}
+.hub-nav button.main.on::before{display:none}
+.hub-nav em{position:absolute;top:0;right:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--miss);color:#fff;font-size:10px;font-weight:800;font-style:normal;display:grid;place-items:center}
+.hub-nav em.can{background:var(--ok);color:var(--ink)}
+.hub-nav button.main em{top:-2px;right:calc(50% - 30px)}
+.hub-nav button.glow i{animation:navglow 1.2s ease-in-out infinite}
+@keyframes navglow{50%{filter:drop-shadow(0 0 8px #9FD8FF);transform:scale(1.15)}}
+/* 팀 탭 */
+.t-sum{display:grid;grid-template-columns:repeat(3,1fr);background:var(--panel);border:1px solid #262D39;border-radius:14px;overflow:hidden}
+.t-sum div{padding:8px 10px;border-right:1px solid #262D39;min-width:0}.t-sum div:last-child{border-right:0}
+.t-sum small{display:block;font-size:11px;color:var(--muted)}.t-sum b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:14px;background:#0E1117;border:1px solid #232A36;position:sticky;top:0;z-index:3}
+.t-seg button{height:38px;border:0;border-radius:10px;background:none;color:var(--muted);font-weight:800;font-size:13.5px;font-family:inherit}
+.t-seg button.on{background:var(--panel2);color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.t-seg em{font-style:normal;margin-left:4px;font-size:10.5px;padding:1px 6px;border-radius:8px;background:var(--ok);color:var(--ink)}
+.t-sub{display:none;flex-direction:column;gap:10px}.t-sub.on{display:flex}
+.reco-rib{position:relative}
+.reco-rib::after{content:'추천 · 수입이 가장 많이 늘어요';position:absolute;left:10px;top:-9px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--ok);color:var(--ink);pointer-events:none;white-space:nowrap}
+.item.reco-rib,.dept.reco-rib{outline:1.5px solid rgba(61,220,132,.55);outline-offset:-1px}
+.spot{animation:spot 1.4s ease-out}
+@keyframes spot{0%,40%{box-shadow:0 0 0 4px var(--acc),0 0 24px rgba(255,210,63,.6)}100%{box-shadow:0 0 0 0 transparent}}
+.t-seg em.new{background:#9FD8FF}
+/* 0.8.0 팀원 직무 · 공용 장비 · 수사 기법(crewui.js) */
+.cr-sub{font-weight:600;color:var(--muted);font-size:11.5px;margin-left:6px}
+.cr-row{position:relative;flex-wrap:wrap}
+.cr-row .ic.cr-ic{font-size:21px}
+.cr-row .ic.cr-card{background:#F4EEDC;border-top:4px solid var(--c)}
+.cr-row .tx{min-width:0}
+.cr-row .tx b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-row .tx small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-eff{flex:1 0 100%;font-size:12.5px;color:#C9D0DC;padding:6px 10px;border-radius:10px;background:#161A22;margin-top:2px}
+.cr-eff em{font-style:normal;color:var(--ok);font-weight:800}
+.cr-pips{display:flex;gap:3px;margin-top:4px}.cr-pips i{flex:1;max-width:14px;height:5px;border-radius:3px;background:#363E4C}.cr-pips i.f{background:var(--acc)}
+.cr-new{outline:1.5px solid rgba(159,216,255,.7);outline-offset:-1px}
+.cr-new::after{content:attr(data-tag);position:absolute;right:10px;top:-9px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:#9FD8FF;color:var(--ink);white-space:nowrap;pointer-events:none}
+.cr-row.bought{animation:dbought .45s ease-out}
+.cr-lock{opacity:.5;border:1px dashed #3A4352}
+.cr-lock .ic{filter:grayscale(1) brightness(.7)}
+.cr-lockb{flex:none;font-size:12px;font-weight:700;color:var(--muted);border:1.5px dashed #3A4352;border-radius:12px;padding:10px 10px;white-space:nowrap}
+.cr-next{margin-top:6px}
+.cr-head{display:flex;justify-content:space-between;align-items:baseline;margin:2px 2px 0}
+.cr-head b{font-size:13px;color:var(--muted)}.cr-head small{font-size:12px;color:var(--muted)}
+.cr-empty{margin:0;font-size:13px;color:var(--muted);line-height:1.6;background:var(--panel);border-radius:14px;padding:14px}
+.cr-go-evid{margin-top:2px}
+/* 상황실 탭 */
+.go-home{height:64px}
+.t-todo{background:var(--panel);border:1px solid #262D39;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.t-todo h4{margin:0;font-size:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.t-todo h4 small{color:var(--muted);font-weight:700;font-size:12px}
+.t-todo h4 .chev{display:inline-block;margin-left:6px;transition:transform .2s}
+.t-todo.fold h4 .chev{transform:rotate(-90deg)}
+.t-todo .next{display:none;font-size:12.5px;color:#C9D0DC;cursor:pointer}.t-todo .next b{color:var(--acc)}
+.t-todo.fold .next{display:block}.t-todo.fold button{display:none}
+.t-todo button{display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;border-radius:10px;background:var(--panel2);font-size:13px;color:var(--text);text-align:left;font-family:inherit}
+.t-todo button span{flex:1;min-width:0}.t-todo button em{font-style:normal;font-size:12px;font-weight:800;color:var(--acc);white-space:nowrap}
+.t-todo button.done{opacity:.45}.t-todo button.done span{text-decoration:line-through}.t-todo button.done em{color:var(--ok)}
+.t-quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.t-quick button{border:1px solid #262D39;background:var(--panel);border-radius:14px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;font-family:inherit;color:var(--text)}
+.t-quick button b{font-size:14px}.t-quick button small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-quick button.hot{border-color:rgba(61,220,132,.5)}.t-quick button.hot small{color:var(--ok);font-weight:700}
+.t-quick button.glow{border-color:rgba(159,216,255,.6)}.t-quick button.glow small{color:#9FD8FF;font-weight:700}
+/* 출동 기록판 */
+.t-rec{background:var(--panel);border:1px solid #262D39;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.t-rec h4{margin:0;font-size:14px;display:flex;justify-content:space-between}.t-rec h4 small{color:var(--muted);font-weight:700;font-size:12px}
+.rec-bars{display:flex;align-items:flex-end;gap:8px;height:84px;padding-top:16px}
+.rec-bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
+.rec-bars i{width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--acc),#B8901A);position:relative;min-height:3px}
+.rec-bars i em{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-style:normal;font-size:10px;font-weight:800;color:var(--text);white-space:nowrap}
+.rec-bars i.last{background:linear-gradient(180deg,#9FF0C0,var(--ok))}
+.rec-bars small{font-size:10px;color:var(--muted);white-space:nowrap}
+.rec-best{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rec-best div{border-radius:10px;padding:7px 8px;background:var(--panel2);border-left:3px solid var(--c);min-width:0}
+.rec-best small{display:block;font-size:11px;color:var(--muted);white-space:nowrap}.rec-best b{font-size:14px}
+/* 파트너 탭 */
+#t-pets .pet-card{flex-direction:column;align-items:center;text-align:center;padding:18px 14px}
+#t-pets .pet-card .pet-stage{transform:scale(1.5);margin:26px 0 22px}
+#t-pets .pet-card .pet-tx{align-items:center}
+#t-pets .pet-card #h-pet-open{display:none}
+.t-plinks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.t-plinks button{border:1px solid #262D39;background:var(--panel);border-radius:14px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px;font-family:inherit;color:var(--text)}
+.t-plinks b{font-size:14px}.t-plinks small{font-size:12px;color:var(--muted)}
+.t-plinks button.hot{border-color:rgba(255,107,107,.55)}.t-plinks button.hot small{color:#FF8A80;font-weight:700}
+.t-peff{display:flex;flex-direction:column;gap:6px}
+.t-peff div{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:8px 10px;border-radius:10px;background:var(--panel)}
+.t-peff b{color:var(--ok);white-space:nowrap}
 /* ===== 0.7.0 난이도(단순 · 강력 · 미제 사건) ===== */
 .head-chips{display:flex;align-items:center;gap:6px}
 .head-chips .gem-chip{margin:0;align-self:center}
@@ -1264,7 +1365,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 
 
   <!-- 사무실(방치형) -->
-  <section class="screen scroll" id="s-hub" aria-label="3팀 사무실">
+  <!-- 0.8.0 사무실 = 머리(늘 보임) + 탭 다섯(팀 · 출동 · 상황실 · 증거 · 파트너) + 아래 메뉴. 탭 이동 · 뒤로 · 밀기는 menuui.js -->
+  <section class="screen" id="s-hub" aria-label="3팀 사무실">
     <!-- 0.6.0 내려가면 위에 붙는 얇은 줄: 수사비 · 배지 · 1분 수사비(동물 몫) · 사건 진척(가는 막대) · 파트너 얼굴 -->
     <div class="hub-mini" id="h-mini" aria-hidden="true"><div class="hm-bar"><span class="hm-pet" id="hm-pet"></span><span class="hm-money" id="hm-money"></span><span class="hm-gems" id="hm-gems"></span><span class="hm-diff" id="hm-diff"></span><span class="hm-rate" id="hm-rate"></span></div><div class="hm-case"><i id="hm-fill"></i><span id="hm-case"></span></div></div>
     <!-- 0.7.0 머리: 격자 두 칸. [이름표 | 아이콘 셋] · [수사비 | 난이도 · 배지 칩] · [팀 속도 줄(전체 폭)]
@@ -1284,44 +1386,12 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
           <span class="feed" id="h-feed" aria-live="polite"></span>
         </span>
     </div>
-    <!-- 0.3.0 파트너 동물: 그림을 누르면 기뻐하고, 단추로 동물 · 뽑기 창 -->
-    <div class="pet-card" id="h-pet"></div>
-
-    <div class="casebox">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
-        <b style="font-size:15px" id="h-case">사건 1 · 골목길 연쇄 절도</b>
-        <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="h-caught">0 / 300</span>
-      </div>
-      <div class="bar"><span class="cap" id="h-cap"></span><i id="h-bar" style="width:0%"></i></div>
-      <div class="cap-note" id="h-cap-note"><i></i><span id="h-cap-text">남은 주범 조는 현장 출동으로만 잡을 수 있어요</span></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <button class="linkish" id="h-story-all">수사 일지 보기</button>
-        <span class="city-chip" id="h-city">중앙서</span>
-      </div>
-      <button class="ghost next-case" id="h-next-case" hidden>사건 2 · 해무항으로 파견</button>
-    </div>
-
-    <!-- 출동 준비물(0.1.19): 다음 출동 한 번에 챙겨 가는 소모품. 누르면 챙기고, 챙긴 걸 누르면 무른다 -->
-    <div class="prep">
-      <div class="prep-head"><span class="prep-title"><span class="section-t" style="margin:0">출동 준비물</span><button class="prep-help" id="h-prep-help" aria-label="출동 준비물 효과 보기">?</button></span><span class="medals" id="h-medals"></span></div>
-      <div class="prep-row" id="h-prep"></div>
-      <p class="prep-now" id="h-prep-now"></p>
-    </div>
-
-    <button class="go-btn" id="h-go">
-      <b>현장 출동</b>
-      <small id="h-go-sub">90초 · 잡은 만큼 수사비</small>
-    </button>
-
-    <!-- 하루 한 번 특별 출동(0.1.19): 날마다 규칙이 바뀐다. 준비물·장비 없이 실력으로 -->
-    <div class="daily" id="h-daily">
-      <div class="daily-tx"><span class="label">오늘의 특별 출동</span><b id="h-daily-name">60초 속공</b><small id="h-daily-desc"></small><small class="daily-goal" id="h-daily-goal"></small></div>
-      <button class="buy" id="h-daily-go">도전</button>
-    </div>
-
-    <span class="section-t">3팀</span>
-    <!-- 0.6.0 살아 있는 사무실: 책상 · 유치장 · 창밖 날씨 · 파트너 동물(officeui.js 가 그린다) -->
-    <div class="office" id="h-office" aria-label="3팀 사무실"></div>
+    <div class="tabs" id="h-tabs">
+      <div class="tab scroll" id="t-team" data-tab="team" aria-label="팀">
+        <div class="t-sum" id="h-tsum"></div>
+        <div class="t-seg" id="h-seg" role="tablist"><button class="on" data-sub="team">3팀<em hidden></em></button><button data-sub="tech">기법<em hidden></em></button><button data-sub="dept">부서<em hidden></em></button><button data-sub="sup">지원<em hidden></em></button></div>
+        <div class="t-sub on" data-sub="team">
+          <span class="section-t">형사 · 훈련</span>
     <div class="shop">
       <div class="item">
         <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-4 3-6 6.5-6s6.5 2 6.5 6"/><path d="M18 8v6M15 11h6"/></svg></div>
@@ -1335,23 +1405,84 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
         <button class="buy" id="h-trainb">훈련</button>
       </div>
     </div>
-
-    <!-- 0.7.0 수사 부서: 수사비를 버는 갈래(evidui.js) -->
-    <span class="section-t">부서</span>
+          <span class="section-t">팀원 직무 <small class="cr-sub">사건마다 2개씩 열려요</small></span>
+          <div class="shop" id="h-crew"></div>
+        </div>
+        <div class="t-sub" data-sub="tech">
+          <div class="shop" id="h-tech"></div>
+        </div>
+        <div class="t-sub" data-sub="dept">
+          <span class="section-t">부서</span>
     <div class="dept-mode" id="h-dept-mode"></div>
     <div class="shop" id="h-dept"></div>
-
+        </div>
+        <div class="t-sub" data-sub="sup">
+          <span class="section-t">지원</span>
+    <div class="shop" id="h-support"></div>
+        </div>
+      </div>
+      <div class="tab scroll" id="t-run" data-tab="run" aria-label="출동">
+    <!-- 출동 준비물(0.1.19): 다음 출동 한 번에 챙겨 가는 소모품. 누르면 챙기고, 챙긴 걸 누르면 무른다 -->
+    <div class="prep">
+      <div class="prep-head"><span class="prep-title"><span class="section-t" style="margin:0">출동 준비물</span><button class="prep-help" id="h-prep-help" aria-label="출동 준비물 효과 보기">?</button></span><span class="medals" id="h-medals"></span></div>
+      <div class="prep-row" id="h-prep"></div>
+      <p class="prep-now" id="h-prep-now"></p>
+    </div>
+    <button class="go-btn" id="h-go">
+      <b>현장 출동</b>
+      <small id="h-go-sub">90초 · 잡은 만큼 수사비</small>
+    </button>
+    <!-- 하루 한 번 특별 출동(0.1.19): 날마다 규칙이 바뀐다. 준비물·장비 없이 실력으로 -->
+    <div class="daily" id="h-daily">
+      <div class="daily-tx"><span class="label">오늘의 특별 출동</span><b id="h-daily-name">60초 속공</b><small id="h-daily-desc"></small><small class="daily-goal" id="h-daily-goal"></small></div>
+      <button class="buy" id="h-daily-go">도전</button>
+    </div>
+        <span class="section-t">출동 장비</span>
+    <div class="shop" id="h-gear"></div>
+        <span class="section-t">공용 장비 <small class="cr-sub">사건마다 2개씩 열려요</small></span>
+        <div class="shop" id="h-kit"></div>
+        <div class="t-rec" id="h-rec"></div>
+      </div>
+      <div class="tab scroll on" id="t-home" data-tab="home" aria-label="상황실">
+    <div class="casebox">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+        <b style="font-size:15px" id="h-case">사건 1 · 골목길 연쇄 절도</b>
+        <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="h-caught">0 / 300</span>
+      </div>
+      <div class="bar"><span class="cap" id="h-cap"></span><i id="h-bar" style="width:0%"></i></div>
+      <div class="cap-note" id="h-cap-note"><i></i><span id="h-cap-text">남은 주범 조는 현장 출동으로만 잡을 수 있어요</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <button class="linkish" id="h-story-all">수사 일지 보기</button>
+        <span class="city-chip" id="h-city">중앙서</span>
+      </div>
+      <button class="ghost next-case" id="h-next-case" hidden>사건 2 · 해무항으로 파견</button>
+    </div>
+    <!-- 0.6.0 살아 있는 사무실: 책상 · 유치장 · 창밖 날씨 · 파트너 동물(officeui.js 가 그린다) -->
+    <div class="office" id="h-office" aria-label="3팀 사무실"></div>
+        <button class="go-btn go-home" id="h-go-home"><b>현장 출동</b><small id="h-go-home-sub">90초 · 잡은 만큼 수사비</small></button>
+        <div class="t-todo fold" id="h-todo"></div>
+        <div class="t-quick"><button id="h-q-team"><b>팀</b><small></small></button><button id="h-q-evid"><b>증거</b><small></small></button></div>
+    <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
+      </div>
+      <div class="tab scroll" id="t-evid" data-tab="evid" aria-label="증거">
     <!-- 0.7.0 재수사 · 단서 · 증거판 -->
     <div class="retreat" id="h-retreat"></div>
-
-    <span class="section-t">출동 장비</span>
-    <div class="shop" id="h-gear"></div>
-
-    <span class="section-t">지원</span>
-    <div class="shop" id="h-support"></div>
-
-    <!-- 튜토리얼·처음부터 단추는 0.1.18 부터 설정 창(톱니바퀴)으로 옮겼다 -->
-    <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
+        <div id="evid-body" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <div class="tab scroll" id="t-pets" data-tab="pets" aria-label="파트너">
+    <!-- 0.3.0 파트너 동물: 그림을 누르면 기뻐하고, 단추로 동물 · 뽑기 창 -->
+    <div class="pet-card" id="h-pet"></div>
+        <div class="t-plinks"><button data-pet="draw"><b>뽑기</b><small id="h-pl-draw"></small></button><button data-pet="dex"><b>도감</b><small id="h-pl-dex"></small></button><button data-pet="closet"><b>옷장</b><small id="h-pl-closet"></small></button><button data-pet="shop"><b>매점</b><small id="h-pl-shop"></small></button></div>
+        <div class="t-peff" id="h-peff"></div>
+      </div>
+    </div>
+    <nav class="hub-nav" id="h-nav" aria-label="메뉴">
+      <button data-go="team"><i aria-hidden="true">👥</i><span>팀</span><em hidden></em></button>
+      <button data-go="run"><i aria-hidden="true">🚨</i><span>출동</span><em hidden></em></button>
+      <button data-go="home" class="main on"><i aria-hidden="true">🏢</i><span>상황실</span><em hidden></em></button>
+      <button data-go="evid"><i aria-hidden="true">📌</i><span>증거</span><em hidden></em></button>
+      <button data-go="pets"><i aria-hidden="true">🐾</i><span>파트너</span><em hidden></em></button>
+    </nav>
   </section>
 
   <!-- 튜토리얼: 두 명을 주고 셋째 고르기 -->
@@ -1580,7 +1711,6 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 <button class="x-btn" id="evid-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       <span class="label">재수사 · 단서</span>
       <h2 id="evid-title" style="font-size:26px">증거판</h2>
-      <div id="evid-body" style="display:flex;flex-direction:column;gap:10px"></div>
     </div>
   </div>
   <!-- 0.7.0 난이도 고르기(diffui.js 가 그린다): 튜토리얼 뒤 한 번 · 설정 · 출동 단추 아래에서 연다 -->
@@ -1642,6 +1772,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 /*DEPT*/
 /*EVIDENCE*/
 /*DIFF*/
+/*CREW*/
 /*PETS*/
 </script>
 <script>
@@ -1699,6 +1830,12 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 </script>
 <script>
 /*DIFFUI*/
+</script>
+<script>
+/*CREWUI*/
+</script>
+<script>
+/*MENUUI*/
 </script>
 <script>
 /*HUB*/
