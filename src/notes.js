@@ -9,6 +9,8 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.5.1', date: '2026-11-22', title: '수사 일지 다듬기',
+      items: ['사건 3 수사 일지의 문장 하나를 자연스럽게 고쳤어요.'] },
     { ver: '0.5.0', date: '2026-11-22', title: '사건 3 · 증인의 기억',
       items: [
         '사건 3이 열렸어요. 사건 2를 닫으면 파견돼요. 무대는 중앙서 면통실이에요.',
