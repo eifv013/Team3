@@ -101,13 +101,13 @@
       state.score += gain; state.hits += 1;
       if (m >= 3) state.early += 1;
       state.endAt += (md.hitTime == null ? RULES.hitTime : md.hitTime) * 1000;
-      var lv = levelForHits(state.hits), up = lv !== state.level;
+      var lv = levelForHits(C.lvHits(state)), up = lv !== state.level;
       state.level = lv;
       state.q = makeQuestion(state.rng, lv, now);
       state.hintShown = false;
       return { ok: true, gain: gain, mult: m, combo: state.combo, levelUp: up ? lv : undefined };
     }
-    var pen = md.missPenalty == null ? RULES.missPenalty : md.missPenalty, shielded = false;
+    var pen = C.missPen(state, md.missPenalty == null ? RULES.missPenalty : md.missPenalty), shielded = false;
     if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
     state.combo = 0; state.misses += 1;
     state.endAt -= pen * 1000;

@@ -155,6 +155,17 @@
   var NO_BONUS = { pay: 0, idle: 0, speed: 0, cap: 0, off: 0, gear: 0, night: 0, buff: 0 };
   var bonusFn = null;
   function setBonus(fn) { bonusFn = typeof fn === 'function' ? fn : null; }
+  /*
+   * 0.7.0 바깥 모듈 훅(idle 은 부서 · 증거판을 모른다)
+   *   setExtraIncome(fn(save) → 초당 수사비): 부서 수입. 팀과 같은 시간 규칙(자리 비움 절반 · 한도 · 사기 충전은 안 받음)
+   *   setEarn(fn(save, 수사비)): 번 수사비를 알려 준다(재수사 단서 계산 — 이번 판에 번 수사비)
+   */
+  var extraFn = null, earnFn = null;
+  function setExtraIncome(fn) { extraFn = typeof fn === 'function' ? fn : null; }
+  function setEarn(fn) { earnFn = typeof fn === 'function' ? fn : null; }
+  function extraPerSec(save) { if (!extraFn) return 0; try { var v = +extraFn(save); return isFinite(v) && v > 0 ? v : 0; } catch (e) { return 0; } }
+  function mulOf(v, lo, hi, d) { return typeof v === 'number' && isFinite(v) && v >= lo && v <= hi ? v : d; }
+  function earned(save, v) { if (earnFn && v > 0) { try { earnFn(save, v); } catch (e) { /* 무시 */ } } }
   function bonusOf(save) {
     if (!bonusFn) return NO_BONUS;
     try { var b = bonusFn(save); return b && typeof b === 'object' ? b : NO_BONUS; } catch (e) { return NO_BONUS; }   // 효과 계산이 깨져도 게임은 돈다
@@ -216,7 +227,7 @@
       prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
       prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
       daily: { day: '', done: false, best: 0, tries: 0 },  // 오늘의 특별 출동
-      pets: null, office: null,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
+      pets: null, office: null, dept: null, evid: null, diff: null, caseBest: 0, dfrac: 0,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
       profileEdits: 0,     // 0.3.0 프로필 이름을 바꾼 횟수(0 이면 다음 한 번은 무료)
       ach: null,           // 0.3.0 업적 · 칭호(Team3Ach.clean)
       shop: null,          // 0.4.0 상점 · 광고 자리 · 월정액 · 시즌 패스(Team3Monet.clean)
@@ -303,7 +314,12 @@
     s.pets = data.pets && typeof data.pets === 'object' && !Array.isArray(data.pets) ? data.pets : null;
     s.ach = data.ach && typeof data.ach === 'object' && !Array.isArray(data.ach) ? data.ach : null;
     s.shop = data.shop && typeof data.shop === 'object' && !Array.isArray(data.shop) ? data.shop : null;
-    s.office = data.office && typeof data.office === 'object' && !Array.isArray(data.office) ? data.office : null;   // 0.6.0 살아 있는 사무실(검사는 Team3Office.clean)   // 0.4.0 상점 · 패스(검사는 Team3Monet.clean)   // 0.3.0 업적(검사는 Team3Ach.clean)
+    s.office = data.office && typeof data.office === 'object' && !Array.isArray(data.office) ? data.office : null;
+    s.dept = data.dept && typeof data.dept === 'object' && !Array.isArray(data.dept) ? data.dept : null;   // 0.7.0 부서(검사는 Team3Dept.clean)
+    s.evid = data.evid && typeof data.evid === 'object' && !Array.isArray(data.evid) ? data.evid : null;   // 0.7.0 재수사 · 증거판(검사는 Team3Evidence.clean)
+    s.diff = data.diff && typeof data.diff === 'object' && !Array.isArray(data.diff) ? data.diff : null;   // 0.7.0 난이도(검사는 Team3Diff.clean)
+    s.caseBest = int(data.caseBest, 0, 0, 1e9); s.caseBest = Math.max(s.caseBest, s.caught);
+    s.dfrac = typeof data.dfrac === 'number' && data.dfrac >= 0 && data.dfrac < 1 ? data.dfrac : 0;   // 0.6.0 살아 있는 사무실(검사는 Team3Office.clean)   // 0.4.0 상점 · 패스(검사는 Team3Monet.clean)   // 0.3.0 업적(검사는 Team3Ach.clean)
     return { save: s, reset: false };
   }
 
@@ -397,13 +413,19 @@
     var whole = Math.floor(total);
     save.frac = total - whole;
     var money = whole * payPerCatch(save);
+    // 0.7.0 부서 수입: 팀과 같은 시간(자리 비움이면 절반 · 한도까지). 사기 충전 배수는 팀에만
+    var deptSec = dt * (offline ? Math.min(1, TUNE.offlineRate + pctOf(bn, 'off')) : 1), dept = Math.floor(extraPerSec(save) * deptSec + (save.dfrac || 0));
+    save.dfrac = Math.max(0, Math.min(1, extraPerSec(save) * deptSec + (save.dfrac || 0) - dept));
+    money += dept;
     save.money += money;                       // 수사비는 상한과 상관없이 잡은 만큼 다 들어온다
+    earned(save, money);
     // 사건 진척은 idleCap 까지만(이미 넘었으면 0). 출동으로 넘긴 몫은 깎지 않는다
     var room = Math.max(0, caseOf(save).idleCap - save.caught);
     var counted = Math.min(whole, room);
     save.caught += counted;
+    save.caseBest = Math.max(save.caseBest || 0, save.caught);   // 0.7.0 재수사해도 열어 본 일지는 계속 열려 있게
     save.teamCaught += whole;
-    return { seconds: dt, cap: cap, offline: offline, night: night, catches: whole, counted: counted, money: money, closedNow: checkClose(save, now) };
+    return { seconds: dt, cap: cap, offline: offline, night: night, catches: whole, counted: counted, money: money, dept: dept, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 사기 ---------- */
@@ -462,8 +484,12 @@
     // 0.1.19: 수사비 = 점수 × 계급 배수 × (준비물 "언론 브리핑"이면 payMult). 점수 기록(최고·최근)은 점수 그대로
     var payMult = typeof result.payMult === 'number' && result.payMult >= 1 && result.payMult <= 3 ? result.payMult : 1;
     var bn = bonusOf(save);
-    var pay = Math.round(score * moneyMult(save) * payMult * (1 + pctOf(bn, 'pay')));   // 0.3.0: 동물 효과 출동 수사비 +%
+    var base = score * moneyMult(save) * payMult * (1 + pctOf(bn, 'pay'));   // 0.3.0: 동물 효과 출동 수사비 +%
+    // 0.7.0 난이도: 수사비 ×diffMult(단순 0.7 · 미제 1.5), 재수사 몫(번 수사비 기록)은 ×clueMult(0.8 · 1.25)
+    var dm = mulOf(result.diffMult, 0.3, 3, 1), cm = mulOf(result.clueMult, 0.3, 3, 1);
+    var pay = Math.round(base * dm);
     save.money += pay;
+    earned(save, Math.round(base * cm));
     save.recent = save.recent.concat([score]).slice(-5);
     save.caught += hits;
     save.runCaught += hits;
@@ -518,7 +544,8 @@
 
   /* ---------- 사건 ---------- */
   function storyUnlocked(save) {
-    return caseOf(save).story.filter(function (e) { return save.caught >= e.at; });
+    var best = Math.max(save.caught, save.caseBest || 0);   // 0.7.0 재수사로 진척이 0 이 돼도 이미 연 일지는 열린 채로
+    return caseOf(save).story.filter(function (e) { return best >= e.at; });
   }
   function progress(save) { return Math.min(1, save.caught / caseOf(save).goal); }
   /*
@@ -551,11 +578,25 @@
     if (!nx) throw IdleError(save.closed ? 'NO_NEXT' : 'NOT_CLOSED', save.closed ? '다음 사건이 아직 없다' : '지금 사건을 먼저 끝내야 한다');
     save.past = save.past.concat([{ no: save.caseNo, caught: save.caught, closedAt: save.closedAt }]).slice(-20);
     save.caseNo = nx.no;
-    save.caught = 0; save.frac = 0; save.closed = false; save.closedAt = 0; save.storySeen = 0;
+    save.caught = 0; save.frac = 0; save.closed = false; save.closedAt = 0; save.storySeen = 0; save.caseBest = 0;
     save.lastSeen = now;
     return nx;
   }
   // 열렸지만 아직 안 읽은 편이 있는가 / 지금 열린 편까지 읽었다고 적기
+  /**
+   * 0.7.0 재수사: 팀을 처음으로(evidence.retreat 이 부른다). 수사비 · 형사 · 훈련 · 장비 · 지금 사건 진척.
+   *   남는 것: 사건 번호 · 닫은 사건 · 일지(caseBest) · 계급(runCaught) · 최고 점수 · 프로필 · 동물 · 배지 등 다른 모듈 것.
+   *   start = { startDet, startMoney } — 증거판 효과
+   */
+  function resetTeam(save, start) {
+    start = start || {};
+    save.money = Math.max(0, Math.floor(start.startMoney || 0));
+    save.detectives = 1 + Math.max(0, Math.floor(start.startDet || 0));
+    save.training = 0;
+    GEAR_KEYS.forEach(function (k) { save.gear[k] = 0; });
+    if (!save.closed) { save.caught = 0; }
+    save.frac = 0; save.dfrac = 0;   // 준비물은 남긴다(배지로 산 것을 잃지 않게)
+  }
   function storyUnread(save) { return storyUnlocked(save).length > save.storySeen; }
   function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
 
@@ -563,7 +604,7 @@
     VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
     RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
     cleanName: cleanName, setProfile: setProfile, profileCost: profileCost, changeProfile: changeProfile, NAME_TAGS: NAME_TAGS, payName: payName, buyNameTags: buyNameTags,
-    newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf,
+    newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf, setExtraIncome: setExtraIncome, setEarn: setEarn, resetTeam: resetTeam,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
     idleCapped: idleCapped, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen

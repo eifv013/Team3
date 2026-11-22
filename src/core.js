@@ -263,7 +263,12 @@
    *   shield     오인 체포 벌점을 면제하는 횟수(준비물 "변호사 대기")
    * 모르는 키는 버리고, 값이 이상하면 BAD_OPTION 을 던진다(판을 만들 때 한 번만 검사).
    */
-  var MOD_DEFAULTS = { scoreMult: 1, comboMax: null, hitTime: null, missPenalty: null, noneMult: 1, noHints: false, shield: 0 };
+  /*   0.7.0 난이도(단순·강력·미제 사건):
+   *   missMul    벌점(오인·함정·검거 불가 오판) 배수(단순 0.5 · 미제 1.5)
+   *   hintPenalty 단서 한 번에 줄어드는 초(미제 5). null 이면 모드 기본
+   *   lvSpeed    단계가 오르는 속도. 단계 계산에 쓰는 검거 수 = floor(검거 수 × lvSpeed)(단순 0.67 · 미제 1.5)
+   */
+  var MOD_DEFAULTS = { scoreMult: 1, comboMax: null, hitTime: null, missPenalty: null, noneMult: 1, noHints: false, shield: 0, missMul: 1, hintPenalty: null, lvSpeed: 1 };
   function readMods(m) {
     m = m && typeof m === 'object' ? m : {};
     var out = {};
@@ -274,8 +279,33 @@
     if (out.hitTime != null && !num(out.hitTime, 0, 30)) throw GameError('BAD_OPTION', '검거 시간은 0~30초');
     if (out.missPenalty != null && !num(out.missPenalty, 0, 60)) throw GameError('BAD_OPTION', '오인 벌점은 0~60초');
     if (!num(out.shield, 0, 10) || Math.floor(out.shield) !== out.shield) throw GameError('BAD_OPTION', '면제 횟수는 0~10 정수');
+    if (!num(out.missMul, 0, 5)) throw GameError('BAD_OPTION', '벌점 배수는 0~5');
+    if (out.hintPenalty != null && !num(out.hintPenalty, 0, 30)) throw GameError('BAD_OPTION', '단서 벌점은 0~30초');
+    if (!num(out.lvSpeed, 0.2, 5)) throw GameError('BAD_OPTION', '단계 속도는 0.2~5');
     out.noHints = out.noHints === true;
     return out;
+  }
+
+  /* ---------- 난이도 도우미(0.7.0) — 다섯 모드가 같이 쓴다 ---------- */
+  // 벌점 초에 난이도 배수를 곱한다(0.5초 단위 반올림, 0 이상)
+  function missPen(state, pen) {
+    var m = state && state.mods && state.mods.missMul != null ? state.mods.missMul : 1;
+    return Math.max(0, Math.round(pen * m * 2) / 2);
+  }
+  // 단서 한 번 값(초): 난이도가 정해 두었으면 그것, 아니면 모드 기본
+  function hintCost(state, base) {
+    var h = state && state.mods ? state.mods.hintPenalty : null;
+    return h == null ? base : h;
+  }
+  // 단계 계산에 쓰는 검거 수
+  function lvHits(state) {
+    var s = state && state.mods && state.mods.lvSpeed != null ? state.mods.lvSpeed : 1;
+    return Math.floor((state.hits || 0) * s + 1e-9);
+  }
+  // 단계 문턱(need, 평소 검거 수)에 닿으려면 실제로 몇 명을 잡아야 하나(화면의 "다음까지 N명")
+  function hitsFor(state, need) {
+    var s = state && state.mods && state.mods.lvSpeed != null ? state.mods.lvSpeed : 1;
+    return Math.ceil(need / s - 1e-9);
   }
 
   function assertNow(now) {
@@ -393,7 +423,7 @@
       state.hits += 1;
       state.endAt += (md.hitTime == null ? RULES.hitTime : md.hitTime) * 1000;
       state.clue = null;
-      var next = levelForHits(state.startLevel, state.hits);
+      var next = levelForHits(state.startLevel, lvHits(state));
       if (next !== state.level) {
         // 새 속성이 열리는 순간: 판 전체를 새 단계에 맞춰 깐다
         state.level = next;
@@ -407,6 +437,7 @@
     state.misses += 1;
     // 변호사 대기(준비물): 남은 면제 횟수가 있으면 시간을 깎지 않는다(연속은 끊긴다)
     var md2 = state.mods || MOD_DEFAULTS, pen = md2.missPenalty == null ? RULES.missPenalty : md2.missPenalty, shielded = false;
+    pen = missPen(state, pen);
     if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
     state.endAt -= pen * 1000;
     tick(state, now);
@@ -433,16 +464,17 @@
     }
     state.combo = 0;
     state.noneMisses += 1;
-    state.endAt -= state.nonePenalty * 1000;
+    var np = missPen(state, state.nonePenalty);
+    state.endAt -= np * 1000;
     tick(state, now);
-    return { ok: false, remaining: sets.length, penalty: state.nonePenalty };
+    return { ok: false, remaining: sets.length, penalty: np };
   }
 
   // 단서 한 번의 값: 무료 단서가 남았으면 0초, 아니면 hintPenalty 초
   function chargeHint(state, now) {
     var p = 0;
     if (state.freeHints > 0) state.freeHints -= 1;
-    else { p = RULES.hintPenalty; state.endAt -= p * 1000; }
+    else { p = hintCost(state, RULES.hintPenalty); state.endAt -= p * 1000; }
     state.hints += 1;
     tick(state, now);
     return p;
@@ -531,6 +563,7 @@
     makeRng: makeRng, drawDistinct: drawDistinct, newBoard: newBoard, refill: refill,
     dealBoard: dealBoard, refillBoard: refillBoard,
     multiplier: multiplier, multiplierFor: multiplierFor, readMods: readMods, MOD_DEFAULTS: MOD_DEFAULTS, createGame: createGame, active: active, timeLeft: timeLeft, tick: tick,
+    missPen: missPen, hintCost: hintCost, lvHits: lvHits, hitsFor: hitsFor,
     pause: pause, resume: resume, submit: submit, declareNone: declareNone, hint: hint,
     makeLesson: makeLesson
   };

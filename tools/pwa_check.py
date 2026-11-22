@@ -45,6 +45,9 @@ with sync_playwright() as p:
     remote['version'] = '0.0.1'     # 옛 버전으로 되돌려 다음 확인에 쓰기
     pg.wait_for_timeout(4500)
     if pg.locator('#info-sheet').is_visible(): pg.click('#info-cancel'); pg.wait_for_timeout(200)
+    pg.wait_for_timeout(900)   # 0.7.0 튜토리얼을 건너뛰면 난이도 고르기 창(한 번)
+    if pg.locator('#diff-sheet').is_visible(): pg.click('#df-go'); pg.wait_for_timeout(300); pg.click('#df-ok'); pg.wait_for_timeout(200)
+    else: problems.append('튜토리얼을 건너뛰었는데 난이도 고르기 창이 안 뜸')
     if not pg.locator('#updating').is_hidden(): problems.append('옛 버전인데 업데이트 창이 뜸')
     # 출동 중에 새 버전이 나오면 끼어들지 않고, 사무실로 돌아올 때 창을 띄운다
     pg.click('#h-go'); pg.wait_for_timeout(300)

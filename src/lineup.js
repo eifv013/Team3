@@ -170,13 +170,13 @@
       var gain = Math.round(RULES.base * mult * md.scoreMult);
       state.score += gain; state.hits += 1;
       state.endAt += ((md.hitTime == null ? RULES.hitTime : md.hitTime) + (state.hitBonus || 0)) * 1000;
-      var lv = levelForHits(state.hits, state.startLevel), up = lv !== state.level;
+      var lv = levelForHits(C.lvHits(state), state.startLevel), up = lv !== state.level;
       state.level = lv;
       state.q = fresh(state, lv);
       state.hintShown = false;
       return { ok: true, gain: gain, combo: state.combo, mult: mult, ans: idx, levelUp: up ? lv : undefined };
     }
-    var pen = md.missPenalty == null ? state.missPenalty : md.missPenalty, shielded = false;   // 특별 출동 규칙이 있으면 그것
+    var pen = C.missPen(state, md.missPenalty == null ? state.missPenalty : md.missPenalty), shielded = false;   // 특별 출동 규칙이 있으면 그것 · 난이도 배수
     if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
     state.combo = 0; state.misses += 1;
     state.endAt -= pen * 1000;
@@ -198,7 +198,7 @@
     while (got.length < k) { var i = pick(state.rng, left.length); got.push(left.splice(i, 1)[0]); }
     var p = 0;
     if (state.freeHints > 0) state.freeHints -= 1;
-    else { p = RULES.hintPenalty; state.endAt -= p * 1000; }
+    else { p = C.hintCost(state, RULES.hintPenalty); state.endAt -= p * 1000; }
     q.out = q.out.concat(got);
     state.hints += 1; state.hintShown = true;
     C.tick(state, now);

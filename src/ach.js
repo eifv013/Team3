@@ -36,6 +36,8 @@
     if ((save.past || []).some(function (x) { return x.no === no; })) return 1;
     return save.caseNo === no && save.closed ? 1 : 0;
   }
+  // 0.7.0 실력 업적(점수)은 강력 사건 이상에서 낸 최고 점수로. 난이도가 없던 예전 기록은 강력 사건으로 친다
+  function skillBest(s) { return s.diff && typeof s.diff.best === 'number' ? s.diff.best : s.bestScore || 0; }
   function st(save, k) { return save.ach && save.ach.stat && save.ach.stat[k] || 0; }
 
   /*
@@ -49,9 +51,9 @@
     { id: 'catch100', group: '현장', name: '눈썰미', desc: '현장에서 직접 100명 검거', need: function (s) { return s.runCaught; }, goal: 100, title: '눈썰미', tickets: 2 },
     { id: 'catch1000', group: '현장', name: '매의 눈', desc: '현장에서 직접 1,000명 검거', need: function (s) { return s.runCaught; }, goal: 1000, title: '매의 눈', tickets: 4 },
     { id: 'catch5000', group: '현장', name: '걸어 다니는 CCTV', desc: '현장에서 직접 5,000명 검거', need: function (s) { return s.runCaught; }, goal: 5000, title: '인간 CCTV', tickets: 5, gems: 30 },
-    { id: 'score3k', group: '점수', name: '기대주', desc: '출동 점수 3,000', need: function (s) { return s.bestScore; }, goal: 3000, title: '기대주', tickets: 1 },
-    { id: 'score10k', group: '점수', name: '에이스', desc: '출동 점수 10,000', need: function (s) { return s.bestScore; }, goal: 10000, title: '에이스', tickets: 3 },
-    { id: 'score20k', group: '점수', name: '수사의 신', desc: '출동 점수 20,000', need: function (s) { return s.bestScore; }, goal: 20000, title: '수사의 신', tickets: 5, gems: 30 },
+    { id: 'score3k', group: '점수', name: '기대주', desc: '강력 사건 이상 · 출동 점수 3,000', need: function (s) { return skillBest(s); }, goal: 3000, title: '기대주', tickets: 1 },
+    { id: 'score10k', group: '점수', name: '에이스', desc: '강력 사건 이상 · 출동 점수 10,000', need: function (s) { return skillBest(s); }, goal: 10000, title: '에이스', tickets: 3 },
+    { id: 'score20k', group: '점수', name: '수사의 신', desc: '강력 사건 이상 · 출동 점수 20,000', need: function (s) { return skillBest(s); }, goal: 20000, title: '수사의 신', tickets: 5, gems: 30 },
     { id: 'daily5', group: '점수', name: '특별한 하루', desc: '특별 출동 메달 5번', need: function (s) { return st(s, 'dailyMedals'); }, goal: 5, title: '특출난 형사', tickets: 2 },
     { id: 'gold3', group: '점수', name: '금빛 수사', desc: '특별 출동 금메달 3번', need: function (s) { return st(s, 'dailyGold'); }, goal: 3, title: '금메달 형사', tickets: 3, gems: 10 },
     { id: 'det10', group: '사무실', name: '팀 빌더', desc: '형사 10명', need: function (s) { return s.detectives; }, goal: 10, title: '팀 빌더', tickets: 2 },
@@ -68,8 +70,8 @@
     { id: 'run10', group: '현장', name: '몸이 풀렸다', desc: '현장 출동 10번', need: function (s) { return s.runs; }, goal: 10, title: '현장 체질', tickets: 1 },
     { id: 'run1000', group: '현장', name: '천 번의 출동', desc: '현장 출동 1,000번', need: function (s) { return s.runs; }, goal: 1000, title: '살아 있는 기록', tickets: 10, gems: 50 },
     { id: 'catch20k', group: '현장', name: '검거 기계', desc: '현장에서 직접 20,000명 검거', need: function (s) { return s.runCaught; }, goal: 20000, title: '검거 기계', tickets: 8, gems: 40 },
-    { id: 'score5k', group: '점수', name: '감이 왔다', desc: '출동 점수 5,000', need: function (s) { return s.bestScore; }, goal: 5000, title: '감 좋은 형사', tickets: 2 },
-    { id: 'score40k', group: '점수', name: '전설의 한 판', desc: '출동 점수 40,000', need: function (s) { return s.bestScore; }, goal: 40000, title: '전설의 한 판', tickets: 8, gems: 50 },
+    { id: 'score5k', group: '점수', name: '감이 왔다', desc: '강력 사건 이상 · 출동 점수 5,000', need: function (s) { return skillBest(s); }, goal: 5000, title: '감 좋은 형사', tickets: 2 },
+    { id: 'score40k', group: '점수', name: '전설의 한 판', desc: '강력 사건 이상 · 출동 점수 40,000', need: function (s) { return skillBest(s); }, goal: 40000, title: '전설의 한 판', tickets: 8, gems: 50 },
     { id: 'daily20', group: '점수', name: '특별 출동 단골', desc: '특별 출동 메달 20번', need: function (s) { return st(s, 'dailyMedals'); }, goal: 20, title: '특별 출동 단골', tickets: 4, gems: 10 },
     { id: 'gold10', group: '점수', name: '금메달 수집가', desc: '특별 출동 금메달 10번', need: function (s) { return st(s, 'dailyGold'); }, goal: 10, title: '금빛 수집가', tickets: 5, gems: 30 },
     { id: 'det5', group: '사무실', name: '한 팀이 되다', desc: '형사 5명', need: function (s) { return s.detectives; }, goal: 5, title: '팀장다운 팀장', tickets: 1 },
@@ -83,7 +85,13 @@
     { id: 'star5', group: '말랑 수사대', name: '★5 단짝', desc: '★5 동물 1마리', need: function (s) { return starCount(s, 5); }, goal: 1, title: '단짝 조련사', tickets: 3 },
     { id: 'legend5', group: '말랑 수사대', name: '전설의 무리', desc: '전설 동물 5마리', need: function (s) { return petCount(s, 'l'); }, goal: 5, title: '전설 사냥꾼', tickets: 6, gems: 30 },
     { id: 'closet3', group: '말랑 수사대', name: '옷장 정리', desc: '동물 옷 3벌 모으기', need: function (s) { return s.pets && s.pets.closet ? Object.keys(s.pets.closet).length : 0; }, goal: 3, title: '패셔니스타', tickets: 2 },
-    { id: 'pull500', group: '말랑 수사대', name: '뽑기의 달인', desc: '뽑기 500번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 500, title: '뽑기의 달인', tickets: 10, gems: 30 }
+    { id: 'pull500', group: '말랑 수사대', name: '뽑기의 달인', desc: '뽑기 500번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 500, title: '뽑기의 달인', tickets: 10, gems: 30 },
+    // 0.7.0 난이도 미제 사건 전용(칭호도 미제 전용)
+    { id: 'stepup', group: '난이도', name: '현장 승급', desc: '단순 사건으로 출동해 본 뒤 강력 사건 이상으로 출동', need: function (s) { return s.diff && s.diff.stepUp ? 1 : 0; }, goal: 1, title: '현장 승급', tickets: 2 },
+    { id: 'hard1', group: '난이도', name: '미제 전담반', desc: '미제 사건으로 출동 1번', need: function (s) { return s.diff && s.diff.hardRuns || 0; }, goal: 1, title: '미제 전담', tickets: 2 },
+    { id: 'hard50', group: '난이도', name: '식지 않는 사건', desc: '미제 사건으로 출동 50번', need: function (s) { return s.diff && s.diff.hardRuns || 0; }, goal: 50, title: '콜드 케이스 헌터', tickets: 5, gems: 20 },
+    { id: 'hardgold', group: '난이도', name: '미제의 금빛', desc: '미제 사건으로 특별 출동 금메달 3번', need: function (s) { return s.diff && s.diff.hardGold || 0; }, goal: 3, title: '미제의 금빛', tickets: 5, gems: 20 },
+    { id: 'hardcase', group: '난이도', name: '미제를 풀다', desc: '미제 사건 난이도로 사건 종결', need: function (s) { return s.diff && s.diff.hardCase ? Object.keys(s.diff.hardCase).length : 0; }, goal: 1, title: '미제 해결사', tickets: 8, gems: 30 }
   ];
   // 배지로 사는 칭호(꾸미기)
   var SHOP = [

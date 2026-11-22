@@ -265,6 +265,7 @@
   function send() {
     var s = S(), r;
     try { r = OF.transfer(s, ctx.idle.payPerCatch(s)); } catch (e) { return; }
+    if (root.Team3Evidence) root.Team3Evidence.earn(s, r.bonus);   // 0.7.0 번 수사비(재수사 단서)
     ctx.persist();
     var v = $('of-van'); v.classList.remove('go'); void v.offsetWidth; v.classList.add('go');
     $('of-tick').textContent = '호송차 출발 · ' + r.n + '명 이송';
@@ -311,7 +312,7 @@
   /* ---------- 커피 ---------- */
   function coffee(i) {
     var s = S(), r, now = Date.now();
-    try { r = OF.coffee(s, i, now, ctx.idle.payPerCatch(s)); }
+    try { r = OF.coffee(s, i, now, ctx.idle.payPerCatch(s)); if (root.Team3Evidence) root.Team3Evidence.earn(s, r.gain); }
     catch (e) {
       if (e.code === 'COOLDOWN') { var left = Math.ceil(OF.coffeeLeft(s, i, now) / 60); say({ el: deskEl(i), name: 'cop' }, ['아직 마시는 중이에요', '커피는 ' + left + '분 뒤에요', '배불러요…'][Math.floor(Math.random() * 3)]); }
       return;

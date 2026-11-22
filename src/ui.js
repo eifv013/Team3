@@ -556,29 +556,29 @@
     var lv = $('level');
     if (LM()) {
       var ln = LU.RULES.levelAt[game.level + 1];
-      lv.textContent = '면통 ' + game.level + '단계 · ' + LU.LEVEL_NAME[game.level] + (ln != null ? ' · 다음까지 ' + Math.max(0, ln - game.hits) + '명' : '');
+      lv.textContent = '면통 ' + game.level + '단계 · ' + LU.LEVEL_NAME[game.level] + (ln != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, ln) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 4);
     } else if (MM()) {
       var mn = MT.RULES.levelAt[game.level + 1];
-      lv.textContent = '몽타주 · ' + MT.LEVEL_NAME[game.level] + (mn != null ? ' · 다음까지 ' + Math.max(0, mn - game.hits) + '명' : '');
+      lv.textContent = '몽타주 · ' + MT.LEVEL_NAME[game.level] + (mn != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, mn) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 2);
     } else if (FM()) {
       var fn = F.RULES.levelAt[game.level + 1];
-      lv.textContent = '위조 감별 · ' + F.LEVEL_NAME[game.level] + (fn != null ? ' · 다음까지 ' + Math.max(0, fn - game.hits) + '명' : '');
+      lv.textContent = '위조 감별 · ' + F.LEVEL_NAME[game.level] + (fn != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, fn) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 3);
     } else if (WM()) {
       var wn = W.RULES.levelAt[game.level + 1];
-      lv.textContent = '목격자 ' + W.LEVEL_NAME[game.level] + (wn != null ? ' · 다음까지 ' + Math.max(0, wn - game.hits) + '명' : '');
+      lv.textContent = '목격자 ' + W.LEVEL_NAME[game.level] + (wn != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, wn) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 3);
     } else {
       var next = C.RULES.levelAt[game.level + 1];
-      lv.textContent = LEVEL_NAME[game.level] + (game.level < 4 && next != null ? ' · 다음까지 ' + Math.max(0, next - game.hits) + '명' : '');
+      lv.textContent = LEVEL_NAME[game.level] + (game.level < 4 && next != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, next) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 4);
     }
     var f = $('free-n');
     f.hidden = !(game.freeHints > 0);
     f.textContent = String(game.freeHints);
-    $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (무료 ' + game.freeHints + '번)' : '단서 보기 (3초 줄어듦)');
+    $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (무료 ' + game.freeHints + '번)' : '단서 보기 (' + (game.mods && game.mods.hintPenalty != null ? game.mods.hintPenalty : 3) + '초 줄어듦)');
     $('stat-line').textContent = LM() ? '지목 ' + game.hits + ' · 오인 ' + game.misses
       : MM() ? '검거 ' + game.hits + ' · 빠른 검거(×3 이상) ' + game.early + ' · 틀림 ' + game.misses
       : FM()
@@ -675,13 +675,15 @@
     renderBoard(boardIds().map(function (_, i) { return i; }));
     markPicks();
     updateHud();
-    popStamp(cfg.daily ? '특별 출동!' : '출동!', cfg.daily && cfg.ruleName ? cfg.ruleName + ' · ' + cfg.duration + '초' : cfg.duration + '초 · ' + (LM() ? '범인을 지목하라' : '한 패를 찾아라'));
+    // 0.7.0 난이도: 단순 · 미제 사건이면 도장 아래 글 앞에 붙인다(강력 사건은 기본이라 생략)
+    var DfI = window.Team3Diff && cfg.diff && cfg.diff !== 'normal' ? window.Team3Diff.info(cfg.diff).name + ' · ' : '';
+    popStamp(cfg.daily ? '특별 출동!' : '출동!', DfI + (cfg.daily && cfg.ruleName ? cfg.ruleName + ' · ' + cfg.duration + '초' : cfg.duration + '초 · ' + (LM() ? '범인을 지목하라' : '한 패를 찾아라')));
     if (cfg.used && cfg.used.length) setHint('준비물: ' + cfg.used.join(' · '), 'good', 3000);
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
   }
 
-  function sheetOpen() { return !$('quit-sheet').hidden || !$('info-sheet').hidden || !$('settings-sheet').hidden || !$('help-sheet').hidden || ($('pets-sheet') && !$('pets-sheet').hidden) || ($('ach-sheet') && !$('ach-sheet').hidden) || ($('shop-sheet') && !$('shop-sheet').hidden); }
+  function sheetOpen() { return !$('quit-sheet').hidden || !$('info-sheet').hidden || !$('settings-sheet').hidden || !$('help-sheet').hidden || ($('pets-sheet') && !$('pets-sheet').hidden) || ($('ach-sheet') && !$('ach-sheet').hidden) || ($('shop-sheet') && !$('shop-sheet').hidden) || ($('evid-sheet') && !$('evid-sheet').hidden) || ($('diff-sheet') && !$('diff-sheet').hidden); }
 
   function onCard(i) {
     if (!game || game.over || lock || sheetOpen()) return;
@@ -1522,6 +1524,7 @@
     hooks: hooks, show: show, back: back, startRun: startRun, goHome: goHome,
     openTutorial: openTutorial, toast: toast, sfx: sfx, buzz: buzz, store: store, renderSound: renderSound, music: music,
     openSettings: openSettings, closeSettings: closeSettings, openHelp: openHelp, closeHelp: closeHelp, settings: function () { return settings; },
+    sheetOpen: sheetOpen, playing: playing,
     _peek: function () { return game; }   // 화면 시험용(지금 판 읽기). 게임 진행에는 쓰지 않는다
   };
 

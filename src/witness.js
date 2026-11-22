@@ -109,7 +109,7 @@
     if (C.tick(state, now)) throw WError('GAME_OVER', '끝난 판');
   }
   function nextQuestion(state) {
-    var lv = levelForHits(state.hits), up = lv !== state.level;
+    var lv = levelForHits(C.lvHits(state)), up = lv !== state.level;
     state.level = lv;
     state.q = makeQuestion(state.rng, lv);
     state.hintShown = false;
@@ -137,7 +137,7 @@
       var up = nextQuestion(state);
       return { ok: true, gain: gain, combo: state.combo, mult: mult, lie: lie, levelUp: up || undefined };
     }
-    var trap = id === q.trap, pen = trap ? (state.trapPenalty == null ? RULES.trapPenalty : state.trapPenalty) : (md.missPenalty == null ? RULES.missPenalty : md.missPenalty), shielded = false;
+    var trap = id === q.trap, pen = C.missPen(state, trap ? (state.trapPenalty == null ? RULES.trapPenalty : state.trapPenalty) : (md.missPenalty == null ? RULES.missPenalty : md.missPenalty)), shielded = false;
     if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
     state.combo = 0;
     if (trap) state.traps += 1; else state.misses += 1;
@@ -155,7 +155,7 @@
     if (state.hintShown) return { lie: state.q.lie, penalty: 0 };
     var p = 0;
     if (state.freeHints > 0) state.freeHints -= 1;
-    else { p = RULES.hintPenalty; state.endAt -= p * 1000; }
+    else { p = C.hintCost(state, RULES.hintPenalty); state.endAt -= p * 1000; }
     state.hints += 1; state.hintShown = true;
     C.tick(state, now);
     return { lie: state.q.lie, penalty: p };

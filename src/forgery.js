@@ -76,7 +76,7 @@
     if (C.tick(state, now)) throw FError('GAME_OVER', '끝난 판');
   }
   function nextQuestion(state) {
-    var lv = levelForHits(state.hits), up = lv !== state.level;
+    var lv = levelForHits(C.lvHits(state)), up = lv !== state.level;
     state.level = lv; state.q = makeQuestion(state.rng, lv); state.cleared = [];
     return up ? lv : null;
   }
@@ -89,7 +89,7 @@
     return { gain: gain, mult: mult };
   }
   function lose(state, now) {
-    var md = state.mods, pen = md.missPenalty == null ? RULES.missPenalty : md.missPenalty, shielded = false;
+    var md = state.mods, pen = C.missPen(state, md.missPenalty == null ? RULES.missPenalty : md.missPenalty), shielded = false;
     if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
     state.combo = 0; state.endAt -= pen * 1000;
     C.tick(state, now);
@@ -127,7 +127,7 @@
     for (var i = 0; i < q.rows.length; i++) if (i !== q.fake && state.cleared.indexOf(i) < 0) cand.push(i);
     if (cand.length === 0) return { row: -1, penalty: 0 };   // 남은 진짜 줄이 없으면 더 짚을 게 없다
     var row = cand[pick(state.rng, cand.length)], p = 0;
-    if (state.freeHints > 0) state.freeHints -= 1; else { p = RULES.hintPenalty; state.endAt -= p * 1000; }
+    if (state.freeHints > 0) state.freeHints -= 1; else { p = C.hintCost(state, RULES.hintPenalty); state.endAt -= p * 1000; }
     state.hints += 1; state.cleared.push(row);
     C.tick(state, now);
     return { row: row, penalty: p };
