@@ -110,7 +110,10 @@
     vault: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M10 14h4"/>',
     recorder: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="8.5" cy="12" r="2.5"/><circle cx="15.5" cy="12" r="2.5"/><path d="M8.5 14.5h7"/>',
     keeper: '<path d="M10 21l1-12h2l1 12z"/><path d="M9 9h6l-1-4h-4z"/><path d="M15 6l6-2M15 8l6 2"/>',
-    informant: '<path d="M4 18c2-5 5-7 8-7s6 2 8 7"/><circle cx="12" cy="7" r="3"/><path d="M17 4l2-2M19 7h2"/>'
+    informant: '<path d="M4 18c2-5 5-7 8-7s6 2 8 7"/><circle cx="12" cy="7" r="3"/><path d="M17 4l2-2M19 7h2"/>',
+    painter: '<path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 7l3 3"/><path d="M4 20l1-4"/>',
+    lights: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.6 1 2.5h6c0-.9.2-1.7 1-2.5A6 6 0 0 0 12 3z"/>',
+    witness2: '<circle cx="12" cy="12" r="3"/><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/>'
   };
 
   /* ---------- 팀이 잡을 때 보이는 것(1.4) ----------
@@ -169,7 +172,8 @@
     checkAch();
     // 0.4.0 월정액 하루 보상: 사무실에 오면 하루 한 번
     if (M) { var sg = M.claimSub(save, nowMs(), dayNow()); if (sg) { persist(); UI.toast('3팀 월정액: 오늘의 배지 ◆' + sg); } }
-    $('h-gems').textContent = '◆ ' + fmt(save.gems);
+    // 0.4.1 재화 아이콘(Team3Icons 가 없으면 ◆ 글자)
+    $('h-gems').innerHTML = (window.Team3Icons ? window.Team3Icons.icon('gem') : '◆ ') + fmt(save.gems);
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
     // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
     // 0.4.0 동물 효과가 보이게: 분당 수사비 중 동물(보유 + 파트너) 몫을 따로
@@ -796,10 +800,10 @@
   function showVersionInfo() {
     if (!N.length) { openInfo({ label: '패치노트', title: '수사 3팀', body: p('기록이 없어요'), readOnly: true }); return; }
     var cur = N[0];
-    var body = '<div class="pn pn-new"><div class="pn-head"><span class="new">NEW</span><b>' + esc(cur.ver) + '</b> ' + esc(cur.title) + '</div>' + lines(cur.items) + '</div>';
+    var body = '<div class="pn pn-new"><div class="pn-head"><span class="new">NEW</span><b>' + esc(cur.ver) + '</b><span class="pn-title">' + esc(cur.title) + '</span></div>' + lines(cur.items) + '</div>';
     if (N.length > 1) {
       body += '<span class="pn-past">지난 패치노트</span>' + N.slice(1).map(function (n) {
-        return '<details class="pn"><summary><b>' + esc(n.ver) + '</b> ' + esc(n.title) + '</summary><div class="pn-body">' + lines(n.items) + '</div></details>';
+        return '<details class="pn"><summary><b>' + esc(n.ver) + '</b><span class="pn-title">' + esc(n.title) + '</span></summary><div class="pn-body">' + lines(n.items) + '</div></details>';
       }).join('');
     }
     // 음악 출처는 0.1.20 부터 설정 → 만든 사람들 로 옮겼다

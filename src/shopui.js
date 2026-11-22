@@ -119,13 +119,15 @@
     $('shop-body').innerHTML = html;
   }
 
+  // 0.4.1 재화 아이콘: 아이콘 + 숫자(아이콘이 없으면 글자)
+  function ic(name) { var I = root.Team3Icons; return I ? I.icon(name) : (name === 'gem' ? '◆' : ''); }
   function rewardText(r) {
     var o = [];
-    if (r.pick) o.push('전설 선택권');
-    if (r.tickets) o.push('뽑기권 ' + r.tickets);
-    if (r.gems) o.push('◆' + r.gems);
-    if (r.treats) o.push('간식 ' + r.treats);
-    return o.join(' · ');
+    if (r.pick) o.push(ic('pick') + '전설 선택권');
+    if (r.tickets) o.push(ic('ticket') + r.tickets);
+    if (r.gems) o.push(ic('gem') + r.gems);
+    if (r.treats) o.push(ic('treat') + r.treats);
+    return o.join(' ');
   }
   function drawPass() {
     var s = S(), day = ctx.day(), ps = M.passOf(s, day), se = M.season(day), tier = M.tierOf(ps.xp), can = M.claimable(s, day).length;
@@ -151,7 +153,7 @@
     document.querySelectorAll('#shop-tabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === tab); });
     $('shop-body').hidden = tab !== 'shop';
     $('pass-body').hidden = tab !== 'pass';
-    $('shop-wallet').innerHTML = '<span>배지 <b>◆' + fmt(S().gems) + '</b></span><span>뽑기권 <b>' + fmt(S().pets ? S().pets.tickets : 0) + '</b></span>';
+    $('shop-wallet').innerHTML = '<span>' + ic('gem') + '배지 <b>' + fmt(S().gems) + '</b></span><span>' + ic('ticket') + '뽑기권 <b>' + fmt(S().pets ? S().pets.tickets : 0) + '</b></span>';
     if (tab === 'shop') drawShop(); else drawPass();
   }
 

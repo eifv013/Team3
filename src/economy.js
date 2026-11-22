@@ -184,7 +184,9 @@
     { id: 'void', name: '빈 골목', desc: '처음부터 네 가지 · 검거 불가 점수 3배', config: { duration: 90, level: 4 }, mods: { noneMult: 3 }, medals: [3000, 6000, 11000] },
     { id: 'calm', name: '차분한 밤', desc: '150초 · 오인 체포 벌점 없음 · 점수 0.7배', config: { duration: 150, level: 1 }, mods: { missPenalty: 0, scoreMult: 0.7 }, medals: [3000, 6000, 11000] },
     // 0.2.1: 다른 퍼즐(forgery.js) — 세 명씩 지은 줄 중 써드가 위조한 가짜 한 줄 찾기
-    { id: 'forge', name: '위조된 한 패', desc: '줄마다 세 명 · 써드가 위조한 가짜 줄을 찾아요', config: { duration: 90, level: 1, mode: 'forgery' }, mods: {}, medals: [3000, 6000, 11000] }
+    { id: 'forge', name: '위조된 한 패', desc: '줄마다 세 명 · 써드가 위조한 가짜 줄을 찾아요', config: { duration: 90, level: 1, mode: 'forgery' }, mods: {}, medals: [3000, 6000, 11000] },
+    // 0.5.0: 사건 3과 함께 들어온 서브 퍼즐(montage.js) — 몽타주가 그려지는 동안 빨리 찾을수록 ×4
+    { id: 'montage', name: '몽타주 수배', desc: '특징이 하나씩 그려져요 · 일찍 찾을수록 점수 ×4', config: { duration: 90, level: 1, mode: 'montage' }, mods: {}, medals: [3500, 7000, 12000] }
   ];
   var DAILY_GEMS = [1, 2, 3];   // 동·은·금 배지
   var DAILY_BASE = [1, 2, 3];   // 동·은·금 × 기준값

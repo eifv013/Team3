@@ -33,14 +33,19 @@
     var p = pets(), x = P.parse(p.eq), free = p.tickets;
     var dot = free > 0 ? '<span class="pet-dot">' + (free > 99 ? '99+' : free) + '</span>' : '';
     if (!x) {
+      box.style.removeProperty('--gc');
       box.innerHTML = '<div class="pet-art pet-empty" aria-hidden="true">?</div>' +
         '<div class="pet-tx"><b>파트너 동물이 없어요</b><small>뽑기로 3팀과 함께할 동물을 데려와요' + (free ? ' · 뽑기권 ' + free + '장' : '') + '</small></div>' +
         '<button class="buy" id="h-pet-open">뽑기' + dot + '</button>';
       return;
     }
     var sp = P.BY_ID[x.id], g = P.GRADE[x.g], st = p.own[p.eq], nm = P.nameOf(S(), p.eq);
+    box.style.setProperty('--gc', g.color);
     var eff = P.describe(P.eqEffect(x.id, x.g, st)), bd = P.bondOf(S(), p.eq);
-    box.innerHTML = '<button class="pet-art" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기" style="--gc:' + g.color + '">' + A.draw(x.id, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button>' +
+    // 0.4.1 무대: 등급 빛(영웅 · 전설은 도는 후광) · 바닥 그림자 · 전설 반짝이. 버튼 안에는 그림만(act 가 갈아 끼운다)
+    box.innerHTML = '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
+      (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
+      '<button class="pet-art" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + A.draw(x.id, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
       '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b><small>' + esc(eff.join(' · ')) + '</small>' +
         '<small class="pet-bond">♥ 친밀도 ' + bd.lv + (bd.days ? ' · 함께 ' + bd.days + '일' : ' · 오늘 쓰다듬어 주세요') + (bd.last === today() ? ' · 오늘 ✓' : '') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
@@ -88,8 +93,22 @@
       renderPartner();
       say(r.up ? '친밀도 ' + r.lv + '단계! ' + (gv ? gv + ' 고마워요!' : '') : '오늘도 고마워요! ♥ 함께 ' + P.bondOf(S(), k).days + '일', 3400);
     } else say(P.talk(x.id, talkCtx()));
+    hearts();
     try { ctx.UI.sfx.pick(3); } catch (e) { /* 소리 실패는 무시 */ }
     ctx.UI.buzz(8);
+  }
+  // 쓰다듬으면 하트가 몇 개 떠오른다(움직임 줄이기면 생략)
+  function hearts() {
+    var st = $('h-pet-stage');
+    if (!st || (root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    for (var i = 0; i < 4; i++) {
+      var h = document.createElement('i');
+      h.className = 'ps-heart'; h.textContent = '♥';
+      h.style.left = (22 + Math.random() * 56) + '%';
+      h.style.animationDelay = (i * 110) + 'ms';
+      st.appendChild(h);
+      setTimeout(function (el) { return function () { if (el.parentNode) el.parentNode.removeChild(el); }; }(h), 1400 + i * 110);
+    }
   }
   /*
    * 혼자 움직이기(0.3.1): 사무실이 보이는 동안 9~16초마다 몸짓 하나. 밤(23~6시)에는 가끔 꾸벅꾸벅.
@@ -135,7 +154,7 @@
     var p = pets(), pr = P.progress(S());
     document.querySelectorAll('#pets-tabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === tab); });
     $('pets-tab-dex').textContent = '도감 ' + pr.have + '/' + pr.total;
-    $('pets-wallet').innerHTML = '<span>뽑기권 <b>' + fmt(p.tickets) + '</b></span><span>배지 <b>◆' + fmt(S().gems) + '</b></span><span>간식 <b>' + fmt(p.treats) + '</b></span>';
+    $('pets-wallet').innerHTML = walletHtml();
     $('pets-draw').hidden = tab !== 'draw';
     $('pets-dex').hidden = tab !== 'dex';
     $('pets-closet').hidden = tab !== 'closet';
@@ -147,14 +166,31 @@
   function today() { var E = root.Team3Economy; return E ? E.dayKey(Date.now(), new Date().getTimezoneOffset()) : new Date().toISOString().slice(0, 10); }
   function freeExtra() { return ctx && typeof ctx.freeExtra === 'function' ? ctx.freeExtra() : 0; }
   function pullOpts() { return { day: today(), freeExtra: freeExtra() }; }
-  function payLabel(n) {
+  /*
+   * 뽑기 단추 계획(0.4.1)
+   *   one  : 1회 — 오늘 무료 → 뽑기권 → 배지 순. 모두 안 되면 부족(무엇이 얼마나 모자란지)
+   *   multi: 가진 만큼 — 뽑기권이 2장 이상이면 그 장수(최대 MAX_PULL), 아니면 배지로 살 수 있는 만큼(2회 이상일 때)
+   *   아이콘: Team3Icons(없으면 글자)
+   */
+  function ic(name) { var I = root.Team3Icons; return I ? I.icon(name) : (name === 'gem' ? '◆' : ''); }
+  function plan() {
+    var p = pets(), s = S(), out = {};
+    if (P.freeLeft(s, today(), freeExtra()) > 0) out.one = { ok: true, pay: 'free', n: 1, text: '오늘 무료' };
+    else if (p.tickets >= 1) out.one = { ok: true, pay: 'ticket', n: 1, text: ic('ticket') + '1장' };
+    else if (s.gems >= P.COST.one) out.one = { ok: true, pay: 'gems', n: 1, text: ic('gem') + P.COST.one };
+    else out.one = { ok: false, n: 1, text: '부족 · ' + ic('ticket') + p.tickets + '/1 · ' + ic('gem') + fmt(s.gems) + '/' + P.COST.one };
+    var mt = P.maxPull(s, 'ticket'), mg = P.maxPull(s, 'gems');
+    if (mt >= 2) out.multi = { ok: true, pay: 'ticket', n: mt, text: ic('ticket') + mt + '장' + (p.tickets > mt ? ' (한 번에 최대 ' + P.MAX_PULL + ')' : '') };
+    else if (mg >= 2) out.multi = { ok: true, pay: 'gems', n: mg, text: ic('gem') + fmt(P.gemCost(mg)) + (mg >= 10 ? ' · 10회마다 10% 덜' : '') };
+    else out.multi = { ok: false, n: 2, text: '부족 · ' + ic('ticket') + p.tickets + '/2 또는 ' + ic('gem') + fmt(s.gems) + '/' + P.gemCost(2) };
+    return out;
+  }
+  function walletHtml() {
     var p = pets();
-    if (n === 1 && P.freeLeft(S(), today(), freeExtra()) > 0) return { pay: 'free', text: '오늘 무료' };
-    if (p.tickets >= n) return { pay: 'ticket', text: '뽑기권 ' + n + '장' };
-    return { pay: 'gems', text: '◆' + (n === 10 ? P.COST.ten : P.COST.one) };
+    return '<span>' + ic('ticket') + '뽑기권 <b>' + fmt(p.tickets) + '</b></span><span>' + ic('gem') + '배지 <b>' + fmt(S().gems) + '</b></span><span>' + ic('treat') + '간식 <b>' + fmt(p.treats) + '</b></span>';
   }
   function drawDraw() {
-    var p = pets(), one = payLabel(1), ten = payLabel(10), pk = P.pickup(today()), sp = P.BY_ID[pk.id];
+    var p = pets(), pl = plan(), one = pl.one, multi = pl.multi, pk = P.pickup(today()), sp = P.BY_ID[pk.id];
     // 이번 주 픽업
     $('pets-pickup').innerHTML = '<div class="pet-pk-art">' + A.draw(pk.id, { grade: 'l', anim: true }) + '</div>' +
       '<div class="pet-pk-tx"><span class="label">이번 주 출동 동물 · ' + pk.left + '일 남음</span><b>' + esc(sp.kind) + ' ' + esc(sp.name) + '</b>' +
@@ -162,16 +198,18 @@
     $('pets-one').classList.toggle('free', one.pay === 'free');
     $('pets-pity').innerHTML = '전설 확정까지 <b>' + (P.PITY - p.pity) + '번</b> · 지금까지 ' + fmt(p.pulls) + '번 뽑음';
     $('pets-one').innerHTML = '1회 뽑기<small>' + one.text + '</small>';
-    $('pets-ten').innerHTML = '10회 뽑기<small>' + ten.text + ' · 희귀 이상 1마리 보장</small>';
-    $('pets-one').disabled = busy || (one.pay === 'gems' && S().gems < P.COST.one);
-    $('pets-ten').disabled = busy || (ten.pay === 'gems' && S().gems < P.COST.ten);
+    $('pets-ten').innerHTML = (multi.ok ? multi.n + '회 뽑기' : '여러 번 뽑기') + '<small>' + multi.text + '</small>';
+    $('pets-one').classList.toggle('short', !one.ok);
+    $('pets-ten').classList.toggle('short', !multi.ok);
+    $('pets-one').disabled = busy || !one.ok;
+    $('pets-ten').disabled = busy || !multi.ok;
     $('pets-rates').innerHTML = '<table class="pet-rates"><tr><th>등급</th><th>등급 확률</th><th>한 마리</th></tr>' +
       P.rates().map(function (r) { return '<tr><td style="color:' + P.GRADE[r.g].color + '">' + r.name + '</td><td>' + r.pct + '%</td><td>' + r.each + '%</td></tr>'; }).join('') + '</table>' +
       '<p class="muted">등급을 먼저 정하고, 그 등급의 ' + P.SPECIES.length + '종 중 하나가 같은 확률로 나와요. 단 영웅·전설은 ' + (P.PICKUP_RATE * 100) + '% 확률로 이번 주 출동 동물이 나와요(그래서 영웅·전설 안에서 출동 동물은 ' + Math.round((P.PICKUP_RATE + (1 - P.PICKUP_RATE) / P.SPECIES.length) * 1000) / 10 + '%, 나머지는 각 ' + Math.round((1 - P.PICKUP_RATE) / P.SPECIES.length * 1000) / 10 + '%).</p>' +
       '<p class="muted">하루 한 번 무료 뽑기가 있어요(자정에 다시 생겨요).</p>' +
       '<p class="muted">천장: ' + P.PITY + '번째까지 전설이 한 번도 안 나오면 그 번째는 전설 확정(전설이 나오면 다시 0부터). 천장을 포함하면 전설은 실제로 약 ' + P.effectiveLegend() + '%예요.</p>' +
-      '<p class="muted">10회 뽑기에서 모두 일반이면 마지막 한 마리는 희귀.</p>' +
-      '<p class="muted">같은 동물이 또 나오면 ★가 올라요(★5까지, ★마다 효과 +25%). ★5 뒤에는 간식(일반 1 · 희귀 3 · 영웅 10 · 전설 30)으로 바뀌어요.</p>' +
+      '<p class="muted">여러 번 뽑기: 2번 이상 뽑을 수 있으면 가진 만큼 한 번에(최대 ' + P.MAX_PULL + '번). 10마리마다 희귀 이상 1마리 보장. 배지는 1번 ◆' + P.COST.one + ', 10번 묶음마다 ◆' + P.COST.ten + '.</p>' +
+      '<p class="muted">같은 동물이 또 나오면 ★가 올라요(★5까지, ★마다 효과 +25%). ★5 뒤에는 간식(' + P.GRADES.map(function (g) { return P.GRADE[g].name + ' ' + P.GRADE[g].treat; }).join(' · ') + ')으로 바뀌어요.</p>' +
       '<p class="muted">뽑기권은 처음 선물 · 사건 종결 · 승진 · 메달 · 특별 출동으로 받아요. 동물은 퍼즐 실력을 대신하지 않아요: ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>';
   }
 
@@ -180,19 +218,20 @@
    *   결과는 먼저 저장해 두고(P.pull → persist) 연출이 끝나면 창의 결과 칸에 요약을 남긴다.
    *   연출 도중 앱을 닫아도 뽑은 동물은 이미 들어가 있다.
    */
-  function doPull(n) {
+  function doPull(kind) {
     if (busy) return;
-    var c = payLabel(n), r;
+    var c = plan()[kind], r, n = c.n;
+    if (!c.ok) { toast('모자라요: ' + (kind === 'one' ? '뽑기권 1장 또는 배지 ' + P.COST.one : '뽑기권 2장 또는 배지 ' + P.gemCost(2))); return; }
     try { r = P.pull(S(), n, c.pay, Math.random, pullOpts()); } catch (e) { toast(e.code === 'NOT_ENOUGH' ? (c.pay === 'gems' ? '배지가 모자라요' : '뽑기권이 모자라요') : '뽑을 수 없어요'); return; }
     ctx.persist();
     busy = true;
     var best = 'c';
     r.results.forEach(function (x) { if (P.GRADES.indexOf(x.g) > P.GRADES.indexOf(best)) best = x.g; });
     drawDraw();
-    $('pets-wallet').innerHTML = '<span>뽑기권 <b>' + fmt(pets().tickets) + '</b></span><span>배지 <b>◆' + fmt(S().gems) + '</b></span><span>간식 <b>' + fmt(pets().treats) + '</b></span>';
+    $('pets-wallet').innerHTML = walletHtml();
     gacha(r.results, best, function () {
       var res = $('pets-result');
-      res.className = 'pet-result n' + n + ' best-' + best;
+      res.className = 'pet-result ' + (n === 1 ? 'n1' : n <= 10 ? 'n10' : 'nmany') + ' best-' + best;
       res.innerHTML = r.results.map(function (x) { return cardFace(x, 'pet-got'); }).join('');
       busy = false;
       draw();
@@ -201,7 +240,7 @@
   }
   function cardFace(x, cls) {
     var sp = P.BY_ID[x.id], g = P.GRADE[x.g];
-    var tag = x.isNew ? '<em class="new">NEW</em>' : x.treats ? '<em>간식 +' + x.treats + '</em>' : '<em>★' + x.star + '</em>';
+    var tag = x.isNew ? '<em class="isnew">NEW</em>' : x.treats ? '<em>간식 +' + x.treats + '</em>' : '<em>★' + x.star + '</em>';
     return '<div class="' + cls + ' g-' + x.g + '" style="--gc:' + g.color + '">' +
       A.draw(x.id, { grade: x.g, mood: x.g === 'l' || x.g === 'h' ? 'happy' : null }) +
       '<span><b style="color:' + g.color + '">' + g.name + '</b> ' + esc(P.nameOf(S(), x.key) || sp.name) + '</span>' + tag + '</div>';
@@ -229,7 +268,9 @@
     var reduce = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var n = results.length, el = document.createElement('div'), timers = [], phase = 'box';
     var startCol = best === 'h' || best === 'l' ? GX_COLOR.r : GX_COLOR[best];
-    el.className = 'gx best-' + best + (n === 10 ? ' ten' : ' one');
+    // 0.4.1 가진 만큼 뽑기: 1장 · 2~10장 · 11장 이상(작은 카드, 열 수를 늘린다)
+    el.className = 'gx best-' + best + (n === 1 ? ' one' : n <= 10 ? ' ten' : ' many');
+    el.style.setProperty('--cols', n <= 10 ? 5 : n <= 24 ? 6 : n <= 35 ? 7 : 8);
     el.style.setProperty('--gx', startCol);
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-label', '뽑기 결과');
@@ -258,7 +299,8 @@
     function showCards() {
       clear(); phase = 'cards';
       el.classList.add('cards');
-      var cs = el.querySelectorAll('.gx-card'), step = n === 10 ? 170 : 0, lead = n === 10 ? 450 : 250;
+      // 장수가 많아도 다 뒤집히는 데 2.6초 안쪽
+      var cs = el.querySelectorAll('.gx-card'), step = n === 1 ? 0 : Math.min(170, Math.floor(2600 / n)), lead = n === 1 ? 250 : 450;
       cs.forEach(function (cd, i) {
         later(function () {
           cd.classList.add('flip');
@@ -414,8 +456,8 @@
       if (e.target === this) { close(); return; }
       var t = e.target.closest('button');
       if (!t) return;
-      if (t.id === 'pets-one') doPull(1);
-      else if (t.id === 'pets-ten') doPull(10);
+      if (t.id === 'pets-one') doPull('one');
+      else if (t.id === 'pets-ten') doPull('multi');
       else if (t.getAttribute('data-tab')) { tab = t.getAttribute('data-tab'); detailKey = ''; draw(); }
       else if (t.classList.contains('pet-cell')) showDetail(t.getAttribute('data-k'));
       else if (t.id === 'pets-detail-x') { detailKey = ''; naming = false; drawDetail(); }

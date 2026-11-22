@@ -100,6 +100,35 @@ def main():
         pg.clock.run_for(400)
         need(pg.locator('.gx').count() == 0, '뽑기: 연출이 안 닫힘')
         need('무료' not in pg.text_content('#pets-one'), '뽑기: 무료를 쓴 뒤에도 무료로 보임')
+        # 0.4.1 가진 만큼 뽑기: 단추에 적힌 횟수만큼 카드가 나오는지, 뽑기권 → 배지 순으로 다 쓸 때까지. 11장 이상은 한 번 캡처
+        import re as _re
+        shot_many = False
+        for _ in range(6):
+            if pg.locator('#pets-ten.short').count():
+                break
+            t = pg.text_content('#pets-ten')
+            m = _re.match(r'(\d+)회 뽑기', t)
+            need(m is not None, f'뽑기: 여러 번 단추에 횟수가 없음 ({t})')
+            if not m:
+                break
+            n = int(m.group(1))
+            need(2 <= n <= 50, f'뽑기: 여러 번 횟수가 범위 밖 ({n})')
+            pg.click('#pets-ten'); pg.clock.run_for(600)
+            need(pg.locator('.gx-card').count() == n, f'뽑기: {n}회 연출 카드 수가 다름 ({pg.locator(".gx-card").count()})')
+            if n > 10 and not shot_many:
+                shot_many = True
+                pg.click('.gx'); pg.clock.run_for(4000); pg.wait_for_timeout(1500)   # CSS 애니메이션은 실제 시간으로 돈다
+                no_hscroll(pg, f'{n}회 연출')
+                pg.screenshot(path=SHOT + 's_gacha_many.png')
+            for _ in range(6):
+                if pg.locator('.gx').count():
+                    pg.click('.gx'); pg.clock.run_for(3500)
+            need(pg.locator('.gx').count() == 0, f'뽑기: {n}회 연출이 안 닫힘')
+        need(shot_many, '뽑기: 11회 이상 뽑기를 한 번도 못 봄(배지 500 이면 나와야 함)')
+        need(pg.locator('#pets-one.short').count() == 1 and pg.locator('#pets-ten.short').count() == 1, '뽑기: 다 쓴 뒤 "부족" 표시가 없음')
+        need('부족' in pg.text_content('#pets-one') and '부족' in pg.text_content('#pets-ten'), '뽑기: 부족 문구가 없음')
+        pg.locator('#pets-draw, #pets-one').first.scroll_into_view_if_needed()
+        pg.screenshot(path=SHOT + 's_pets_short.png')
         pg.click('#pets-tabs [data-tab=dex]'); pg.clock.run_for(200)
         need('세트×2' in pg.text_content('#pets-dex'), '도감: 네 등급 모은 종류에 세트 표시가 없음')
         pg.click('.pet-cell[data-k="panda:l"]'); pg.clock.run_for(200)
@@ -136,6 +165,40 @@ def main():
             pg.click('#res-double'); pg.clock.run_for(3600)
             need(money(pg) > m0, '결과: 2배 받기 뒤 수사비가 늘지 않음')
         pg.screenshot(path=SHOT + 's_result.png')
+
+        # 0.5.0 사건 3 면통 라인업: 틀리면 그 자리 X · 같은 줄, 맞히면 다음 줄, 단서는 아닌 자리를 지움
+        pg.evaluate("() => SuspectsUI.startRun({ duration: 300, freeHints: 0, mode: 'lineup', missPenalty: 5, lineupHitBonus: 0, preOut: 0 })")
+        pg.clock.run_for(1500)
+        need(pg.locator('#board.luboard .lu-sp').count() in (5, 6), '라인업: 줄이 안 그려짐')
+        need(pg.locator('#says.lu .lu-say').count() >= 2, '라인업: 목격자 진술이 없음')
+        no_hscroll(pg, '라인업')
+        g = pg.evaluate("() => { const g = SuspectsUI._peek(); return { ans: g.q.ans, n: g.q.line.length, line: g.q.line.join() }; }")
+        wrong = [i for i in range(g['n']) if i != g['ans']][0]
+        pg.locator(f'#board .card[data-i="{wrong}"]').click(force=True); pg.clock.run_for(900)
+        need(pg.locator(f'#board .lu-sp.out .card[data-i="{wrong}"]').count() == 1, '라인업: 틀린 자리에 X 가 없음')
+        need(pg.evaluate("() => SuspectsUI._peek().q.line.join()") == g['line'], '라인업: 틀렸는데 줄이 바뀜')
+        pg.locator(f'#board .card[data-i="{g["ans"]}"]').click(force=True); pg.clock.run_for(1200)
+        need(pg.evaluate("() => SuspectsUI._peek().hits") == 1, '라인업: 맞혔는데 검거가 안 늘어남')
+        pg.click('#btn-hint'); pg.clock.run_for(300)
+        need(pg.locator('#board .lu-sp.out').count() >= 2, '라인업: 단서가 아닌 자리를 안 지움')
+        pg.screenshot(path=SHOT + 's_lineup.png')
+        pg.clock.run_for(400000)
+
+        # 0.5.0 특별 출동 몽타주 수배: 특징이 시간에 따라 하나씩 그려지고, 맞히면 그때 배수
+        pg.evaluate("() => { SuspectsUI.goHome(); SuspectsUI.startRun({ duration: 90, freeHints: 0, mode: 'montage' }); }")
+        pg.clock.run_for(300)
+        need(pg.locator('#says.mtg .mtg-paper').count() == 1, '몽타주: 종이가 없음')
+        n1 = pg.locator('#says.mtg li:not(.no)').count()
+        pg.clock.run_for(1500)
+        n2 = pg.locator('#says.mtg li:not(.no)').count()
+        need(n1 == 1 and n2 == 2, f'몽타주: 특징이 하나씩 안 그려짐 ({n1} → {n2})')
+        need('×3' in pg.text_content('.mtg-mult'), '몽타주: 둘째 특징 뒤 배수가 ×3 이 아님')
+        a = pg.evaluate("() => { const g = SuspectsUI._peek(); return g.q.cards.indexOf(g.q.ans); }")
+        pg.locator(f'#board .card[data-i="{a}"]').click(force=True); pg.clock.run_for(900)
+        need(pg.evaluate("() => SuspectsUI._peek().score") == 300, '몽타주: ×3 에 맞혔는데 점수가 300 이 아님')
+        no_hscroll(pg, '몽타주')
+        pg.screenshot(path=SHOT + 's_montage.png')
+        pg.clock.run_for(200000)
         need(not errs, '페이지 오류: ' + ' / '.join(errs[:3]))
         b.close()
     if problems:

@@ -36,15 +36,26 @@
   /* ---------- 등급 ---------- */
   var GRADES = ['c', 'r', 'h', 'l'];
   var GRADE = {
-    c: { name: '일반', pct: 64, color: '#A3ACBA', treat: 1, swap: 20 },
+    c: { name: '일반', pct: 66, color: '#A3ACBA', treat: 1, swap: 20 },
     r: { name: '희귀', pct: 28, color: '#5BB2E8', treat: 3, swap: 60 },
     h: { name: '영웅', pct: 5, color: '#B07CF0', treat: 10, swap: 250 },
-    l: { name: '전설', pct: 3, color: '#FFD23F', treat: 40, swap: 900 }   // 0.4.0: 30종 · 전설 한 마리 0.1%(등급 3%), 천장 80
+    l: { name: '전설', pct: 1, color: '#FFD23F', treat: 40, swap: 900 }   // 0.4.1: 전설 1%(한 마리 약 0.033%), 천장 80 → 천장 포함 약 1.8% (0.4.0 에 3% 로 잘못 올라갔던 것을 바로잡음)
   };
   var GRADE_MUL = { c: 1, r: 1.5, h: 2, l: 3 };   // 장착 효과 배수
   var STAR_MAX = 5, STAR_STEP = 0.25;
   var PITY = 80;
-  var COST = { one: 10, ten: 90 };   // 배지(◆)
+  var COST = { one: 10, ten: 90 };   // 배지(◆): 1회 10, 10회 묶음마다 90(10% 덜)
+  var MAX_PULL = 50;                 // 0.4.1: 한 번에 뽑을 수 있는 최대(가진 만큼 뽑기 — 화면 · 연출이 감당하는 선)
+  /** n회의 배지 값: 10회 묶음마다 COST.ten, 나머지는 회당 COST.one */
+  function gemCost(n) { return Math.floor(n / 10) * COST.ten + (n % 10) * COST.one; }
+  /** 지금 한 번에 뽑을 수 있는 최대 횟수(pay = 'ticket' | 'gems') */
+  function maxPull(save, pay) {
+    var p = P(save);
+    if (pay === 'ticket') return Math.min(MAX_PULL, p.tickets);
+    var n = 0;
+    while (n < MAX_PULL && gemCost(n + 1) <= (save.gems || 0)) n++;
+    return n;
+  }
   var WELCOME = 5;                   // 처음 뽑기 창을 열면 주는 뽑기권
   /*
    * 의상(0.3.1): 한 번 사면 옷장(closet)에 들어가 모든 동물이 함께 입는다. 동물마다 하나씩(wear).
@@ -289,7 +300,7 @@
     return Math.max(0, FREE_DAILY + (extra || 0) - used);
   }
   function pull(save, n, pay, rng, opts) {
-    if (n !== 1 && n !== 10) throw PetError('BAD_COUNT', '1회 또는 10회만');
+    if (!(n >= 1 && n <= MAX_PULL && n === Math.floor(n))) throw PetError('BAD_COUNT', '1~' + MAX_PULL + '회만');
     if (typeof rng !== 'function') throw PetError('BAD_RNG', 'rng 는 함수');
     opts = opts || {};
     var p = P(save), c, pk = opts.day ? pickup(opts.day).id : '';
@@ -303,7 +314,7 @@
       if (p.tickets < c) throw PetError('NOT_ENOUGH', '뽑기권이 모자란다');
       p.tickets -= c;
     } else if (pay === 'gems') {
-      c = n === 10 ? COST.ten : COST.one;
+      c = gemCost(n);
       if (!(save.gems >= c)) throw PetError('NOT_ENOUGH', '배지가 모자란다');
       save.gems -= c;
     } else throw PetError('BAD_PAY', '뽑기권 · 배지 · 무료');
@@ -312,7 +323,8 @@
       var g, forced = false;
       if (p.pity >= PITY - 1) { g = 'l'; forced = true; }   // 천장
       else g = rollGrade(rng);
-      if (n === 10 && i === n - 1 && g === 'c' && out.every(function (x) { return x.g === 'c'; })) g = 'r';   // 10연속 희귀 보장
+      // 10마리마다 희귀 이상 1마리 보장: 묶음(10)의 마지막인데 그 묶음이 모두 일반이면 희귀로
+      if ((i + 1) % 10 === 0 && g === 'c' && out.slice(i - 9).every(function (x) { return x.g === 'c'; })) g = 'r';
       p.pity = g === 'l' ? 0 : p.pity + 1;
       p.pulls += 1;
       // 픽업: 천장 전설은 확정, 영웅·전설은 반
@@ -526,7 +538,7 @@
 
   return {
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,
-    STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, WELCOME: WELCOME, CAPS: CAPS,
+    STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, MAX_PULL: MAX_PULL, gemCost: gemCost, maxPull: maxPull, WELCOME: WELCOME, CAPS: CAPS,
     key: key, parse: parse, clean: clean, rates: rates, effectiveLegend: effectiveLegend, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,
     addTickets: addTickets, claimWelcome: claimWelcome, giftOnce: giftOnce,
     usePick: usePick, BOND: BOND, bondOf: bondOf, pat: pat, TALK: TALK, talk: talk, PICKUP_ORDER: PICKUP_ORDER, PICKUP_RATE: PICKUP_RATE, pickup: pickup, FREE_DAILY: FREE_DAILY, freeLeft: freeLeft, GRADE_SET: GRADE_SET, sets: sets,

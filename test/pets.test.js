@@ -12,11 +12,11 @@ test('30종 × 4등급, 등급 확률 합은 100%, 전설 3%(한 마리 0.1%) ·
   assert.equal(P.SPECIES.length, 30);
   assert.equal(new Set(P.SPECIES.map(x => x.id)).size, 30);
   assert.equal(P.GRADES.reduce((a, g) => a + P.GRADE[g].pct, 0), 100);
-  assert.equal(P.GRADE.l.pct, 3); assert.equal(P.PITY, 80);
+  assert.equal(P.GRADE.l.pct, 1); assert.equal(P.PITY, 80);
   const r = P.rates();
-  assert.equal(r.find(x => x.g === 'l').each, 0.1);
-  assert.equal(r.find(x => x.g === 'c').each, 2.133);
-  assert.equal(P.effectiveLegend(), 3.3);
+  assert.equal(r.find(x => x.g === 'l').each, 0.033);
+  assert.equal(r.find(x => x.g === 'c').each, 2.2);
+  assert.equal(P.effectiveLegend(), 1.8);
   // 그림 · 말이 30종 모두 있다
   const A = require('../src/petart.js');
   P.SPECIES.forEach(x => { assert.ok(A.ids.includes(x.id), x.id); assert.ok(P.TALK[x.id], x.id); });
@@ -24,21 +24,21 @@ test('30종 × 4등급, 등급 확률 합은 100%, 전설 3%(한 마리 0.1%) ·
 });
 
 test('rollGrade: 경계값', () => {
-  assert.equal(P.rollGrade(() => 0), 'l');        // 0~3 전설
-  assert.equal(P.rollGrade(() => 0.0299), 'l');
-  assert.equal(P.rollGrade(() => 0.03), 'h');     // 3~8 영웅
-  assert.equal(P.rollGrade(() => 0.08), 'r');     // 8~36 희귀
-  assert.equal(P.rollGrade(() => 0.36), 'c');
+  assert.equal(P.rollGrade(() => 0), 'l');        // 0~1 전설
+  assert.equal(P.rollGrade(() => 0.0099), 'l');
+  assert.equal(P.rollGrade(() => 0.01), 'h');     // 1~6 영웅
+  assert.equal(P.rollGrade(() => 0.06), 'r');     // 6~34 희귀
+  assert.equal(P.rollGrade(() => 0.34), 'c');
   assert.equal(P.rollGrade(() => 0.9999), 'c');
 });
 
 test('많이 뽑으면 등급 비율이 공개 확률에 가깝다', () => {
   const rng = mulberry(7), n = { c: 0, r: 0, h: 0, l: 0 };
   for (let i = 0; i < 200000; i++) n[P.rollGrade(rng)]++;
-  assert.ok(Math.abs(n.c / 2000 - 64) < 0.8);
+  assert.ok(Math.abs(n.c / 2000 - 66) < 0.8);
   assert.ok(Math.abs(n.r / 2000 - 28) < 0.8);
   assert.ok(Math.abs(n.h / 2000 - 5) < 0.4);
-  assert.ok(Math.abs(n.l / 2000 - 3) < 0.3);
+  assert.ok(Math.abs(n.l / 2000 - 1) < 0.25);
 });
 
 test('결제: 뽑기권·배지가 모자라면 아무것도 안 바뀐다', () => {
@@ -47,7 +47,8 @@ test('결제: 뽑기권·배지가 모자라면 아무것도 안 바뀐다', () 
   assert.throws(() => P.pull(s, 1, 'ticket', Math.random), { code: 'NOT_ENOUGH' });
   assert.equal(s.gems, 5);
   assert.equal(s.pets.pulls, 0);
-  assert.throws(() => P.pull(s, 3, 'gems', Math.random), { code: 'BAD_COUNT' });
+  assert.throws(() => P.pull(s, 0, 'gems', Math.random), { code: 'BAD_COUNT' });
+  assert.throws(() => P.pull(s, P.MAX_PULL + 1, 'gems', Math.random), { code: 'BAD_COUNT' });
   s.gems = 100;
   P.pull(s, 10, 'gems', Math.random);
   assert.equal(s.gems, 10);
@@ -343,7 +344,9 @@ test('픽업: 천장 전설은 픽업 동물 확정, 영웅·전설은 반쯤 �
   for (let i = 0; i < 5000; i++) for (const x of P.pull(t, 10, 'gems', rng, { day }).results) if (x.g === 'h' || x.g === 'l') { c[x.g][0]++; if (x.id === pk) c[x.g][1]++; }
   const rh = c.h[1] / c.h[0], rl = c.l[1] / c.l[0];
   assert.ok(rh > 0.49 && rh < 0.56, 'hero ' + rh);
-  assert.ok(rl >= rh - 0.03 && rl < 0.66, 'legend ' + rl);   // 전설은 천장 몫(늘 픽업)만큼 조금 더
+  // 전설은 천장 몫(늘 픽업)이 더해진다: 천장 몫 = 1 − 1%/약 1.8% ≈ 0.44 → 기대 ≈ 0.44 + 0.56 × 0.517 ≈ 0.73
+  const share = 1 - P.GRADE.l.pct / P.effectiveLegend(), expect = share + (1 - share) * (P.PICKUP_RATE + (1 - P.PICKUP_RATE) / P.SPECIES.length);
+  assert.ok(Math.abs(rl - expect) < 0.06, 'legend ' + rl + ' expect ' + expect);
 });
 
 test('하루 무료 뽑기: 1번(월정액 등으로 더), 날이 바뀌면 다시', () => {
@@ -398,4 +401,32 @@ test('말: 종류마다 3마디 이상, 상황 말이 섞인다', () => {
   assert.ok(lines.has('좋은 아침이에요, 팀장님!'));
   assert.ok(lines.has('팀장님, 주범 조가 기다려요!'));
   assert.ok(lines.has('뽑기권 있어요! 친구 데려와요.'));
+});
+
+test('공개 문구 = 실제 값: 최신 패치노트의 확률 · 천장 숫자가 코드와 같다', () => {
+  const N = require('../src/notes.js');
+  const list = typeof N.list === 'function' ? N.list() : (N.NOTES || N);
+  const line = list.map(e => e.items.join(' ')).find(t => /확률/.test(t) && /천장/.test(t));
+  assert.ok(line, '확률 문구가 있는 패치노트');
+  const num = re => { const m = re.exec(line); return m ? +m[1] : null; };
+  assert.equal(num(/일반 (\d+)%/), P.GRADE.c.pct);
+  assert.equal(num(/희귀 (\d+)%/), P.GRADE.r.pct);
+  assert.equal(num(/영웅 (\d+)%/), P.GRADE.h.pct);
+  assert.equal(num(/전설 (\d+)%/), P.GRADE.l.pct);
+  assert.equal(num(/천장 (\d+)번/), P.PITY);
+  assert.equal(num(/실제 전설 약 ([\d.]+)%/), P.effectiveLegend());
+});
+
+test('가진 만큼 뽑기(0.4.1): 최대 횟수 · 배지 값 · 10마리마다 희귀 보장', () => {
+  assert.equal(P.gemCost(1), 10); assert.equal(P.gemCost(10), 90); assert.equal(P.gemCost(13), 120); assert.equal(P.gemCost(25), 230);
+  const s = fresh(125);
+  assert.equal(P.maxPull(s, 'gems'), 13);           // 13회 = 90 + 30 = 120 ≤ 125, 14회 = 130 > 125
+  s.gems = 130; assert.equal(P.maxPull(s, 'gems'), 14);
+  s.gems = 129; assert.equal(P.maxPull(s, 'gems'), 13);
+  P.addTickets(s, 77); assert.equal(P.maxPull(s, 'ticket'), P.MAX_PULL);
+  const t = fresh(1e6), r = P.pull(t, 25, 'gems', seq([0.99]));   // 늘 일반 → 10번째 · 20번째만 희귀
+  assert.deepEqual(r.results.map((x, i) => x.g === 'r' ? i : -1).filter(i => i >= 0), [9, 19]);
+  assert.equal(t.gems, 1e6 - P.gemCost(25));
+  const u = fresh(0); P.addTickets(u, 7); P.pull(u, 7, 'ticket', Math.random);
+  assert.equal(u.pets.tickets, 0);
 });

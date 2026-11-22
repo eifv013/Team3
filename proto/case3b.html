@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수사 3팀 · 사건 3 시안 2차 (ⒶⒷⒸ)</title>
+<!--
+  사건 3 후보 2차. 모두 "용의자를 보고 범인 찾기"가 중심(수사 3팀 컨셉), 방식만 다르다.
+    Ⓐ 몽타주     — 몽타주 특징이 1.5초마다 하나씩 드러난다. 일찍 맞힐수록 점수가 크다(가려진 특징 수만큼 배수).
+    Ⓑ 라인업     — 면통실 5명(2단계부터 6명). 증인 진술 2~3개(자리 관계 포함)에 모두 맞는 자리 하나.
+    Ⓒ 변장 추적 — 첫 CCTV에 표시된 범인을 다음 CCTV에서 찾기. 코트 색 · 모자는 바꿀 수 있지만 체형 · 머리 · 소품은 못 바꾼다.
+  공통: 60초, 맞히면 +2초, 틀리면 −5초. selfTest(): 다 드러났을 때(Ⓐ) · 진술(Ⓑ) · 못 바꾸는 특징(Ⓒ) 기준으로 정답이 늘 하나.
+-->
+<style>
+:root{--bg:#141820;--panel:#1E2430;--panel2:#262E3D;--line:#343E52;--text:#EEF1F6;--muted:#97A1B3;--acc:#FFD23F}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans KR','Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+body{max-width:460px;margin:0 auto;padding:14px 14px 40px;display:flex;flex-direction:column;gap:12px;overflow-x:hidden}
+h1{margin:0;font-size:24px}.label{font-size:12px;color:var(--muted);font-weight:600}
+.tabs{display:flex;gap:6px}.tabs button{flex:1;height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:700;font-size:13px}
+.tabs button.on{border-color:var(--acc);color:var(--acc)}
+.card{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card h2{margin:0;font-size:20px}.card p{margin:0;font-size:13.5px;line-height:1.55;color:#C9D0DC}
+.lv{display:flex;gap:6px}.lv button{flex:1;height:36px;border-radius:10px;border:1.5px solid var(--line);background:none;color:var(--muted);font:inherit;font-weight:700;font-size:12px}.lv button.on{border-color:var(--acc);color:var(--acc)}
+.hud{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.hud .t{font-size:22px;font-variant-numeric:tabular-nums}.hud .t.low{color:#FF6B6B}.hud .s{color:var(--acc);font-size:18px}
+.go{height:54px;border-radius:14px;border:0;background:var(--acc);color:#1B1E24;font:inherit;font-weight:800;font-size:17px}
+.stage{position:relative;border-radius:16px;overflow:hidden;user-select:none}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;position:relative;z-index:2}
+.sus{position:relative;aspect-ratio:3/4;border-radius:12px;border:2px solid transparent;background:#F3E9D6;padding:0;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.sus svg{width:100%;height:100%}
+.sus.ok{border-color:#3DDC84;box-shadow:0 0 16px #3DDC84}.sus.bad{border-color:#FF6B6B;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.msg{min-height:22px;text-align:center;font-weight:700;font-size:14px}
+.end{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;text-align:center}.end b{font-size:40px;color:var(--acc)}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* Ⓐ 몽타주: 스케치북 · 연필 */
+.sketch{background:#2A2620}
+.paper{position:relative;z-index:2;margin:12px auto 0;width:220px;padding:10px;border-radius:6px;background:#FBF6EA;box-shadow:0 6px 18px rgba(0,0,0,.4);transform:rotate(-1.5deg);display:flex;gap:10px;align-items:center}
+.paper .pic{width:96px;height:128px;border:1.5px dashed #B9AE96;border-radius:4px;position:relative;flex:none;background:repeating-linear-gradient(0deg,transparent 0 14px,rgba(120,110,90,.08) 14px 15px)}
+.paper .pic svg{width:100%;height:100%;filter:grayscale(1) contrast(1.1)}
+.paper ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:12px;color:#3A342A;font-weight:700}
+.paper li.q{color:#B9AE96}
+.paper li.new{animation:pencil .5s ease-out}
+@keyframes pencil{from{background:rgba(255,210,63,.6)}to{background:transparent}}
+.mult{position:absolute;right:14px;top:10px;z-index:3;font-weight:800;color:var(--acc);font-size:15px}
+.sketch .grid .sus{background:#F6F0E2}
+
+/* Ⓑ 라인업: 키 눈금 벽 · 카메라 플래시 */
+.lineup{background:linear-gradient(180deg,#2C3446,#1B2130)}
+.wall{position:relative;z-index:2;margin:10px;border-radius:10px;padding:8px 6px 0;
+  background:repeating-linear-gradient(0deg,#D9DEE7 0 1px,#E9ECF2 1px 22px);display:grid;gap:4px}
+.wall .sus{aspect-ratio:auto;height:150px;background:transparent;border-radius:8px}
+.wall .num{position:absolute;top:2px;left:50%;transform:translateX(-50%);font-weight:800;font-size:13px;color:#1B1E24;background:#FFD23F;border-radius:6px;padding:0 6px;z-index:2}
+.says{position:relative;z-index:2;margin:0 10px 10px;display:flex;flex-direction:column;gap:6px}
+.say{padding:8px 10px;border-radius:10px;background:#F7F2E6;color:#1B1E24;font-size:13px;font-weight:700}
+.say b{color:#C0392B}
+.lineup.flash::after{content:'';position:absolute;inset:0;background:#fff;z-index:5;animation:camflash .35s ease-out forwards;pointer-events:none}
+@keyframes camflash{from{opacity:.9}to{opacity:0}}
+
+/* Ⓒ 변장 추적: CCTV 두 화면 */
+.cctv{background:#0E1218}
+.screen{position:relative;z-index:2;margin:10px;border-radius:8px;overflow:hidden;background:#2A3240;border:2px solid #3A4458}
+.screen .rec{position:absolute;top:6px;left:8px;z-index:3;font:700 11px/1 monospace;color:#FF5A5A}
+.screen .ts{position:absolute;top:6px;right:8px;z-index:3;font:700 11px/1 monospace;color:#CFE3FF}
+.screen::after{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px)}
+.screen .row{display:grid;gap:6px;padding:24px 8px 8px}.screen:last-child .row{padding-bottom:26px}
+.screen .sus{background:#D8DCE2}
+.screen .sus.mark{border-color:#FF5A5A;box-shadow:0 0 0 2px #FF5A5A}
+.screen .sus.mark::after{content:'범인';position:absolute;top:4px;left:4px;font-size:10px;font-weight:800;color:#fff;background:#FF5A5A;border-radius:4px;padding:1px 4px}
+.screen.hide .sus{filter:brightness(.15) blur(2px)}
+.screen .rule{position:absolute;bottom:6px;left:8px;right:8px;z-index:3;font-size:11px;color:#CFE3FF;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none !important}}
+</style>
+</head>
+<body>
+<span class="label">사건 3 후보 2차 · 모두 "용의자를 보고 범인 찾기"</span>
+<h1>어느 방식이 제일 재밌나요?</h1>
+<div class="tabs" id="tabs"><button data-m="montage" class="on">Ⓐ 몽타주</button><button data-m="lineup">Ⓑ 라인업</button><button data-m="disguise">Ⓒ 변장 추적</button></div>
+<div class="card" id="intro"></div>
+<div class="lv" id="lv"><button data-l="1" class="on">1단계부터</button><button data-l="2">2단계부터</button><button data-l="3">3단계부터</button></div>
+<div class="hud"><span class="t" id="t">60.0</span><span id="lvl">단계 1</span><span class="s" id="score">0</span></div>
+<div class="stage" id="stage"></div>
+<div class="msg" id="msg"></div>
+<button class="go" id="go">시작</button>
+<p class="note">시안이라 소리 · 동물 · 보상은 빠져 있어요. 판의 재미와 난이도, 컨셉과 맞는지만 봐 주세요. 맞히면 +2초, 틀리면 −5초.</p>
+<script>
+'use strict';
+/* ---------- 공용 ---------- */
+var rand = Math.random;
+function ri(n) { return Math.floor(rand() * n); }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = ri(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function $(id) { return document.getElementById(id); }
+
+/*
+ * 용의자 그림: 특징 { hat 0~2(없음·실크해트·베레모), build 0~1(마름·통통), item 0~2(없음·지팡이·가방), hair 0~1(짧음·묶음), coat 0~2(색) }
+ * shadow=true 면 모양만 까맣게(색은 안 보임) — ① 그림자.
+ */
+var COATS = ['#C0392B', '#2E6FB7', '#2E8B57'];
+function figure(f, shadow) {
+  var ink = shadow ? '#120A16' : '#2A1E1A', coat = shadow ? '#120A16' : COATS[f.coat], skin = shadow ? '#120A16' : '#F6D5B8';
+  var w = f.build ? 34 : 24, s = '<svg viewBox="0 0 120 160" aria-hidden="true">';
+  if (!shadow) s += '<ellipse cx="60" cy="154" rx="34" ry="5" fill="rgba(0,0,0,.18)"/>';
+  // 몸 · 다리
+  s += '<path d="M' + (60 - w) + ' 152 q-2-46 ' + w + '-56 q' + w + ' 10 ' + w + ' 56z" fill="' + coat + '" stroke="' + ink + '" stroke-width="3"/>';
+  // 묶은 머리(뒤)
+  if (f.hair) s += '<ellipse cx="84" cy="62" rx="9" ry="13" fill="' + (shadow ? ink : '#4A2C1A') + '"/>';
+  // 머리
+  s += '<circle cx="60" cy="62" r="22" fill="' + skin + '" stroke="' + ink + '" stroke-width="3"/>';
+  if (!shadow) s += '<path d="M40 56 q20-24 40 0" fill="#4A2C1A"/><circle cx="52" cy="64" r="2.6" fill="#2A1E1A"/><circle cx="68" cy="64" r="2.6" fill="#2A1E1A"/><path d="M54 74 q6 4 12 0" stroke="#2A1E1A" stroke-width="2" fill="none"/>';
+  // 모자
+  if (f.hat === 1) s += '<rect x="44" y="22" width="32" height="26" fill="' + (shadow ? ink : '#1B1E24') + '"/><rect x="34" y="44" width="52" height="6" rx="3" fill="' + (shadow ? ink : '#1B1E24') + '"/>';
+  if (f.hat === 2) s += '<ellipse cx="62" cy="42" rx="26" ry="10" fill="' + (shadow ? ink : '#8E44AD') + '"/><circle cx="62" cy="33" r="3" fill="' + (shadow ? ink : '#8E44AD') + '"/>';
+  // 소품
+  if (f.item === 1) s += '<path d="M' + (60 + w + 6) + ' 100 v52 M' + (60 + w + 6) + ' 100 q0-8 -8-8" stroke="' + (shadow ? ink : '#6E4E36') + '" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  if (f.item === 2) s += '<rect x="' + (60 - w - 18) + '" y="112" width="20" height="18" rx="3" fill="' + (shadow ? ink : '#D4A017') + '" stroke="' + ink + '" stroke-width="2"/><path d="M' + (60 - w - 14) + ' 112 q6-8 12 0" stroke="' + ink + '" stroke-width="2" fill="none"/>';
+  return s + '</svg>';
+}
+function sameShape(a, b, keys) { return keys.every(function (k) { return a[k] === b[k]; }); }
+function randFig() { return { hat: ri(3), build: ri(2), item: ri(3), hair: ri(2), coat: ri(3) }; }
+
+
+var KEYS = ['hat', 'build', 'item', 'hair', 'coat'];
+var MAX = { hat: 3, build: 2, item: 3, hair: 2, coat: 3 };
+var WORD = {
+  hat: ['모자 없음', '실크해트', '베레모'], build: ['마른 체형', '통통한 체형'], item: ['빈손', '지팡이', '가방'],
+  hair: ['짧은 머리', '묶은 머리'], coat: ['빨간 코트', '파란 코트', '초록 코트']
+};
+function diffKeys(a, b) { return KEYS.filter(function (k) { return a[k] !== b[k]; }); }
+function nudge(f, keys) { var c = Object.assign({}, f), k = keys[ri(keys.length)]; c[k] = (c[k] + 1 + ri(MAX[k] - 1)) % MAX[k]; return c; }
+
+/*
+ * Ⓐ 몽타주: 특징 5개가 정한 순서로 1.5초(2단계 1.2초, 3단계 1초)마다 하나씩 드러난다.
+ *   점수 = 100 × (아직 가려진 특징 수 + 1). 다 드러나면 정답은 하나(모든 미끼는 정답과 특징 하나 이상이 다르다).
+ *   단계가 오르면 미끼가 정답과 딱 하나만 다른 사람이 많아진다(일찍 찍기가 위험해진다).
+ */
+function makeMontage(level) {
+  var ans = randFig(), cards = [ans], n = level === 1 ? 9 : 12, tries = 0;
+  while (cards.length < n && tries++ < 500) {
+    var c = level === 1 && ri(2) ? randFig() : nudge(ans, KEYS);
+    if (level >= 2 && ri(3) === 0) c = nudge(c, KEYS);
+    if (!diffKeys(c, ans).length) continue;
+    if (cards.some(function (x) { return !diffKeys(x, c).length; })) continue;   // 똑같은 미끼 둘은 싫다
+    cards.push(c);
+  }
+  return { ans: ans, cards: shuffle(cards), order: shuffle(KEYS.slice()), step: ({ 1: 1500, 2: 1200, 3: 1000 })[level] };
+}
+
+/*
+ * Ⓑ 라인업: 5명(2단계부터 6명) 한 줄. 진술은 한 사람의 특징(자기) 또는 옆 사람 · 자리 관계.
+ *   진술 2개(3단계는 3개)를 모두 만족하는 자리가 정확히 하나일 때까지 다시 만든다.
+ */
+var SAYS = [
+  function (L, i, f) { return { t: '범인은 <b>' + WORD[f.k][f.v] + '</b>였어요', ok: function (j) { return L[j][f.k] === f.v; } }; },
+  function (L, i, f) { return { t: '범인 <b>바로 왼쪽</b> 사람은 <b>' + WORD[f.k][f.v] + '</b>였어요', ok: function (j) { return j > 0 && L[j - 1][f.k] === f.v; } }; },
+  function (L, i, f) { return { t: '범인 <b>바로 오른쪽</b> 사람은 <b>' + WORD[f.k][f.v] + '</b>였어요', ok: function (j) { return j < L.length - 1 && L[j + 1][f.k] === f.v; } }; },
+  function (L) { return { t: '범인은 <b>양 끝</b>에 서 있지 않았어요', ok: function (j) { return j > 0 && j < L.length - 1; } }; },
+  function (L, i, f) { return { t: '범인은 <b>' + WORD[f.k][f.v] + '</b>이(가) <b>아니었어요</b>', ok: function (j) { return L[j][f.k] !== f.v; } }; }
+];
+function makeLineup(level) {
+  var n = level === 1 ? 5 : 6, need = level === 3 ? 3 : 2;
+  for (var g = 0; g < 3000; g++) {
+    var L = []; for (var i = 0; i < n; i++) L.push(randFig());
+    var ans = ri(n), says = [], used = {};
+    for (var s = 0; s < need; s++) {
+      var kind = ri(SAYS.length);
+      if (level === 1 && kind === 4) kind = 0;
+      if (used[kind] && kind === 3) continue;
+      // 진술은 정답(자리 ans)에 대해 참이어야 한다
+      var f, sy;
+      if (kind === 0) { var k = KEYS[ri(5)]; f = { k: k, v: L[ans][k] }; }
+      else if (kind === 1) { if (ans === 0) continue; var k1 = KEYS[ri(5)]; f = { k: k1, v: L[ans - 1][k1] }; }
+      else if (kind === 2) { if (ans === n - 1) continue; var k2 = KEYS[ri(5)]; f = { k: k2, v: L[ans + 1][k2] }; }
+      else if (kind === 4) { var k4 = KEYS[ri(5)], v4 = (L[ans][k4] + 1 + ri(MAX[k4] - 1)) % MAX[k4]; f = { k: k4, v: v4 }; }
+      sy = SAYS[kind](L, ans, f);
+      if (!sy.ok(ans)) continue;
+      used[kind] = 1; says.push(sy);
+    }
+    if (says.length !== need) continue;
+    var fit = []; for (var j = 0; j < n; j++) if (says.every(function (x) { return x.ok(j); })) fit.push(j);
+    if (fit.length === 1 && fit[0] === ans) return { line: L, says: says, ans: ans };
+  }
+  throw new Error('lineup gen');
+}
+
+/*
+ * Ⓒ 변장 추적: 첫 화면(3명)에 범인 표시 → 다음 화면(6명, 2단계부터 9명)에서 같은 사람 찾기.
+ *   범인은 코트 색을 바꾸고(늘) 모자도 바꿀 수 있다. 체형 · 머리 · 소품은 그대로.
+ *   함정: 범인의 원래 코트 · 모자를 그대로 입은 다른 사람, 못 바꾸는 특징 중 하나만 다른 사람.
+ *   3단계: 첫 화면이 2초 뒤 어두워진다(기억해야 한다).
+ */
+var FIXED = ['build', 'hair', 'item'];
+function makeDisguise(level) {
+  var orig = randFig(), now = Object.assign({}, orig);
+  now.coat = (orig.coat + 1 + ri(2)) % 3;
+  if (ri(2)) now.hat = (orig.hat + 1 + ri(2)) % 3;
+  var first = shuffle([orig, nudge(orig, FIXED), randFig()]);
+  var n = level === 1 ? 6 : 9, cards = [now], tries = 0;
+  // 함정 1: 원래 옷차림 그대로인 다른 사람(못 바꾸는 특징이 하나 다름)
+  var trap = nudge(Object.assign({}, orig), FIXED); cards.push(trap);
+  while (cards.length < n && tries++ < 500) {
+    var c = ri(2) ? nudge(Object.assign({}, now), FIXED) : randFig();
+    c.coat = ri(3); if (ri(2)) c.hat = ri(3);
+    if (sameShape(c, now, FIXED)) continue;
+    cards.push(c);
+  }
+  return { first: first, mark: first.indexOf(orig), cards: shuffle(cards), ans: now, hide: level === 3 };
+}
+
+function selfTest() {
+  var bad = 0;
+  for (var i = 0; i < 3000; i++) {
+    var lv = 1 + (i % 3);
+    var m = makeMontage(lv);
+    if (m.cards.filter(function (c) { return !diffKeys(c, m.ans).length; }).length !== 1) bad++;
+    var l = makeLineup(lv), fit = 0;
+    for (var j = 0; j < l.line.length; j++) if (l.says.every(function (x) { return x.ok(j); })) fit++;
+    if (fit !== 1) bad++;
+    var d = makeDisguise(lv);
+    if (d.cards.filter(function (c) { return sameShape(c, d.ans, FIXED); }).length !== 1) bad++;
+  }
+  return bad;
+}
+window.__selfTest = selfTest;
+
+/* ---------- 놀이 ---------- */
+var mode = 'montage', startLv = 1, game = null, timer = null, revealT = null, hideT = null;
+var INTRO = {
+  montage: '<span class="label">Ⓐ 몽타주 · 목격자가 떠올리는 대로</span><h2>몽타주 맞히기</h2><p>목격자가 범인 특징을 <b>하나씩</b> 떠올려요(1.5초마다). 몽타주에 맞는 사람을 고르세요. <b>일찍 맞힐수록 점수 배수가 커요</b>(가려진 특징 수 + 1). 너무 일찍 찍으면 틀릴 수 있어요. 2단계부터 12명, 비슷한 사람이 많아져요.</p>',
+  lineup: '<span class="label">Ⓑ 라인업 · 경찰서 면통실</span><h2>면통 라인업</h2><p>용의자가 <b>한 줄</b>로 섰어요. 증인 진술(“범인 <b>바로 왼쪽</b> 사람은 모자를 썼어요” 같은 자리 관계 포함)에 <b>모두 맞는 자리</b>의 사람을 고르세요. 2단계부터 6명, 3단계는 진술 3개.</p>',
+  disguise: '<span class="label">Ⓒ 변장 추적 · CCTV 두 화면</span><h2>변장 추적</h2><p>위 CCTV에 <b>범인</b>이 찍혔어요. 아래 CCTV에서는 <b>코트를 갈아입고 모자도 바꿨을 수 있어요</b>. 하지만 <b>체형 · 머리 · 소품</b>은 못 바꿔요. 같은 사람을 찾으세요. 3단계는 위 화면이 2초 뒤 꺼져요.</p>'
+};
+function setMode(m) { mode = m; document.querySelectorAll('#tabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === m); }); $('intro').innerHTML = INTRO[m]; stop(); preview(); }
+function levelOf(g) { return Math.min(3, startLv + (g.hits >= 8 ? 2 : g.hits >= 3 ? 1 : 0)); }
+function preview() { game = { hits: 0, score: 0, left: 60, over: true }; newQ(); $('t').textContent = '60.0'; $('t').classList.remove('low'); $('score').textContent = '0'; $('msg').textContent = ''; $('go').textContent = '시작'; }
+
+function montagePaper() {
+  var q = game.q, shown = q.order.slice(0, q.shown), f = {};
+  // 드러난 특징만 그린다(나머지는 기본: 모자 없음 · 빈손 · 짧은 머리 · 회색)
+  KEYS.forEach(function (k) { f[k] = shown.indexOf(k) >= 0 ? q.ans[k] : 0; });
+  // 아직 모르는 모자 · 소품은 "없음"으로 그리지 않고 ? 표를 단다(없는 것처럼 보이면 헷갈린다)
+  var unk = '';
+  if (shown.indexOf('hat') < 0) unk += '<text x="60" y="40" font-size="26" font-weight="800" text-anchor="middle" fill="#B9AE96">?</text>';
+  if (shown.indexOf('item') < 0) unk += '<text x="20" y="128" font-size="22" font-weight="800" text-anchor="middle" fill="#B9AE96">?</text>';
+  var list = q.order.map(function (k, i) { return i < q.shown ? '<li class="' + (i === q.shown - 1 ? 'new' : '') + '">✓ ' + WORD[k][q.ans[k]] + '</li>' : '<li class="q">? ? ?</li>'; }).join('');
+  return '<div class="paper"><div class="pic">' + figure(f).replace('</svg>', unk + '</svg>') + '</div><ul>' + list + '</ul></div><span class="mult">×' + (5 - q.shown + 1) + '</span>';
+}
+function newQ() {
+  var lv = levelOf(game), st = $('stage');
+  clearTimeout(revealT); clearTimeout(hideT);
+  $('lvl').textContent = '단계 ' + lv;
+  if (mode === 'montage') {
+    var q = game.q = makeMontage(lv); q.shown = 1;
+    st.className = 'stage sketch';
+    var draw = function () {
+      st.innerHTML = montagePaper() + '<div class="grid" style="grid-template-columns:repeat(' + (q.cards.length > 9 ? 4 : 3) + ',1fr)">' + q.cards.map(function (c, i) { return '<button class="sus" data-i="' + i + '">' + figure(c) + '</button>'; }).join('') + '</div>';
+    };
+    draw();
+    var more = function () { if (game.over || game.q !== q || q.shown >= 5) return; q.shown++; var p = st.querySelector('.paper'); if (p) { p.outerHTML = montagePaper().replace(/<span class="mult">.*$/, ''); st.querySelector('.mult').textContent = '×' + (5 - q.shown + 1); } revealT = setTimeout(more, q.step); };
+    if (!game.over) revealT = setTimeout(more, q.step);
+  } else if (mode === 'lineup') {
+    var l = game.q = makeLineup(lv);
+    st.className = 'stage lineup';
+    st.innerHTML = '<div class="wall" style="grid-template-columns:repeat(' + l.line.length + ',1fr)">' + l.line.map(function (c, i) { return '<button class="sus" data-i="' + i + '"><span class="num">' + (i + 1) + '</span>' + figure(c).replace('viewBox="0 0 120 160"', 'viewBox="14 18 92 140"') + '</button>'; }).join('') + '</div>' +
+      '<div class="says">' + l.says.map(function (x) { return '<div class="say">🗣 ' + x.t + '</div>'; }).join('') + '</div>';
+    if (!game.over) { st.classList.remove('flash'); void st.offsetWidth; st.classList.add('flash'); }
+  } else {
+    var d = game.q = makeDisguise(lv);
+    st.className = 'stage cctv';
+    st.innerHTML = '<div class="screen" id="scr1"><span class="rec">● REC  CAM 03</span><span class="ts">21:04:12</span><div class="row" style="grid-template-columns:repeat(3,1fr)">' +
+      d.first.map(function (c, i) { return '<div class="sus' + (i === d.mark ? ' mark' : '') + '">' + figure(c) + '</div>'; }).join('') + '</div></div>' +
+      '<div class="screen"><span class="rec">● REC  CAM 07</span><span class="ts">21:10:48</span><div class="row" style="grid-template-columns:repeat(' + (d.cards.length > 6 ? 3 : 3) + ',1fr)">' +
+      d.cards.map(function (c, i) { return '<button class="sus" data-i="' + i + '">' + figure(c) + '</button>'; }).join('') + '</div><span class="rule">옷 · 모자는 바꿀 수 있어요 · 체형 · 머리 · 소품은 못 바꿔요</span></div>';
+    if (d.hide && !game.over) hideT = setTimeout(function () { var s1 = $('scr1'); if (s1) s1.classList.add('hide'); }, 2000);
+  }
+}
+function judge(i, el) {
+  var right, mult = 1;
+  if (mode === 'montage') { right = !diffKeys(game.q.cards[i], game.q.ans).length; mult = 5 - game.q.shown + 1; }
+  else if (mode === 'lineup') right = i === game.q.ans;
+  else right = sameShape(game.q.cards[i], game.q.ans, FIXED);
+  if (right) {
+    el.classList.add('ok'); game.hits++; game.score += 100 * levelOf(game) * mult; game.left += 2;
+    $('msg').textContent = mode === 'montage' && mult > 1 ? '×' + mult + ' 일찍 맞혔어요!' : ['검거!', '잡았다!', '정확해요!'][ri(3)];
+    $('score').textContent = game.score; game.lock = true;
+    setTimeout(function () { game.lock = false; if (!game.over) newQ(); }, 420);
+  } else {
+    el.classList.add('bad'); game.left -= 5; $('msg').textContent = '아니에요 (−5초)';
+    setTimeout(function () { el.classList.remove('bad'); }, 320);
+  }
+}
+function start() { stop(); game = { hits: 0, score: 0, left: 60, over: false, last: performance.now() }; newQ(); $('go').textContent = '다시 시작'; $('msg').textContent = ''; timer = setInterval(tick, 100); }
+function tick() {
+  var now = performance.now(); game.left -= (now - game.last) / 1000; game.last = now;
+  $('t').textContent = Math.max(0, game.left).toFixed(1); $('t').classList.toggle('low', game.left < 10);
+  if (game.left <= 0) { game.over = true; stop(); $('stage').className = 'stage'; $('stage').innerHTML = '<div class="end"><span class="label">출동 종료</span><b>' + game.score + '</b><span>검거 ' + game.hits + '명 · 최고 단계 ' + levelOf(game) + '</span></div>'; }
+}
+function stop() { clearInterval(timer); clearTimeout(revealT); clearTimeout(hideT); timer = null; }
+$('tabs').onclick = function (e) { var b = e.target.closest('button'); if (b) setMode(b.dataset.m); };
+$('lv').onclick = function (e) { var b = e.target.closest('button'); if (!b) return; startLv = +b.dataset.l; document.querySelectorAll('#lv button').forEach(function (x) { x.classList.toggle('on', x === b); }); if (!game || game.over) preview(); };
+$('go').onclick = start;
+$('stage').addEventListener('click', function (e) { var b = e.target.closest('button.sus'); if (!b || !game || game.over || game.lock) return; judge(+b.dataset.i, b); });
+setMode('montage');
+</script>
+</body>
+</html>

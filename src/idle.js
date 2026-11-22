@@ -62,9 +62,13 @@
     vault:   { name: '증거 보관실',   desc: '검거 불가 오판 벌점 10초 → 5초', costs: [4000], case: 1 },
     recorder:  { name: '진술 녹음기',  desc: '함정 체포 벌점 8초 → 5초 → 2초', costs: [6000, 18000], case: 2 },
     keeper:    { name: '등대지기',     desc: '등대 빛이 지나갈 때 거짓 진술이 잠깐 빛나요', costs: [25000], case: 2 },
-    informant: { name: '부두 정보원',  desc: '검거하면 시간 +1초씩 더(최대 +3초)', costs: [9000, 27000, 81000], case: 2 }
+    informant: { name: '부두 정보원',  desc: '검거하면 시간 +1초씩 더(최대 +3초)', costs: [9000, 27000, 81000], case: 2 },
+    // 0.5.0: 사건 3(면통 라인업) 장비 셋
+    painter:   { name: '몽타주 화가',  desc: '줄마다 아닌 사람 하나를 미리 지워 줘요', costs: [40000], case: 3 },
+    lights:    { name: '조명 기사',    desc: '오인 지목 벌점 5초 → 3초 → 1초', costs: [15000, 45000], case: 3 },
+    witness2:  { name: '베테랑 증인',  desc: '검거하면 시간 +1초씩 더(최대 +3초)', costs: [16000, 48000, 144000], case: 3 }
   };
-  var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault', 'recorder', 'keeper', 'informant'];
+  var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault', 'recorder', 'keeper', 'informant', 'painter', 'lights', 'witness2'];
   // 이 사건에서 보이는(쓸 수 있는) 장비
   function gearFor(save) { var n = caseOf(save).no; return GEAR_KEYS.filter(function (k) { return !GEAR[k].case || GEAR[k].case === n; }); }
 
@@ -116,7 +120,29 @@
       { at: 5000, text: '마지막 운반선의 선실은 비어 있었다. 탁자 위에 쪽지 한 장과, 오래된 경찰 배지 하나. 배지 번호의 앞자리는 우리 서의 것이었고, 소속 칸에는 "수사 3팀"이라고 새겨져 있었다. 쪽지에는 늘 그렇듯 짧게 적혀 있었다. "목격자는 늘 하나를 틀린다. 너희 팀도 그렇다. — 써드" 3팀에 있었던 사람. 아니면 3팀을 아주 잘 아는 사람. 안개가 걷힌 부두에서, 우리는 처음으로 서로의 얼굴을 오래 보았다.\n— 사건 3에서 계속' }
     ]
   };
-  var CASES = [CASE, CASE2];
+  /*
+   * 사건 3 "증인의 기억"(0.5.0) — 무대는 다시 중앙서, 면통실. 현장 출동 퍼즐은 면통 라인업(lineup.js).
+   *   여는 시점: 0 = 얼굴 없는 강도, 1000 = 옆 사람만 기억하는 증인, 2500 = 해무항의 빈 신분증, 4000 = 유리에 비친 액자,
+   *              6500 = 팀 한계(남은 건 써드의 줄), 8000 = 종결. 써드의 정체는 아직 다 밝히지 않는다(3팀의 옛 사진 속 지워진 얼굴까지).
+   */
+  var CASE3 = {
+    no: 3,
+    title: '증인의 기억',
+    city: '중앙서 면통실',
+    mode: 'lineup',
+    pay: 6,
+    goal: 8000,
+    idleCap: 6500,
+    story: [
+      { at: 0, text: '해무항에서 돌아온 지 사흘 만에 우리 서 면통실에 다시 불이 켜졌다. 도시 곳곳에 얼굴 없는 강도가 나타났다. 목격자는 많았지만 범인의 얼굴을 또렷이 기억하는 사람은 없었다. 대신 다들 이상할 만큼 정확하게 기억하는 것이 있었다. 범인이 누구 옆에 서 있었는지, 그 옆 사람이 무엇을 쓰고 있었는지.' },
+      { at: 1000, text: '증인들은 범인을 보지 못한 게 아니었다. 범인이 늘 다른 사람들 사이에 섞여 서도록 짜여 있었던 것이다. 버스 정류장의 줄, 은행 창구 앞의 줄, 횡단보도 앞의 줄. 범행은 언제나 사람들이 한 줄로 늘어선 곳에서 일어났다. 누군가 줄 세우는 법을 알고 있었다.' },
+      { at: 2500, text: '면통실에 세운 용의자들의 소지품에서 같은 신분증이 여러 장 나왔다. 이름도 주소도 비어 있고 사진만 붙은 신분증. 해무항 밀수 상자에서 나온 바로 그 빈 신분증이었다. 사진 속 얼굴들은 모자와 안경과 마스크를 바꿔 가며 같은 사람을 여러 사람으로 보이게 만들고 있었다.' },
+      { at: 4000, text: '한 증인이 유리 너머가 아니라 우리 쪽을 가리켰다. "저 사람이요. 그날 줄에 저 사람이 있었어요." 가리킨 것은 면통실 벽에 걸린 낡은 액자였다. 십 년 전 수사 3팀의 단체 사진. 맨 끝에 선 한 사람의 얼굴만 누군가 칼로 긁어 지워 놓았다. 아무도 그 자리에 누가 서 있었는지 말하지 않았다.' },
+      { at: 6500, text: '팀이 책상에서 잡을 수 있는 놈들은 다 잡았다. 남은 건 써드가 직접 세운 줄이다. 진술은 짧아지고, 줄은 길어지고, 범인 옆에는 늘 범인을 닮은 사람이 선다. 이제부터는 면통실 유리 앞에서 직접 지목해야 한다. 한 번 틀리면 증인은 다시 그 줄을 보려 하지 않는다.' },
+      { at: 8000, text: '마지막 줄의 마지막 사람을 지목하던 날, 증인이 유리 앞에서 오래 머뭇거렸다. 그리고 범인이 아니라 액자 속 지워진 얼굴 쪽으로 고개를 돌렸다. 그날 밤 내 책상 위에는 긁힌 자리를 오려 낸 사진 조각과 쪽지 한 장이 있었다. "줄 맨 끝 자리는 원래 내 자리였다. — 써드" 3팀의 네 번째 사람. 우리가 아무도 기억하지 않던 사람.\n— 다음 사건에서 계속' }
+    ]
+  };
+  var CASES = [CASE, CASE2, CASE3];
   /** 지금 맡은 사건(save.caseNo, 1부터) */
   function caseOf(save) { var n = save && save.caseNo; return CASES[(n >= 1 && n <= CASES.length ? n : 1) - 1]; }
 
@@ -172,7 +198,7 @@
       frac: 0,             // 팀이 잡다 만 몫(0~1)
       detectives: 1,       // 처음부터 1명(나 말고 동료 한 명)
       training: 0,
-      gear: { time: 0, veteran: 0, lab: 0, vault: 0, recorder: 0, keeper: 0, informant: 0 },
+      gear: { time: 0, veteran: 0, lab: 0, vault: 0, recorder: 0, keeper: 0, informant: 0, painter: 0, lights: 0, witness2: 0 },
       lastSeen: now,
       buffUntil: 0,
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
@@ -411,11 +437,15 @@
       nonePenalty: save.gear.vault ? 5 : 10,
       level: 1,
       helperAtFull: save.gear.lab > 0,
-      mode: caseOf(save).mode,  // 0.2.0: set(사건 1) | witness(사건 2)
+      mode: caseOf(save).mode,  // 0.2.0: set(사건 1) | witness(사건 2) | 0.5.0: lineup(사건 3)
       // 사건 2 장비(목격자 출동에서만 쓰인다)
       trapPenalty: [8, 5, 2][save.gear.recorder] != null ? [8, 5, 2][save.gear.recorder] : 8,
       hitBonus: save.gear.informant,
-      beamLie: save.gear.keeper > 0
+      beamLie: save.gear.keeper > 0,
+      // 0.5.0 사건 3 장비(면통 라인업 출동에서만 쓰인다)
+      missPenalty: [5, 3, 1][save.gear.lights] != null ? [5, 3, 1][save.gear.lights] : 5,
+      lineupHitBonus: save.gear.witness2 || 0,
+      preOut: save.gear.painter > 0 ? 1 : 0
     };
   }
 

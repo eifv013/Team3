@@ -5,6 +5,10 @@
  *   사건 2 "안개 속 목격자들" = 해무항 부두: 겹겹이 흐르는 안개, 등대 빛(닿은 카드가 밝아짐), 빗줄기,
  *                               검거하면 안개가 그 자리부터 걷히고 증거 사진이 현상돼 증거 보드로 날아감,
  *                               함정은 셔터·붉은 테두리, 단계가 오르면 안개가 밀려옴, 주범 조는 배 그림자와 뱃고동.
+ *   사건 3 "증인의 기억"(0.5.0)  = 중앙서 면통실: 위에서 깜빡이는 형광등, 반투명 유리 반사, 키 눈금 벽(판이 그린다),
+ *                               검거하면 카메라 플래시 · "검거" 도장 · 나머지 줄은 어두워짐, 오인 지목은 형광등이 지직 꺼졌다 켜짐,
+ *                               단계가 오르면 조명이 한 줄씩 다시 켜짐, 주범 조(써드의 줄)는 붉은 경고등이 천천히 돈다.
+ *   0 = 연출 없음(몽타주 수배: 종이가 연출을 맡는다)
  *
  * 규칙: 연출은 게임 진행에 손대지 않는다(판정·시간은 ui.js·core·witness 가 한다). 실패해도 조용히 넘어간다.
  *       prefers-reduced-motion 이면 움직임을 거의 없앤다(CSS). DOM 만 만지고, 소리는 ui.js 가 넘겨 준 함수로만 낸다.
@@ -66,14 +70,14 @@
     cur.timers.forEach(clearTimeout);
     cur.layers.forEach(remove);
     if (cur.clock) clearInterval(cur.clock);
-    if (cur.screen) cur.screen.classList.remove('fx-c1', 'fx-c2', 'fx-boss1');
+    if (cur.screen) cur.screen.classList.remove('fx-c1', 'fx-c2', 'fx-c3', 'fx-boss1', 'fx-boss3');
     cur = null;
   }
   function mount(caseNo, o) {
     unmount();
     if (!o || !o.board || !o.screen) return;
     cur = { no: caseNo, board: o.board, screen: o.screen, boss: !!o.boss, beamLie: !!o.beamLie, getLieEl: o.getLieEl || function () { return null; }, layers: [], timers: [], level: 1, cam: 1 };
-    if (caseNo === 2) mount2(); else mount1();
+    if (caseNo === 2) mount2(); else if (caseNo === 3) mount3(); else if (caseNo !== 0) mount1();
   }
   function addLayer(parent, e) { parent.appendChild(e); cur.layers.push(e); return e; }
 
@@ -196,21 +200,47 @@
     later(function () { remove(s); }, 6200);
   }
 
+  /* ================= 사건 3: 면통실 ================= */
+  function mount3() {
+    cur.screen.classList.add('fx-c3');
+    if (cur.boss) cur.screen.classList.add('fx-boss3');
+    var b = cur.board;
+    cur.lamp = addLayer(b, el('div', 'lu-lamp'));
+    cur.glass = addLayer(b, el('div', 'lu-glass'));
+    cur.flash = addLayer(b, el('div', 'lu-flash'));
+    // 가끔 형광등이 지직(소리는 ui 가 넘겨 준 click 으로 작게)
+    var buzzLoop = function () {
+      if (!cur || cur.no !== 3) return;
+      replay(cur.lamp, 'buzz');
+      later(buzzLoop, 6000 + Math.random() * 7000);
+    };
+    later(buzzLoop, 3500);
+  }
+  function hit3(cards) {
+    replay(cur.flash, 'go');
+    cards.forEach(function (c) { if (c) replay(c, 'right'); });
+  }
+  function miss3() { replay(cur.lamp, 'out'); }
+  function level3() {
+    replay(cur.lamp, 'relight');
+    replay(cur.flash, 'go');
+  }
+
   /* ---------- 판을 다시 그린 뒤: 겹 레이어를 맨 위로 다시 붙인다 ---------- */
   function afterRender() {
     if (!cur) return;
     var b = cur.board;
-    var keep = cur.no === 2 ? [cur.fogA, cur.fogB, cur.beam] : [cur.scan, cur.noise, cur.hud, cur.strings];
+    var keep = cur.no === 2 ? [cur.fogA, cur.fogB, cur.beam] : cur.no === 3 ? [cur.lamp, cur.glass, cur.flash] : [cur.scan, cur.noise, cur.hud, cur.strings];
     keep.forEach(function (e) { if (e) b.appendChild(e); });
     if (cur.no === 1) picks([]);
   }
 
   return {
     mount: mount, unmount: unmount, afterRender: afterRender, picks: picks,
-    hit: function (cards, id, html) { try { if (!cur) return; if (cur.no === 2) hit2(cards, id, html); else hit1(cards); } catch (e) { /* 무시 */ } },
-    miss: function (cards) { try { if (!cur) return; if (cur.no === 2) miss2(); else miss1(cards); } catch (e) { /* 무시 */ } },
+    hit: function (cards, id, html) { try { if (!cur) return; if (cur.no === 2) hit2(cards, id, html); else if (cur.no === 3) hit3(cards); else hit1(cards); } catch (e) { /* 무시 */ } },
+    miss: function (cards) { try { if (!cur) return; if (cur.no === 2) miss2(); else if (cur.no === 3) miss3(); else miss1(cards); } catch (e) { /* 무시 */ } },
     trap: function () { try { if (cur && cur.no === 2) trap2(); } catch (e) { /* 무시 */ } },
-    levelUp: function (lv) { try { if (!cur) return; if (cur.no === 2) level2(lv); else level1(lv); } catch (e) { /* 무시 */ } },
+    levelUp: function (lv) { try { if (!cur) return; if (cur.no === 2) level2(lv); else if (cur.no === 3) level3(lv); else level1(lv); } catch (e) { /* 무시 */ } },
     setSound: function (s) { snd = s || {}; }
   };
 });
