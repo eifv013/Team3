@@ -8,7 +8,7 @@ import json, pathlib, re, shutil, subprocess, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIST = ROOT / 'dist'
 SCRIPTS = (('/*NOTES*/', 'notes.js'), ('/*UPDATE*/', 'update.js'), ('/*CORE*/', 'core.js'),
-           ('/*IDLE*/', 'idle.js'), ('/*ECONOMY*/', 'economy.js'), ('/*ICONS*/', 'icons.js'), ('/*OFFICE*/', 'office.js'), ('/*DEPT*/', 'dept.js'), ('/*EVIDENCE*/', 'evidence.js'), ('/*DIFF*/', 'diff.js'), ('/*CREW*/', 'crew.js'), ('/*PETS*/', 'pets.js'), ('/*PETART*/', 'petart.js'), ('/*NOIRPICS*/', 'noirpics.js'), ('/*NOIRART*/', 'noirart.js'), ('/*ACH*/', 'ach.js'), ('/*MONET*/', 'monet.js'), ('/*TRANSIT*/', 'transit.js'), ('/*WITNESS*/', 'witness.js'), ('/*FORGERY*/', 'forgery.js'), ('/*LINEUP*/', 'lineup.js'), ('/*MONTAGE*/', 'montage.js'), ('/*FX*/', 'fx.js'), ('/*SOUNDS*/', 'sounds.js'), ('/*SETTINGS*/', 'settings.js'), ('/*MUSIC*/', 'music.js'), ('/*BGM*/', 'bgm.js'), ('/*UI*/', 'ui.js'), ('/*ACHUI*/', 'achui.js'), ('/*PETSUI*/', 'petsui.js'), ('/*SHOPUI*/', 'shopui.js'), ('/*OFFICEUI*/', 'officeui.js'), ('/*EVIDUI*/', 'evidui.js'), ('/*DIFFUI*/', 'diffui.js'), ('/*CREWUI*/', 'crewui.js'), ('/*MENUUI*/', 'menuui.js'), ('/*HUB*/', 'hub.js'))
+           ('/*IDLE*/', 'idle.js'), ('/*ECONOMY*/', 'economy.js'), ('/*ICONS*/', 'icons.js'), ('/*OFFICE*/', 'office.js'), ('/*DEPT*/', 'dept.js'), ('/*EVIDENCE*/', 'evidence.js'), ('/*DIFF*/', 'diff.js'), ('/*CREW*/', 'crew.js'), ('/*PETS*/', 'pets.js'), ('/*PETART*/', 'petart.js'), ('/*NOIRPICS*/', 'noirpics.js'), ('/*NOIRART*/', 'noirart.js'), ('/*ACH*/', 'ach.js'), ('/*MONET*/', 'monet.js'), ('/*ATTEND*/', 'attend.js'), ('/*TRANSIT*/', 'transit.js'), ('/*WITNESS*/', 'witness.js'), ('/*FORGERY*/', 'forgery.js'), ('/*LINEUP*/', 'lineup.js'), ('/*MONTAGE*/', 'montage.js'), ('/*FX*/', 'fx.js'), ('/*SOUNDS*/', 'sounds.js'), ('/*SETTINGS*/', 'settings.js'), ('/*MUSIC*/', 'music.js'), ('/*BGM*/', 'bgm.js'), ('/*UI*/', 'ui.js'), ('/*ACHUI*/', 'achui.js'), ('/*PETSUI*/', 'petsui.js'), ('/*SHOPUI*/', 'shopui.js'), ('/*OFFICEUI*/', 'officeui.js'), ('/*EVIDUI*/', 'evidui.js'), ('/*DIFFUI*/', 'diffui.js'), ('/*CREWUI*/', 'crewui.js'), ('/*MENUUI*/', 'menuui.js'), ('/*HUB*/', 'hub.js'))
 ICONS = ('icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png',
          'apple-touch-icon.png', 'favicon-32.png', 'favicon-64.png')
 
@@ -54,10 +54,7 @@ def build():
     if tpl.count('/*FONTS*/') != 1:
         sys.exit('자리표시자 /*FONTS*/ 가 정확히 하나가 아니다')
     import base64
-    faces = ''
-    for w, f in ((400, 'Pretendard-Regular.subset.woff2'), (700, 'Pretendard-Bold.subset.woff2')):
-        b = base64.b64encode((ROOT / 'assets/fonts' / f).read_bytes()).decode()
-        faces += "@font-face{font-family:'Pretendard';font-weight:%d;font-style:normal;font-display:swap;src:url(data:font/woff2;base64,%s) format('woff2')}\n" % (w, b)
+    faces = ''   # 0.10.2 본문은 예전 IBM Plex Sans KR(구글 글꼴)로 되돌림 — 프리텐다드는 빼고 블랙한산스만 넣는다
     # 0.10.0 제목 · 숫자 글꼴 블랙한산스(OFL)도 넣는다: KS 한글 2,350자 + 게임에 쓰인 글자만(assets/fonts/BlackHanSans.subset.woff)
     b = base64.b64encode((ROOT / 'assets/fonts/BlackHanSans.subset.woff').read_bytes()).decode()
     faces += "@font-face{font-family:'Black Han Sans';font-weight:400;font-style:normal;font-display:block;src:url(data:font/woff;base64,%s) format('woff')}\n" % b

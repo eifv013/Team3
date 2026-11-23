@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="수사 3팀">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <style>
@@ -22,7 +23,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--ink);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty;
-  font-family:'Pretendard',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+  font-family:'IBM Plex Sans KR',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 button{font-family:inherit;color:inherit;cursor:pointer}
 button:disabled{cursor:default;opacity:.45}
 .app{position:relative;max-width:430px;height:100vh;height:100dvh;margin:0 auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
@@ -115,7 +116,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg) scale(.4);opacity:0;pointer-events:none;z-index:2;
   padding:8px 18px;border:4px solid var(--acc);border-radius:10px;color:var(--acc);background:rgba(18,21,28,.86);
   font-family:'Black Han Sans',sans-serif;font-size:34px;white-space:nowrap;text-align:center;line-height:1.1}
-.stamp small{display:block;font-family:'Pretendard',sans-serif;font-size:15px;font-weight:700}
+.stamp small{display:block;font-family:'IBM Plex Sans KR',sans-serif;font-size:15px;font-weight:700}
 .stamp.bad{border-color:var(--miss);color:var(--miss)}
 .stamp.go{animation:stamp .9s ease-out}
 @keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.8)}18%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}}
@@ -903,7 +904,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .lu-sp.wrong{animation:shake .4s}.lu-sp.wrong .card{box-shadow:0 0 0 3px var(--miss)}
 .lu-sp.right .card{box-shadow:0 0 0 3px var(--ok),0 0 18px var(--ok)}
 .board.luboard.dim .lu-sp:not(.right){filter:brightness(.45) saturate(.5);transition:filter .25s}
-.lu-stamp{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%) rotate(-14deg) scale(2.2);opacity:0;z-index:5;pointer-events:none;border:2.5px solid #E5484F;color:#E5484F;font:900 12px/1 'Pretendard',sans-serif;padding:3px 4px;border-radius:6px;background:rgba(255,255,255,.8);white-space:nowrap}
+.lu-stamp{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%) rotate(-14deg) scale(2.2);opacity:0;z-index:5;pointer-events:none;border:2.5px solid #E5484F;color:#E5484F;font:900 12px/1 'IBM Plex Sans KR',sans-serif;padding:3px 4px;border-radius:6px;background:rgba(255,255,255,.8);white-space:nowrap}
 .lu-sp.right .lu-stamp{animation:lustamp .32s cubic-bezier(.3,1.6,.6,1) forwards}
 @keyframes lustamp{to{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
 /* 면통실 겹 레이어(fx.js): 형광등 · 유리 반사 · 카메라 플래시 */
@@ -947,7 +948,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .mtg-pic .card::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(40,36,30,.13) 0 1px,transparent 1px 5px)}
 .mq{position:absolute;width:24px;height:24px;border-radius:12px;border:2px dashed #8A8170;color:#8A8170;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;background:rgba(244,238,223,.9);z-index:2}
 .mq.t{top:5px;left:5px}.mq.m{bottom:5px;right:5px}.mq.h{top:4px;left:50%;transform:translateX(-50%)}.mq.f{top:48%;left:50%;transform:translateX(-50%)}
-.mtg-stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-14deg) scale(2);opacity:0;border:3px solid #E5484F;color:#E5484F;font:900 16px/1 'Pretendard',sans-serif;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,.8);z-index:3}
+.mtg-stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-14deg) scale(2);opacity:0;border:3px solid #E5484F;color:#E5484F;font:900 16px/1 'IBM Plex Sans KR',sans-serif;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,.8);z-index:3}
 .mtg-paper.caught .mtg-stamp{animation:lustamp .3s cubic-bezier(.3,1.6,.6,1) forwards}
 .mtg-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .mtg-mult{font:900 30px/1 'Black Han Sans',sans-serif;color:#C0392B}
@@ -1226,7 +1227,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .ev-up{height:30px;border:0;border-top:1px solid var(--line);background:none;color:var(--acc);font-weight:800;font-size:12px}
 .ev-up:disabled{color:var(--muted)}
 .ev-up.buyc{background:rgba(127,211,255,.1);color:#7FD3FF}.ev-up.buyc.short{color:#FF9A8B;background:none}
-.ev-locks{display:flex;flex-wrap:wrap;gap:6px}.ev-lock{font-size:12px;color:var(--muted);padding:4px 10px;border-radius:999px;border:1.5px dashed var(--line)}
+.ev-locks[hidden]{display:none}.ev-locks{display:flex;flex-wrap:wrap;gap:6px}.ev-lock{font-size:12px;color:var(--muted);padding:4px 10px;border-radius:999px;border:1.5px dashed var(--line)}
 
 /* ---------- 0.6.0 업적: 탭 · 받기 · 빨간 점 · 칭호 칩 ---------- */
 .ach-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
@@ -1480,7 +1481,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .pet-pk-tx{display:flex;flex-direction:column;gap:2px;min-width:0}.pet-pk-tx b{font-size:16px}.pet-pk-tx small{font-size:12px;color:var(--muted);line-height:1.4}
 .pet-btns button.short,.pet-btns button.short:disabled{opacity:1;background:#2A2F3A;color:#9AA0AC;border:1.5px dashed #59606E}
 .pet-btns button.short small{color:#FF9A8B;opacity:1}
-.pet-btns button.free{background:var(--acc);color:#1B1E24;border-color:var(--acc)}
+.pet-btns button.free{}   /* 0.10.2 1회 뽑기도 2회 뽑기와 같은 노란 입체 단추(납작하게 덮던 색 지움) */
 .pet-sets{display:flex;flex-direction:column;gap:6px}
 .pet-sets>div{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .pet-sets span:not(.label){display:flex;flex-direction:column;padding:6px 8px;border-radius:10px;background:var(--panel2);font-size:12px;font-weight:700;color:var(--gc);border:1.5px solid transparent}
@@ -1653,7 +1654,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .ev-cell.has .ev-lv{position:absolute;left:3px;bottom:1px;font-size:8px}
 .ev-x{top:1px;right:1px;bottom:auto;font-size:8px;padding:0 3px;border-radius:3px}
 /* ===== 0.9.0 증거판(연결판) ===== */
-.ev-vp{position:relative;height:min(62vh,520px);overflow:hidden;touch-action:none;border-radius:16px;margin:4px 2px;
+.ev-vp{position:relative;height:min(46vh,400px);overflow:hidden;touch-action:none;border-radius:16px;margin:4px 2px;
   background-color:#A9784A;
   background-image:radial-gradient(rgba(70,36,12,.38) 1.1px,transparent 1.6px),radial-gradient(rgba(255,226,180,.2) .9px,transparent 1.4px),radial-gradient(rgba(60,30,10,.25) 1.6px,transparent 2.2px);
   background-size:6px 6px,9px 9px,17px 17px;box-shadow:0 0 0 6px #6A4526,0 0 0 8px #3E2814,inset 0 0 40px rgba(40,18,4,.6)}
@@ -1729,6 +1730,20 @@ body.prem-on #h-station::before{content:'👑 '}
 .pet-cell.none{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.03) 6px 12px);border-style:dashed;opacity:.5}
 #info-sheet{z-index:7}   /* 0.9.0 상점 위에서 연 정보 창(전설 미리보기)이 상점 뒤에 깔리지 않게 */
 .shop-row.lp{flex-direction:column;align-items:stretch;gap:10px;background:linear-gradient(150deg,#3A2A0C,#1C1E25 65%);border-color:#E8B931}.shop-row.lp>button{width:100%;min-width:0}.shop-row.lp .shop-tx b{font-size:17px;color:#FFE58A}   /* 0.9.3 전설 확정 꾸러미: 글은 전체 폭, 단추는 아래 */
+/* 0.10.2 출석 체크 달력 */
+.at-sum{margin:0 0 8px;font-size:13px;color:#C9CFDA}.at-sum b{color:var(--acc)}
+.at-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.at-dw{text-align:center;font-size:11px;font-weight:800;color:var(--muted);padding:2px 0}.at-dw.sun{color:#FF8A7A}.at-dw.sat{color:#8FC8FF}
+.at-c{position:relative;aspect-ratio:1/1.15;border-radius:9px;background:var(--panel2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:1.5px solid transparent}
+.at-c.pad{background:none}
+.at-c .at-d{position:absolute;top:3px;left:5px;font-size:10px;font-weight:800;color:var(--muted);line-height:1}.at-c.today .at-d{color:var(--acc)}
+.at-c b{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;font-weight:900;margin-top:10px;white-space:nowrap;line-height:1}.at-c b .ic{width:16px;height:16px}.at-c b .ic svg{width:16px;height:16px}
+.at-c.big{background:linear-gradient(160deg,#4A3610,#2A2414);border-color:#E8B931}.at-c.big b{color:#FFE58A}
+.at-c.today{border-color:var(--acc);box-shadow:0 0 0 2px rgba(255,210,63,.35);animation:atpulse 1.4s ease-in-out infinite}
+@keyframes atpulse{50%{box-shadow:0 0 0 4px rgba(255,210,63,.15)}}
+.at-c.got{opacity:.55;animation:none}.at-c.got em{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-size:24px;font-weight:900;color:#7EE08F;text-shadow:0 1px 3px #000}
+.at-c.miss{opacity:.3}
+.at-note{margin:8px 0 0;font-size:11.5px;color:var(--muted)}
 /* 한정 파트너 칸 */
 .lim-card{position:relative;border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#2A1E3A,#12101A 60%);box-shadow:inset 0 0 0 1.5px rgba(200,170,255,.45),0 10px 26px rgba(0,0,0,.5)}
 .lim-card::after{content:'';position:absolute;top:0;left:-60%;width:35%;height:100%;background:linear-gradient(100deg,transparent,rgba(220,200,255,.16),transparent);transform:skewX(-18deg);animation:buyshine 4s ease-in-out infinite;pointer-events:none}
@@ -2067,7 +2082,7 @@ body.prem-on #h-station::before{content:'👑 '}
         <div class="pet-pk" id="pets-pickup"></div>
         <div class="pet-result" id="pets-result"><p class="muted">뽑은 동물이 여기에 나와요</p></div>
         <span class="pet-pity" id="pets-pity"></span>
-        <div class="pet-btns"><button class="ghost" id="pets-one"></button><button class="primary" id="pets-ten"></button></div>
+        <div class="pet-btns"><button class="primary" id="pets-one"></button><button class="primary" id="pets-ten"></button></div>
         <details class="pet-rate-box" open><summary>확률 공개 · 규칙</summary><div id="pets-rates"></div></details>
       </div>
       <div id="pets-dex" class="pet-dex" hidden></div>
@@ -2179,6 +2194,9 @@ body.prem-on #h-station::before{content:'👑 '}
 </script>
 <script>
 /*MONET*/
+</script>
+<script>
+/*ATTEND*/
 </script>
 <script>
 /*TRANSIT*/

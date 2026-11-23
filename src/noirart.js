@@ -528,7 +528,7 @@
       '<rect x="2" y="2" width="196" height="196" rx="22" fill="#14171E" stroke="' + (gold ? '#E8B931' : '#3A4150') + '" stroke-width="4"/>' +
       '<g opacity=".5" stroke="#5A6272" stroke-width="2" fill="none"><circle cx="100" cy="78" r="30"/><path d="M52 160 q48-56 96 0"/></g>' +
       '<text x="100" y="84" text-anchor="middle" font-size="30" font-weight="900" fill="#8F98A8">?</text>' +
-      '<text x="100" y="186" text-anchor="middle" font-size="17" font-weight="800" fill="#C9CFDA" font-family="Pretendard,sans-serif">그림 준비 중</text></svg>';
+      '<text x="100" y="186" text-anchor="middle" font-size="17" font-weight="800" fill="#C9CFDA" font-family="IBM Plex Sans KR,sans-serif">그림 준비 중</text></svg>';
   }
   function draw(id, o) {
     o = o || {};

@@ -32,6 +32,7 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch()
         ctx = b.new_context(viewport={'width': 390, 'height': 844})
+        ctx.add_init_script("window.__noAttendPop=true;")   # 출석 자동 창은 따로 시험
         ctx.add_init_script(f"localStorage.setItem('{KEY}', {json.dumps(save)});")
         pg = ctx.new_page()
         errs = []

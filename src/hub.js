@@ -62,7 +62,7 @@
   // 0.7.0 부서 수입 · 번 수사비(재수사 단서) 훅
   if (Dp) I.setExtraIncome(function (sv) { return sv.dept ? Dp.perSec(sv, deptMult(sv)) : 0; });
   if (Ev) I.setEarn(function (sv, v) { Ev.earn(sv, v); });
-  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); if (OF) OF.clean(save); if (Dp) Dp.clean(save); if (Ev) Ev.clean(save); if (Df) Df.clean(save); if (Cr) Cr.clean(save); }
+  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); if (OF) OF.clean(save); if (Dp) Dp.clean(save); if (Ev) Ev.clean(save); if (Df) Df.clean(save); if (Cr) Cr.clean(save); if (window.Team3Attend) window.Team3Attend.clean(save); }
   /*
    * 업적 확인(0.3.0). 사무실을 그릴 때마다(1초) 본다 — 조건이 20개 남짓이라 가볍다.
    *   새로 달성하면 보상(배지 · 뽑기권)을 주고 저장, 사무실에서 차례로 알린다.
@@ -286,7 +286,7 @@
       return '<div class="item"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + GEAR_ICON[k] + '</svg></div>' +
         '<div class="tx"><b>' + g.name + (max > 1 ? ' ' + lv + '/' + max : '') + '</b><small>' + g.desc + '</small></div>' +
         '<button class="buy' + (c == null ? ' max' : save.money < c ? ' poor' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
-        ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '<em>배치 완료</em><b>최고</b>' : buyHTML('장착', c)) + '</button></div>';
+        ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '<em>배치 완료</em><b>MAX</b>' : buyHTML('장착', c)) + '</button></div>';
     }).join('');
   }
 
@@ -388,7 +388,7 @@
   }
 
   /* 0.8.3 구매 단추: 위 작은 글(영입 · 훈련 · 장착)과 아래 값 두 줄. 모자라면 값이 빨갛게(얼마 모자란지 aria 로) */
-  function buyHTML(word, c) { return c == null ? '<em>다 갖췄어요</em><b>최고</b>' : '<em>' + word + '</em><b class="cn">' + fmtShort(c) + '</b>'; }
+  function buyHTML(word, c) { return c == null ? '<em>다 갖췄어요</em><b>MAX</b>' : '<em>' + word + '</em><b class="cn">' + fmtShort(c) + '</b>'; }
   function setBuy(btn, c, word) {
     btn.classList.toggle('max', c == null);
     btn.disabled = c == null || save.money < c;
@@ -754,6 +754,7 @@
     // 0.8.4 코드네임을 새로 받았으면 파트너 탭을 보고 있을 때(창 · 출동 없음) 한 번 알려 준다.
     //   아무 때나 띄우면 출동 시작과 겹쳐 판을 가린다(화면 시험에서 발견) → 파트너 탭에서만
     if (PUI && PUI.noirAnnounce && MUI && MUI.current && MUI.current() === 'pets' && $('s-hub').classList.contains('on') && !UI.sheetOpen() && !(UI.playing && UI.playing()) && !(PUI.isBusy && PUI.isBusy())) PUI.noirAnnounce(openInfo);
+    attendAuto();
     if (r.closedNow) {
       if ($('s-hub').classList.contains('on') && $('info-sheet').hidden) showCaseClosed();
       else pendingClose = true;
@@ -767,6 +768,39 @@
   $('h-rank').addEventListener('click', showRanks);
   UI.hooks.goDaily = function () { if (E) goDaily(); else go(); };   // 0.8.2 결과 화면 "다시 출동"이 특별 출동이었으면 특별 출동으로
   UI.hooks.onRunEnd = onRunEnd;
+  /* ---------- 0.10.2 출석 체크: 현실 달력 · 특별한 날(7 · 14 · 21 · 마지막 날) 큰 보상 ---------- */
+  var AT = window.Team3Attend, attendShown = '';
+  function attendHTML() {
+    var b = AT.board(save, dayNow()), I2 = window.Team3Icons, ic = function (n) { return I2 ? I2.icon(n) : ''; };
+    var head = ['일', '월', '화', '수', '목', '금', '토'].map(function (d, i) { return '<span class="at-dw' + (i === 0 ? ' sun' : i === 6 ? ' sat' : '') + '">' + d + '</span>'; }).join('');
+    var pad = ''; for (var i = 0; i < b.dow; i++) pad += '<span class="at-c pad"></span>';
+    var cells = b.cells.map(function (c) {
+      var r = c.r, rw = r.tickets ? ic('ticket') + r.tickets : r.gems && !r.treats ? ic('gem') + r.gems : ic('treat') + r.treats;
+      return '<span class="at-c' + (r.big ? ' big' : '') + (c.got ? ' got' : '') + (c.today ? ' today' : '') + (c.past && !c.got ? ' miss' : '') + '"><span class="at-d">' + c.d + '</span><b>' + rw + '</b>' + (c.got ? '<em>✓</em>' : '') + '</span>';
+    }).join('');
+    return '<p class="at-sum">' + b.m + '월 출석 <b>' + b.count + '일</b> · 금빛 칸(7 · 14 · 21일 · 마지막 날)은 뽑기권 묶음이에요</p>' +
+      '<div class="at-cal">' + head + pad + cells + '</div>' +
+      '<p class="at-note">현실 날짜로 하루 한 번. 지나간 날은 다시 받을 수 없어요.</p>';
+  }
+  function openAttend() {
+    if (!AT) return;
+    var done = !AT.canCheck(save, dayNow());
+    openInfo({ label: '출석 체크', title: (done ? '오늘 출석했어요' : '오늘 출석하기'), body: attendHTML(), ok: done ? '확인' : '출석하기',
+      onOk: function () {
+        if (!AT.canCheck(save, dayNow())) return;
+        var r = AT.check(save, dayNow(), grant); persist(); render();
+        try { UI.sfx.coin(); } catch (e) { /* 무시 */ }
+        UI.toast('출석 보상: ' + (r.tickets ? '뽑기권 ' + r.tickets + '장 ' : '') + (r.gems ? '배지 ◆' + r.gems + ' ' : '') + (r.treats ? '간식 ' + r.treats : ''));
+        if (MUI && MUI.render) MUI.render();
+      } });
+  }
+  window.Team3AttendUI = { open: openAttend, can: function () { return !!AT && AT.canCheck(save, dayNow()); } };
+  // 하루 한 번, 상황실에 있을 때(창 · 출동 없음) 자동으로 띄운다
+  function attendAuto() {
+    if (!AT || window.__noAttendPop || !save.tutorialDone || attendShown === dayNow() || !AT.canCheck(save, dayNow())) return;
+    if (!$('s-hub').classList.contains('on') || UI.sheetOpen() || (UI.playing && UI.playing()) || (MUI && MUI.current && MUI.current() !== 'home')) return;
+    attendShown = dayNow(); openAttend();
+  }
   UI.hooks.onTutorialDone = function () { save.tutorialDone = true; persist(); askDiffSoon(900); };
   /*
    * 0.7.0 난이도 고르기 창: 튜토리얼이 끝나면(또는 건너뛰면) 한 번. 예전 저장(고른 적 없음)은 사무실에서 한 번.

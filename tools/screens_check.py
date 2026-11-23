@@ -48,7 +48,7 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch()
         ctx = b.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=1)
-        ctx.add_init_script("if(!sessionStorage.getItem('seeded')){localStorage.setItem('%s',%s);sessionStorage.setItem('seeded','1');}" % (KEY, json.dumps(save)))
+        ctx.add_init_script("window.__noAttendPop=true;if(!sessionStorage.getItem('seeded')){localStorage.setItem('%s',%s);sessionStorage.setItem('seeded','1');}" % (KEY, json.dumps(save)))
         pg = ctx.new_page()
         pg.set_default_timeout(5000)
         errs = []

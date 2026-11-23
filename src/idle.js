@@ -315,6 +315,7 @@
     s.pets = data.pets && typeof data.pets === 'object' && !Array.isArray(data.pets) ? data.pets : null;
     s.ach = data.ach && typeof data.ach === 'object' && !Array.isArray(data.ach) ? data.ach : null;
     s.shop = data.shop && typeof data.shop === 'object' && !Array.isArray(data.shop) ? data.shop : null;
+    if (data.attend && typeof data.attend === 'object' && !Array.isArray(data.attend)) s.attend = data.attend;   // 0.10.2 출석(안쪽 검사는 Team3Attend.clean)
     s.office = data.office && typeof data.office === 'object' && !Array.isArray(data.office) ? data.office : null;
     s.dept = data.dept && typeof data.dept === 'object' && !Array.isArray(data.dept) ? data.dept : null;   // 0.7.0 부서(검사는 Team3Dept.clean)
     s.evid = data.evid && typeof data.evid === 'object' && !Array.isArray(data.evid) ? data.evid : null;   // 0.7.0 재수사 · 증거판(검사는 Team3Evidence.clean)

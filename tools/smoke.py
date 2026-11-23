@@ -88,6 +88,7 @@ def play_checks(pg, start_level, helper):
 with sync_playwright() as p:
     br = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
     ctx = br.new_context(viewport={'width': 390, 'height': 844}, device_scale_factor=2)
+    ctx.add_init_script('window.__noAttendPop=true;')   # 출석 자동 창은 따로 시험
     pg = ctx.new_page()
     errors = []
     pg.on('pageerror', lambda e: errors.append(str(e)))
@@ -284,6 +285,7 @@ with sync_playwright() as p:
             t = pg.evaluate('Date.now()')
             pg.close()
             time.sleep(0.5)   # 닫힌 창이 떠나면서 하는 저장이 끝난 뒤에 바꾼다(늦게 끝나면 바꾼 값을 덮어쓴다)
+            ctx.add_init_script("window.__noAttendPop=true;")   # 출석 자동 창은 따로 시험
             ctx.add_init_script("if (location.href.indexOf('dist/index.html') >= 0 && !localStorage.getItem('%s')) { localStorage.setItem('%s', '1'); %s }" % (flag, flag, js))
             pg = ctx.new_page(); pg.on('pageerror', lambda e: errors.append(str(e)))
             pg.clock.set_system_time((t + 1000) / 1000)   # 시계는 이미 깔려 있다(초 단위)

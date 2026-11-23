@@ -104,6 +104,7 @@
   /* ---------- 오늘 할 일 ---------- */
   function todos() {
     var s = S(), out = [], day = ctx.dayNow();
+    if (root.Team3AttendUI) out.push({ ic: '📅', t: '출석 체크', a: '출석', done: !root.Team3AttendUI.can(), go: function () { root.Team3AttendUI.open(); } });   // 0.10.2
     if (ctx.E) { var st = ctx.E.dailyStatus(s, day); out.push({ ic: '🏅', t: '오늘의 특별 출동', a: '도전', done: st.done, go: function () { jump('run', '#h-daily'); } }); }
     if (ctx.PT && s.pets && s.pets.eq) { var bd = ctx.PT.bondOf(s, s.pets.eq); out.push({ ic: '🐾', t: '파트너 쓰다듬기', a: '쓰다듬기', done: bd.last === day, go: function () { jump('pets', '#h-pet'); } }); }
     if (ctx.PT && ctx.PT.freeLeft) { var fl = ctx.PT.freeLeft(s, day, ctx.freeExtra ? ctx.freeExtra() : 0); out.push({ ic: '🎟️', t: '오늘 무료 뽑기', a: '뽑기', done: !(fl > 0), go: function () { go('pets'); if (ctx.PUI) ctx.PUI.open('draw'); } }); }
