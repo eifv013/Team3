@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.9.6', date: '2026-11-23', title: '로딩 화면 로고',
+      items: [
+        '로딩 화면 아래 제작사 로고를 글자만 작게 바꿨어요.'
+      ] },
     { ver: '0.9.5', date: '2026-11-23', title: '제작사 로고 새 단장',
       items: [
         '로딩 화면의 Loop & Lamp Studio 로고가 도장 모양으로 바뀌었어요. 빛나는 행성과 고리가 새로 그려졌어요.'
