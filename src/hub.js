@@ -145,6 +145,9 @@
     f.className = 'float';
     f.textContent = '+' + fmt(r.money);
     $('h-float').appendChild(f);
+    // 0.9.1 수사비가 길어 오른쪽 칩(난이도·배지)과 겹치면 숫자를 띄우지 않는다(같은 소식이 아래 줄에 뜬다)
+    var chips = document.querySelector('.head-chips');
+    if (chips && f.getBoundingClientRect().right > chips.getBoundingClientRect().left - 4) f.parentNode.removeChild(f);
     setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 1400);
     // 팀 속도 줄 자리에 4초 동안 소식을 띄웠다가 되돌린다
     $('h-feed').textContent = (from || '방금') + ' 3팀이 ' + fmt(r.catches) + '명 검거 · +' + fmt(r.money);
@@ -875,6 +878,11 @@
   $('info-cancel').addEventListener('click', function () { closeInfo('cancel'); });
   $('info-x').addEventListener('click', function () { closeInfo('cancel'); });
   $('info-sheet').addEventListener('click', function (e) { if (e.target === this) closeInfo('cancel'); });
+  // 0.9.1 창(.sheet)을 내렸는지 표시 → 닫기(×) 뒤에 띠를 깐다(글이 × 밑으로 지나가게)
+  document.addEventListener('scroll', function (e) {
+    var t = e.target;
+    if (t && t.classList && t.classList.contains('sheet')) t.classList.toggle('scrolled', t.scrollTop > 8);
+  }, true);
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     if (!$('info-sheet').hidden) closeInfo('cancel');

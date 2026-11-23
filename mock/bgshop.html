@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!-- 시안: 파트너 배경 바꾸기 판매(0.9.x 후보) — 파트너 탭 큰 카드 뒤 배경을 사서 바꾼다. 움직이는 배경(비 · 네온 · 눈 · 별) -->
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>시안 · 파트너 배경</title>
+<style>
+:root{--ink:#12151C;--panel:#1B1F28;--panel2:#252B36;--text:#EEF1F6;--muted:#8F98A8;--acc:#FFD23F;--ok:#7EE08F}
+*{box-sizing:border-box}body{margin:0;background:var(--ink);color:var(--text);font-family:'IBM Plex Sans KR',system-ui,sans-serif}
+.wrap{max-width:430px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.lab{font-size:12px;color:var(--muted);font-weight:700}
+h1{font-size:20px;margin:0}
+/* 큰 파트너 카드 */
+.hero{position:relative;height:300px;border-radius:20px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.hero .bg{position:absolute;inset:0;transition:opacity .4s}
+.hero .pet{position:absolute;left:50%;bottom:44px;width:170px;transform:translateX(-50%);filter:drop-shadow(0 10px 14px rgba(0,0,0,.5));animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-6px)}}
+.hero .nm{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-weight:900;color:#FFE58A;text-shadow:0 2px 6px rgba(0,0,0,.7)}
+.hero .tag{position:absolute;top:12px;left:12px;font-size:11.5px;font-weight:800;padding:4px 9px;border-radius:999px;background:rgba(10,12,16,.7);color:#C9CFDA}
+/* 배경들 */
+.b-base{background:radial-gradient(ellipse at 50% 70%,rgba(255,210,63,.25),transparent 60%),#1B1F28}
+.b-alley{background:linear-gradient(180deg,#0E1420,#1A2233 60%,#0C1018)}
+.b-alley::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 78% 18%,rgba(255,190,90,.55),transparent 22%),linear-gradient(90deg,#090C12 0 14%,transparent 14% 86%,#090C12 86%)}
+.b-alley::after,.b-rain::after{content:'';position:absolute;inset:-40px 0 0;background:repeating-linear-gradient(105deg,transparent 0 14px,rgba(170,200,255,.22) 14px 15px);animation:rain .5s linear infinite}
+@keyframes rain{to{transform:translateY(40px)}}
+.b-neon{background:linear-gradient(180deg,#160A24,#2A0F3A 55%,#0C0612)}
+.b-neon::before{content:'수사3팀';position:absolute;top:26px;right:22px;font-size:30px;font-weight:900;color:#FF5FD2;text-shadow:0 0 8px #FF5FD2,0 0 22px #FF2FB8;letter-spacing:2px;animation:flick 3.2s infinite}
+.b-neon::after{content:'';position:absolute;left:0;right:0;bottom:0;height:70px;background:linear-gradient(180deg,transparent,rgba(80,220,255,.25));border-top:2px solid rgba(80,220,255,.6);box-shadow:0 -4px 18px rgba(80,220,255,.5)}
+@keyframes flick{0%,18%,22%,60%,100%{opacity:1}20%,61%{opacity:.25}}
+.b-harbor{background:linear-gradient(180deg,#0B1A1F,#12313A 60%,#0A1418)}
+.b-harbor::before{content:'';position:absolute;top:40px;left:-30%;width:160%;height:60px;background:linear-gradient(90deg,transparent,rgba(255,250,210,.28),transparent);transform:rotate(-8deg);animation:beam 5s ease-in-out infinite}
+.b-harbor::after{content:'';position:absolute;inset:auto -20% 30px;height:90px;background:radial-gradient(ellipse,rgba(200,230,235,.18),transparent 70%);animation:fog 9s ease-in-out infinite alternate}
+@keyframes beam{50%{transform:rotate(6deg)}}@keyframes fog{to{transform:translateX(18%)}}
+.b-snow{background:linear-gradient(180deg,#0D1426,#1D2A48 70%,#C9D6EA 70.5%,#A9B8D2)}
+.b-snow::before{content:'';position:absolute;top:22px;right:30px;width:46px;height:46px;border-radius:50%;background:#F4F1DE;box-shadow:0 0 26px rgba(244,241,222,.6)}
+.b-snow::after{content:'';position:absolute;inset:-60px 0 0;background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(2.5px 2.5px at 90px 80px,#fff,transparent),radial-gradient(2px 2px at 160px 20px,#fff,transparent),radial-gradient(3px 3px at 240px 60px,#fff,transparent),radial-gradient(2px 2px at 320px 100px,#fff,transparent);background-size:360px 120px;animation:snow 4s linear infinite}
+@keyframes snow{to{transform:translateY(60px)}}
+.b-room{background:repeating-linear-gradient(180deg,#2A2F38 0 1px,transparent 1px 34px),linear-gradient(180deg,#3A3F48,#23272E)}
+.b-room::before{content:'190 · 180 · 170 · 160 · 150';position:absolute;left:12px;top:40px;writing-mode:vertical-rl;font:700 11px monospace;color:#7A8291;letter-spacing:6px}
+.b-room::after{content:'';position:absolute;top:0;left:50%;width:220px;height:100%;transform:translateX(-50%);background:linear-gradient(180deg,rgba(255,255,230,.22),transparent 70%);animation:flick 6s infinite}
+.b-roof{background:linear-gradient(180deg,#05070F,#101A36 70%,#1A1F2B 70.5%)}
+.b-roof::before{content:'';position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 30px 40px,#fff,transparent),radial-gradient(1px 1px at 120px 20px,#fff,transparent),radial-gradient(1.5px 1.5px at 200px 70px,#fff,transparent),radial-gradient(1px 1px at 300px 30px,#fff,transparent),radial-gradient(1.5px 1.5px at 360px 90px,#fff,transparent),radial-gradient(1px 1px at 80px 110px,#fff,transparent);animation:twinkle 2.4s ease-in-out infinite alternate}
+.b-roof::after{content:'';position:absolute;left:0;right:0;bottom:30%;height:40px;background:linear-gradient(90deg,#0B0F1A 0 8%,transparent 8% 12%,#0B0F1A 12% 20%,transparent 20% 70%,#0B0F1A 70% 78%,transparent 78% 84%,#0B0F1A 84%)}
+@keyframes twinkle{to{opacity:.4}}
+.b-gold{background:radial-gradient(circle at 50% 65%,rgba(255,230,140,.6),transparent 45%),conic-gradient(from 0deg at 50% 65%,#3A2A06,#7A5A10,#3A2A06,#7A5A10,#3A2A06,#7A5A10,#3A2A06);}
+.b-gold::after{content:'';position:absolute;inset:-50%;background:conic-gradient(from 0deg at 50% 57%,transparent 0 10deg,rgba(255,240,180,.18) 10deg 20deg,transparent 20deg 40deg,rgba(255,240,180,.18) 40deg 50deg,transparent 50deg 80deg,rgba(255,240,180,.18) 80deg 90deg,transparent 90deg);animation:spin 18s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero .bg::before,.hero .bg::after{pointer-events:none}
+/* 고르는 칸 */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cell{position:relative;border:0;padding:0;border-radius:12px;overflow:hidden;aspect-ratio:3/4;background:var(--panel2);cursor:pointer;box-shadow:inset 0 0 0 1.5px #2E3542}
+.cell .bg{position:absolute;left:-60%;top:0;width:390px;height:300px;transform:scale(.36);transform-origin:0 0}
+.cell .bg{left:0;margin-left:calc(50% - 70px)}
+.cell span{position:absolute;left:0;right:0;bottom:0;padding:14px 4px 5px;color:#fff;font-size:11px;font-weight:800;text-align:center;background:linear-gradient(180deg,transparent,rgba(0,0,0,.8))}
+.cell.on{box-shadow:inset 0 0 0 3px var(--acc)}
+.cell.lock::after{content:'🔒';position:absolute;top:5px;right:6px;font-size:12px}
+.cell .gold{position:absolute;top:5px;left:5px;font-size:9.5px;font-weight:900;padding:2px 5px;border-radius:6px;background:#E8B931;color:#2A1E04}
+/* 아래 정보 */
+.info{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.info b{font-size:17px}.info small{color:var(--muted);font-size:12.5px;line-height:1.5}
+.btns{display:flex;gap:8px}
+.btns button{flex:1;height:50px;border:0;border-radius:12px;font-weight:900;font-size:15px;font-family:inherit}
+.p{background:linear-gradient(180deg,#FFE58A,#FFD23F 55%,#E8B10F);color:#2A1E04;box-shadow:0 4px 0 #A8800F}
+.g{background:var(--panel2);color:var(--text)}
+.note{font-size:12px;color:var(--muted);line-height:1.6}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0A0C10;border:1px solid #333;padding:10px 14px;border-radius:12px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.on{opacity:1}
+.wallet{display:flex;gap:8px}.wallet div{flex:1;background:var(--panel);border-radius:10px;padding:8px;text-align:center;font-weight:800}
+</style></head><body>
+<div class="wrap">
+  <div><div class="lab">시안 · 파트너 배경 바꾸기</div><h1>파트너 카드 배경</h1></div>
+  <div class="wallet"><div>◆ 배지 <span id="gems">300</span></div><div>🦴 간식 <span id="treats">900</span></div></div>
+  <div class="hero" id="hero"><div class="bg" id="hbg"></div><span class="tag" id="htag">기본</span><div class="pet" id="pet"></div><div class="nm">전설 단서 ★★★★★</div></div>
+  <div class="grid" id="grid"></div>
+  <div class="info" id="info"></div>
+  <p class="note">
+    · 배경은 한 번 사면 모든 파트너에 쓸 수 있어요(파트너마다 따로 고를 수 있음).<br>
+    · 파트너 탭 큰 카드 + 상황실 작은 파트너 칸에 함께 보여요. 효과는 없는 꾸미기예요.<br>
+    · 값: 일반 배경 간식 300 또는 ◆30 · 움직이는 배경 ◆60 · 황금 무대는 전설 파트너 전용(시즌 패스 프리미엄 꾸미기로도 줄 수 있음).<br>
+    · 아래 칸을 눌러 미리 보고, 사기/적용을 눌러 보세요(시안이라 저장은 안 돼요).
+  </p>
+</div>
+<div class="toast" id="toast"></div>
+<script src="../src/petart.js"></script>
+<script>
+var BGS=[
+ {id:'base',name:'기본',cls:'b-base',price:null,desc:'처음부터 있는 배경이에요.'},
+ {id:'alley',name:'비 오는 골목',cls:'b-alley',treats:300,gems:30,desc:'사건 1의 골목. 빗줄기가 내리고 가로등이 켜져 있어요.'},
+ {id:'harbor',name:'해무항 부두',cls:'b-harbor',treats:300,gems:30,desc:'사건 2의 부두. 등대 빛이 천천히 돌고 안개가 흘러요.'},
+ {id:'room',name:'면통실',cls:'b-room',treats:300,gems:30,desc:'사건 3의 면통실. 키 눈금 벽 앞에 형광등이 깜빡여요.'},
+ {id:'neon',name:'네온 거리',cls:'b-neon',gems:60,move:true,desc:'분홍 "수사3팀" 간판이 지직거리는 밤거리. 움직이는 배경.'},
+ {id:'snow',name:'눈 오는 밤',cls:'b-snow',gems:60,move:true,desc:'달밤에 눈이 내려요. 움직이는 배경.'},
+ {id:'roof',name:'별빛 옥상',cls:'b-roof',gems:60,move:true,desc:'잠복 중인 옥상, 별이 반짝여요. 움직이는 배경.'},
+ {id:'gold',name:'황금 무대',cls:'b-gold',gems:120,move:true,legend:true,desc:'전설 파트너만 쓸 수 있는 빛나는 무대. 빛줄기가 돌아요.'}
+];
+var own={base:true},use='base',sel='base',gems=300,treats=900;
+document.getElementById('pet').innerHTML=Team3PetArt.draw('corgi',{grade:'l'});
+function $(i){return document.getElementById(i)}
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('on')},1600)}
+function draw(){
+ var b=BGS.filter(function(x){return x.id===sel})[0];
+ $('hbg').className='bg '+b.cls;$('htag').textContent=(sel===use?'적용 중 · ':'미리보기 · ')+b.name;
+ $('grid').innerHTML=BGS.map(function(x){return '<button class="cell'+(x.id===sel?' on':'')+(own[x.id]?'':' lock')+'" data-id="'+x.id+'"><div class="bg '+x.cls+'"></div>'+(x.legend?'<i class="gold">전설</i>':'')+'<span>'+x.name+(x.id===use?' ✓':'')+'</span></button>'}).join('');
+ var btn='';
+ if(own[b.id]) btn=b.id===use?'<button class="g" disabled>적용 중</button>':'<button class="p" data-act="use">이 배경 쓰기</button>';
+ else { if(b.treats) btn+='<button class="g" data-act="buyT">🦴 '+b.treats+'</button>'; btn+='<button class="p" data-act="buyG">◆ '+b.gems+'</button>'; }
+ $('info').innerHTML='<b>'+b.name+(b.move?' <small style="color:#9FD8FF">· 움직임</small>':'')+'</b><small>'+b.desc+'</small><div class="btns">'+btn+'</div>';
+ $('gems').textContent=gems;$('treats').textContent=treats;
+}
+document.addEventListener('click',function(e){
+ var c=e.target.closest('.cell');if(c){sel=c.dataset.id;draw();return}
+ var a=e.target.closest('[data-act]');if(!a)return;var b=BGS.filter(function(x){return x.id===sel})[0];
+ if(a.dataset.act==='use'){use=sel;toast(b.name+' 배경을 썼어요');}
+ if(a.dataset.act==='buyT'){if(treats<b.treats)return toast('간식이 모자라요');treats-=b.treats;own[sel]=true;use=sel;toast(b.name+'을(를) 샀어요');}
+ if(a.dataset.act==='buyG'){if(gems<b.gems)return toast('배지가 모자라요');gems-=b.gems;own[sel]=true;use=sel;toast(b.name+'을(를) 샀어요');}
+ draw();
+});
+draw();
+</script></body></html>
