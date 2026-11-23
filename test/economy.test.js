@@ -128,18 +128,28 @@ test('특별 출동: 날짜로 규칙이 돌고, 메달이면 보상 후 끝, �
   assert.equal(cfg.daily, true); assert.equal(cfg.freeHints, 0);
   assert.doesNotThrow(() => C.createGame({ rng: C.makeRng(1), now: 0, duration: cfg.duration, level: cfg.level, mods: cfg.mods }));
   assert.equal(E.applyDaily(s, day, 0, 1000).medal, null);
-  assert.equal(E.dailyStatus(s, day).canPlay, true);
+  assert.equal(E.dailyStatus(s, day).left, 4);
   const r = E.applyDaily(s, day, rule.medals[1], 1000);
-  assert.equal(r.medal, '은'); assert.equal(r.money, 2000); assert.equal(r.gems, 2);
-  assert.equal(E.dailyStatus(s, day).done, true);
+  assert.equal(r.medal, '은'); assert.equal(r.money, 2000); assert.equal(r.gems, 2); assert.equal(r.isNew, true);
+  // 0.10.6 같은 메달은 다시 안 주고, 더 높은 메달은 차액
+  assert.equal(E.applyDaily(s, day, rule.medals[1], 1000).money, 0);
+  E.startDaily(s, day);
+  const up = E.applyDaily(s, day, rule.medals[2], 1000);
+  assert.equal(up.medal, '금'); assert.equal(up.upFrom, '은'); assert.equal(up.money, 1000); assert.equal(up.gems, 1);
+  assert.equal(E.dailyStatus(s, day).done, true, '금까지 받으면 오늘 할 일 끝');
+  for (let i = 0; i < 3; i++) E.startDaily(s, day);
+  assert.equal(E.dailyStatus(s, day).left, 0);
   assert.throws(() => E.startDaily(s, day), (e) => e.code === 'DAILY_DONE');
-  E.startDaily(s, day, true); assert.equal(s.gems, 6 + 2 - E.RETRY_GEMS);
+  E.setDailyExtra(() => 2);
+  assert.equal(E.dailyStatus(s, day).left, 2, '업적 · 프리미엄 기회');
+  E.setDailyExtra(null);
+  assert.equal(s.gems, 6 + 3, '배지는 쓰지 않는다');
   assert.equal(E.dailyStatus(s, '2026-11-23').done, false, '다음 날이면 새로');
   assert.throws(() => E.dailyRule('2026/11/22'), (e) => e.code === 'BAD_DAY');
 });
 
 test('저장 되읽기: 0.1.19 값이 그대로 오가고, 예전 저장은 기본값, 이상한 값은 걸러진다', () => {
-  const s = rich(); s.recent = [1, 2]; E.buy(s, 'coffee', T0); s.daily = { day: '2026-11-22', done: true, best: 9, tries: 2 };
+  const s = rich(); s.recent = [1, 2]; E.buy(s, 'coffee', T0); s.daily = { day: '2026-11-22', best: 9, tries: 2, paid: 1, joined: false };
   const back = I.load(I.serialize(s), T0).save;
   assert.deepEqual(back.prep, { coffee: true });
   assert.equal(back.prepPaid.coffee.w, 'money');

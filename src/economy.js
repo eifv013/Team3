@@ -176,21 +176,25 @@
    *   준비물·장비는 쓰지 않는다(실력 겨루기). 보상: 받은 메달 등급 × 기준값 + 배지(하루 한 번).
    */
   var DAILY = [
-    { id: 'blitz', name: '60초 속공', desc: '60초 · 처음부터 네 가지를 다 봐요', config: { duration: 60, level: 4 }, mods: {}, medals: [1500, 3000, 5500] },
-    { id: 'bare', name: '맨손 수사', desc: '단서를 쓸 수 없어요 · 점수 2배', config: { duration: 90, level: 1 }, mods: { noHints: true, scoreMult: 2 }, medals: [6000, 11000, 20000] },
-    { id: 'chain', name: '연쇄 검거', desc: '연속 검거 배수가 5배까지 올라요', config: { duration: 90, level: 1 }, mods: { comboMax: 5 }, medals: [4000, 8000, 16000] },
-    { id: 'strict', name: '엄격한 서장', desc: '오인 체포 벌점 −10초 · 점수 1.5배', config: { duration: 90, level: 1 }, mods: { missPenalty: 10, scoreMult: 1.5 }, medals: [4000, 8000, 15000] },
-    { id: 'clock', name: '마감 수사', desc: '120초 · 검거해도 시간이 늘지 않아요', config: { duration: 120, level: 1 }, mods: { hitTime: 0 }, medals: [3000, 6000, 11000] },
-    { id: 'void', name: '빈 골목', desc: '처음부터 네 가지 · 검거 불가 점수 3배', config: { duration: 90, level: 4 }, mods: { noneMult: 3 }, medals: [3000, 6000, 11000] },
-    { id: 'calm', name: '차분한 밤', desc: '150초 · 오인 체포 벌점 없음 · 점수 0.7배', config: { duration: 150, level: 1 }, mods: { missPenalty: 0, scoreMult: 0.7 }, medals: [3000, 6000, 11000] },
+    { id: 'blitz', name: '60초 속공', desc: '60초 · 처음부터 네 가지를 다 봐요', config: { duration: 60, level: 4 }, mods: {}, medals: [1000, 2100, 3800] },
+    { id: 'bare', name: '맨손 수사', desc: '단서를 쓸 수 없어요 · 점수 2배', config: { duration: 90, level: 1 }, mods: { noHints: true, scoreMult: 2 }, medals: [4200, 7700, 14000] },
+    { id: 'chain', name: '연쇄 검거', desc: '연속 검거 배수가 5배까지 올라요', config: { duration: 90, level: 1 }, mods: { comboMax: 5 }, medals: [2800, 5600, 11200] },
+    { id: 'strict', name: '엄격한 서장', desc: '오인 체포 벌점 −10초 · 점수 1.5배', config: { duration: 90, level: 1 }, mods: { missPenalty: 10, scoreMult: 1.5 }, medals: [2800, 5600, 10500] },
+    { id: 'clock', name: '마감 수사', desc: '120초 · 검거해도 시간이 늘지 않아요', config: { duration: 120, level: 1 }, mods: { hitTime: 0 }, medals: [2100, 4200, 7700] },
+    { id: 'void', name: '빈 골목', desc: '처음부터 네 가지 · 검거 불가 점수 3배', config: { duration: 90, level: 4 }, mods: { noneMult: 3 }, medals: [2100, 4200, 7700] },
+    { id: 'calm', name: '차분한 밤', desc: '150초 · 오인 체포 벌점 없음 · 점수 0.7배', config: { duration: 150, level: 1 }, mods: { missPenalty: 0, scoreMult: 0.7 }, medals: [2100, 4200, 7700] },
     // 0.2.1: 다른 퍼즐(forgery.js) — 세 명씩 지은 줄 중 써드가 위조한 가짜 한 줄 찾기
-    { id: 'forge', name: '위조된 한 패', desc: '줄마다 세 명 · 써드가 위조한 가짜 줄을 찾아요', config: { duration: 90, level: 1, mode: 'forgery' }, mods: {}, medals: [3000, 6000, 11000] },
+    { id: 'forge', name: '위조된 한 패', desc: '줄마다 세 명 · 써드가 위조한 가짜 줄을 찾아요', config: { duration: 90, level: 1, mode: 'forgery' }, mods: {}, medals: [2100, 4200, 7700] },
     // 0.5.0: 사건 3과 함께 들어온 서브 퍼즐(montage.js) — 몽타주가 그려지는 동안 빨리 찾을수록 ×4
-    { id: 'montage', name: '몽타주 수배', desc: '특징이 하나씩 그려져요 · 일찍 찾을수록 점수 ×4', config: { duration: 90, level: 1, mode: 'montage' }, mods: {}, medals: [3500, 7000, 12000] }
+    { id: 'montage', name: '몽타주 수배', desc: '특징이 하나씩 그려져요 · 일찍 찾을수록 점수 ×4', config: { duration: 90, level: 1, mode: 'montage' }, mods: {}, medals: [2400, 4900, 8400] }
   ];
   var DAILY_GEMS = [1, 2, 3];   // 동·은·금 배지
   var DAILY_BASE = [1, 2, 3];   // 동·은·금 × 기준값
-  var RETRY_GEMS = 5;           // 오늘 보상을 받은 뒤 배지로 한 번 더 도전(성공하면 보상도 다시 받는다)
+  var RETRY_GEMS = 0;           // 0.10.5 배지로 다시 하기는 없앴다(남은 기회로만)
+  /* 0.10.6 하루 기회 5번(재화 없음). 업적 · 프리미엄으로 더 받는다(hub 가 setDailyExtra 로 넣는다).
+   *   보상은 그날 딴 가장 높은 메달 기준으로 한 번씩: 동 → 은을 따면 은 − 동 만큼 더. */
+  var DAILY_TRIES = 5, dailyExtra = function () { return 0; };
+  function setDailyExtra(fn) { dailyExtra = typeof fn === 'function' ? fn : function () { return 0; }; }
 
   // 'YYYY-MM-DD' → 그날의 규칙(1970-01-01 부터 센 날 수로 돌린다)
   function dayIndex(day) {
@@ -208,27 +212,24 @@
     var p = function (x) { return (x < 10 ? '0' : '') + x; };
     return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate());
   }
-  /** 오늘 상태. 날짜가 바뀌었으면 새날로 맞춘다. 반환 { day, rule, done, best, tries, canPlay, retryGems } */
+  function freshDaily(day) { return { day: day, best: 0, tries: 0, paid: -1, joined: false }; }
+  /** 오늘 상태. 날짜가 바뀌었으면 새날로 맞춘다. done = 기회를 다 썼거나 금메달까지 받음 */
   function dailyStatus(save, day) {
-    if (save.daily.day !== day) save.daily = { day: day, done: false, best: 0, tries: 0 };
-    var rule = dailyRule(day);
-    return { day: day, rule: rule, done: save.daily.done, best: save.daily.best, tries: save.daily.tries,
-             canPlay: !save.daily.done, retryGems: RETRY_GEMS };
+    if (!save.daily || save.daily.day !== day) save.daily = freshDaily(day);
+    var d = save.daily, rule = dailyRule(day), extra = 0;
+    if (typeof d.paid !== 'number') d.paid = -1;
+    try { extra = Math.max(0, Math.floor(+dailyExtra(save, day) || 0)); } catch (e) { extra = 0; }
+    var limit = DAILY_TRIES + extra, left = Math.max(0, limit - d.tries);
+    return { day: day, rule: rule, best: d.best, tries: d.tries, limit: limit, left: left, paid: d.paid,
+             medal: d.paid >= 0 ? ['동', '은', '금'][d.paid] : null, canPlay: left > 0, done: left <= 0 || d.paid >= 2 };
   }
   /**
    * 특별 출동을 시작한다. 오늘 이미 보상을 받았으면 배지 RETRY_GEMS 개로 한 번 더(보상도 다시 받는다).
    * 반환: 판 설정 { duration, level, freeHints:0, nonePenalty, mods, daily:true, ruleId }
    */
-  function startDaily(save, day, useGems, freeRetry) {
+  function startDaily(save, day) {
     var st = dailyStatus(save, day);
-    // 0.9.0 시즌 패스 프리미엄: 하루 한 번 무료 재도전
-    if (st.done && freeRetry && !save.daily.freeUsed) { save.daily.freeUsed = true; save.daily.done = false; st.done = false; }
-    if (st.done) {
-      if (!useGems) throw EcoError('DAILY_DONE', '오늘 특별 출동은 끝났다');
-      if (save.gems < RETRY_GEMS) throw EcoError('NOT_ENOUGH', '배지가 모자란다');
-      save.gems -= RETRY_GEMS;
-      save.daily.done = false;
-    }
+    if (st.left <= 0) throw EcoError('DAILY_DONE', '오늘 기회를 다 썼다');
     save.daily.tries += 1;
     var r = st.rule;
     var mods = {};
@@ -243,17 +244,20 @@
     var st = dailyStatus(save, day);
     score = Math.max(0, Math.floor(+score || 0));
     if (score > save.daily.best) save.daily.best = score;
-    var tier = -1;
+    var tier = -1, paid = save.daily.paid, NM = ['동', '은', '금'];
     st.rule.medals.forEach(function (at, i) { if (score >= at) tier = i; });
-    if (tier < 0) return { medal: null, money: 0, gems: 0, best: save.daily.best };
-    var money = roundNice(baseBefore * DAILY_BASE[tier] * (1 + bn(save, 'daily') / 100)), gems = DAILY_GEMS[tier];   // 0.3.0 펭귄: 특별 출동 수사비 +%
+    if (tier < 0) return { medal: null, isNew: false, money: 0, gems: 0, best: save.daily.best };
+    if (tier <= paid) return { medal: NM[tier], isNew: false, money: 0, gems: 0, best: save.daily.best };   // 오늘 이미 받은 메달(같거나 낮음)
+    // 0.10.6 더 높은 메달: 그 메달 보상에서 이미 받은 만큼 뺀 차액
+    var mult = DAILY_BASE[tier] - (paid >= 0 ? DAILY_BASE[paid] : 0);
+    var money = roundNice(baseBefore * mult * (1 + bn(save, 'daily') / 100)), gems = DAILY_GEMS[tier] - (paid >= 0 ? DAILY_GEMS[paid] : 0);   // 0.3.0 펭귄: 특별 출동 수사비 +%
     save.money += money; save.gems += gems;
-    save.daily.done = true;
-    return { medal: ['동', '은', '금'][tier], money: money, gems: gems, best: save.daily.best };
+    save.daily.paid = tier;
+    return { medal: NM[tier], isNew: true, upFrom: paid >= 0 ? NM[paid] : null, money: money, gems: gems, best: save.daily.best };
   }
 
   return {
-    ITEMS: ITEMS, PREP_IDS: PREP_IDS, MEDALS: MEDALS, DAILY: DAILY, RETRY_GEMS: RETRY_GEMS,
+    ITEMS: ITEMS, PREP_IDS: PREP_IDS, MEDALS: MEDALS, DAILY: DAILY, RETRY_GEMS: RETRY_GEMS, DAILY_TRIES: DAILY_TRIES, setDailyExtra: setDailyExtra,
     baseValue: baseValue, roundNice: roundNice, price: price, owned: owned, buy: buy, unprep: unprep, consumePrep: consumePrep,
     medalFor: medalFor, claimMedals: claimMedals,
     dayKey: dayKey, dailyRule: dailyRule, dailyStatus: dailyStatus, startDaily: startDaily, applyDaily: applyDaily

@@ -136,8 +136,21 @@
   /* ---------- 팀이 잡을 때 보이는 것(1.4) ----------
    * 수사비가 "언제" 오르는지 보이게: 다음 검거까지 줄이 차오르고, 잡는 순간 +수사비가 떠오른다.
    */
-  var feedTimer = 0;
+  var feedTimer = 0, gainBuf = null;
+  /* 0.10.6 형사가 많아 몇 초마다 잡으면 소식이 쉬지 않고 깜빡였다 → 5초씩 모아 한 번에(“최근 5초 · N명 검거”) */
   function showGain(r, from) {
+    if (!r || !r.catches) return;
+    if (!from) {
+      if (gainBuf) { gainBuf.catches += r.catches; gainBuf.money += r.money; return; }
+      gainBuf = { catches: r.catches, money: r.money, t0: Date.now() };
+      setTimeout(function () { var b = gainBuf; gainBuf = null; if (b) showGainNow(b, '최근 5초 동안'); }, 5000);
+      showGainNow(r, '');   // 첫 검거는 바로(혼자 일할 때처럼)
+      gainBuf.catches = 0; gainBuf.money = 0;
+      return;
+    }
+    showGainNow(r, from);
+  }
+  function showGainNow(r, from) {
     if (!r || !r.catches) return;
     var m = $('h-money');
     m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop');
@@ -350,8 +363,8 @@
     // 챙긴 것은 한 줄에 하나씩(이어 붙이면 문장이 길게 꺾인다)
     $('h-prep-now').innerHTML = packed.length ? packed.map(function (id) { return '<span class="pn-row"><b>' + SHORT[id] + '</b> ' + esc(prepDesc(id)) + '</span>'; }).join('')
       : '누르면 다음 출동에 챙겨 가요 · 효과는 <b>?</b> 를 눌러 보세요';
-    $('h-medals').innerHTML = E.MEDALS.map(function (m) {
-      return '<i class="' + m.key + (save.medals[m.key] ? ' on' : '') + '" title="' + m.name + ' 메달 ' + fmt(m.at) + '점">' + m.name + ' ' + fmtShort(m.at) + '</i>';
+    $('h-medals').innerHTML = E.MEDALS.map(function (m, mi) {
+      return '<i class="' + m.key + (save.medals[m.key] ? ' on' : '') + '" title="' + m.name + ' 메달 ' + fmt(m.at) + '점">' + medalIcon(mi, 15) + fmtShort(m.at) + '</i>';
     }).join('');
   }
   function renderDaily() {
@@ -359,14 +372,22 @@
     $('h-daily-name').textContent = r.name;
     $('h-daily-desc').textContent = r.desc;
     // 0.10.5 메달 목표는 칸으로, 오늘 최고는 따로 한 줄(점으로 이어 붙이면 안 읽힌다)
-    var MC = ['#D08A4E', '#C4CAD6', '#F2C230'];
+    // 0.10.6 메달은 그림으로, 받은 메달은 밝게 · 기회는 점으로(재화 없음)
     $('h-daily-goal').innerHTML = ['동', '은', '금'].map(function (nm, i) {
-      return '<span class="dg-m' + (st.best >= r.medals[i] ? ' on' : '') + '" style="--mc:' + MC[i] + '"><i></i>' + nm + ' ' + fmt(r.medals[i]) + (st.best >= r.medals[i] ? ' ✓' : '') + '</span>';
-    }).join('') + (st.best ? '<span class="dg-best">오늘 최고<b>' + fmt(st.best) + '</b></span>' : '');
+      return '<span class="dg-m' + (st.paid >= i ? ' on' : '') + '">' + medalIcon(i, 18) + nm + ' ' + fmt(r.medals[i]) + (st.paid >= i ? ' ✓' : '') + '</span>';
+    }).join('') +
+      '<span class="dg-best">' + (st.best ? '오늘 최고<b>' + fmt(st.best) + '</b>' : '') + '<span class="dg-try">남은 기회 ' +
+        Array.apply(null, Array(st.limit)).map(function (_, i) { return '<i class="' + (i < st.left ? 'on' : '') + '"></i>'; }).join('') + ' <b>' + st.left + '/' + st.limit + '</b></span></span>';
     box.classList.toggle('done', st.done);
     var b = $('h-daily-go');
-    b.textContent = st.done ? (premRetry() ? '👑 무료 재도전' : '다시 ◆' + E.RETRY_GEMS) : '도전';
-    b.disabled = st.done && !premRetry() && save.gems < E.RETRY_GEMS;
+    b.textContent = st.left <= 0 ? '내일 다시' : st.paid >= 2 ? '연습' : '도전';
+    b.disabled = st.left <= 0;
+  }
+  /* 0.10.6 동 · 은 · 금 메달 그림(리본 + 원판 + 별) */
+  function medalIcon(i, sz) {
+    var C = [['#E39A5B', '#A35F2C', '#F6C08F'], ['#D9DEE8', '#8C94A6', '#FFFFFF'], ['#F7C934', '#B4850B', '#FFF1A8']][i];
+    return '<svg class="medal-ic" width="' + sz + '" height="' + sz + '" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h4l2 6H9zM13 2h4l-2 6h-4z" fill="' + ['#C0392B', '#3D6FD6', '#2E9E5B'][i] + '"/>' +
+      '<circle cx="12" cy="15" r="7.5" fill="' + C[0] + '" stroke="' + C[1] + '" stroke-width="1.6"/><path d="M12 10.6l1.3 2.7 3 .4-2.2 2 .6 3-2.7-1.5-2.7 1.5.6-3-2.2-2 3-.4z" fill="' + C[2] + '" opacity=".9"/></svg>';
   }
   function renderSupport(t) {
     $('h-support').innerHTML = ['party', 'night'].map(function (id) {
@@ -628,13 +649,15 @@
     return opts;
   }
   // 하루 한 번 특별 출동: 준비물·장비 없이 그날 규칙으로. 오늘 보상을 받았으면 배지로 한 번 더
-  function premRetry() { return !!(M && save.shop && M.premOn(save, dayNow()) && save.daily && save.daily.done && !save.daily.freeUsed); }
+  // 0.10.6 하루 기회: 기본 5 + 판 수 업적 + 프리미엄 1
+  if (E && E.setDailyExtra) E.setDailyExtra(function (sv, day) { return (H && H.dailyExtraTries ? H.dailyExtraTries(sv) : 0) + (M && sv.shop && M.premOn(sv, day) ? 1 : 0); });
   function goDaily() {
     if (dispatching || !E) return;
     var day = dayNow(), st = E.dailyStatus(save, day);
-    var begin = function (useGems) {
+    var begin = function () {
       var cfg;
-      try { cfg = E.startDaily(save, day, useGems, premRetry()); } catch (e) { UI.toast(e.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '시작할 수 없어요: ' + e.message); return; }
+      try { cfg = E.startDaily(save, day); } catch (e) { UI.toast(e.code === 'DAILY_DONE' ? '오늘 기회를 다 썼어요' : '시작할 수 없어요: ' + e.message); return; }
+      if (H && H.noteDailyRun) H.noteDailyRun(save);   // 0.10.6 판 수 업적(하루 기회 +1)
       cfg.ruleName = st.rule.name; cfg.day = day; cfg.boss = false;
       if (Df) cfg = Df.applyRun(cfg, Df.get(save));
       persist();
@@ -645,10 +668,8 @@
       T.play('normal', run, { caseNo: CS().no, caseTitle: '특별 출동 · ' + st.rule.name })
         .then(function () { dispatching = false; }, function () { dispatching = false; });
     };
-    if (!st.done) { begin(false); return; }
-    if (premRetry()) { begin(false); return; }   // 0.9.0 프리미엄: 하루 한 번 무료 재도전
-    openInfo({ label: '특별 출동', title: '한 번 더 도전할까요?', body: p('오늘 보상은 이미 받았어요. 배지 ◆' + E.RETRY_GEMS + '개로 한 번 더 도전하면, 메달을 따면 보상을 다시 받아요.') + p('<span class="muted">가진 배지 ◆' + fmt(save.gems) + '</span>'),
-      ok: '◆' + E.RETRY_GEMS + '개로 도전', cancel: '취소', onOk: function () { begin(true); } });
+    if (st.left > 0) { begin(); return; }
+    UI.toast('오늘 기회를 다 썼어요 · 내일 새 규칙으로 다시 열려요');
   }
   function go() {
     if (dispatching) return;
@@ -683,19 +704,22 @@
     if (Df) Df.noteRun(save, dk, g.score);   // 강력 이상이면 실력 기록(최고 점수)도
     if (E && cfg.daily && dk === 'easy') {
       // 단순 사건: 특별 출동 메달 보상 대신 그날 한 번 참가 보상(◆1)
-      var dday = cfg.day || dayNow(), dst = E.dailyStatus(save, dday);
+      var dday = cfg.day || dayNow(); E.dailyStatus(save, dday);
       if (g.score > save.daily.best) save.daily.best = g.score;
-      if (!dst.done) { save.daily.done = true; save.gems += 1; extra += '<span class="res-medal">특별 출동 참가 보상 · ◆1</span>'; }
+      if (!save.daily.joined) { save.daily.joined = true; save.gems += 1; extra += '<span class="res-medal">특별 출동 참가 보상 · ◆1</span>'; }
       extra += '<span class="muted">단순 사건은 특별 출동 메달 대신 참가 보상을 받아요. 메달은 강력 · 미제 사건에서 받을 수 있어요.</span>';
     } else if (E && cfg.daily) {
       d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
-      if (H) H.noteDaily(save, d.medal);   // 0.3.0 업적용 기록
-      if (d.medal === '금') questTrack('gold', 1);
+      if (H && d.isNew) H.noteDaily(save, d.medal);   // 0.3.0 업적용 기록(그날 새로 딴 메달만)
+      if (d.medal === '금' && d.isNew) questTrack('gold', 1);
+      var dleft = E.dailyStatus(save, cfg.day || dayNow()).left;
       var hb = Df ? Df.dailyBonus(save, dk, d.medal) : { gems: 0, tickets: 0 };   // 미제 사건: 배지 +1 · 금이면 뽑기권 +1
       if (hb.gems) save.gems += hb.gems;
-      extra += d.medal
-        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달 · 수사비 +' + fmt(d.money) + ' · ◆' + (d.gems + hb.gems) + (PT ? ' · ' + giveTickets(1 + hb.tickets) : '') + (hb.gems ? ' (미제 사건 보너스 포함)' : '') + '</span>'
-        : '<span class="muted">특별 출동: 동 메달(' + fmt(E.dailyRule(cfg.day || dayNow()).medals[0]) + '점)부터 보상이에요. 오늘 다시 도전할 수 있어요.</span>';
+      extra += d.medal && d.isNew
+        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달' + (d.upFrom ? '(' + d.upFrom + ' → ' + d.medal + ', 차액)' : '') + ' · 수사비 +' + fmt(d.money) + ' · ◆' + (d.gems + hb.gems) + (PT ? ' · ' + giveTickets(1 + hb.tickets) : '') + (hb.gems ? ' (미제 사건 보너스 포함)' : '') + '</span>'
+        : d.medal ? '<span class="muted">' + d.medal + ' 메달 · 오늘 이미 받은 메달이에요. 더 높은 메달을 따면 그만큼 더 받아요.</span>'
+        : '<span class="muted">특별 출동: 동 메달(' + fmt(E.dailyRule(cfg.day || dayNow()).medals[0]) + '점)부터 보상이에요.</span>';
+      extra += '<span class="muted">오늘 남은 기회 ' + dleft + '번</span>';
     } else if (E) {
       // 0.7.0 첫 메달 보상(실력 기록)은 강력 사건 이상에서만
       if (Df && !Df.countsSkill(dk)) { if (g.score >= E.MEDALS[0].at) extra += '<span class="muted">점수 업적 · 첫 메달 보상은 강력 사건부터 기록돼요.</span>'; }
@@ -712,7 +736,8 @@
       lastDouble = null;
       if (r.money > 0 && M.adLeft(save, 'double', dayNow()) > 0) {
         lastDouble = { amt: r.money };
-        extra += '<button class="ghost res-double" id="res-double">' + (M.perks(save, nowMs()).adFree ? '' : '▶ 광고 보고 ') + '수사비 2배 받기 (+' + fmt(r.money) + ')</button>';
+        // 0.10.6 2배 받기는 결과 줄 맨 위에 크게(아래쪽 회색 줄 사이에 묻혀 안 보였다)
+        extra = '<button class="res-double" id="res-double"><span class="rd-l">' + (M.perks(save, nowMs()).adFree ? '바로 받기' : '▶ 광고 보고') + '</span><b>수사비 2배</b><em>+' + fmt(r.money) + '</em></button>' + extra;
       }
     }
     persist();
@@ -839,9 +864,18 @@
       box = '<div class="qs-row box' + (b.got ? ' got' : b.ready ? ' done' : '') + '"><div class="qs-tx"><b>🎁 일간 완료 상자</b><small>일간 임무를 다 받으면</small></div><div class="qs-r">' + rwText(b.r) + '</div>' +
         (b.got ? '<span class="qs-ok">받음 ✓</span>' : '<button class="primary qs-get" data-qc="box"' + (b.ready ? '' : ' disabled') + '>열기</button>') + '</div>';
     }
-    var reset = questTab === 'd' ? '자정에 새로 시작해요' : questTab === 'w' ? '월요일에 새로 시작해요' : '매달 1일에 새로 시작해요';
-    return '<div class="qs-tabs">' + tabs + '</div><div class="qs-list">' + rows + box + '</div><p class="qs-note">' + reset + '</p>';
+    var reset = questTab === 'd' ? '자정에 새로 시작해요' : questTab === 'w' ? '월요일 0시에 새로 시작해요' : '매달 1일 0시에 새로 시작해요';
+    return '<div class="qs-tabs">' + tabs + '</div><div class="qs-left" id="qs-left">' + questLeft(questTab) + '</div><div class="qs-list">' + rows + box + '</div><p class="qs-note">' + reset + '</p>';
   }
+  /* 0.10.6 일간 · 주간 · 월간 남은 시간(이 기기 시각 기준 0시에 바뀐다) */
+  function questLeft(k) {
+    var now = new Date(), end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    if (k === 'w') end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - (now.getDay() + 6) % 7));
+    if (k === 'm') end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    var m = Math.max(0, Math.ceil((end - now) / 60000)), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60), mm = m % 60;
+    return '⏱ ' + QS.NAME[k] + ' 임무 남은 시간 <b>' + (d ? d + '일 ' + h + '시간' : h ? h + '시간 ' + mm + '분' : mm + '분') + '</b>';
+  }
+  setInterval(function () { var el = document.getElementById('qs-left'); if (el && QS) el.innerHTML = questLeft(questTab); }, 30000);
   function openQuest() {
     if (!QS) return;
     openInfo({ label: '임무', title: '3팀 임무', body: questHTML(), readOnly: true });
@@ -1211,7 +1245,7 @@
       if (!lastDouble) return;
       lastDouble = null;
       save.money += amt;
-      b.textContent = '수사비 +' + fmt(amt) + ' 더 받았어요';
+      b.innerHTML = '<b>수사비 +' + fmt(amt) + ' 더 받았어요 ✓</b>'; b.classList.add('got');
       UI.sfx.coin();
     });
     setTimeout(function () { if (lastDouble) b.disabled = false; }, 3600);   // 광고를 못 끝냈으면 다시 누를 수 있게

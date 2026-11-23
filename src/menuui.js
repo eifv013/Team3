@@ -141,7 +141,8 @@
     var day = ctx.dayNow(), fl = PT.freeLeft ? PT.freeLeft(s, day, ctx.freeExtra ? ctx.freeExtra() : 0) : 0, pr = PT.progress ? PT.progress(s) : null;
     var set = function (id, t, hot) { var e = $(id); if (e) { e.textContent = t; e.parentNode.classList.toggle('hot', !!hot); } };
     set('h-pl-draw', '뽑기권 ' + (p.tickets || 0) + '장' + (fl > 0 ? ' · 무료 ' + fl : ''), (p.tickets || 0) > 0 || fl > 0);
-    set('h-pl-dex', pr ? pr.have + ' / ' + pr.total : '');
+    var fcn = PT.freshCount ? PT.freshCount(s) : 0;
+    set('h-pl-dex', pr ? pr.have + ' / ' + pr.total + (fcn ? ' · NEW ' + fcn : '') : '', fcn > 0);   // 0.10.6 새로 얻은 파트너
     set('h-pl-closet', '옷 ' + (p.closet ? Object.keys(p.closet).length : 0) + '벌');
     var x = p.eq && PT.parse(p.eq), lines = [];
     if (x) {
@@ -246,5 +247,7 @@
     go('home', { back: true });
   }
 
-  root.Team3MenuUI = { mount: mount, go: go, back: back, jump: jump, render: render, current: function () { return cur; } };
+  /** 0.10.6 옆 탭으로(증거판 끝에서 더 밀 때) dir: +1 다음 · −1 이전 */
+  function step(dir) { var i = ORDER.indexOf(cur) + (dir > 0 ? 1 : -1); if (i >= 0 && i < ORDER.length) go(ORDER[i]); }
+  root.Team3MenuUI = { mount: mount, go: go, step: step, back: back, jump: jump, render: render, current: function () { return cur; } };
 })(typeof self !== 'undefined' ? self : this);

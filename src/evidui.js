@@ -80,9 +80,19 @@
     var cmp = can && last ? (g > last ? '지난번 재수사보다 ' + (g - last) + '개 많아요' : g < last ? '지난번(+' + last + ')보다 ' + (last - g) + '개 적어요' : '지난번 재수사와 같아요') : '';
     box.innerHTML = '<div class="rt-top"><div class="rt-tx"><span class="label">재수사 · 단서</span>' +
       (can ? '<b class="rt-gain">+' + g + '</b><small>' + (cmp || '재수사하면 건지는 단서') + '</small>' : '<b class="rt-gain off">0</b><small>수사비를 더 벌면 단서를 받아요</small>') + '</div>' +
-      '<div class="rt-side"><small>가진 단서 <b>' + Ev.left(s) + '</b></small><small>재수사 ' + e.retreats + '번 · 경력 +' + Ev.careerPct(s) + '%</small></div></div>' +
-      '<div class="rt-next"><span>' + (can ? '다음 단서 +1까지' : '첫 단서까지') + '</span><span>' + dur(eta) + '</span></div><div class="ach-bar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
+      '<div class="rt-side"><small>가진 단서 <b>' + Ev.left(s) + '</b></small><button class="rt-help" id="h-career-help">재수사 ' + e.retreats + '번 · 경력 +' + Ev.careerPct(s) + '% <i>?</i></button></div></div>' +
+      // 0.10.6 단서는 시간이 아니라 이번에 번 수사비로 정해진다 → 남은 수사비를 먼저, 시간은 참고로
+      '<div class="rt-next"><span>' + (can ? '다음 단서 +1까지' : '첫 단서까지') + ' 수사비 <b>' + fmtShort(need) + '</b> 더</span><span class="muted">' + (dur(eta) ? '현재 속도로 ' + dur(eta) : '') + '</span></div><div class="ach-bar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
       '<div class="rt-acts"><button class="ghost" id="h-board">증거판' + (Ev.left(s) > 0 && cheapest(s) ? '<i class="dot"></i>' : '') + '</button><button class="primary" id="h-retreat-go"' + (can ? '' : ' disabled') + '>재수사</button></div>';
+  }
+  /* 0.10.6 재수사 경력 · 단서 설명(설명이 없어 무슨 숫자인지 몰랐다) */
+  function careerHelp() {
+    var s = S(), e = s.evid, P = function (t) { return '<p>' + t + '</p>'; };
+    ctx.openInfo({ label: '재수사', title: '단서와 재수사 경력', readOnly: true, body:
+      P('<b>단서</b>는 시간이 아니라 <b>이번 재수사 뒤로 번 수사비</b>로 정해져요. 팀 · 부서 · 출동 · 이송 · 커피로 번 돈이 모두 들어가요. 많이 벌수록 늘지만 갈수록 더 많이 벌어야 해요.') +
+      P('단서로 증거판의 증거를 열면 효과가 생겨요. 단서를 더 받는 증거(최대 +100%)와 매점 광고 보상으로도 얻어요.') +
+      P('<b>재수사 경력</b>은 재수사할 때마다 <b>+' + Ev.RANK_PCT + '%</b>씩 쌓여 영구로 붙어요. 팀 속도 · 팀 수사비 · 출동 수사비 · 부서 수입에 곱해져요.') +
+      P('현재 재수사 ' + e.retreats + '번 → 경력 <b>+' + Ev.careerPct(s) + '%</b>') });
   }
   function cheapest(s) { return Ev.CARDS.some(function (c) { return Ev.state(s, c.id) === 'can' && c.cost <= Ev.left(s); }) || Object.keys(s.evid.own).some(function (id) { var k = Ev.upCost(s, id); return k != null && k <= Ev.left(s); }); }
 
@@ -188,7 +198,7 @@
     info();
     var f = Ev.effects(s);
     var eff = Object.keys(Ev.KEY_NAME).filter(function (k) { return f[k]; }).map(function (k) { return '<span class="ev-chip">' + Ev.KEY_NAME[k] + ' <b>' + (k === 'miss' ? '−' : '+') + (k === 'startMoney' ? fmtShort(f[k]) : f[k]) + '</b></span>'; }).join('');
-    $('ev-sum').innerHTML = '<span class="ev-chip career">재수사 경력 <b>+' + Ev.careerPct(s) + '%</b></span>' + (eff || '<span class="muted" style="font-size:12px">증거를 열면 효과가 생겨요. 같은 색 증거가 실로 이어지면 효과가 커져요(2장 ×1.5 · 3장 ×2 · 5장 ×2.5).</span>');
+    $('ev-sum').innerHTML = '<button class="ev-chip career" data-career>재수사 경력 <b>+' + Ev.careerPct(s) + '%</b> ⓘ</button>' + (eff || '<span class="muted" style="font-size:12px">증거를 열면 효과가 생겨요. 같은 색 증거가 실로 이어지면 효과가 커져요(2장 ×1.5 · 3장 ×2 · 5장 ×2.5).</span>');
     var locked = Ev.CARDS.filter(function (c) { return !Ev.tierOpen(s, c.tier); }), byT = {};
     locked.forEach(function (c) { (byT[c.tier] = byT[c.tier] || []).push(c); });
     $('ev-locks').innerHTML = locked.length ? Object.keys(byT).map(function (t) { return '<span class="ev-lock">' + lockText(+t) + '에 ' + byT[t].length + '장</span>'; }).join('') : '';
@@ -246,7 +256,8 @@
       var ks = Object.keys(pts), r = vp.getBoundingClientRect();
       if (ks.length === 1 && start.pts[ks[0]]) {
         var p0 = start.pts[ks[0]], dx = e.clientX - p0.x, dy = e.clientY - p0.y; if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
-        var want = start.y + dy; Z.x = start.x + dx; Z.y = want; apply();
+        var want = start.y + dy, wantX = start.x + dx; Z.x = wantX; Z.y = want; apply();
+        start.overX = wantX - Z.x;   // 0.10.6 판 좌우 끝에 닿은 뒤 더 민 만큼(손을 떼면 옆 탭으로)
         // 0.9.2 판 위아래 끝에 닿은 뒤 더 끌면 그만큼 증거 탭을 스크롤(판 때문에 아래로 못 내려가던 것)
         var over = want - Z.y, tab = $('t-evid');
         if (tab) { tab.scrollTop -= (over - (start.over || 0)); start.over = over; }
@@ -259,6 +270,10 @@
       }
     });
     function up(e) {
+      // 0.10.6 판 좌우 끝에서 80px 넘게 더 밀고 떼면 옆 탭으로(다른 탭처럼 넘기기)
+      if (pts[e.pointerId] && moved && e.type === 'pointerup' && start && Object.keys(pts).length === 1 && Math.abs(start.overX || 0) > 80 && root.Team3MenuUI && root.Team3MenuUI.step) {
+        var ox = start.overX; delete pts[e.pointerId]; snap(); root.Team3MenuUI.step(ox > 0 ? -1 : 1); return;
+      }
       if (pts[e.pointerId] && !moved && e.type === 'pointerup') {
         var el = document.elementFromPoint(e.clientX, e.clientY), b = el && el.closest && el.closest('#ev-world [data-k]');
         if (b) { sel = b.getAttribute('data-k'); try { ctx.UI.sfx.tap(); } catch (x) { /* 무시 */ } draw(); }
@@ -310,6 +325,8 @@
       }
       if (e.target.closest('#h-board')) { open(); return; }
       if (e.target.closest('#h-retreat-go')) { confirmRetreat(false); return; }
+      if (e.target.closest('#h-career-help')) { careerHelp(); return; }
+      if (e.target.closest('[data-career]')) { careerHelp(); return; }
     });
     $('evid-body').addEventListener('click', onBoardClick);
     requestAnimationFrame(frame);

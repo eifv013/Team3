@@ -145,7 +145,7 @@
     var m = /^([a-z0-9]+):([crhl])$/.exec(k || '');
     return m && BY_ID[m[1]] ? { id: m[1], g: m[2] } : null;
   }
-  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {} }; }
+  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
   function int(v, def, min, max) {
     if (typeof v !== 'number' || !isFinite(v)) return def;
     v = Math.floor(v);
@@ -183,9 +183,14 @@
     var nr = d.noir && typeof d.noir === 'object' ? d.noir : {}, ns = d.noirSeen && typeof d.noirSeen === 'object' ? d.noirSeen : {};
     Object.keys(nr).forEach(function (k) { if (nr[k] === true && canNoirP(p, k)) p.noir[k] = true; });
     Object.keys(ns).forEach(function (k) { if (ns[k] === true && canNoirP(p, k)) p.noirSeen[k] = true; });
+    var fr = d.fresh && typeof d.fresh === 'object' ? d.fresh : {};
+    Object.keys(fr).forEach(function (k) { if (fr[k] === true && p.own[k]) p.fresh[k] = true; });
     save.pets = p;
     return p;
   }
+  /** 0.10.6 도감에서 봤다(NEW 지우기) */
+  function seeFresh(save, k) { var p = P(save); if (p.fresh) delete p.fresh[k]; }
+  function freshCount(save) { var p = P(save); return p.fresh ? Object.keys(p.fresh).length : 0; }
   /* ---------- 코드네임(0.8.4, 안에서는 noir) ----------
      전설 등급이면 바로, 그 밖의 등급은 ★5(최고)가 되면 열린다. 켜면 파트너 카드 · 도감 자세히 · 출동 머리 사진이 누아르 그림으로.
      상황실(사무실) 안 파트너는 늘 귀여운 모습 그대로. 효과는 없음(꾸미기). */
@@ -307,7 +312,7 @@
   /** 한 마리를 넣는다. 반환 { key, id, g, isNew, star, treats } */
   function grant(save, id, g) {
     var p = P(save), k = key(id, g), r = { key: k, id: id, g: g, isNew: false, star: 0, treats: 0 };
-    if (!p.own[k]) { p.own[k] = 1; r.isNew = true; r.star = 1; }
+    if (!p.own[k]) { p.own[k] = 1; r.isNew = true; r.star = 1; if (!p.fresh) p.fresh = {}; p.fresh[k] = true; }
     else if (p.own[k] < STAR_MAX) { p.own[k] += 1; r.star = p.own[k]; }
     else { r.treats = GRADE[g].treat + treatBonus(save); p.treats += r.treats; r.star = STAR_MAX; }
     if (!p.eq) p.eq = k;   // 처음 가진 동물은 바로 파트너로
@@ -458,6 +463,7 @@
     if (!x || !BY_ID[x.id].limited) return null;
     var isNew = !p.own[k];
     p.own[k] = STAR_MAX;
+    if (isNew) { if (!p.fresh) p.fresh = {}; p.fresh[k] = true; }
     p.noirSeen[k] = true;   // 상점 칸에서 코드네임을 이미 보여 줬다 → 각성 알림은 다시 띄우지 않는다
     return { key: k, isNew: isNew };
   }
@@ -584,6 +590,7 @@
     key: key, parse: parse, clean: clean, rates: rates, effectiveLegend: effectiveLegend, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,
     addTickets: addTickets, claimWelcome: claimWelcome, giftOnce: giftOnce,
     usePick: usePick, BOND: BOND, bondOf: bondOf, pat: pat, TALK: TALK, talk: talk, PICKUP_ORDER: PICKUP_ORDER, PICKUP_RATE: PICKUP_RATE, pickup: pickup, FREE_DAILY: FREE_DAILY, freeLeft: freeLeft, GRADE_SET: GRADE_SET, sets: sets,
+    seeFresh: seeFresh, freshCount: freshCount,
     OUTFITS: OUTFITS, OUTFIT_BY: OUTFIT_BY, outfitOpen: outfitOpen, buyOutfit: buyOutfit, wear: wear, wearing: wearing,
     NAME_MAX: NAME_MAX, RENAME_GEMS: RENAME_GEMS, cleanText: cleanText, nameOf: nameOf, renameCost: renameCost, rename: rename, resetName: resetName, ownEffect: ownEffect, eqEffect: eqEffect, bonus: bonus, describe: describe,
     starMul: starMul, progress: progress, zero: zero

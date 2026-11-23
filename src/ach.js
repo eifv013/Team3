@@ -55,6 +55,8 @@
     { id: 'score10k', group: '점수', name: '에이스', desc: '강력 사건 이상 · 출동 점수 10,000', need: function (s) { return skillBest(s); }, goal: 10000, title: '에이스', tickets: 3 },
     { id: 'score20k', group: '점수', name: '수사의 신', desc: '강력 사건 이상 · 출동 점수 20,000', need: function (s) { return skillBest(s); }, goal: 20000, title: '수사의 신', tickets: 5, gems: 30 },
     { id: 'daily5', group: '점수', name: '특별한 하루', desc: '특별 출동 메달 5번', need: function (s) { return st(s, 'dailyMedals'); }, goal: 5, title: '특출난 형사', tickets: 2 },
+    { id: 'druns30', group: '점수', name: '특별 출동 개근', desc: '특별 출동 30판 · 하루 기회 +1', need: function (s) { return st(s, 'dailyRuns'); }, goal: 30, title: '특출 개근', tickets: 2 },   // 0.10.6
+    { id: 'druns100', group: '점수', name: '특별 출동 붙박이', desc: '특별 출동 100판 · 하루 기회 +1', need: function (s) { return st(s, 'dailyRuns'); }, goal: 100, title: '특출 붙박이', tickets: 4, gems: 10 },
     { id: 'gold3', group: '점수', name: '금빛 수사', desc: '특별 출동 금메달 3번', need: function (s) { return st(s, 'dailyGold'); }, goal: 3, title: '금메달 형사', tickets: 3, gems: 10 },
     { id: 'det10', group: '사무실', name: '팀 빌더', desc: '형사 10명', need: function (s) { return s.detectives; }, goal: 10, title: '팀 빌더', tickets: 2 },
     { id: 'det30', group: '사무실', name: '대부대', desc: '형사 30명', need: function (s) { return s.detectives; }, goal: 30, title: '대부대장', tickets: 4 },
@@ -114,7 +116,7 @@
   function isTitle(id) { return !!(BY_ID[id] || SHOP_BY[id]); }
   /** 저장 속 ach 를 검사해 깨끗하게(없으면 빈 값). save.ach 를 돌려준다 */
   function clean(save) {
-    var d = save.ach && typeof save.ach === 'object' ? save.ach : {}, a = { got: {}, claimed: {}, bought: {}, title: '', pet: {}, stat: { dailyMedals: 0, dailyGold: 0 } };
+    var d = save.ach && typeof save.ach === 'object' ? save.ach : {}, a = { got: {}, claimed: {}, bought: {}, title: '', pet: {}, stat: { dailyMedals: 0, dailyGold: 0, dailyRuns: 0 } };
     var got = d.got && typeof d.got === 'object' ? d.got : {};
     Object.keys(got).forEach(function (k) { if (got[k] === true && BY_ID[k]) a.got[k] = true; });
     // 0.6.0 보상은 눌러서 받는다(claimed). 예전 저장(claimed 없음)은 달성 때 이미 받았으므로 모두 받은 것으로
@@ -125,6 +127,7 @@
     var sd = d.stat && typeof d.stat === 'object' ? d.stat : {};
     a.stat.dailyMedals = int(sd.dailyMedals, 0, 0, 1e6);
     a.stat.dailyGold = int(sd.dailyGold, 0, 0, 1e6);
+    a.stat.dailyRuns = int(sd.dailyRuns, 0, 0, 1e7);
     save.ach = a;
     a.title = typeof d.title === 'string' && has(save, d.title) ? d.title : '';
     var pt = d.pet && typeof d.pet === 'object' ? d.pet : {};
@@ -188,6 +191,9 @@
     a.stat.dailyMedals += 1;
     if (medal === '금') a.stat.dailyGold += 1;
   }
+  /** 0.10.6 특별 출동 판 수(시작할 때) · 업적으로 늘어나는 하루 기회 */
+  function noteDailyRun(save) { A(save).stat.dailyRuns += 1; }
+  function dailyExtraTries(save) { var a = A(save); return (a.got.druns30 ? 1 : 0) + (a.got.druns100 ? 1 : 0); }
   /** 칭호 사기(배지) */
   function buy(save, id) {
     var t = SHOP_BY[id], a = A(save);
@@ -219,7 +225,7 @@
 
   return {
     LIST: LIST, SHOP: SHOP, BY_ID: BY_ID, TITLE_MAX: TITLE_MAX,
-    clean: clean, status: status, check: check, claim: claim, unclaimed: unclaimed, noteDaily: noteDaily, buy: buy, has: has, owned: owned, titleText: titleText,
+    clean: clean, status: status, check: check, claim: claim, unclaimed: unclaimed, noteDaily: noteDaily, noteDailyRun: noteDailyRun, dailyExtraTries: dailyExtraTries, buy: buy, has: has, owned: owned, titleText: titleText,
     setTitle: setTitle, setPetTitle: setPetTitle, leaderTitle: leaderTitle, petTitle: petTitle, progress: progress
   };
 });

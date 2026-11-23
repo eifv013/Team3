@@ -226,7 +226,7 @@
       recent: [],          // 최근 출동 점수(최대 5개) — 상품 값의 기준
       prep: {},            // 다음 출동에 챙겨 갈 준비물 { id: true }
       prepPaid: {},        // 준비물에 낸 값 { id: { w: 'money'|'gems', c } } — 출동 전에 무르면 돌려준다
-      daily: { day: '', done: false, best: 0, tries: 0 },  // 오늘의 특별 출동
+      daily: { day: '', best: 0, tries: 0, paid: -1, joined: false },  // 오늘의 특별 출동(0.10.6 기회 · 받은 메달)
       pets: null, office: null, dept: null, evid: null, diff: null, crew: null, caseBest: 0, dfrac: 0,          // 0.3.0 동물(검사·기본값은 Team3Pets.clean 이 맡는다)
       profileEdits: 0,     // 0.3.0 프로필 이름을 바꾼 횟수(0 이면 다음 한 번은 무료)
       ach: null,           // 0.3.0 업적 · 칭호(Team3Ach.clean)
@@ -306,9 +306,10 @@
     var dl = data.daily && typeof data.daily === 'object' ? data.daily : {};
     s.daily = {
       day: typeof dl.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dl.day) ? dl.day : '',
-      done: dl.done === true, best: int(dl.best, 0, 0), tries: int(dl.tries, 0, 0, 99)
+      best: int(dl.best, 0, 0), tries: int(dl.tries, 0, 0, 99),
+      // 0.10.6 그날 받은 가장 높은 메달(−1 없음 · 0 동 · 1 은 · 2 금). 예전 저장의 done(메달 받음)은 동으로 본다
+      paid: typeof dl.paid === 'number' ? int(dl.paid, -1, -1, 2) : dl.done === true ? 0 : -1, joined: dl.joined === true
     };
-    if (dl.freeUsed === true) s.daily.freeUsed = true;   // 0.9.0 프리미엄 무료 재도전을 쓴 날만 남긴다
     s.profileEdits = int(data.profileEdits, 0, 0, 1e6);
     s.nameTags = int(data.nameTags, 0, 0, 9999);
     // 0.3.0: 동물 저장은 객체만 그대로 넘긴다(안쪽 검사는 Team3Pets.clean)

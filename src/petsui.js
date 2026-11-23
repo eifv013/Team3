@@ -159,7 +159,8 @@
   function draw() {
     var p = pets(), pr = P.progress(S());
     document.querySelectorAll('#pets-tabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === tab); });
-    $('pets-tab-dex').textContent = '도감 ' + pr.have + '/' + pr.total;
+    var fc = P.freshCount ? P.freshCount(S()) : 0;
+    $('pets-tab-dex').innerHTML = '도감 ' + pr.have + '/' + pr.total + (fc ? ' <em class="tab-new">NEW ' + fc + '</em>' : '');   // 0.10.6
     $('pets-wallet').innerHTML = walletHtml();
     $('pets-draw').hidden = tab !== 'draw';
     $('pets-dex').hidden = tab !== 'dex';
@@ -411,7 +412,7 @@
       html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + ' · 한정</small></span>' +
         '<span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span>' +
         '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE.l.color + '" aria-label="한정 전설 ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
-        A.draw(sp.id, { grade: 'l' }) + (st ? '<i>' + st + '★</i>' : '') + '</button></div>';
+        A.draw(sp.id, { grade: 'l' }) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button></div>';
     });
     // 0.9.2 새로 들어온 동물(since 가 큰 것)이 한정 줄 바로 아래 맨 위로
     P.SPECIES.map(function (sp, i) { return { sp: sp, i: i }; }).sort(function (a, b) { return (b.sp.since || 0) - (a.sp.since || 0) || a.i - b.i; }).forEach(function (o) {
@@ -420,7 +421,7 @@
         P.GRADES.map(function (g) {
           var k = P.key(sp.id, g), st = p.own[k];
           return '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE[g].color + '" aria-label="' + P.GRADE[g].name + ' ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
-            A.draw(sp.id, { grade: g }) + (st ? '<i>' + st + '★</i>' : '') + '</button>';
+            A.draw(sp.id, { grade: g }) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button>';
         }).join('') + '</div>';
     });
     $('pets-dex').innerHTML = html;
@@ -503,6 +504,7 @@
   function showDetail(k) {
     naming = false;
     detailKey = k;
+    if (P.seeFresh && pets().fresh && pets().fresh[k]) { P.seeFresh(S(), k); ctx.persist(); draw(); return; }   // 0.10.6 본 파트너는 NEW 끔(draw 가 자세히도 그린다)
     drawDetail();
     var bx = $('pets-detail'); if (bx) bx.scrollTop = 0;   // 0.10.5 창은 그대로 두고 팝업만 띄운다
   }
