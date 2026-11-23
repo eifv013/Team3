@@ -62,7 +62,7 @@
   // 0.7.0 부서 수입 · 번 수사비(재수사 단서) 훅
   if (Dp) I.setExtraIncome(function (sv) { return sv.dept ? Dp.perSec(sv, deptMult(sv)) : 0; });
   if (Ev) I.setEarn(function (sv, v) { Ev.earn(sv, v); });
-  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); if (OF) OF.clean(save); if (Dp) Dp.clean(save); if (Ev) Ev.clean(save); if (Df) Df.clean(save); if (Cr) Cr.clean(save); if (window.Team3Attend) window.Team3Attend.clean(save); }
+  function petsReady() { if (PT) PT.clean(save); if (H) H.clean(save); if (M) M.clean(save, nowMs()); if (OF) OF.clean(save); if (Dp) Dp.clean(save); if (Ev) Ev.clean(save); if (Df) Df.clean(save); if (Cr) Cr.clean(save); if (window.Team3Attend) window.Team3Attend.clean(save); if (window.Team3Quest) window.Team3Quest.clean(save); }
   /*
    * 업적 확인(0.3.0). 사무실을 그릴 때마다(1초) 본다 — 조건이 20개 남짓이라 가볍다.
    *   새로 달성하면 보상(배지 · 뽑기권)을 주고 저장, 사무실에서 차례로 알린다.
@@ -184,7 +184,7 @@
     $('hm-money').textContent = '수사비 ' + fmtShort(save.money);
     $('hm-gems').innerHTML = (IC ? IC.icon('gem') : '◆') + fmt(save.gems);
     if (Df) { var hmD = Df.info(Df.get(save)), hmE = $('hm-diff'); hmE.textContent = hmD.icon + ' ' + hmD.short; hmE.style.setProperty('--c', hmD.color); }   // 0.7.0 난이도
-    $('hm-rate').textContent = '+' + fmtShort(incPerMin) + '/분' + (petInc > 0 ? ' (동물 +' + fmtShort(petInc) + ')' : '');
+    $('hm-rate').textContent = '+' + fmtShort(incPerMin) + '/분' + (petInc > 0 ? ' (파트너 +' + fmtShort(petInc) + ')' : '');
     var cs = I.caseOf(save);
     $('hm-case').textContent = '사건 ' + cs.no + ' · ' + cs.title + ' · ' + fmt(Math.min(save.caught, cs.goal)) + ' / ' + fmt(cs.goal);
     $('hm-fill').style.width = (I.progress(save) * 100).toFixed(1) + '%';
@@ -531,7 +531,7 @@
       ? '<b style="color:var(--acc)">첫 이름 바꾸기는 무료예요.</b> 그 뒤로는 한 번에 배지 ◆' + P.renameGems + '개 또는 이름표 1장이에요.'
       : tags ? '이름표 1장을 써요. <span class="muted">(가진 이름표 ' + tags + '장)</span>'
       : '이름 바꾸기는 배지 ◆' + cost + '개예요. <span class="muted">(가진 배지 ◆' + fmt(save.gems) + ')</span>';
-    var tagBtn = cost === 0 ? '' : '<button class="linkish" id="pf-tags"' + (save.gems < NT.gems ? ' disabled' : '') + '>이름표 ' + NT.n + '장 사기 · ◆' + NT.gems + ' (동물 이름에도 써요)</button>';
+    var tagBtn = cost === 0 ? '' : '<button class="linkish" id="pf-tags"' + (save.gems < NT.gems ? ' disabled' : '') + '>이름표 ' + NT.n + '장 사기 · ◆' + NT.gems + ' (파트너 이름에도 써요)</button>';
     openInfo({
       label: '내 프로필', title: '경찰서와 팀장 이름',
       body: '<label class="field">경찰서 이름 (최대 ' + P.stationMax + '자)<input id="pf-station" maxlength="' + (P.stationMax * 2) + '" autocomplete="off" placeholder="' + P.defaultStation + '"></label>' +
@@ -563,6 +563,7 @@
   function tryBuy(kind) {
     try {
       I.buy(save, kind);
+      if (kind === 'hire') questTrack('hire', 1);
       UI.sfx.coin(); UI.buzz(10);
       persist(); render();
     } catch (e) {
@@ -660,6 +661,7 @@
     runCfg = null;
     // 0.7.0 난이도: 이 판을 시작할 때 적어 둔 난이도로 보상을 매긴다(cfg.diff)
     var dk = Df && cfg.diff ? cfg.diff : 'normal', DL = Df ? Df.info(dk) : { pay: 1, clue: 1, xp: 1 };
+    questTrack('run', 1); questTrack('caught', g.hits || 0); if (cfg.daily) questTrack('daily', 1);   // 0.10.3 임무
     var r = I.applyRun(save, { score: g.score, hits: g.hits, payMult: cfg.payMult || 1, diffMult: DL.pay, clueMult: DL.clue }, nowMs());
     if (Df) Df.noteRun(save, dk, g.score);   // 강력 이상이면 실력 기록(최고 점수)도
     if (E && cfg.daily && dk === 'easy') {
@@ -671,6 +673,7 @@
     } else if (E && cfg.daily) {
       d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
       if (H) H.noteDaily(save, d.medal);   // 0.3.0 업적용 기록
+      if (d.medal === '금') questTrack('gold', 1);
       var hb = Df ? Df.dailyBonus(save, dk, d.medal) : { gems: 0, tickets: 0 };   // 미제 사건: 배지 +1 · 금이면 뽑기권 +1
       if (hb.gems) save.gems += hb.gems;
       extra += d.medal
@@ -701,7 +704,7 @@
     // 0.4.0 이번 출동 수사비 중 동물 효과 몫(파트너 이름과 함께)
     var pb2 = PT ? petBonus(save) : null, petPay = pb2 && pb2.pay ? Math.round(r.money - r.money / (1 + pb2.pay / 100)) : 0;
     var partner = PT && save.pets.eq ? PT.nameOf(save, save.pets.eq) : '';
-    if (petPay > 0) extra = '<span class="res-pet">동물 효과 +' + fmt(petPay) + (partner ? ' · 파트너 ' + esc(partner) + ' 덕분이에요' : '') + '</span>' + extra;
+    if (petPay > 0) extra = '<span class="res-pet">파트너 효과 +' + fmt(petPay) + (partner ? ' · 파트너 ' + esc(partner) + ' 덕분이에요' : '') + '</span>' + extra;
     var dTag = Df ? '<span class="res-diff" style="--c:' + DL.color + '">' + DL.icon + ' ' + Df.resultLine(dk) + '</span>' : '';
     return dTag + '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ' · 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, CS().goal)) + ' / ' + CS().goal + ')</span>' +
       extra +
@@ -776,11 +779,11 @@
     var pad = ''; for (var i = 0; i < b.dow; i++) pad += '<span class="at-c pad"></span>';
     var cells = b.cells.map(function (c) {
       var r = c.r, rw = r.tickets ? ic('ticket') + r.tickets : r.gems && !r.treats ? ic('gem') + r.gems : ic('treat') + r.treats;
-      return '<span class="at-c' + (r.big ? ' big' : '') + (c.got ? ' got' : '') + (c.today ? ' today' : '') + (c.past && !c.got ? ' miss' : '') + '"><span class="at-d">' + c.d + '</span><b>' + rw + '</b>' + (c.got ? '<em>✓</em>' : '') + '</span>';
+      return '<span data-atd="' + c.d + '" class="at-c' + (r.big ? ' big' : '') + (c.got ? ' got' : '') + (c.today ? ' today' : '') + (c.past && !c.got ? ' miss' : '') + '"><span class="at-d">' + c.d + '</span><b>' + rw + '</b>' + (c.got ? '<em>✓</em>' : '') + '</span>';
     }).join('');
-    return '<p class="at-sum">' + b.m + '월 출석 <b>' + b.count + '일</b> · 금빛 칸(7 · 14 · 21일 · 마지막 날)은 뽑기권 묶음이에요</p>' +
+    return '<p class="at-sum">' + b.m + '월 출석 <b>' + b.count + '일</b></p>' +
       '<div class="at-cal">' + head + pad + cells + '</div>' +
-      '<p class="at-note">현실 날짜로 하루 한 번. 지나간 날은 다시 받을 수 없어요.</p>';
+      '<p class="at-note" id="at-tip">날짜를 누르면 보상을 자세히 볼 수 있어요</p>';
   }
   function openAttend() {
     if (!AT) return;
@@ -788,12 +791,89 @@
     openInfo({ label: '출석 체크', title: (done ? '오늘 출석했어요' : '오늘 출석하기'), body: attendHTML(), ok: done ? '확인' : '출석하기',
       onOk: function () {
         if (!AT.canCheck(save, dayNow())) return;
-        var r = AT.check(save, dayNow(), grant); persist(); render();
+        var r = AT.check(save, dayNow(), grant); questTrack('attend', 1); persist(); render();
         try { UI.sfx.coin(); } catch (e) { /* 무시 */ }
         UI.toast('출석 보상: ' + (r.tickets ? '뽑기권 ' + r.tickets + '장 ' : '') + (r.gems ? '배지 ◆' + r.gems + ' ' : '') + (r.treats ? '간식 ' + r.treats : ''));
         if (MUI && MUI.render) MUI.render();
       } });
   }
+  /* ---------- 0.10.3 일간 · 주간 · 월간 임무 ---------- */
+  var QS = window.Team3Quest, questTab = 'd';
+  function questTrack(kind, n) { if (QS && save) { QS.track(save, kind, n, dayNow()); } }
+  function rwText(r) {
+    var I2 = window.Team3Icons, ic = function (n) { return I2 ? I2.icon(n) : ''; }, o = [];
+    if (r.tickets) o.push(ic('ticket') + r.tickets); if (r.gems) o.push(ic('gem') + r.gems); if (r.treats) o.push(ic('treat') + r.treats);
+    return o.join(' ');
+  }
+  function questHTML() {
+    var day = dayNow(), tabs = ['d', 'w', 'm'].map(function (k) {
+      var c = QS.list(save, k, day).filter(function (x) { return x.done && !x.got; }).length + (k === 'd' && QS.boxState(save, day).ready ? 1 : 0);
+      return '<button class="' + (questTab === k ? 'on' : '') + '" data-qt="' + k + '">' + QS.NAME[k] + (c ? '<em>' + c + '</em>' : '') + '</button>';
+    }).join('');
+    var rows = QS.list(save, questTab, day).map(function (x) {
+      return '<div class="qs-row' + (x.got ? ' got' : x.done ? ' done' : '') + '"><div class="qs-tx"><b>' + esc(x.name) + '</b>' +
+        '<div class="qs-bar"><i style="width:' + Math.round(x.n / x.goal * 100) + '%"></i></div><small>' + fmt(x.n) + ' / ' + fmt(x.goal) + '</small></div>' +
+        '<div class="qs-r">' + rwText(x.r) + '</div>' +
+        (x.got ? '<span class="qs-ok">받음 ✓</span>' : '<button class="primary qs-get" data-qc="' + x.id + '"' + (x.done ? '' : ' disabled') + '>받기</button>') + '</div>';
+    }).join('');
+    var box = '';
+    if (questTab === 'd') {
+      var b = QS.boxState(save, day);
+      box = '<div class="qs-row box' + (b.got ? ' got' : b.ready ? ' done' : '') + '"><div class="qs-tx"><b>🎁 일간 완료 상자</b><small>일간 임무를 다 받으면</small></div><div class="qs-r">' + rwText(b.r) + '</div>' +
+        (b.got ? '<span class="qs-ok">받음 ✓</span>' : '<button class="primary qs-get" data-qc="box"' + (b.ready ? '' : ' disabled') + '>열기</button>') + '</div>';
+    }
+    var reset = questTab === 'd' ? '자정에 새로 시작해요' : questTab === 'w' ? '월요일에 새로 시작해요' : '매달 1일에 새로 시작해요';
+    return '<div class="qs-tabs">' + tabs + '</div><div class="qs-list">' + rows + box + '</div><p class="qs-note">' + reset + '</p>';
+  }
+  function openQuest() {
+    if (!QS) return;
+    openInfo({ label: '임무', title: '3팀 임무', body: questHTML(), readOnly: true });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest && e.target.closest('#info-body [data-qt], #info-body [data-qc]');
+    if (!t || !QS) return;
+    if (t.getAttribute('data-qt')) questTab = t.getAttribute('data-qt');
+    else {
+      try { var r = QS.claim(save, t.getAttribute('data-qc'), dayNow(), grant); UI.sfx.coin(); UI.toast('임무 보상: ' + [r.tickets ? '뽑기권 ' + r.tickets + '장' : '', r.gems ? '배지 ◆' + r.gems : '', r.treats ? '간식 ' + r.treats : ''].filter(Boolean).join(' · ')); persist(); render(); }
+      catch (x) { UI.toast(x.code === 'NOT_DONE' ? '아직 다 못 했어요' : '이미 받았어요'); }
+    }
+    $('info-body').innerHTML = questHTML();
+    if (MUI && MUI.render) MUI.render();
+  });
+  window.Team3QuestUI = { open: openQuest, track: function (k, n) { questTrack(k, n); }, ready: function () { return QS ? QS.ready(save, dayNow()) : 0; } };
+  /* 0.10.3 창 안의 작은 탭(파트너: 뽑기 · 도감 · 의상 / 매점: 상점 · 시즌 패스 / 임무: 일간 · 주간 · 월간)도 옆으로 밀어서 넘긴다 */
+  (function () {
+    var sx = null, sy = 0, st = 0, bar = null;
+    document.addEventListener('touchstart', function (e) {
+      var sh = e.target.closest && e.target.closest('.sheet');
+      bar = sh ? sh.querySelector('#pets-tabs, #shop-tabs, .qs-tabs') : null;
+      if (!bar || e.target.closest('input, textarea, select, .gx-cards, #ev-vp')) { sx = null; return; }
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+    }, { passive: true });
+    document.addEventListener('touchend', function (e) {
+      if (sx == null || !bar) return;
+      var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
+      if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6 || Date.now() - st > 700) return;
+      var bs = Array.prototype.slice.call(bar.querySelectorAll('button')), i = bs.findIndex(function (b) { return b.classList.contains('on'); }) + (dx < 0 ? 1 : -1);
+      if (i >= 0 && i < bs.length) bs[i].click();
+    }, { passive: true });
+  })();
+  // 0.10.3 출석 날짜를 누르면 그날 보상 설명
+  document.addEventListener('click', function (e) {
+    var c = e.target.closest && e.target.closest('#info-body [data-atd]'), tip = $('at-tip');
+    if (!c || !tip || !AT) return;
+    var b = AT.board(save, dayNow()), d = +c.getAttribute('data-atd'), x = b.cells[d - 1], r = x.r;
+    var txt = [r.tickets ? '뽑기권 ' + r.tickets + '장' : '', r.gems ? '배지 ◆' + r.gems : '', r.treats ? '간식 ' + r.treats + '개' : ''].filter(Boolean).join(' · ');
+    tip.innerHTML = '<b>' + b.m + '월 ' + d + '일</b> · ' + txt + (r.big ? ' <span style="color:var(--acc)">· 특별한 날</span>' : '') +
+      (x.got ? ' · 받았어요' : x.today ? ' · 현재 받을 수 있어요' : x.past ? ' · 지나간 날' : '');
+    document.querySelectorAll('#info-body .at-c.pick').forEach(function (n) { n.classList.remove('pick'); }); c.classList.add('pick');
+  });
+  // 0.10.4 창 안 작은 탭을 바꾸면 창도 맨 위부터
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('#pets-tabs button, #shop-tabs button, .qs-tabs button');
+    if (!b) return;
+    setTimeout(function () { var sh = b.closest('.sheet'); if (sh) sh.scrollTop = 0; }, 0);
+  });
   window.Team3AttendUI = { open: openAttend, can: function () { return !!AT && AT.canCheck(save, dayNow()); } };
   // 하루 한 번, 상황실에 있을 때(창 · 출동 없음) 자동으로 띄운다
   function attendAuto() {
@@ -841,7 +921,7 @@
     var r = I.rankOf(save);
     openInfo({ label: '계급', title: '승진하면 수사비가 늘어요', readOnly: true,
       body: '<p>현장 출동에서 <b>직접 잡은 수</b>로 승진해요(팀이 방치로 잡은 수는 안 세요). 승진할 때마다 모든 수사비 +' + Math.round(I.RANK_BONUS * 100) + '%와 배지를 받아요.</p>' +
-        '<p>지금 현장 검거 <b>' + fmt(save.runCaught) + '명</b>' + (r.next ? ' · ' + r.next.name + '까지 ' + fmt(r.toNext) + '명' : '') + '</p>' +
+        '<p>현재 현장 검거 <b>' + fmt(save.runCaught) + '명</b>' + (r.next ? ' · ' + r.next.name + '까지 ' + fmt(r.toNext) + '명' : '') + '</p>' +
         '<div class="rk-list">' + I.RANKS.map(function (x, i) {
           return '<div class="' + (i === r.index ? 'now' : i < r.index ? 'done' : '') + '"><span>' + (i < r.index ? '✓ ' : i === r.index ? '▶ ' : '') + x.name + '</span><em>' + (x.at ? '현장 검거 ' + fmt(x.at) + '명' : '처음') + ' · 수사비 +' + Math.round(i * I.RANK_BONUS * 100) + '%' + (x.gems ? ' · ◆' + x.gems : '') + '</em></div>';
         }).join('') + '</div>' });
@@ -1127,11 +1207,17 @@
       body: p('3팀이 용의자 <b style="color:var(--acc)">' + fmt(away.catches) + '명</b>을 잡았어요.') +
         p('수사비 <b style="color:var(--acc)">+' + fmt(away.money) + '</b>' + (away.dept ? ' <span class="muted">(부서 +' + fmt(away.dept) + ')</span>' : '')) +
         (away.night ? p('<span style="color:var(--acc);font-weight:700">야간 잠복조 투입: 이번엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 셌어요</span>') : '') +
-        p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + fmtDur(away.cap || I.TUNE.offlineCapSec) + '까지만 세요' + (away.cap > I.TUNE.offlineCapSec && !away.night ? '(동물 효과로 늘어남)' : '') + '.' +
+        p('<span class="muted">자리를 비운 동안 팀은 절반 속도로 일하고, ' + fmtDur(away.cap || I.TUNE.offlineCapSec) + '까지만 세요' + (away.cap > I.TUNE.offlineCapSec && !away.night ? '(파트너 효과로 늘어남)' : '') + '.' +
           (!away.night && away.seconds >= (away.cap || I.TUNE.offlineCapSec) ? ' 이번엔 꽉 찼어요. 지원의 야간 잠복조를 사 두면 다음엔 ' + (I.TUNE.nightCapSec / 3600) + '시간까지 세요.' : '') + '</span>') +
         (away.counted < away.catches ? p('<span class="muted">남은 주범 조는 현장 출동으로만 잡을 수 있어요.</span>') : ''),
       ok: '좋아요',
-      onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); else showPromotions(); }
+      onOk: function () { if (pendingClose || away.closedNow) showCaseClosed(); else showPromotions(); },
+      // 0.10.3 광고 보고 자리 비움 수사비를 한 번 더(2배)
+      cancel: away.money > 0 && SUI && SUI.watch ? '▶ 광고 보고 수사비 2배' : null,
+      onCancel: function () {
+        SUI.watch('away', function () { save.money += away.money; persist(); render(); UI.toast('잠복 보고 수사비 2배! +' + fmt(away.money)); });
+        if (pendingClose || away.closedNow) showCaseClosed(); else showPromotions();
+      }
     });
   } else if (!save.tutorialDone && save.runs === 0) {
     // 처음 켬: 사건 소개 + 튜토리얼 권유(시작 편을 보여 주므로 읽음으로 친다)

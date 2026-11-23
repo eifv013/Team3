@@ -61,11 +61,11 @@
     { id: 'train10', group: '사무실', name: '지옥 훈련', desc: '합동 훈련 10단계', need: function (s) { return s.training; }, goal: 10, title: '훈련 교관', tickets: 3 },
     { id: 'case1', group: '사건', name: '골목의 평화', desc: '사건 1 종결', need: function (s) { return closed(s, 1); }, goal: 1, title: '골목 해결사', tickets: 3 },
     { id: 'case2', group: '사건', name: '안개가 걷히다', desc: '사건 2 종결', need: function (s) { return closed(s, 2); }, goal: 1, title: '해무항의 등대', tickets: 5 },
-    { id: 'pet10', group: '말랑 수사대', name: '동물 친구', desc: '동물 10마리 모으기', need: function (s) { return petCount(s); }, goal: 10, title: '동물 친구', tickets: 2 },
-    { id: 'pet40', group: '말랑 수사대', name: '말랑 수집가', desc: '동물 50마리 모으기', need: function (s) { return petCount(s); }, goal: 50, title: '말랑 수집가', tickets: 5 },
-    { id: 'pet80', group: '말랑 수사대', name: '도감 완성', desc: '동물 120마리 모두 모으기', need: function (s) { return petCount(s); }, goal: 120, title: '말랑 도감 완성', gems: 150 },   // id 는 저장 호환으로 그대로(0.4.0: 80 → 120)
-    { id: 'legend1', group: '말랑 수사대', name: '전설을 만나다', desc: '전설 동물 1마리', need: function (s) { return petCount(s, 'l'); }, goal: 1, title: '전설을 만난 자', tickets: 3 },
-    { id: 'pull100', group: '말랑 수사대', name: '운명의 손', desc: '뽑기 100번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 100, title: '운명의 손', tickets: 5 },
+    { id: 'pet10', group: '파트너', name: '파트너 친구', desc: '파트너 10마리 모으기', need: function (s) { return petCount(s); }, goal: 10, title: '파트너 친구', tickets: 2 },
+    { id: 'pet40', group: '파트너', name: '말랑 수집가', desc: '파트너 50마리 모으기', need: function (s) { return petCount(s); }, goal: 50, title: '말랑 수집가', tickets: 5 },
+    { id: 'pet80', group: '파트너', name: '도감 완성', desc: '파트너 120마리 모두 모으기', need: function (s) { return petCount(s); }, goal: 120, title: '말랑 도감 완성', gems: 150 },   // id 는 저장 호환으로 그대로(0.4.0: 80 → 120)
+    { id: 'legend1', group: '파트너', name: '전설을 만나다', desc: '전설 파트너 1마리', need: function (s) { return petCount(s, 'l'); }, goal: 1, title: '전설을 만난 자', tickets: 3 },
+    { id: 'pull100', group: '파트너', name: '운명의 손', desc: '뽑기 100번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 100, title: '운명의 손', tickets: 5 },
     // 0.6.0 업적 늘리기(31개 → 50개). 받기는 눌러서(claim) — 달성하면 빨간 점
     { id: 'run10', group: '현장', name: '몸이 풀렸다', desc: '현장 출동 10번', need: function (s) { return s.runs; }, goal: 10, title: '현장 체질', tickets: 1 },
     { id: 'run1000', group: '현장', name: '천 번의 출동', desc: '현장 출동 1,000번', need: function (s) { return s.runs; }, goal: 1000, title: '살아 있는 기록', tickets: 10, gems: 50 },
@@ -82,10 +82,10 @@
     { id: 'send100', group: '사무실', name: '호송 반장', desc: '유치장에서 100명 이송', need: function (s) { return s.office && s.office.sent || 0; }, goal: 100, title: '호송 반장', tickets: 2 },
     { id: 'send1000', group: '사무실', name: '호송 대장', desc: '유치장에서 1,000명 이송', need: function (s) { return s.office && s.office.sent || 0; }, goal: 1000, title: '호송 대장', tickets: 5, gems: 20 },
     { id: 'case3', group: '사건', name: '기억의 끝', desc: '사건 3 종결', need: function (s) { return closed(s, 3); }, goal: 1, title: '면통실의 눈', tickets: 8, gems: 30 },
-    { id: 'star5', group: '말랑 수사대', name: '★5 단짝', desc: '★5 동물 1마리', need: function (s) { return starCount(s, 5); }, goal: 1, title: '단짝 조련사', tickets: 3 },
-    { id: 'legend5', group: '말랑 수사대', name: '전설의 무리', desc: '전설 동물 5마리', need: function (s) { return petCount(s, 'l'); }, goal: 5, title: '전설 사냥꾼', tickets: 6, gems: 30 },
-    { id: 'closet3', group: '말랑 수사대', name: '옷장 정리', desc: '동물 옷 3벌 모으기', need: function (s) { return s.pets && s.pets.closet ? Object.keys(s.pets.closet).length : 0; }, goal: 3, title: '패셔니스타', tickets: 2 },
-    { id: 'pull500', group: '말랑 수사대', name: '뽑기의 달인', desc: '뽑기 500번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 500, title: '뽑기의 달인', tickets: 10, gems: 30 },
+    { id: 'star5', group: '파트너', name: '★5 단짝', desc: '★5 파트너 1마리', need: function (s) { return starCount(s, 5); }, goal: 1, title: '단짝 조련사', tickets: 3 },
+    { id: 'legend5', group: '파트너', name: '전설의 무리', desc: '전설 파트너 5마리', need: function (s) { return petCount(s, 'l'); }, goal: 5, title: '전설 사냥꾼', tickets: 6, gems: 30 },
+    { id: 'closet3', group: '파트너', name: '옷장 정리', desc: '파트너 옷 3벌 모으기', need: function (s) { return s.pets && s.pets.closet ? Object.keys(s.pets.closet).length : 0; }, goal: 3, title: '패셔니스타', tickets: 2 },
+    { id: 'pull500', group: '파트너', name: '뽑기의 달인', desc: '뽑기 500번', need: function (s) { return s.pets && s.pets.pulls || 0; }, goal: 500, title: '뽑기의 달인', tickets: 10, gems: 30 },
     // 0.7.0 난이도 미제 사건 전용(칭호도 미제 전용)
     { id: 'stepup', group: '난이도', name: '현장 승급', desc: '단순 사건으로 출동해 본 뒤 강력 사건 이상으로 출동', need: function (s) { return s.diff && s.diff.stepUp ? 1 : 0; }, goal: 1, title: '현장 승급', tickets: 2 },
     { id: 'hard1', group: '난이도', name: '미제 전담반', desc: '미제 사건으로 출동 1번', need: function (s) { return s.diff && s.diff.hardRuns || 0; }, goal: 1, title: '미제 전담', tickets: 2 },
@@ -208,7 +208,7 @@
   /** 동물 칭호 달기('' 이면 떼기). 가진 동물만 */
   function setPetTitle(save, key, id) {
     var a = A(save);
-    if (!(save.pets && save.pets.own && save.pets.own[key])) throw AchError('NOT_OWNED', '없는 동물');
+    if (!(save.pets && save.pets.own && save.pets.own[key])) throw AchError('NOT_OWNED', '없는 파트너');
     if (id && !has(save, id)) throw AchError('LOCKED', '아직 없는 칭호');
     if (id) a.pet[key] = id; else delete a.pet[key];
     return id || '';

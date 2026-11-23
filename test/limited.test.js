@@ -83,3 +83,15 @@ test('0.9.3 전설 확정 꾸러미: 선택권 1장 · 뽑기권 10 · ◆100, �
   assert.equal(M.visible(s, 'legendpack', 0), false);
   assert.throws(() => M.applyPurchase(s, 'legendpack', 0, () => {}), (e) => e.code === 'ALREADY');
 });
+
+test('0.10.3 프리미엄은 30단계 뒤에도 100XP마다 반복 보상', () => {
+  const s = fresh(), day = '2026-11-24', ps = M.passOf(s, day);
+  M.addXp(s, day, M.TIERS * M.TIER_XP + 250);
+  assert.equal(M.claimable(s, day).filter((x) => x.track === 'extra').length, 0);   // 프리미엄 아님
+  ps.premium = true;
+  assert.equal(M.claimable(s, day).filter((x) => x.track === 'extra').length, 2);
+  M.claimPass(s, day, () => {});
+  assert.equal(M.claimable(s, day).length, 0);
+  M.addXp(s, day, 100);
+  assert.equal(M.claimable(s, day).filter((x) => x.track === 'extra').length, 1);
+});

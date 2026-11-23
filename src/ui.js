@@ -472,7 +472,7 @@
       '<div class="mtg-side"><b class="mtg-mult' + (newOne ? ' drop' : '') + '">×' + m + '</b><ul>' + list + '</ul>' +
       (nx > 0 ? '<div class="mtg-next"><i style="animation-duration:' + nx + 'ms"></i></div>' : '<small class="mtg-all">다 그렸어요</small>') + '</div>' +
       (newOne || fresh ? '<span class="mtg-pencil" aria-hidden="true"></span>' : '') + '</div>';
-    box.setAttribute('aria-label', '몽타주: ' + q.order.slice(0, sh).map(function (a) { return MT.word(a, v[a]); }).join(', ') + ' · 지금 고르면 ×' + m);
+    box.setAttribute('aria-label', '몽타주: ' + q.order.slice(0, sh).map(function (a) { return MT.word(a, v[a]); }).join(', ') + ' · 현재 고르면 ×' + m);
     if (newOne || fresh) try { sfx.type(); } catch (e) { /* 무시 */ }
   }
   function judgeMontage(i) {
@@ -917,7 +917,7 @@
         setHint('목격자가 다시 봤어요: ' + lr.out.map(function (k) { return k + 1; }).join(' · ') + '번은 아니에요' + (lr.penalty ? ' (−' + lr.penalty + '초)' : ''), 'good', 3000);
       } else {
         renderPaper(false);
-        setHint(lr.shown >= 4 ? '특징을 다 그렸어요' : '특징 하나를 먼저 그렸어요 · 지금 ×' + MT.multNow(game, now()), 'good', 2000);
+        setHint(lr.shown >= 4 ? '특징을 다 그렸어요' : '특징 하나를 먼저 그렸어요 · 현재 ×' + MT.multNow(game, now()), 'good', 2000);
       }
       return;
     }
@@ -1132,6 +1132,8 @@
   function toast(text) {
     var t = $('toast');
     t.textContent = text;
+    t.classList.toggle('warn', /모자라|없어요|못 |할 수 없|이미/.test(text));   // 0.10.4 안 되는 알림은 빨갛게 · 진동
+    if (t.classList.contains('warn')) { try { buzz([20, 40, 20]); } catch (e) { /* 무시 */ } }
     t.hidden = false;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { t.hidden = true; }, 2200);
@@ -1265,10 +1267,10 @@
     }
     var PT = window.Team3Pets;   // 0.3.0 동물 뽑기
     if (PT) {
-      out += item('말랑 수사대 (동물 뽑기)',
-        '<p>사무실 위쪽 <b>동물</b> 단추에서 뽑기와 도감을 봐요. 동물은 ' + PT.SPECIES.length + '종, 종류마다 <b>일반 · 희귀 · 영웅 · 전설</b> 네 등급이 있어요(모두 ' + (PT.SPECIES.length * 4) + '마리).</p>' +
-        '<p><b>보유 효과</b>: 모은 동물 모두가 늘 조금씩(수사비 · 팀 수입 · 자리 비움 한도 · 할인). <b>장착 효과</b>: 파트너로 고른 한 마리만 크게.</p>' +
-        '<p>같은 동물이 또 나오면 ★가 올라 효과가 세져요(★5까지). 그 뒤로는 <b>간식</b>이 되고, 간식으로 원하는 동물을 데려와요.</p>' +
+      out += item('파트너 뽑기',
+        '<p>사무실 위쪽 <b>파트너</b> 단추에서 뽑기와 도감을 봐요. 파트너는 ' + PT.SPECIES.length + '종, 종류마다 <b>일반 · 희귀 · 영웅 · 전설</b> 네 등급이 있어요(모두 ' + (PT.SPECIES.length * 4) + '마리).</p>' +
+        '<p><b>보유 효과</b>: 모은 파트너 모두가 늘 조금씩(수사비 · 팀 수입 · 자리 비움 한도 · 할인). <b>장착 효과</b>: 파트너로 고른 한 마리만 크게.</p>' +
+        '<p>같은 파트너가 또 나오면 ★가 올라 효과가 세져요(★5까지). 그 뒤로는 <b>간식</b>이 되고, 간식으로 원하는 파트너를 데려와요.</p>' +
         '<p>확률은 뽑기 창에 늘 공개돼요. ' + PT.PITY + '번 안에 전설이 안 나오면 전설 확정. ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>' +
         '<p>뽑기권은 처음 선물 ' + PT.WELCOME + '장 · 사건 종결 10장 · 승진 3장 · 첫 메달 2장 · 특별 출동 메달 1장. 배지로도 뽑을 수 있어요(1회 ◆' + PT.COST.one + ' · 10회 ◆' + PT.COST.ten + ').</p>');
     }
@@ -1281,8 +1283,8 @@
     if (window.Team3Ach) {
       out += item('업적 · 칭호 · 이름',
         '<p>사무실 오른쪽 위 <b>트로피</b>에서 업적을 봐요. 달성하면 바로 칭호와 보상(뽑기권 · 배지)을 받아요.</p>' +
-        '<p>칭호는 <b>팀장 이름 앞</b>(트로피 창)과 <b>동물 이름 앞</b>(동물 창 자세히)에 달 수 있어요. 배지로 사는 칭호도 있어요.</p>' +
-        '<p>경찰서·팀장 이름과 동물 이름 바꾸기는 <b>첫 한 번 무료</b>, 그 뒤로는 배지(팀장 ◆' + I.PROFILE.renameGems + ' · 동물 ◆' + (window.Team3Pets ? window.Team3Pets.RENAME_GEMS : 5) + ') 또는 <b>이름표</b> 1장이에요.</p>');
+        '<p>칭호는 <b>팀장 이름 앞</b>(트로피 창)과 <b>파트너 이름 앞</b>(파트너 창 자세히)에 달 수 있어요. 배지로 사는 칭호도 있어요.</p>' +
+        '<p>경찰서·팀장 이름과 파트너 이름 바꾸기는 <b>첫 한 번 무료</b>, 그 뒤로는 배지(팀장 ◆' + I.PROFILE.renameGems + ' · 파트너 ◆' + (window.Team3Pets ? window.Team3Pets.RENAME_GEMS : 5) + ') 또는 <b>이름표</b> 1장이에요.</p>');
     }
     out += item('수사 일지 · 설정 · 백업',
       '<p>사건이 고비를 넘을 때마다 <b>수사 일지</b>가 열려요. 사무실의 수사 일지 보기에서 다시 읽을 수 있어요.</p>' +
@@ -1404,7 +1406,7 @@
     var code = $('set-code').value;
     var check = ST ? ST.importCode(code, hooks.saveVersion) : { ok: false, reason: 'broken' };
     if (!check.ok) { toast(ST ? ST.REASONS[check.reason] : '불러오지 못했어요'); return; }
-    armOrRun('set-import-go', IMPORT_LABEL, '지금 진행이 이 코드로 바뀌어요 · 한 번 더 누르기', function () {
+    armOrRun('set-import-go', IMPORT_LABEL, '현재 진행이 이 코드로 바뀌어요 · 한 번 더 누르기', function () {
       var r;
       try { r = hooks.importSave(check.json); } catch (e) { r = { ok: false, message: e.message }; }
       if (!r || !r.ok) { toast('불러오지 못했어요' + (r && r.message ? ': ' + r.message : '')); return; }

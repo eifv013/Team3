@@ -62,9 +62,10 @@
   /** 광고 보상: 한도 확인 → (광고 없이 받기면 바로) 광고 → 한 번 쓴 것으로 세고 give() */
   function watch(place, give) {
     var s = S(), day = ctx.day();
-    if (M.adLeft(s, place, day) < 1) { toast('오늘은 다 받았어요. 내일 다시 생겨요'); return; }
+
     var go = function () {
-      try { M.adUse(S(), place, ctx.day()); } catch (e) { toast('오늘은 다 받았어요'); return; }
+      try { M.adUse(S(), place, ctx.day()); } catch (e) { toast('받을 수 없어요'); return; }
+      if (root.Team3QuestUI) root.Team3QuestUI.track('ad', 1);
       give();
       ctx.persist(); ctx.render();
       if (isOpen()) draw();
@@ -123,34 +124,38 @@
     } else if (s.shop.bought.wolf) html += '<div class="lim-done">🐺 백랑이 3팀에 있어요 · 파트너 탭에서 장착해요</div>';
     var adf = M.perks(s, t).adFree;
     html += '<span class="label">무료로 받기' + (adf ? ' · 광고 없이 바로' : ' · 짧은 광고를 보면') + '</span>';
-    [['ticket', '뽑기권 1장', '동물 뽑기에 써요'], ['party', '팀 회식 무료', '30분 동안 팀이 2배로 일해요']].forEach(function (a) {
-      var left = M.adLeft(s, a[0], day);
-      html += '<div class="shop-row"><div class="shop-tx"><b>' + a[1] + '</b><small>' + a[2] + ' · 오늘 ' + left + '/' + M.adLimit(s, a[0]) + '번 남음</small></div>' +
-        '<button class="ghost" data-ad="' + a[0] + '"' + (left ? '' : ' disabled') + '>' + (adf ? '받기' : '▶ 광고 보고 받기') + '</button></div>';
+    // 0.10.3 광고 보상은 한도 없이 · 자리 여섯
+    [['ticket', '뽑기권 1장', '파트너 뽑기에 써요'], ['party', '팀 회식 무료', '30분 동안 팀이 2배로 일해요'], ['treats', '간식 15개', '★ 올리기 · 의상에 써요'],
+     ['gems', '배지 ◆3', '뭐든 살 수 있어요'], ['clue', '단서 1개', '증거판에서 증거를 열어요']].forEach(function (a) {
+      var seen = M.adSeen(s, a[0], day);
+      html += '<div class="shop-row"><div class="shop-tx"><b>' + a[1] + '</b><small>' + a[2] + (seen ? ' · 오늘 ' + seen + '번 받음' : '') + '</small></div>' +
+        '<button class="ghost" data-ad="' + a[0] + '">' + (adf ? '받기' : '▶ 광고 보고 받기') + '</button></div>';
     });
-    // 새내기 꾸러미
+    // 0.10.4 유료 상품: 제목 · 받는 것(아이콘 칸) · 조건 한 줄 · 아래 전체 폭 단추 — 글을 점으로 이어 붙이지 않는다
+    function chip(icn, txt) { return '<span class="pk-chip">' + (icn ? ic(icn) : '') + '<b>' + txt + '</b></span>'; }
+    function card(o) {
+      return '<div class="pk-card ' + (o.cls || '') + '">' + (o.tag ? '<span class="pk-tag">' + o.tag + '</span>' : '') +
+        '<b class="pk-nm">' + o.name + '</b>' + (o.line ? '<small class="pk-line">' + o.line + '</small>' : '') +
+        '<div class="pk-chips">' + o.chips.join('') + '</div>' + (o.note ? '<em class="pk-note">' + o.note + '</em>' : '') + o.btn + '</div>';
+    }
     var st = M.starterLeft(s, t);
-    if (st > 0) {
-      var p0 = M.BY_ID.starter;
-      html += '<span class="label">처음 3일만</span><div class="shop-row hot"><div class="shop-tx"><b>' + p0.name + '</b><small>' + esc(p0.desc) + '</small><em>' + hoursLeft(st) + ' 남음</em></div>' + payBtn('starter') + '</div>';
-    }
-    // 월정액
+    if (st > 0) html += '<span class="label">처음 시작하는 팀장님께</span>' + card({ cls: 'hot', tag: st === Infinity ? '정식 출시 전까지' : hoursLeft(st) + ' 남음', name: '새내기 지원 꾸러미',
+      line: '한 사람당 한 번 · 가장 싼 꾸러미', chips: [chip('ticket', '뽑기권 10장'), chip('gem', '배지 100'), chip('', '😎 선글라스')], btn: payBtn('starter') });
     var sub = M.BY_ID.sub30, on = M.subActive(s, t);
-    html += '<span class="label">꾸준히 하는 팀장님께</span><div class="shop-row' + (on ? ' on' : '') + '"><div class="shop-tx"><b>' + sub.name + (on ? ' · ' + M.subDaysLeft(s, t) + '일 남음' : '') + '</b><small>' + esc(sub.desc) + '</small>' +
-      (on ? '<em>' + (s.shop.subDay === day ? '오늘 ◆' + M.SUB.dailyGems + ' 받았어요' : '오늘 보상은 사무실에 오면 들어와요') + '</em>' : '') + '</div>' + payBtn('sub30', on ? '연장 ' + priceLabel('sub30') : null) + '</div>';
-    // 0.9.3 전설 확정 꾸러미(한 번만)
-    if (M.visible(s, 'legendpack', t)) {
-      var lp = M.BY_ID.legendpack;
-      html += '<span class="label">한 번만 · 전설 확정</span><div class="shop-row hot lp"><div class="shop-tx"><b>' + ic('pick') + ' ' + lp.name + '</b><small>' + esc(lp.desc) + '</small><em>고른 전설은 코드네임 모습이 바로 열려요</em></div>' + payBtn('legendpack') + '</div>';
-    }
-    var af = M.BY_ID.adfree;
-    if (!s.shop.adFree) html += '<div class="shop-row"><div class="shop-tx"><b>' + af.name + '</b><small>' + esc(af.desc) + '</small></div>' + payBtn('adfree') + '</div>';
+    html += '<span class="label">꾸준히 하는 팀장님께</span>' + card({ cls: on ? 'on' : '', tag: on ? M.subDaysLeft(s, t) + '일 남음' : '30일', name: '3팀 월정액',
+      line: '사면 바로 배지 100, 그 뒤 30일 동안 매일', chips: [chip('gem', '바로 100'), chip('gem', '매일 ' + M.SUB.dailyGems), chip('ticket', '매일 무료 뽑기 +1'), chip('', '⏱ 자리 비움 +2시간')],
+      note: on ? (s.shop.subDay === day ? '오늘 배지 ' + M.SUB.dailyGems + '개를 받았어요' : '오늘 보상은 상황실에 오면 들어와요') : '', btn: payBtn('sub30', on ? '연장 ' + priceLabel('sub30') : null) });
+    var afd = M.perks(s, t).adFreeDays;
+    if (!s.shop.adFree) html += card({ cls: afd ? 'on' : '', tag: afd ? afd + '일 남음' : '30일', name: '광고 없이 받기',
+      line: '30일 동안 광고 보상을 광고 없이 바로', chips: [chip('', '▶ 광고 건너뛰기'), chip('', '무료 보상 · 2배 받기 전부')], btn: payBtn('adfree', afd ? '연장 ' + priceLabel('adfree') : null) });
+    if (M.visible(s, 'legendpack', t)) html += '<span class="label">한 번만 · 전설 확정</span>' + card({ cls: 'lp', tag: '한 사람당 한 번', name: '전설 확정 꾸러미',
+      line: '원하는 전설 파트너를 하나 골라 데려와요', chips: [chip('pick', '전설 선택권 1'), chip('ticket', '뽑기권 10장'), chip('gem', '배지 100')], note: '고른 전설은 코드네임 모습이 바로 열려요', btn: payBtn('legendpack') });
     // 배지
     if (!Pay.gems) html += '<span class="label">배지</span><div class="shop-gems">' + M.PRODUCTS.filter(function (p) { return p.kind === 'gems'; }).map(function (p) {
       return '<div class="shop-gem"><b>' + esc(p.desc) + '</b><small>' + esc(p.name) + '</small>' + payBtn(p.id) + '</div>';
     }).join('') + '</div>';   // 배지 묶음은 실제 결제 상품이라 배지로 사기 단계(정식 출시 전)에는 숨긴다
-    html += '<p class="muted" style="font-size:11.5px;line-height:1.5">배지로는 동물 뽑기 · 의상 · 칭호 · 이름 바꾸기 · 출동 준비물을 살 수 있어요. 퍼즐 실력은 팔지 않아요.' +
-      (Pay.gems ? ' 정식 출시 전까지는 모든 상품을 배지로 살 수 있어요.' : Pay.available() && Pay.test ? ' 지금은 시험 구매라 실제 돈이 나가지 않아요.' : '') + '</p>';
+    html += '<p class="muted" style="font-size:11.5px;line-height:1.5">배지로는 파트너 뽑기 · 의상 · 칭호 · 이름 바꾸기 · 출동 준비물을 살 수 있어요. 퍼즐 실력은 팔지 않아요.' +
+      (Pay.gems ? ' 정식 출시 전까지는 모든 상품을 배지로 살 수 있어요.' : Pay.available() && Pay.test ? ' 현재는 시험 구매라 실제 돈이 나가지 않아요.' : '') + '</p>';
     $('shop-body').innerHTML = html;
   }
 
@@ -165,7 +170,7 @@
     return o.join(' ');
   }
   /* 0.8.3 시즌 패스: 위 메달 띠(단계 큰 숫자 · 남은 날 · 진척 막대) → 받기/프리미엄 → 단계 줄마다 무료 · 프리미엄 보상 칸.
-     칸 상태: 잠김(흐림) · 받을 수 있음(금빛 테두리 + 반짝) · 받음(✓ 도장) · 프리미엄 미구매(자물쇠). 지금 단계 줄엔 '지금' 표시 */
+     칸 상태: 잠김(흐림) · 받을 수 있음(금빛 테두리 + 반짝) · 받음(✓ 도장) · 프리미엄 미구매(자물쇠). 현재 단계 줄엔 '현재' 표시 */
   var LOCK = '<svg viewBox="0 0 24 24" width="14" height="14" aria-label="잠김"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="#FFD23F"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="#FFD23F" stroke-width="2.2" fill="none"/></svg>';
   function passCell(track, t, open, got, locked) {
     var r = M.reward(track, t), parts = [];
@@ -193,7 +198,7 @@
     if (ps.premium) return h + '<div class="pass-premon">' + CROWN + '<span><b>프리미엄 열림</b><small>단계마다 보상을 하나 더 받아요</small></span></div>';
     var p = M.BY_ID.pass, live = Pay.available(), se = M.seasonOf(S(), ctx.day()), miss = M.missedPrem(S(), ctx.day()), mk = Object.keys(miss);
     // 연출 1: 지금 사면 바로 받는 프리미엄 보상(이미 지나온 단계 몫)
-    var missH = mk.length ? '<div class="pass-miss">지금 사면 바로 받아요 · ' + mk.map(function (k) { return k === 'pick' ? ic('pick') + '<b>전설 선택권</b>' : ic(k === 'tickets' ? 'ticket' : k === 'gems' ? 'gem' : 'treat') + '<b>×' + miss[k] + '</b>'; }).join(' ') + '</div>' : '';
+    var missH = mk.length ? '<div class="pass-miss">구매하면 바로 받아요 · ' + mk.map(function (k) { return k === 'pick' ? ic('pick') + '<b>전설 선택권</b>' : ic(k === 'tickets' ? 'ticket' : k === 'gems' ? 'gem' : 'treat') + '<b>×' + miss[k] + '</b>'; }).join(' ') + '</div>' : '';
     return h + missH + '<button class="pass-premcard' + (se.left <= 3 ? ' soon' : '') + '" data-buy="pass"' + (live ? '' : ' aria-disabled="true"') + '>' +
       '<i class="ppc-crown">' + CROWN + '</i>' +
       '<span class="ppc-tx"><b>프리미엄 패스</b><small>단계마다 보상 하나 더</small><small>30단계 ' + ic('gem') + '50 · 뽑기권 3</small></span>' +
@@ -203,7 +208,7 @@
   /** 남은 날 글자: 정식 출시 전에는 시즌이 끝나지 않는다(무한) */
   function leftTxt(n) { return n === Infinity ? '정식 출시 전까지' : n + '일 남음'; }
   function premFx(on, left) {
-    var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '하루 한 번 무료 재도전'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장 · 왕관 팀 이름']];
+    var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '하루 한 번 무료 재도전'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장 · 왕관 팀 이름'], ['30단계 뒤', '100XP마다 뽑기권 1 · ◆10 계속']];
     return '<div class="pass-fx' + (on ? '' : ' off') + '"><b>👑 프리미엄 효과 · ' + (on ? '켜짐 · ' + leftTxt(left) : left === Infinity ? '사면 정식 출시 전까지 켜져요' : '사면 이번 시즌 동안 켜져요') + '</b>' + rows.map(function (r) { return '<div><span>' + r[0] + '</span><em>' + (on ? '' : '🔒 ') + r[1] + '</em></div>'; }).join('') + '</div>';
   }
   function drawPass() {
@@ -245,6 +250,9 @@
       else if (t.getAttribute('data-buy')) buy(t.getAttribute('data-buy'));
       else if (t.getAttribute('data-ad') === 'ticket') watch('ticket', function () { ctx.grant('tickets', 1); toast('뽑기권 1장을 받았어요'); });
       else if (t.getAttribute('data-ad') === 'party') watch('party', function () { ctx.freeParty(); toast('팀 회식! 30분 동안 팀이 2배로 일해요'); });
+      else if (t.getAttribute('data-ad') === 'treats') watch('treats', function () { ctx.grant('treats', 15); toast('간식 15개를 받았어요'); });
+      else if (t.getAttribute('data-ad') === 'gems') watch('gems', function () { S().gems = (S().gems || 0) + 3; toast('배지 ◆3을 받았어요'); });
+      else if (t.getAttribute('data-ad') === 'clue') watch('clue', function () { var sv = S(); if (sv.evid) sv.evid.clues = (sv.evid.clues || 0) + 1; toast('단서 1개를 받았어요'); });
       else if (t.id === 'pass-claim') {
         var prem = M.passOf(S(), ctx.day()).premium;
         var got = M.claimPass(S(), ctx.day(), ctx.grant);

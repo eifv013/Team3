@@ -94,10 +94,10 @@
     if (g < 1) { toast('아직 단서를 받을 수 없어요'); return; }
     var lose = !s.closed && s.caught > 0 && !atClose;
     ctx.openInfo({ label: '재수사 · 처음부터 다시 파고들어요', title: '단서 +' + g,
-      body: '<p class="rt-why">지금 수사를 접고 <b>처음부터 다시 파고들어요.</b> 그동안 모은 자료에서 놓쳤던 단서를 건져 증거판에 써요.</p>' +
+      body: '<p class="rt-why">현재 수사를 접고 <b>처음부터 다시 파고들어요.</b> 그동안 모은 자료에서 놓쳤던 단서를 건져 증거판에 써요.</p>' +
         '<div class="rt-list"><div class="keep"><b>남는 것</b><span>' + chips(['사건 번호', '닫은 사건', '연 수사 일지', '계급', '동물', '배지', '업적', '단서', '증거판']) + '</span></div>' +
         '<div class="reset"><b>처음으로</b><span>' + chips(['수사비' + (f.startMoney ? '(→ ' + fmt(f.startMoney) + ')' : ''), '형사(→ ' + (1 + f.startDet) + '명)', '훈련', '출동 장비', '부서', '유치장'].concat(s.closed ? [] : ['사건 ' + cs.no + ' 진척'])) + '</span></div>' +
-        (lose ? '<div class="warn"><b>지금 사건 진척 ' + fmt(s.caught) + '명이 0으로 돌아가요</b><span>사건을 닫을 때 재수사하면 잃는 진척이 없어요.</span></div>' : '') +
+        (lose ? '<div class="warn"><b>현재 사건 진척 ' + fmt(s.caught) + '명이 0으로 돌아가요</b><span>사건을 닫을 때 재수사하면 잃는 진척이 없어요.</span></div>' : '') +
         '<div class="gain"><b>얻는 것</b><span>' + chips(['단서 +' + g, '재수사 경력 +' + Ev.RANK_PCT + '%']) + '</span><small class="rt-note">재수사 경력은 팀 속도 · 수사비 · 부서 수입에 계속 붙어요</small></div></div>',
       ok: '재수사하고 단서 +' + g, cancel: '그만두기',
       onOk: function () { doRetreat(then); } });
@@ -279,7 +279,7 @@
     var s = S(), t;
     if ((t = e.target.closest('[data-buyc]'))) {
       var id = t.getAttribute('data-buyc');
-      try { var c = Ev.buyCard(s, id); ctx.persist(); popId = id;
+      try { var c = Ev.buyCard(s, id); if (root.Team3QuestUI) root.Team3QuestUI.track('evid', 1); ctx.persist(); popId = id;
         Ev.EDGES.forEach(function (ed) { if ((ed[0] === id && Ev.opened(s, ed[1])) || (ed[1] === id && Ev.opened(s, ed[0]))) fresh[ed.join('-')] = 1; });
         toast(c.name + ' — 이어졌어요!'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } ctx.render(); }
       catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '단서가 모자라요' : e3.code === 'NOT_LINKED' ? '열린 증거와 이어진 칸만 열 수 있어요' : '열 수 없어요'); }

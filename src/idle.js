@@ -315,7 +315,8 @@
     s.pets = data.pets && typeof data.pets === 'object' && !Array.isArray(data.pets) ? data.pets : null;
     s.ach = data.ach && typeof data.ach === 'object' && !Array.isArray(data.ach) ? data.ach : null;
     s.shop = data.shop && typeof data.shop === 'object' && !Array.isArray(data.shop) ? data.shop : null;
-    if (data.attend && typeof data.attend === 'object' && !Array.isArray(data.attend)) s.attend = data.attend;   // 0.10.2 출석(안쪽 검사는 Team3Attend.clean)
+    if (data.attend && typeof data.attend === 'object' && !Array.isArray(data.attend)) s.attend = data.attend;
+    if (data.quest && typeof data.quest === 'object' && !Array.isArray(data.quest)) s.quest = data.quest;   // 0.10.3 임무(안쪽 검사는 Team3Quest.clean)   // 0.10.2 출석(안쪽 검사는 Team3Attend.clean)
     s.office = data.office && typeof data.office === 'object' && !Array.isArray(data.office) ? data.office : null;
     s.dept = data.dept && typeof data.dept === 'object' && !Array.isArray(data.dept) ? data.dept : null;   // 0.7.0 부서(검사는 Team3Dept.clean)
     s.evid = data.evid && typeof data.evid === 'object' && !Array.isArray(data.evid) ? data.evid : null;   // 0.7.0 재수사 · 증거판(검사는 Team3Evidence.clean)
@@ -547,8 +548,10 @@
 
   /* ---------- 사건 ---------- */
   function storyUnlocked(save) {
-    var best = Math.max(save.caught, save.caseBest || 0);   // 0.7.0 재수사로 진척이 0 이 돼도 이미 연 일지는 열린 채로
-    return caseOf(save).story.filter(function (e) { return best >= e.at; });
+    // 0.10.3 새 편은 "지금 판" 검거 수로만 열린다(재수사 전 기록으로 열리면 2,300명에서 재수사하고 200명만 잡아도 2,500명 편이 나왔다).
+    //   이미 읽은 편(storySeen)은 재수사 뒤에도 그대로 읽을 수 있다.
+    var seen = save.storySeen || 0;
+    return caseOf(save).story.filter(function (e, i) { return save.caught >= e.at || i < seen; });
   }
   function progress(save) { return Math.min(1, save.caught / caseOf(save).goal); }
   /*
@@ -578,7 +581,7 @@
   function moveToNextCase(save, now) {
     assertNow(now);
     var nx = nextCase(save);
-    if (!nx) throw IdleError(save.closed ? 'NO_NEXT' : 'NOT_CLOSED', save.closed ? '다음 사건이 아직 없다' : '지금 사건을 먼저 끝내야 한다');
+    if (!nx) throw IdleError(save.closed ? 'NO_NEXT' : 'NOT_CLOSED', save.closed ? '다음 사건이 아직 없다' : '현재 사건을 먼저 끝내야 한다');
     save.past = save.past.concat([{ no: save.caseNo, caught: save.caught, closedAt: save.closedAt }]).slice(-20);
     save.caseNo = nx.no;
     save.caught = 0; save.frac = 0; save.closed = false; save.closedAt = 0; save.storySeen = 0; save.caseBest = 0;

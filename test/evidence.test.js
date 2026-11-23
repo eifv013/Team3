@@ -18,7 +18,7 @@ test('단서: ∛(번 수사비 / 2만), 다음 단서까지 남은 수사비', 
 });
 
 test('재수사: 단서 · 경력, 팀은 처음으로(진척 · 장비 · 부서 · 수사비), 남는 것은 그대로, 일지는 계속 열림', () => {
-  const s = fresh(); s.money = 999; s.detectives = 9; s.training = 4; s.gear.time = 2; s.caught = 1600; s.caseBest = 1600; s.gems = 33; s.runCaught = 500;
+  const s = fresh(); s.money = 999; s.detectives = 9; s.training = 4; s.gear.time = 2; s.caught = 1600; s.caseBest = 1600; s.gems = 33; s.runCaught = 500; s.storySeen = I.CASE.story.filter(e => e.at <= 1600).length;
   D.buy(Object.assign(s, { money: 1e6 }), 'patrol', 5);
   assert.throws(() => Ev.retreat(s, {}), { code: 'TOO_EARLY' });
   Ev.earn(s, 540000);
@@ -26,7 +26,9 @@ test('재수사: 단서 · 경력, 팀은 처음으로(진척 · 장비 · 부�
   assert.equal(r.gain, 3); assert.equal(s.evid.clues, 3); assert.equal(s.evid.retreats, 1); assert.equal(s.evid.runEarned, 0);
   assert.equal(s.money, 0); assert.equal(s.detectives, 1); assert.equal(s.training, 0); assert.equal(s.gear.time, 0); assert.equal(s.caught, 0); assert.equal(D.total(s), 0);
   assert.equal(s.gems, 33); assert.equal(s.runCaught, 500);
-  assert.equal(I.storyUnlocked(s).length, I.CASE.story.filter(e => e.at <= 1600).length, '열어 본 일지는 그대로');
+  assert.equal(I.storyUnlocked(s).length, I.CASE.story.filter(e => e.at <= 1600).length, '읽은 일지는 그대로');
+  s.caught = 200; const next = I.CASE.story.find(e => e.at > 1600);
+  assert.ok(!I.storyUnlocked(s).includes(next), '0.10.3 다음 편은 이번 판 검거 수로만 열린다');
   assert.equal(Ev.bonus(s).speed, Ev.RANK_PCT, '재수사 경력');
   assert.equal(Ev.lastGain(s), 3);
 });

@@ -32,8 +32,9 @@
       desc: '처음 3일만 · 뽑기권 10장 · 배지 ◆100 · 선글라스', gives: { tickets: 10, gems: 100, outfit: 'sunglasses' } },
     { id: 'sub30', kind: 'sub', name: '3팀 월정액', krw: 4900, days: 30,
       desc: '바로 ◆100 · 30일 동안 매일 ◆20 · 매일 무료 뽑기 +1 · 자리 비움 한도 +2시간', gives: { gems: 100 } },
-    { id: 'adfree', kind: 'perm', name: '광고 없이 받기', krw: 6900, once: true,
-      desc: '광고 보상을 광고 없이 바로 받아요 · 광고 보상 하루 한도 +1', gives: {} },
+    // 0.10.4 광고 없이 받기는 30일 월정액(남은 기간에 이어 붙는다)
+    { id: 'adfree', kind: 'adsub', name: '광고 없이 받기 · 30일', krw: 3300, days: 30,
+      desc: '30일 동안 광고 보상을 광고 없이 바로 받아요', gives: {} },
     { id: 'gems60', kind: 'gems', name: '배지 한 줌', krw: 1200, desc: '◆60', gives: { gems: 60 } },
     { id: 'gems330', kind: 'gems', name: '배지 주머니', krw: 5900, desc: '◆330 (10% 더)', gives: { gems: 330 } },
     { id: 'gems700', kind: 'gems', name: '배지 상자', krw: 11000, desc: '◆700 (17% 더)', gives: { gems: 700 } },
@@ -57,9 +58,14 @@
 
   // 광고 자리: 하루 한도(광고 없이 받기를 사면 +1). 무엇을 주는지는 화면 쪽이 정한다(뽑기권 · 2배 · 회식)
   var ADS = {
-    ticket: { name: '뽑기권 1장', daily: 3 },
-    double: { name: '출동 수사비 2배', daily: 3 },
-    party: { name: '팀 회식 무료', daily: 2 }
+    // 0.10.3 광고 보상은 한도 없이(광고가 주 수입). 본 횟수는 날마다 센다(임무 · 통계용)
+    ticket: { name: '뽑기권 1장', daily: Infinity },
+    double: { name: '출동 수사비 2배', daily: Infinity },
+    party: { name: '팀 회식 무료', daily: Infinity },
+    treats: { name: '간식 15개', daily: Infinity },
+    gems: { name: '배지 ◆3', daily: Infinity },
+    clue: { name: '단서 1개', daily: Infinity },
+    away: { name: '잠복 보고 수사비 2배', daily: Infinity }
   };
 
   function int(v, def, min, max) {
@@ -77,15 +83,16 @@
     Object.keys(b).forEach(function (k) { if (BY_ID[k]) s.bought[k] = int(b[k], 0, 0, 1e6); });
     s.subUntil = int(d.subUntil, 0, 0, 9e15);
     s.subDay = typeof d.subDay === 'string' && DAY_RE.test(d.subDay) ? d.subDay : '';
-    s.adFree = d.adFree === true;
+    s.adFree = d.adFree === true;   // 예전(영구) 구매자는 그대로
+    s.adFreeUntil = int(d.adFreeUntil, 0, 0, 9e15);
     s.passWarn = typeof d.passWarn === 'string' && DAY_RE.test(d.passWarn) ? d.passWarn : '';   // 0.9.0 시즌 끝 알림을 띄운 날
     var a = d.ads && typeof d.ads === 'object' ? d.ads : {};
     s.ads = { day: typeof a.day === 'string' && DAY_RE.test(a.day) ? a.day : '', n: {} };
     var an = a.n && typeof a.n === 'object' ? a.n : {};
-    Object.keys(an).forEach(function (k) { if (ADS[k]) s.ads.n[k] = int(an[k], 0, 0, 99); });
+    Object.keys(an).forEach(function (k) { if (ADS[k]) s.ads.n[k] = int(an[k], 0, 0, 1e6); });
     var ps = d.pass && typeof d.pass === 'object' ? d.pass : {};
     s.passStart = typeof d.passStart === 'string' && DAY_RE.test(d.passStart) ? d.passStart : '';
-    s.pass = { season: int(ps.season, -1, -1, 1e6), xp: int(ps.xp, 0, 0, 1e7), free: {}, prem: {}, premium: ps.premium === true, treatDay: typeof ps.treatDay === 'string' && DAY_RE.test(ps.treatDay) ? ps.treatDay : '' };
+    s.pass = { season: int(ps.season, -1, -1, 1e6), xp: int(ps.xp, 0, 0, 1e7), free: {}, prem: {}, premium: ps.premium === true, treatDay: typeof ps.treatDay === 'string' && DAY_RE.test(ps.treatDay) ? ps.treatDay : '', extra: int(ps.extra, 0, 0, 1e6) };
     ['free', 'prem'].forEach(function (t) {
       var o = ps[t] && typeof ps[t] === 'object' ? ps[t] : {};
       Object.keys(o).forEach(function (k) { if (o[k] === true && /^\d{1,2}$/.test(k)) s.pass[t][k] = true; });
@@ -101,11 +108,11 @@
     var p = BY_ID[id], s = S(save);
     if (!p) return false;
     if (p.once && s.bought[id]) return false;
-    if (p.hours && now - s.since > p.hours * H) return false;
+    if (p.hours && LAUNCHED && now - s.since > p.hours * H) return false;   // 0.10.4 정식 출시 전에는 기한 없이
     return true;
   }
   /** 새내기 꾸러미 남은 시간(ms, 없으면 0) */
-  function starterLeft(save, now) { return visible(save, 'starter', now) ? Math.max(0, S(save).since + 72 * H - now) : 0; }
+  function starterLeft(save, now) { if (!visible(save, 'starter', now)) return 0; if (!LAUNCHED) return Infinity; return Math.max(0, S(save).since + 72 * H - now); }
 
   /**
    * 결제가 확인된 뒤 호출: 상품을 준다. grant(kind, 값) 콜백으로 뽑기권 · 간식 · 의상처럼 다른 모듈 것을 넘긴다.
@@ -126,7 +133,7 @@
       if (g.pick) grant('pick', g.pick);
     }
     if (p.kind === 'sub') s.subUntil = Math.max(s.subUntil, now) + p.days * D;   // 남은 기간에 이어 붙인다
-    if (id === 'adfree') s.adFree = true;
+    if (id === 'adfree') s.adFreeUntil = Math.max(s.adFreeUntil || 0, now) + p.days * D;
     if (id === 'pass') s.pass.premium = true;
     return { id: id, gave: g };
   }
@@ -145,11 +152,14 @@
   /** 월정액 혜택(다른 모듈에 넘길 값): 무료 뽑기 추가, 자리 비움 한도 +분 */
   function perks(save, now) {
     var on = subActive(save, now);
-    return { freePulls: on ? SUB.freePulls : 0, capMin: on ? SUB.capMin : 0, adFree: S(save).adFree };
+    var s = S(save);
+    return { freePulls: on ? SUB.freePulls : 0, capMin: on ? SUB.capMin : 0, adFree: s.adFree || (s.adFreeUntil || 0) > now, adFreeDays: (s.adFreeUntil || 0) > now ? Math.ceil((s.adFreeUntil - now) / D) : 0 };
   }
 
   /* ---------- 광고 자리 ---------- */
-  function adLimit(save, place) { return ADS[place] ? ADS[place].daily + (S(save).adFree ? 1 : 0) : 0; }
+  function adLimit(save, place) { return ADS[place] ? ADS[place].daily : 0; }
+  /** 오늘 이 자리 광고를 본 횟수 */
+  function adSeen(save, place, day) { var s = S(save); return s.ads.day === day ? (s.ads.n[place] || 0) : 0; }
   function adLeft(save, place, day) {
     var s = S(save), used = s.ads.day === day ? (s.ads.n[place] || 0) : 0;
     return Math.max(0, adLimit(save, place) - used);
@@ -194,7 +204,7 @@
   }
   function passOf(save, day) {
     var s = S(save), se = seasonOf(save, day);   // 처음이면 오늘부터 시즌 1(예전 저장은 경험치 · 받은 보상을 그대로 시즌 1로 옮긴다)
-    if (s.pass.season !== se.idx) s.pass = { season: se.idx, xp: 0, free: {}, prem: {}, premium: false, treatDay: '' };   // 새 시즌: 처음부터(프리미엄도 시즌마다)
+    if (s.pass.season !== se.idx) s.pass = { season: se.idx, xp: 0, free: {}, prem: {}, premium: false, treatDay: '', extra: 0 };   // 새 시즌: 처음부터(프리미엄도 시즌마다)
     return s.pass;
   }
   function tierOf(xp) { return Math.min(TIERS, Math.floor(xp / TIER_XP)); }
@@ -203,9 +213,13 @@
   function addXp(save, day, xp) {
     var ps = passOf(save, day), before = tierOf(ps.xp);
     if (ps.premium) xp = xp * (1 + PREM.xp / 100);   // 0.9.0 프리미엄: 패스 경험치 +25%
-    ps.xp = Math.min(TIERS * TIER_XP, ps.xp + Math.max(0, Math.floor(xp)));
+    // 0.10.3 30단계 뒤에도 경험치가 쌓인다(프리미엄은 100XP 마다 반복 보상)
+    ps.xp = Math.min(1e7, ps.xp + Math.max(0, Math.floor(xp)));
     return { tier: tierOf(ps.xp), up: tierOf(ps.xp) - before };
   }
+  var EXTRA = { tickets: 1, gems: 10 };
+  /** 프리미엄 반복 보상: 30단계 뒤 쌓인 경험치 100마다 하나 */
+  function extraEarned(ps) { return ps.premium ? Math.max(0, Math.floor((ps.xp - TIERS * TIER_XP) / TIER_XP)) : 0; }
   /** 받을 수 있는 보상 목록 [{ track, t, r }] */
   function claimable(save, day) {
     var ps = passOf(save, day), tier = tierOf(ps.xp), out = [];
@@ -213,13 +227,17 @@
       if (!ps.free[t]) out.push({ track: 'free', t: t, r: reward('free', t) });
       if (ps.premium && !ps.prem[t]) out.push({ track: 'prem', t: t, r: reward('prem', t) });
     }
+    // 0.10.3 프리미엄: 30단계를 다 채운 뒤에도 100XP 마다 반복 보상을 계속 받는다
+    var n = extraEarned(ps);
+    for (var k = (ps.extra || 0) + 1; k <= n && k <= (ps.extra || 0) + 50; k++) out.push({ track: 'extra', t: TIERS + k, r: EXTRA });
     return out;
   }
   /** 받을 수 있는 것 모두 받기. grant(kind, 값)으로 뽑기권 · 간식 · 전설 선택권을 넘긴다. 반환: 받은 목록 */
   function claimPass(save, day, grant) {
     var ps = passOf(save, day), got = claimable(save, day);
     got.forEach(function (x) {
-      (x.track === 'free' ? ps.free : ps.prem)[x.t] = true;
+      if (x.track === 'extra') ps.extra = (ps.extra || 0) + 1;
+      else (x.track === 'free' ? ps.free : ps.prem)[x.t] = true;
       if (x.r.gems) save.gems = (save.gems || 0) + x.r.gems;
       if (typeof grant === 'function') Object.keys(x.r).forEach(function (k) { if (k !== 'gems') grant(k, x.r[k]); });
     });
@@ -257,7 +275,7 @@
     PRODUCTS: PRODUCTS, BY_ID: BY_ID, SUB: SUB, ADS: ADS, SEASON_DAYS: SEASON_DAYS, seasonOf: seasonOf, TIERS: TIERS, TIER_XP: TIER_XP,
     clean: clean, visible: visible, starterLeft: starterLeft, applyPurchase: applyPurchase,
     subActive: subActive, subDaysLeft: subDaysLeft, claimSub: claimSub, perks: perks,
-    adLimit: adLimit, adLeft: adLeft, adUse: adUse,
-    season: season, reward: reward, passOf: passOf, tierOf: tierOf, runXp: runXp, addXp: addXp, claimable: claimable, claimPass: claimPass
+    adLimit: adLimit, adLeft: adLeft, adUse: adUse, adSeen: adSeen,
+    season: season, reward: reward, passOf: passOf, tierOf: tierOf, runXp: runXp, addXp: addXp, claimable: claimable, claimPass: claimPass, EXTRA: EXTRA, extraEarned: extraEarned
   };
 });

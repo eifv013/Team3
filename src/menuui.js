@@ -34,6 +34,7 @@
       var dx = ORDER.indexOf(tab) > ORDER.indexOf(from) ? '14px' : '-14px';
       document.querySelectorAll('#h-tabs .tab').forEach(function (t) { var on = t.id === 't-' + tab; t.classList.toggle('on', on); if (on) t.style.setProperty('--dx', dx); });
       cur = tab;
+      var tb0 = $('t-' + tab); if (tb0) tb0.scrollTop = 0;   // 0.10.4 탭을 옮기면 늘 맨 위부터
     }
     document.querySelectorAll('#h-nav button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-go') === tab); });
     if (onShow[tab]) onShow[tab]();
@@ -49,7 +50,7 @@
     return true;
   }
   function setSub(k) {
-    if (sub !== k) leaveSub(sub);
+    if (sub !== k) { leaveSub(sub); var tt0 = $('t-team'); if (tt0) tt0.scrollTop = 0; }   // 0.10.4 작은 탭도 맨 위부터
     sub = k;
     document.querySelectorAll('#h-seg button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-sub') === k); });
     document.querySelectorAll('#t-team .t-sub').forEach(function (d) { d.classList.toggle('on', d.getAttribute('data-sub') === k); });
@@ -104,6 +105,7 @@
   /* ---------- 오늘 할 일 ---------- */
   function todos() {
     var s = S(), out = [], day = ctx.dayNow();
+    if (root.Team3QuestUI) { var qn = root.Team3QuestUI.ready(); out.push({ ic: '📋', t: qn ? '임무 보상 ' + qn + '개' : '일간 · 주간 · 월간 임무', a: qn ? '받기' : '보기', done: false, go: function () { root.Team3QuestUI.open(); } }); }   // 0.10.3
     if (root.Team3AttendUI) out.push({ ic: '📅', t: '출석 체크', a: '출석', done: !root.Team3AttendUI.can(), go: function () { root.Team3AttendUI.open(); } });   // 0.10.2
     if (ctx.E) { var st = ctx.E.dailyStatus(s, day); out.push({ ic: '🏅', t: '오늘의 특별 출동', a: '도전', done: st.done, go: function () { jump('run', '#h-daily'); } }); }
     if (ctx.PT && s.pets && s.pets.eq) { var bd = ctx.PT.bondOf(s, s.pets.eq); out.push({ ic: '🐾', t: '파트너 쓰다듬기', a: '쓰다듬기', done: bd.last === day, go: function () { jump('pets', '#h-pet'); } }); }
@@ -180,7 +182,7 @@
     // 바로 가기 · 상황실 출동 단추 글
     var qt = $('h-q-team'), qe = $('h-q-evid');
     if (qt) { qt.querySelector('small').textContent = nt ? '살 수 있는 것 ' + nt + '개 ›' : '수사비를 모으는 중'; qt.classList.toggle('hot', nt > 0); }
-    if (qe) { qe.querySelector('small').textContent = '재수사 단서 ' + gain + (evGlow ? ' · 지금 좋아요' : ''); qe.classList.toggle('glow', evGlow); }
+    if (qe) { qe.querySelector('small').textContent = '재수사 단서 ' + gain + (evGlow ? ' · 현재 좋아요' : ''); qe.classList.toggle('glow', evGlow); }
     var gs = $('h-go-sub'), hs = $('h-go-home-sub'); if (gs && hs) hs.textContent = gs.textContent;
     var hg = $('h-go'), hh = $('h-go-home'); if (hg && hh) hh.classList.toggle('urgent', hg.classList.contains('urgent'));
     renderTodo();

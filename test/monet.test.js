@@ -34,23 +34,20 @@ test('월정액: 30일, 이어 사면 늘어나고, 하루 보상은 하루 한 
   assert.equal(M.claimSub(s, T0, '2026-11-22'), 20);
   assert.equal(M.claimSub(s, T0, '2026-11-22'), 0);
   assert.equal(M.claimSub(s, T0 + D, '2026-11-23'), 20);
-  assert.deepEqual(M.perks(s, T0), { freePulls: 1, capMin: 120, adFree: false });
+  assert.deepEqual(M.perks(s, T0), { freePulls: 1, capMin: 120, adFree: false, adFreeDays: 0 });
   M.applyPurchase(s, 'sub30', T0 + 10 * D);
   assert.equal(M.subDaysLeft(s, T0 + 10 * D), 50);
   assert.equal(M.subActive(s, T0 + 61 * D), false);
   assert.equal(M.claimSub(s, T0 + 61 * D, '2027-01-22'), 0);
-  assert.deepEqual(M.perks(s, T0 + 61 * D), { freePulls: 0, capMin: 0, adFree: false });
+  assert.deepEqual(M.perks(s, T0 + 61 * D), { freePulls: 0, capMin: 0, adFree: false, adFreeDays: 0 });
 });
 
-test('광고 자리: 하루 한도, 날이 바뀌면 다시, 광고 없이 받기는 +1', () => {
+test('0.10.3 광고 자리: 한도 없이 받고, 오늘 본 횟수는 센다', () => {
   const s = fresh(), d = '2026-11-22';
-  assert.equal(M.adLeft(s, 'ticket', d), 3);
-  M.adUse(s, 'ticket', d); M.adUse(s, 'ticket', d); M.adUse(s, 'ticket', d);
-  assert.throws(() => M.adUse(s, 'ticket', d), { code: 'NO_LEFT' });
-  assert.equal(M.adLeft(s, 'party', d), 2);
-  assert.equal(M.adLeft(s, 'ticket', '2026-11-23'), 3);
-  M.applyPurchase(s, 'adfree', T0);
-  assert.equal(M.adLeft(s, 'ticket', d), 1);
+  for (let i = 0; i < 50; i++) M.adUse(s, 'ticket', d);
+  assert.equal(M.adSeen(s, 'ticket', d), 50);
+  assert.equal(M.adLeft(s, 'clue', d), Infinity);
+  assert.equal(M.adSeen(s, 'ticket', '2026-11-23'), 0);
   assert.throws(() => M.adUse(s, 'zzz', d), { code: 'BAD_PLACE' });
 });
 
@@ -95,7 +92,7 @@ test('저장: load 로 넘어오고 clean 이 깨진 값을 고친다', () => {
   const s = fresh(); M.applyPurchase(s, 'adfree', T0); M.adUse(s, 'ticket', '2026-11-22');
   const back = I.load(I.serialize(s), T0).save;
   M.clean(back, T0);
-  assert.equal(back.shop.adFree, true);
+  assert.equal(M.perks(back, T0 + D).adFree, true); assert.equal(M.perks(back, T0 + 31 * D).adFree, false);   // 0.10.4 30일 월정액
   assert.equal(back.shop.ads.n.ticket, 1);
   const bad = { shop: { since: 'x', bought: { nope: 3, gems60: 2 }, ads: { day: 'zz', n: { a: 1 } }, pass: { free: { 1: true, x: true } } } };
   const c = M.clean(bad, 5);

@@ -39,7 +39,7 @@
     if (!x) {
       box.style.removeProperty('--gc');
       box.innerHTML = '<div class="pet-art pet-empty" aria-hidden="true">?</div>' +
-        '<div class="pet-tx"><b>파트너 동물이 없어요</b><small>뽑기로 3팀과 함께할 동물을 데려와요' + (free ? ' · 뽑기권 ' + free + '장' : '') + '</small></div>' +
+        '<div class="pet-tx"><b>파트너가 없어요</b><small>뽑기로 3팀과 함께할 파트너를 데려와요' + (free ? ' · 뽑기권 ' + free + '장' : '') + '</small></div>' +
         '<button class="buy" id="h-pet-open">뽑기' + dot + '</button>';
       return;
     }
@@ -53,7 +53,7 @@
       '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(' · ')) + '</small>' +
         '<small class="pet-bond">♥ ' + bd.lv + '단계 · ' + (bd.last === today() ? '함께 ' + bd.days + '일 ✓' : '쓰다듬어 줘요') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
-      '<button class="buy" id="h-pet-open">동물' + dot + '</button>';
+      '<button class="buy" id="h-pet-open">파트너' + dot + '</button>';
   }
   /*
    * 파트너 표정 바꾸기(0.3.1): mood 를 ms 동안 보여 주고 원래대로. move 는 칸이 하는 몸짓(CSS 클래스).
@@ -89,6 +89,7 @@
     var k = pets().eq, x = P.parse(k);
     if (!x) return;
     act('happy', 'pa-jump', 1400);
+    if (root.Team3QuestUI) root.Team3QuestUI.track('pat', 1);   // 0.10.3 임무(쓰다듬은 횟수)
     var r = null;
     try { r = P.pat(S(), k, today()); } catch (e) { /* 없는 동물 */ }
     if (r && r.counted) {
@@ -197,11 +198,15 @@
     var p = pets(), pl = plan(), one = pl.one, multi = pl.multi, pk = P.pickup(today()), sp = P.BY_ID[pk.id];
     // 이번 주 픽업
     $('pets-pickup').innerHTML = '<div class="pet-pk-art">' + A.draw(pk.id, { grade: 'l', anim: true }) + '</div>' +
-      '<div class="pet-pk-tx"><span class="label">이번 주 출동 동물 · ' + pk.left + '일 남음</span><b>' + esc(sp.kind) + ' ' + esc(sp.name) + '</b>' +
+      '<div class="pet-pk-tx"><span class="label">이번 주 출동 파트너 · ' + pk.left + '일 남음</span><b>' + esc(sp.kind) + ' ' + esc(sp.name) + '</b>' +
       '<small>영웅·전설이 나오면 절반은 ' + esc(sp.name) + '! 천장(' + P.PITY + '번째) 전설은 ' + esc(sp.name) + ' 확정</small></div>';
     $('pets-one').classList.toggle('free', one.pay === 'free');
-    $('pets-pity').innerHTML = '전설 확정까지 <b>' + (P.PITY - p.pity) + '번</b> · 지금까지 ' + fmt(p.pulls) + '번 뽑음';
+    $('pets-pity').innerHTML = '전설 확정까지 <b>' + (P.PITY - p.pity) + '번</b> · 현재까지 ' + fmt(p.pulls) + '번 뽑음';
+    // 0.10.3 오늘 무료 뽑기를 썼으면 다음 무료(자정)까지 남은 시간을 함께
+    var nd = new Date(); nd.setHours(24, 0, 0, 0); var ms = nd - Date.now(), hh = Math.floor(ms / 36e5), mm = Math.floor(ms % 36e5 / 6e4);
+    var freeTxt = one.pay === 'free' ? '' : '<em class="pet-free-t">무료 뽑기까지 ' + (hh ? hh + '시간 ' : '') + mm + '분</em>';
     $('pets-one').innerHTML = '1회 뽑기<small>' + one.text + '</small>';
+    $('pets-pity').innerHTML += freeTxt;
     $('pets-ten').innerHTML = (multi.ok ? multi.n + '회 뽑기' : '여러 번 뽑기') + '<small>' + multi.text + '</small>';
     $('pets-one').classList.toggle('short', !one.ok);
     $('pets-ten').classList.toggle('short', !multi.ok);
@@ -209,12 +214,12 @@
     $('pets-ten').disabled = busy || !multi.ok;
     $('pets-rates').innerHTML = '<table class="pet-rates"><tr><th>등급</th><th>등급 확률</th><th>한 마리</th></tr>' +
       P.rates().map(function (r) { return '<tr><td style="color:' + P.GRADE[r.g].color + '">' + r.name + '</td><td>' + r.pct + '%</td><td>' + r.each + '%</td></tr>'; }).join('') + '</table>' +
-      '<p class="muted">등급을 먼저 정하고, 그 등급의 ' + P.SPECIES.length + '종 중 하나가 같은 확률로 나와요. 단 영웅·전설은 ' + (P.PICKUP_RATE * 100) + '% 확률로 이번 주 출동 동물이 나와요(그래서 영웅·전설 안에서 출동 동물은 ' + Math.round((P.PICKUP_RATE + (1 - P.PICKUP_RATE) / P.SPECIES.length) * 1000) / 10 + '%, 나머지는 각 ' + Math.round((1 - P.PICKUP_RATE) / P.SPECIES.length * 1000) / 10 + '%).</p>' +
+      '<p class="muted">등급을 먼저 정하고, 그 등급의 ' + P.SPECIES.length + '종 중 하나가 같은 확률로 나와요. 단 영웅·전설은 ' + (P.PICKUP_RATE * 100) + '% 확률로 이번 주 출동 파트너가 나와요(그래서 영웅·전설 안에서 출동 파트너는 ' + Math.round((P.PICKUP_RATE + (1 - P.PICKUP_RATE) / P.SPECIES.length) * 1000) / 10 + '%, 나머지는 각 ' + Math.round((1 - P.PICKUP_RATE) / P.SPECIES.length * 1000) / 10 + '%).</p>' +
       '<p class="muted">하루 한 번 무료 뽑기가 있어요(자정에 다시 생겨요).</p>' +
       '<p class="muted">천장: ' + P.PITY + '번째까지 전설이 한 번도 안 나오면 그 번째는 전설 확정(전설이 나오면 다시 0부터). 천장을 포함하면 전설은 실제로 약 ' + P.effectiveLegend() + '%예요.</p>' +
       '<p class="muted">여러 번 뽑기: 2번 이상 뽑을 수 있으면 가진 만큼 한 번에(최대 ' + P.MAX_PULL + '번). 10마리마다 희귀 이상 1마리 보장. 배지는 1번 ◆' + P.COST.one + ', 10번 묶음마다 ◆' + P.COST.ten + '.</p>' +
-      '<p class="muted">같은 동물이 또 나오면 ★가 올라요(★5까지, ★마다 효과 +25%). ★5 뒤에는 간식(' + P.GRADES.map(function (g) { return P.GRADE[g].name + ' ' + P.GRADE[g].treat; }).join(' · ') + ')으로 바뀌어요.</p>' +
-      '<p class="muted">뽑기권은 처음 선물 · 사건 종결 · 승진 · 메달 · 특별 출동으로 받아요. 동물은 퍼즐 실력을 대신하지 않아요: ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>';
+      '<p class="muted">같은 파트너가 또 나오면 ★가 올라요(★5까지, ★마다 효과 +25%). ★5 뒤에는 간식(' + P.GRADES.map(function (g) { return P.GRADE[g].name + ' ' + P.GRADE[g].treat; }).join(' · ') + ')으로 바뀌어요.</p>' +
+      '<p class="muted">뽑기권은 처음 선물 · 사건 종결 · 승진 · 메달 · 특별 출동으로 받아요. 파트너는 퍼즐 실력을 대신하지 않아요: ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>';
   }
 
   /*
@@ -227,6 +232,7 @@
     var c = plan()[kind], r, n = c.n;
     if (!c.ok) { toast('모자라요: ' + (kind === 'one' ? '뽑기권 1장 또는 배지 ' + P.COST.one : '뽑기권 2장 또는 배지 ' + P.gemCost(2))); return; }
     try { r = P.pull(S(), n, c.pay, Math.random, pullOpts()); } catch (e) { toast(e.code === 'NOT_ENOUGH' ? (c.pay === 'gems' ? '배지가 모자라요' : '뽑기권이 모자라요') : '뽑을 수 없어요'); return; }
+    if (root.Team3QuestUI) root.Team3QuestUI.track('pull', r.length || n);
     ctx.persist();
     busy = true;
     var best = 'c';
@@ -355,12 +361,12 @@
     if (!N || !p.eq) return '';
     var can = P.canNoir(S(), p.eq), on = isNoir(p.eq), st = p.own[p.eq] || 1;
     return '<div class="pet-noircard' + (can ? '' : ' locked') + (on ? ' on' : '') + '"><span class="pnc-art' + (can ? ' noir-anim' : '') + '">' + N.draw(x.id, { grade: x.g, size: 84 }) + (can ? '' : '<i>' + LOCK + '</i>') + '</span>' +
-      '<span class="pnc-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (can ? '비밀 요원 모습의 반신 초상 · 파트너 카드와 도감에서 보여요' : (x.g === 'l' ? '전설은 데려오면 바로 받아요' : '이 파트너가 ★5가 되면 받아요 · 지금 ★' + st)) + '</small>' +
+      '<span class="pnc-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (can ? '비밀 요원 모습의 반신 초상 · 파트너 카드와 도감에서 보여요' : (x.g === 'l' ? '전설은 데려오면 바로 받아요' : '이 파트너가 ★5가 되면 받아요 · 현재 ★' + st)) + '</small>' +
       (can ? '<button class="' + (on ? 'ghost' : 'primary') + '" data-noircl="' + (on ? 0 : 1) + '">' + (on ? '본명으로' : '코드네임으로') + '</button>' : '') + '</span></div>';
   }
   function drawCloset() {
     var p = pets(), x = P.parse(p.eq) || { id: 'corgi', g: 'c' }, cur = p.eq ? P.wearing(S(), p.eq) : '';
-    var html = closetNoir(p, x) + '<p class="muted" style="font-size:12px;margin:0">한 번 사면 모든 동물이 함께 입어요. 꾸미기 전용이에요(효과 없음). 동물마다 다른 옷은 도감의 자세히에서 골라요.</p><div class="pet-closet-g">';
+    var html = closetNoir(p, x) + '<p class="muted" style="font-size:12px;margin:0">한 번 사면 모든 파트너가 함께 입어요. 꾸미기 전용이에요(효과 없음). 파트너마다 다른 옷은 도감의 자세히에서 골라요.</p><div class="pet-closet-g">';
     P.OUTFITS.forEach(function (o) {
       var have = !!p.closet[o.id], open = P.outfitOpen(S(), o.id);
       var btns = have
@@ -379,7 +385,7 @@
     Object.keys(p.own).forEach(function (k) { var x = P.parse(k); if (!x) return; var e = P.ownEffect(x.id, x.g, p.own[k]); Object.keys(e).forEach(function (q) { sum[q] = (sum[q] || 0) + e[q]; }); });
     Object.keys(sum).forEach(function (q) { if (P.CAPS[q] && sum[q] > P.CAPS[q]) sum[q] = P.CAPS[q]; });
     var lines = P.describe(sum);
-    return lines.length ? lines.join(' · ') : '아직 없어요. 동물을 모으면 하나하나 쌓여요.';
+    return lines.length ? lines.join(' · ') : '아직 없어요. 파트너를 모으면 하나하나 쌓여요.';
   }
   function drawDex() {
     var p = pets();
@@ -387,7 +393,7 @@
       var have = P.SPECIES.filter(function (x) { return p.own[P.key(x.id, g)]; }).length;
       return '<span class="' + (st.grades[g] ? 'on' : '') + '" style="--gc:' + P.GRADE[g].color + '">' + P.GRADE[g].name + ' ' + have + '/' + P.SPECIES.length + '<i>' + esc(P.describe(P.GRADE_SET[g]).join(' · ')) + '</i></span>';
     }).join('');
-    var html = '<div class="pet-sum"><span class="label">보유 효과 합계 (모은 동물 모두 · 늘 켜짐)</span><b>' + esc(ownSummary()) + '</b></div>' +
+    var html = '<div class="pet-sum"><span class="label">보유 효과 합계 (모은 파트너 모두 · 늘 켜짐)</span><b>' + esc(ownSummary()) + '</b></div>' +
       '<div class="pet-sets"><span class="label">세트 보너스 · 한 종류 네 등급 = 그 종류 보유 효과 두 배 · 한 등급 ' + P.SPECIES.length + '종 = 아래 보너스</span><div>' + gs + '</div></div>' +
       '<div class="pet-dex-head"><span></span>' + P.GRADES.map(function (g) { return '<span style="color:' + P.GRADE[g].color + '">' + P.GRADE[g].name + '</span>'; }).join('') + '</div>';
     // 0.9.2 한정 파트너 줄은 맨 위(전설 칸 하나만 · 나머지 등급 칸은 "없음" 자리)
@@ -450,7 +456,7 @@
         (on ? '<small class="muted">코드네임일 땐 의상이 안 보여요 · 상황실 안에서는 본명 모습 그대로예요</small>' : '') + '</div>';
     }
     return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, size: 56 }) + '<i>' + LOCK + '</i></span>' +
-      '<span class="pn-tx"><b>코드네임 <em>???</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : '★5가 되면 받아요 · 지금 ★' + st) + '</small></span></div>';
+      '<span class="pn-tx"><b>코드네임 <em>???</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : '★5가 되면 받아요 · 현재 ★' + st) + '</small></span></div>';
   }
   function outfitSelect() {
     var p = pets(), have = P.OUTFITS.filter(function (o) { return p.closet[o.id]; }), cur = P.wearing(S(), detailKey);
@@ -540,7 +546,7 @@
         toast(P.nameOf(S(), detailKey) + '(이)가 파트너가 됐어요');
       } else if (t.id === 'pets-swap') {
         var x = P.parse(detailKey);
-        try { var r = P.swap(S(), x.id, x.g); ctx.persist(); toast(r.isNew ? '새 동물이 왔어요!' : '★' + r.star + '로 올랐어요'); } catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '간식이 모자라요' : '바꿀 수 없어요'); }
+        try { var r = P.swap(S(), x.id, x.g); ctx.persist(); toast(r.isNew ? '새 파트너가 왔어요!' : '★' + r.star + '로 올랐어요'); } catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '간식이 모자라요' : '바꿀 수 없어요'); }
         renderPartner(); draw();
       }
     });

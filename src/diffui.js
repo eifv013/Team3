@@ -46,7 +46,7 @@
     var L = Df.info(k), lv = '';
     for (var i = 1; i <= 3; i++) lv += '<span class="' + (i <= L.lv ? 'f' : '') + '"></span>';
     // 오른쪽 위 배지: 처음 고를 때는 강력 사건에 "추천", 바꿀 때는 지금 난이도에 "지금"
-    var badge = mode === 'first' ? (k === 'normal' ? '<span class="df-badge">추천</span>' : '') : (k === cur ? '<span class="df-badge now">지금</span>' : '');
+    var badge = mode === 'first' ? (k === 'normal' ? '<span class="df-badge">추천</span>' : '') : (k === cur ? '<span class="df-badge now">현재</span>' : '');
     var gold = k === 'hard' ? '<div class="df-row"><h4>미제 사건 전용</h4><div class="df-chips">' +
       ['🏷️ 미제 전담 칭호', '🏆 전용 업적', '📌 전용 증거 카드'].map(function (g) { return '<span class="df-chip gold">' + g + '</span>'; }).join('') + '</div></div>' : '';
     return '<button class="df-file' + (k === sel ? ' on' : '') + (badge ? ' reco' : '') + '" data-df="' + k + '" style="--c:' + L.color + '" aria-pressed="' + (k === sel) + '">' +
@@ -62,7 +62,7 @@
   function draw() {
     var cur = Df.get(S()), L = Df.info(sel);
     var x = mode === 'first' ? '' : '<button class="x-btn" id="df-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
-    var btn = mode === 'first' ? ro(L.name) + ' 시작하기 →' : sel === cur ? '지금 난이도예요' : ro(L.name) + ' 바꾸기';
+    var btn = mode === 'first' ? ro(L.name) + ' 시작하기 →' : sel === cur ? '현재 난이도예요' : ro(L.name) + ' 바꾸기';
     $('df-sheet-in').innerHTML = x +
       '<span class="df-kick"><i></i>' + (mode === 'first' ? '사건 배정' : '난이도') + '</span>' +
       '<h2 id="df-title">어떤 사건을 맡을까요?</h2>' +
