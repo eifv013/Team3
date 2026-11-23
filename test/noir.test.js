@@ -42,11 +42,18 @@ test('저장 검사: 엉뚱한 키 · 조건 안 되는 키 · true 아닌 값�
 test('누아르 그림: 파트너 30종 모두 · 4등급 모두 SVG 가 나오고, 그림마다 id 가 겹치지 않는다', () => {
   assert.equal(N.ids.length, 30);
   P.SPECIES.forEach(sp => assert.ok(N.has(sp.id), sp.id));
-  const a = N.draw('corgi', { grade: 'c' }), b = N.draw('corgi', { grade: 'c' });
+  const a = N.draw('corgi', { grade: 'c' }), b = N.draw('corgi', { grade: 'c' });   // 그림 있는 종도 id 가 겹치면 안 된다
   ['c', 'r', 'h', 'l'].forEach(g => P.SPECIES.forEach(sp => {
     const v = N.draw(sp.id, { grade: g });
     assert.match(v, /^<svg[^>]*viewBox="0 0 200 200"/); assert.ok(v.endsWith('</svg>'));
-    assert.doesNotMatch(v, /NaN|undefined/, sp.id + ' ' + g);
+    assert.doesNotMatch(v.replace(/data:image\/webp;base64,[A-Za-z0-9+\/=]+/g, ''), /NaN|undefined/, sp.id + ' ' + g);   // 그림 데이터 속 글자는 빼고
   }));
-  assert.notEqual(a.match(/id="(nz\d+)bg"/)[1], b.match(/id="(nz\d+)bg"/)[1]);
+  assert.notEqual(a.match(/id="(n[pz]\d+)/)[1], b.match(/id="(n[pz]\d+)/)[1]);
+});
+
+test('0.8.6 그림 도구 초상: 받은 26종은 그림으로, 나머지는 예전 그림으로', () => {
+  const Pics = require('../src/noirpics.js');
+  assert.ok(Object.keys(Pics).length >= 26);
+  Object.keys(Pics).forEach(id => { assert.ok(N.has(id), id); assert.match(Pics[id], /^data:image\/webp;base64,/); assert.ok(N.draw(id, { grade: 'l' }).includes('<image href="data:image/webp')); });
+  P.SPECIES.filter(sp => !Pics[sp.id]).forEach(sp => assert.ok(!N.draw(sp.id, { grade: 'l' }).includes('<image'), sp.id));
 });

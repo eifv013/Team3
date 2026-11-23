@@ -185,7 +185,7 @@
      전설 등급이면 바로, 그 밖의 등급은 ★5(최고)가 되면 열린다. 켜면 파트너 카드 · 도감 자세히 · 출동 머리 사진이 누아르 그림으로.
      상황실(사무실) 안 파트너는 늘 귀여운 모습 그대로. 효과는 없음(꾸미기). */
   // 코드네임(0.8.4): 종마다 하나. 성격 한 줄(line)에서 따왔다. 켜면 초상이 누아르 그림으로, 이름 옆에 코드네임이 붙는다
-  var CODENAME = {"corgi": "에코", "shiba": "스톤페이스", "hamster": "포켓", "rabbit": "안테나", "bear": "그리즐리", "hedgehog": "니들", "duck": "패들", "frog": "레인코트", "ragdoll": "블루아이", "siamese": "마스크", "fox": "폴리그래프", "penguin": "턱시도", "monkey": "스카이워치", "squirrel": "컬렉터", "koala": "슬리퍼", "raccoon": "밴딧", "owl": "제로쓰리", "otter": "다이버", "panda": "모노크롬", "tiger": "헌터", "sheep": "클라우드", "pig": "트러플", "redpanda": "메이플", "alpaca": "패커", "seal": "하버", "hippo": "부스터", "turtle": "아이언쉘", "mouse": "크랙", "lion": "킹", "deer": "실버벨"};
+  var CODENAME = {"corgi": "에코", "shiba": "스톤페이스", "hamster": "포켓", "rabbit": "안테나", "bear": "그리즐리", "hedgehog": "니들", "duck": "패들", "frog": "재즈", "ragdoll": "블루아이", "siamese": "마스크", "fox": "폴리그래프", "penguin": "턱시도", "monkey": "스카이워치", "squirrel": "컬렉터", "koala": "슬리퍼", "raccoon": "밴딧", "owl": "제로쓰리", "otter": "다이버", "panda": "모노크롬", "tiger": "헌터", "sheep": "클라우드", "pig": "트러플", "redpanda": "메이플", "alpaca": "패커", "seal": "하버", "hippo": "부스터", "turtle": "아이언쉘", "mouse": "크랙", "lion": "킹", "deer": "실버벨"};
   function codename(id) { return CODENAME[id] || ''; }
   function canNoirP(p, k) { var x = parse(k); return !!(x && p.own[k] && (x.g === 'l' || p.own[k] >= STAR_MAX)); }
   function canNoir(save, k) { return canNoirP(P(save), k); }

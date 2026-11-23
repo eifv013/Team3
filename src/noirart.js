@@ -505,8 +505,26 @@
         '<rect x="6" y="150" width="44" height="26" rx="2" fill="#0A0A0C"/><text x="28" y="161" text-anchor="middle" font-size="8" font-weight="800" fill="#FF9A3D" font-family="monospace">막차</text><text x="28" y="172" text-anchor="middle" font-size="8" font-weight="800" fill="#FF9A3D" font-family="monospace">00:12</text>';
     }
   };
+  // 0.8.6 그림 도구로 뽑은 초상이 있으면 그걸 쓴다(모서리 둥글게 자르고, 등급 배지 · 전설 금 테두리만 얹는다)
+  var PICS = null;
+  function pics() { if (PICS === null) { try { PICS = (typeof self !== 'undefined' && self.Team3NoirPics) || (typeof require === 'function' ? require('./noirpics.js') : {}); } catch (e) { PICS = {}; } } return PICS || {}; }
+  function picDraw(id, o, src) {
+    var grade = o.grade || 'r', n = 'np' + (++uid), w = o.size || 200;
+    var badge = grade === 'h' || grade === 'l' ? '<g transform="translate(168 168)"><path d="M0 -13 L11 -8 L9 6 L0 13 L-9 6 L-11 -8 Z" fill="' + (grade === 'l' ? '#FFE48A' : '#E8EDF2') + '" stroke="' + (grade === 'l' ? '#8A6410' : '#5A6470') + '" stroke-width="2"/><circle r="3.4" fill="' + (grade === 'l' ? '#B8860B' : '#7A8694') + '"/></g>' : '';
+    var gold = grade === 'l' ? '<rect x="2" y="2" width="196" height="196" rx="17" fill="none" stroke="#E0B23A" stroke-width="3.5"/>' : '';
+    // 후처리(움직임): 앞쪽에 떨어지는 빗줄기 두 겹 · 왼쪽 위 불빛 깜빡임 · 가장자리 어둠. 그림은 숨쉬듯 살짝 들썩(nz-body)
+    var rainL = function (cls, xs) { return '<g class="' + cls + '" stroke="#DCE8F4" stroke-width=".9" stroke-linecap="round" opacity=".45">' + xs.map(function (q) { return '<line x1="' + q[0] + '" y1="' + q[1] + '" x2="' + (q[0] - 5) + '" y2="' + (q[1] + 22) + '"/>'; }).join('') + '</g>'; };
+    var fx = '<radialGradient id="' + n + 'l" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFD9A0" stop-opacity=".35"/><stop offset="1" stop-color="#FFD9A0" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="' + n + 'v" cx="50%" cy="45%" r="72%"><stop offset=".65" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient>' +
+      '<circle class="nz-lamp" cx="14" cy="16" r="52" fill="url(#' + n + 'l)"/>' +
+      rainL('nz-rain', [[18, 20], [52, 76], [96, 8], [140, 54], [178, 18], [30, 128], [118, 120], [186, 140]]) + rainL('nz-rain b', [[36, 40], [80, 110], [126, 30], [164, 96], [8, 160], [150, 170]]) +
+      '<rect width="200" height="200" fill="url(#' + n + 'v)"/>';
+    return '<svg viewBox="0 0 200 200" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="' + n + 'c"><rect width="200" height="200" rx="18"/></clipPath></defs>' +
+      '<g clip-path="url(#' + n + 'c)"><g class="nz-body"><image href="' + src + '" x="-4" y="-4" width="208" height="208" preserveAspectRatio="xMidYMid slice"/></g>' + fx + '</g>' + badge + gold + '</svg>';
+  }
   function draw(id, o) {
     o = o || {};
+    var pic = pics()[id]; if (pic) return picDraw(id, o, pic);
     var s = SP[id], grade = o.grade || 'r', n = 'nz' + (++uid);
     var k = KIT[id] || { coat: 'trench', hat: 'fedora', face: 'none', prop: 'none' };
     var rim = grade === 'l' ? '#FFD36A' : (k.lamp || '#FFB347');
@@ -550,5 +568,5 @@
     return '<svg viewBox="0 0 200 200" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg">' + defs + '<g clip-path="url(#' + n + 'cl)">' + bg + body + over + '</g>' + glow + '</svg>';
   }
     var IDS = Object.keys(SP);
-  return { BG_LIST: BG_LIST, draw: draw, ids: IDS, has: function (id) { return !!SP[id]; } };
+  return { hasPic: function (id) { return !!pics()[id]; }, BG_LIST: BG_LIST, draw: draw, ids: IDS, has: function (id) { return !!SP[id]; } };
 });
