@@ -38,9 +38,12 @@
     { id: 'gems330', kind: 'gems', name: '배지 주머니', krw: 5900, desc: '◆330 (10% 더)', gives: { gems: 330 } },
     { id: 'gems700', kind: 'gems', name: '배지 상자', krw: 11000, desc: '◆700 (17% 더)', gives: { gems: 700 } },
     { id: 'gems1500', kind: 'gems', name: '배지 금고', krw: 22000, desc: '◆1,500 (25% 더)', gives: { gems: 1500 } },
+    // 0.9.3 전설 선택권은 이 꾸러미로만 판다(한 사람당 한 번). 시즌 패스 · 기간 판매에는 넣지 않는다
+    { id: 'legendpack', kind: 'pack', name: '전설 확정 꾸러미', krw: 29000, once: true,
+      desc: '전설 선택권 1장(원하는 전설 하나) · 뽑기권 10장 · 배지 ◆100 · 한 사람당 한 번', gives: { pick: 'l', tickets: 10, gems: 100 } },
     { id: 'pass', kind: 'pass', name: '시즌 패스 프리미엄', krw: 9900, desc: '이번 시즌 프리미엄 보상 줄 열기(이미 지난 단계도 받아요) · 시즌 동안 프리미엄 효과', gives: {} },
     // 0.9.0 한정 파트너: 정식 출시 전까지는 기한 없이(LAUNCHED 가 true 가 되면 기간 한정으로 바꾼다). 뽑기에는 안 나온다
-    { id: 'wolf', kind: 'limited', name: '한정 파트너 · 백랑(고스트)', krw: 9900, once: true, desc: '특수수사팀 늑대 · 전설 ★5 · 코드네임 바로 열림', gives: { pet: 'wolf:l' } }
+    { id: 'wolf', kind: 'limited', name: '한정 파트너 · 백랑(고스트)', krw: 9900, once: true, desc: '수사3팀 늑대 · 전설 ★5 · 코드네임 바로 열림', gives: { pet: 'wolf:l' } }
   ];
   var BY_ID = {};
   PRODUCTS.forEach(function (p) { BY_ID[p.id] = p; });
@@ -120,6 +123,7 @@
       if (g.tickets) grant('tickets', g.tickets);
       if (g.treats) grant('treats', g.treats);
       if (g.outfit) grant('outfit', g.outfit);
+      if (g.pick) grant('pick', g.pick);
     }
     if (p.kind === 'sub') s.subUntil = Math.max(s.subUntil, now) + p.days * D;   // 남은 기간에 이어 붙인다
     if (id === 'adfree') s.adFree = true;

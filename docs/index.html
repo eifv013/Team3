@@ -1726,6 +1726,7 @@ body.prem-on #h-station::before{content:'👑 '}
 .pet-dex-row.lim{padding:6px 0;margin-bottom:4px;border-bottom:1px dashed rgba(176,124,240,.4)}.pet-dex-row.lim .pet-dex-name b{color:#D8C8FF}.pet-dex-row.lim .pet-dex-name small{color:#B79CF0}
 .pet-cell.none{background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(255,255,255,.03) 6px 12px);border-style:dashed;opacity:.5}
 #info-sheet{z-index:7}   /* 0.9.0 상점 위에서 연 정보 창(전설 미리보기)이 상점 뒤에 깔리지 않게 */
+.shop-row.lp{flex-direction:column;align-items:stretch;gap:10px;background:linear-gradient(150deg,#3A2A0C,#1C1E25 65%);border-color:#E8B931}.shop-row.lp>button{width:100%;min-width:0}.shop-row.lp .shop-tx b{font-size:17px;color:#FFE58A}   /* 0.9.3 전설 확정 꾸러미: 글은 전체 폭, 단추는 아래 */
 /* 한정 파트너 칸 */
 .lim-card{position:relative;border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#2A1E3A,#12101A 60%);box-shadow:inset 0 0 0 1.5px rgba(200,170,255,.45),0 10px 26px rgba(0,0,0,.5)}
 .lim-card::after{content:'';position:absolute;top:0;left:-60%;width:35%;height:100%;background:linear-gradient(100deg,transparent,rgba(220,200,255,.16),transparent);transform:skewX(-18deg);animation:buyshine 4s ease-in-out infinite;pointer-events:none}
@@ -2150,6 +2151,10 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.9.3', date: '2026-11-23', title: '전설 확정 꾸러미',
+      items: [
+        '상점에 "전설 확정 꾸러미"가 생겼어요. 전설 선택권 1장(원하는 전설 하나) · 뽑기권 10장 · 배지 ◆100, 한 사람당 한 번만 살 수 있어요.'
+      ] },
     { ver: '0.9.2', date: '2026-11-23', title: '증거판 · 뽑기 · 시즌 패스 조정',
       items: [
         '증거판: 실로 이어진 다음 증거는 ??? 대신 이름과 효과가 보여요. 보고 고를 수 있어요.',
@@ -6892,9 +6897,12 @@ body.prem-on #h-station::before{content:'👑 '}
     { id: 'gems330', kind: 'gems', name: '배지 주머니', krw: 5900, desc: '◆330 (10% 더)', gives: { gems: 330 } },
     { id: 'gems700', kind: 'gems', name: '배지 상자', krw: 11000, desc: '◆700 (17% 더)', gives: { gems: 700 } },
     { id: 'gems1500', kind: 'gems', name: '배지 금고', krw: 22000, desc: '◆1,500 (25% 더)', gives: { gems: 1500 } },
+    // 0.9.3 전설 선택권은 이 꾸러미로만 판다(한 사람당 한 번). 시즌 패스 · 기간 판매에는 넣지 않는다
+    { id: 'legendpack', kind: 'pack', name: '전설 확정 꾸러미', krw: 29000, once: true,
+      desc: '전설 선택권 1장(원하는 전설 하나) · 뽑기권 10장 · 배지 ◆100 · 한 사람당 한 번', gives: { pick: 'l', tickets: 10, gems: 100 } },
     { id: 'pass', kind: 'pass', name: '시즌 패스 프리미엄', krw: 9900, desc: '이번 시즌 프리미엄 보상 줄 열기(이미 지난 단계도 받아요) · 시즌 동안 프리미엄 효과', gives: {} },
     // 0.9.0 한정 파트너: 정식 출시 전까지는 기한 없이(LAUNCHED 가 true 가 되면 기간 한정으로 바꾼다). 뽑기에는 안 나온다
-    { id: 'wolf', kind: 'limited', name: '한정 파트너 · 백랑(고스트)', krw: 9900, once: true, desc: '특수수사팀 늑대 · 전설 ★5 · 코드네임 바로 열림', gives: { pet: 'wolf:l' } }
+    { id: 'wolf', kind: 'limited', name: '한정 파트너 · 백랑(고스트)', krw: 9900, once: true, desc: '수사3팀 늑대 · 전설 ★5 · 코드네임 바로 열림', gives: { pet: 'wolf:l' } }
   ];
   var BY_ID = {};
   PRODUCTS.forEach(function (p) { BY_ID[p.id] = p; });
@@ -6974,6 +6982,7 @@ body.prem-on #h-station::before{content:'👑 '}
       if (g.tickets) grant('tickets', g.tickets);
       if (g.treats) grant('treats', g.treats);
       if (g.outfit) grant('outfit', g.outfit);
+      if (g.pick) grant('pick', g.pick);
     }
     if (p.kind === 'sub') s.subUntil = Math.max(s.subUntil, now) + p.days * D;   // 남은 기간에 이어 붙인다
     if (id === 'adfree') s.adFree = true;
@@ -11308,6 +11317,11 @@ body.prem-on #h-station::before{content:'👑 '}
     var sub = M.BY_ID.sub30, on = M.subActive(s, t);
     html += '<span class="label">꾸준히 하는 팀장님께</span><div class="shop-row' + (on ? ' on' : '') + '"><div class="shop-tx"><b>' + sub.name + (on ? ' · ' + M.subDaysLeft(s, t) + '일 남음' : '') + '</b><small>' + esc(sub.desc) + '</small>' +
       (on ? '<em>' + (s.shop.subDay === day ? '오늘 ◆' + M.SUB.dailyGems + ' 받았어요' : '오늘 보상은 사무실에 오면 들어와요') + '</em>' : '') + '</div>' + payBtn('sub30', on ? '연장 ' + priceLabel('sub30') : null) + '</div>';
+    // 0.9.3 전설 확정 꾸러미(한 번만)
+    if (M.visible(s, 'legendpack', t)) {
+      var lp = M.BY_ID.legendpack;
+      html += '<span class="label">한 번만 · 전설 확정</span><div class="shop-row hot lp"><div class="shop-tx"><b>' + ic('pick') + ' ' + lp.name + '</b><small>' + esc(lp.desc) + '</small><em>고른 전설은 코드네임 모습이 바로 열려요</em></div>' + payBtn('legendpack') + '</div>';
+    }
     var af = M.BY_ID.adfree;
     if (!s.shop.adFree) html += '<div class="shop-row"><div class="shop-tx"><b>' + af.name + '</b><small>' + esc(af.desc) + '</small></div>' + payBtn('adfree') + '</div>';
     // 배지

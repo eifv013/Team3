@@ -138,6 +138,11 @@
     var sub = M.BY_ID.sub30, on = M.subActive(s, t);
     html += '<span class="label">꾸준히 하는 팀장님께</span><div class="shop-row' + (on ? ' on' : '') + '"><div class="shop-tx"><b>' + sub.name + (on ? ' · ' + M.subDaysLeft(s, t) + '일 남음' : '') + '</b><small>' + esc(sub.desc) + '</small>' +
       (on ? '<em>' + (s.shop.subDay === day ? '오늘 ◆' + M.SUB.dailyGems + ' 받았어요' : '오늘 보상은 사무실에 오면 들어와요') + '</em>' : '') + '</div>' + payBtn('sub30', on ? '연장 ' + priceLabel('sub30') : null) + '</div>';
+    // 0.9.3 전설 확정 꾸러미(한 번만)
+    if (M.visible(s, 'legendpack', t)) {
+      var lp = M.BY_ID.legendpack;
+      html += '<span class="label">한 번만 · 전설 확정</span><div class="shop-row hot lp"><div class="shop-tx"><b>' + ic('pick') + ' ' + lp.name + '</b><small>' + esc(lp.desc) + '</small><em>고른 전설은 코드네임 모습이 바로 열려요</em></div>' + payBtn('legendpack') + '</div>';
+    }
     var af = M.BY_ID.adfree;
     if (!s.shop.adFree) html += '<div class="shop-row"><div class="shop-tx"><b>' + af.name + '</b><small>' + esc(af.desc) + '</small></div>' + payBtn('adfree') + '</div>';
     // 배지

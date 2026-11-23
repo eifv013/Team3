@@ -73,3 +73,13 @@ test('정식 출시 전: 시즌 패스가 끝나지 않는다(시즌 1 · 무한
     assert.equal(M.limitedLeft('wolf', '2027-02-09'), 0);
   } finally { M.launch(false); }
 });
+
+test('0.9.3 전설 확정 꾸러미: 선택권 1장 · 뽑기권 10 · ◆100, 한 사람당 한 번(배지값 ◆290)', () => {
+  const s = fresh(), got = [];
+  assert.equal(M.gemPrice('legendpack'), 290);
+  M.applyPurchase(s, 'legendpack', 0, (k, v) => got.push(k + ':' + v));
+  assert.deepEqual(got.sort(), ['pick:l', 'tickets:10']);
+  assert.equal(s.gems, 100);
+  assert.equal(M.visible(s, 'legendpack', 0), false);
+  assert.throws(() => M.applyPurchase(s, 'legendpack', 0, () => {}), (e) => e.code === 'ALREADY');
+});
