@@ -1307,7 +1307,7 @@
     return '<a href="' + escHtml(href) + '" target="_blank" rel="noopener noreferrer">' + escHtml(u.replace(/^https?:\/\//, '')) + '</a>';
   }
   function creditsHtml() {
-    var out = '<div><h3>제작</h3><div class="cr"><b>Guar</b><span>기획 · 개발</span></div></div>';
+    var out = '<div><h3>제작</h3><div class="cr"><b>Loop &amp; Lamp Studio</b><span>제작사</span></div><div class="cr"><b>Guar</b><span>기획 · 개발</span></div></div>';
     var M = window.Team3Music || {}, rows = [];
     Object.keys(M).forEach(function (k) {
       var c = M[k] && M[k].credit; if (!c || !c.title) return;
