@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.8.8', date: '2026-11-23', title: '코드네임 초상 추가',
+      items: [
+        '너구리 · 부엉이 · 수달 · 판다 · 호랑이 · 양 · 돼지 코드네임 초상을 새 그림으로 바꿨어요.'
+      ] },
     { ver: '0.8.7', date: '2026-11-23', title: '코드네임 초상 추가',
       items: [
         '원숭이 · 다람쥐 · 코알라 코드네임 초상을 새 그림으로 바꿨어요.'
