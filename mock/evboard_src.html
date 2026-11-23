@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>시안 · 증거판 연결</title>
+<style>
+:root{--bg:#12151C;--panel:#1C212B;--text:#EEF1F6;--muted:#8F98A8;--acc:#FFD23F}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0B0D12;color:var(--text);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;overflow:hidden}
+.app{max-width:430px;height:100%;margin:0 auto;display:flex;flex-direction:column;background:var(--bg)}
+.top{padding:12px 14px 8px;display:flex;flex-direction:column;gap:8px}
+.note{font-size:12px;color:#9BD0FF;background:#14263A;border-radius:10px;padding:7px 10px;line-height:1.45}
+.bar{display:flex;align-items:center;gap:8px}
+.clue{display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px;padding:6px 12px;border-radius:999px;background:#14263A;color:#7FD3FF}
+.clue b{font-size:18px}
+.sp{flex:1}
+.btn{height:36px;padding:0 12px;border-radius:10px;border:1px solid #343C4A;background:linear-gradient(180deg,#2A303C,#1F242E);color:var(--text);font-weight:800;font-size:13px;box-shadow:0 3px 0 #11141A}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #11141A}
+.btn.gold{background:linear-gradient(180deg,#FFE58A,#FFD23F 45%,#F2B71E);color:#2A1F04;border:0;box-shadow:0 3px 0 #A8800F}
+.stat{font-size:12px;color:var(--muted)}
+/* 판 */
+.vp{position:relative;flex:1;overflow:hidden;touch-action:none;margin:0 10px;border-radius:16px;
+  background-color:#A9784A;
+  background-image:radial-gradient(rgba(70,36,12,.38) 1.1px,transparent 1.6px),radial-gradient(rgba(255,226,180,.2) .9px,transparent 1.4px),radial-gradient(rgba(60,30,10,.25) 1.6px,transparent 2.2px);
+  background-size:6px 6px,9px 9px,17px 17px;
+  box-shadow:0 0 0 6px #6A4526,0 0 0 8px #3E2814,inset 0 0 40px rgba(40,18,4,.6)}
+.vp::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 90% 80% at 50% 45%,transparent 50%,rgba(30,12,2,.45))}
+.world{position:absolute;left:0;top:0;width:2000px;height:2000px;transform-origin:0 0}
+svg.str{position:absolute;inset:0;width:2000px;height:2000px;overflow:visible}
+.str path{fill:none;stroke-linecap:round}
+.str .on{stroke:#C42A2A;stroke-width:3.2;filter:drop-shadow(0 2px 1px rgba(30,10,0,.5))}
+.str .hint{stroke:rgba(255,240,220,.35);stroke-width:2;stroke-dasharray:5 6}
+.str .draw{animation:draw .7s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.n{position:absolute;width:96px;height:84px;margin:-42px 0 0 -48px;border:0;padding:0;border-radius:4px;font-family:inherit;color:#22252C;cursor:pointer;transform:rotate(var(--r));transition:transform .2s}
+.n.open{background:#F7F1E1 repeating-linear-gradient(180deg,transparent 0 11px,rgba(80,120,180,.14) 11px 12px);background-position:0 14px;box-shadow:0 6px 10px rgba(30,12,2,.45),inset 0 6px 0 var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:14px 4px 4px}
+.n.open b{font-size:12.5px;line-height:1.15;text-align:center;word-break:keep-all}
+.n.open small{font-size:10px;color:#4A5262;text-align:center;line-height:1.2;word-break:keep-all}
+.n.open::before,.n.can::before{content:'';position:absolute;top:2px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:radial-gradient(circle at 32% 30%,#FFB8B0 0 18%,#E0453A 45%,#8E1A14 100%);box-shadow:2px 3px 3px rgba(0,0,0,.45)}
+.n.shut,.n.can,.n.lock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:12px 4px 4px}
+.n.shut{background:rgba(40,24,12,.55);box-shadow:inset 0 0 0 1.5px rgba(255,240,220,.18);color:rgba(255,240,220,.35)}
+.n.lock{background:rgba(40,24,12,.7);box-shadow:inset 0 0 0 1.5px rgba(255,220,170,.3);color:rgba(255,220,170,.6)}
+.n.shut b,.n.can b,.n.lock b{font-size:22px;font-weight:900;letter-spacing:2px;line-height:1}
+.n.shut small,.n.can small,.n.lock small{font-size:10.5px;font-weight:800;white-space:nowrap}
+.n.can{background:#3A2A1A;box-shadow:0 0 0 2px #FFD23F,0 0 18px rgba(255,210,63,.45);color:#FFE58A;animation:pulse 1.3s ease-in-out infinite}
+.n.can::before{background:radial-gradient(circle at 32% 30%,#FFF1B0 0 18%,#E0A81C 45%,#8A5A08 100%)}
+@keyframes pulse{50%{box-shadow:0 0 0 2px #FFD23F,0 0 30px rgba(255,210,63,.7)}}
+.n.lock small{color:rgba(255,220,170,.55)}
+.n[data-sel],.core[data-sel]{outline:3px solid #7FD3FF;outline-offset:3px}
+.n.pop{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:rotate(var(--r)) scale(.6)}100%{transform:rotate(var(--r)) scale(1)}}
+/* 가운데 사건 파일 */
+.core{position:absolute;width:150px;height:118px;margin:-59px 0 0 -75px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:16px 8px 8px;text-align:center;font-family:inherit;border:0}
+.core.shut{background:rgba(20,10,4,.6);box-shadow:inset 0 0 0 2px rgba(255,240,220,.25);color:rgba(255,240,220,.5)}
+.core.shut b{font-size:28px;letter-spacing:4px}
+.core.open{background:#E8D8B0 linear-gradient(180deg,#EEDFBA,#D8C49A);box-shadow:0 8px 16px rgba(30,12,2,.55);color:#2A1F10;transform:rotate(-2deg)}
+.core.open::before{content:'';position:absolute;top:3px;left:50%;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:radial-gradient(circle at 32% 30%,#FFB8B0 0 18%,#E0453A 45%,#8E1A14 100%);box-shadow:2px 3px 3px rgba(0,0,0,.45)}
+.core .stamp{font-size:10px;font-weight:900;color:#B8201A;border:2px solid #B8201A;padding:1px 6px;border-radius:3px;transform:rotate(-6deg)}
+.core b{font-size:15px}.core small{font-size:10.5px;color:#5A4A30;line-height:1.3}
+/* 줌 단추 */
+.zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.zoom button{width:40px;height:40px;border-radius:12px;border:1px solid #343C4A;background:rgba(28,33,43,.92);color:#fff;font-size:20px;font-weight:900;box-shadow:0 3px 0 #0A0C10}
+.legend{position:absolute;left:10px;bottom:10px;z-index:5;display:flex;flex-direction:column;gap:3px;padding:6px 8px;border-radius:10px;background:rgba(20,14,8,.75);font-size:10.5px;color:#EEE}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+/* 아래 정보 */
+.info{margin:10px;min-height:92px;padding:10px 12px;border-radius:14px;background:var(--panel);display:flex;gap:10px;align-items:center}
+.info .tx{flex:1;display:flex;flex-direction:column;gap:3px}
+.info .tx b{font-size:15px}.info .tx small{font-size:12px;color:var(--muted);line-height:1.35}
+.info .act{height:46px;padding:0 14px;border:0;border-radius:12px;font-weight:900;font-size:14px;background:linear-gradient(180deg,#A8E4FF,#6CC6F2 50%,#4AA8DC);color:#062436;box-shadow:0 3px 0 #23729E;white-space:nowrap}
+.info .act:disabled{background:#232832;color:#6E7686;box-shadow:none}
+.toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:9;background:rgba(20,22,28,.95);color:#fff;font-size:13px;font-weight:700;padding:8px 14px;border-radius:10px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+</style></head><body>
+<div class="app">
+  <div class="top">
+    <div class="note">시안: 증거가 판 위에 흩어져 있어요. 열린 증거와 이어진 ??? 만 단서로 열 수 있고, 열면 붉은 실이 이어져요. 손가락으로 끌어 움직이고, 두 손가락(또는 +/−)으로 확대 · 축소해요. 아래 "재수사(시험)"로 흐름을 볼 수 있어요.</div>
+    <div class="bar"><span class="clue">🔍 <b id="cl">0</b></span><span class="stat" id="st"></span><span class="sp"></span><button class="btn" id="reset">처음부터</button><button class="btn gold" id="retreat">재수사(시험)</button></div>
+  </div>
+  <div class="vp" id="vp">
+    <div class="world" id="world"><svg class="str" id="str"></svg></div>
+    <div class="legend" id="lg"></div>
+    <div class="zoom"><button id="zi">+</button><button id="zo">−</button><button id="zc" style="font-size:14px">◎</button></div>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="info" id="info"></div>
+</div>
+<script>
+var DATA=__DATA__;
+var C=DATA.color, CARDS=DATA.cards;
+var CX=1000, CY=1000, RING=[0,215,385,555,725,880];
+// 색마다 방향(사람 위왼쪽 · 기록 위오른쪽 · 돈 아래오른쪽 · 장소 아래왼쪽)
+var DIR={r:-135,b:-45,y:45,g:135};
+var nodes={core:{id:'core',x:CX,y:CY,core:1}}, edges=[];
+// 각 색 · 단계마다 고르게 펼친다
+['r','b','y','g'].forEach(function(col){
+  for(var t=0;t<=4;t++){
+    var list=CARDS.filter(function(c){return c[2]===col&&c[3]===t}); if(!list.length) continue;
+    var spread=t===0?64:t===4?20:72, n=list.length;
+    list.forEach(function(c,i){
+      var a=(DIR[col]+(n===1?0:(-spread/2+spread*i/(n-1))))*Math.PI/180, r=RING[t+1]+(i%2)*18;
+      nodes[c[0]]={id:c[0],x:CX+Math.cos(a)*r,y:CY+Math.sin(a)*r,c:c,col:col,t:t,rot:((i*37+t*13)%9)-4};
+    });
+  }
+});
+// 잇기: 0단계는 가운데와, 그 밖은 같은 색 한 단계 아래에서 가장 가까운 것과(+같은 단계 이웃끼리 하나)
+Object.keys(nodes).forEach(function(k){var n=nodes[k]; if(n.core) return;
+  if(n.t===0){edges.push(['core',k]);return}
+  var best=null,bd=1e9; Object.keys(nodes).forEach(function(q){var m=nodes[q]; if(m.core||m.col!==n.col||m.t!==n.t-1) return; var d=Math.hypot(m.x-n.x,m.y-n.y); if(d<bd){bd=d;best=q}});
+  if(best) edges.push([best,k]);
+});
+// 색이 다른 이웃끼리 다리 몇 개(판이 그물처럼 보이게)
+[['glove','tape'],['coin','map'],['bank','log'],['shoe','print'],['alibi','gps'],['cash','ticket'],['diary','drone'],['crypto','ship']].forEach(function(e){if(nodes[e[0]]&&nodes[e[1]])edges.push(e)});
+var LOCK=['','재수사 2번','사건 1 종결','재수사 6번','미제 출동 10번'];
+
+var S;
+function fresh(){S={clues:0,retreats:0,open:{},closed:0}}
+fresh();
+function tierOpen(t){return t===0?S.retreats>=1:t===1?S.retreats>=2:t===2?S.retreats>=3:t===3?S.retreats>=6:S.retreats>=8}
+function isOpen(k){return k==='core'?S.retreats>=1:!!S.open[k]}
+function linked(k){return edges.some(function(e){return (e[0]===k&&isOpen(e[1]))||(e[1]===k&&isOpen(e[0]))})}
+function state(k){var n=nodes[k]; if(isOpen(k))return'open'; if(n.core) return 'shut'; if(!S.retreats) return 'shut'; if(!linked(k)) return 'shut'; if(!tierOpen(n.t)) return 'lock'; return 'can'}
+
+var world=document.getElementById('world'), svg=document.getElementById('str'), sel=null, fresh2={};
+function path(a,b){var A=nodes[a],B=nodes[b],mx=(A.x+B.x)/2,my=(A.y+B.y)/2+Math.min(40,Math.hypot(A.x-B.x,A.y-B.y)*.12);return 'M'+A.x+' '+(A.y-30)+' Q'+mx+' '+my+' '+B.x+' '+(B.y-30)}
+function draw(){
+  var h='';
+  edges.forEach(function(e){var o0=isOpen(e[0]),o1=isOpen(e[1]),d=path(e[0],e[1]);
+    if(o0&&o1){var key=e.join('-'),nw=fresh2[key];h+='<path class="on'+(nw?' draw':'')+'" d="'+d+'"'+(nw?' style="stroke-dasharray:600;stroke-dashoffset:600"':'')+'/>';}
+    else if((o0&&state(e[1])!=='shut')||(o1&&state(e[0])!=='shut')) h+='<path class="hint" d="'+d+'"/>';
+  });
+  svg.innerHTML=h; fresh2={};
+  world.querySelectorAll('.n,.core').forEach(function(el){el.remove()});
+  Object.keys(nodes).forEach(function(k){var n=nodes[k],s=state(k),el=document.createElement('button');
+    el.style.left=n.x+'px'; el.style.top=n.y+'px'; el.dataset.k=k; if(k===sel) el.dataset.sel=1;
+    if(n.core){el.className='core '+(s==='open'?'open':'shut');
+      el.innerHTML=s==='open'?'<span class="stamp">미제 · 재수사</span><b>해무항 연쇄 실종</b><small>3년 전 덮인 사건.<br>놓친 단서를 다시 잇는다.</small>':'<b>???</b><small>첫 재수사를 하면 열려요</small>';}
+    else{el.className='n '+s+(n.justOpen?' pop':''); n.justOpen=0; el.style.setProperty('--r',n.rot+'deg'); el.style.setProperty('--c',C[n.col].hex);
+      el.innerHTML=s==='open'?'<b>'+n.c[1]+'</b><small>'+n.c[5]+'</small>':s==='can'?'<b>???</b><small>🔍 '+n.c[4]+'로 열기</small>':s==='lock'?'<b>???</b><small>'+LOCK[n.t]+'</small>':'<b>???</b>';}
+    world.appendChild(el);
+  });
+  document.getElementById('cl').textContent=S.clues;
+  var openN=Object.keys(S.open).length; document.getElementById('st').textContent='재수사 '+S.retreats+'번 · 증거 '+openN+' / '+CARDS.length;
+  document.getElementById('lg').innerHTML=['r','b','y','g'].map(function(c){return '<span><i style="background:'+C[c].hex+'"></i>'+C[c].name+'</span>'}).join('');
+  info();
+}
+function info(){var box=document.getElementById('info');
+  if(!sel){box.innerHTML='<div class="tx"><b>'+(S.retreats?'반짝이는 ??? 를 눌러 보세요':'아직 아무것도 몰라요')+'</b><small>'+(S.retreats?'열린 증거와 이어진 칸만 단서로 열 수 있어요. 같은 색끼리 이어 갈수록 깊은 증거가 나와요.':'재수사를 하면 놓쳤던 사건 파일이 판 가운데 붙어요.')+'</small></div>';return}
+  var n=nodes[sel],s=state(sel);
+  if(n.core){box.innerHTML='<div class="tx"><b>'+(s==='open'?'사건 파일 · 해무항 연쇄 실종':'???')+'</b><small>'+(s==='open'?'모든 증거는 여기서 뻗어 나가요.':'첫 재수사를 하면 열려요.')+'</small></div>';return}
+  if(s==='open'){box.innerHTML='<div class="tx"><b><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+C[n.col].hex+';margin-right:6px"></i>'+n.c[1]+'</b><small>'+n.c[5]+' · '+C[n.col].name+'</small></div>';return}
+  if(s==='can'){box.innerHTML='<div class="tx"><b>??? · 이어진 증거</b><small>'+C[n.col].name+' 쪽 증거예요. 단서로 열면 붉은 실로 이어져요.</small></div><button class="act" id="op"'+(S.clues<n.c[4]?' disabled':'')+'>🔍 '+n.c[4]+' 열기</button>';return}
+  box.innerHTML='<div class="tx"><b>???</b><small>'+(s==='lock'?LOCK[n.t]+'부터 열 수 있어요.':'아직 이어진 증거가 없어요. 옆 증거를 먼저 열어요.')+'</small></div>';
+}
+function toast(t){var e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){e.classList.remove('on')},1600)}
+document.getElementById('info').addEventListener('click',function(e){if(e.target.id!=='op')return;var n=nodes[sel];if(S.clues<n.c[4])return;S.clues-=n.c[4];S.open[sel]=1;n.justOpen=1;
+  edges.forEach(function(ed){if((ed[0]===sel&&isOpen(ed[1]))||(ed[1]===sel&&isOpen(ed[0])))fresh2[ed.join('-')]=1});toast(n.c[1]+' — 이어졌어요!');draw()});
+document.getElementById('retreat').onclick=function(){var first=!S.retreats;S.retreats++;S.clues+=first?4:3+S.retreats;Object.keys(nodes).forEach(function(k){});
+  if(first){toast('첫 재수사 — 사건 파일이 열렸어요');sel='core';center(.75)}else toast('재수사 '+S.retreats+'번째 · 단서 +'+(3+S.retreats));draw()};
+document.getElementById('reset').onclick=function(){fresh();sel=null;center(.75);draw()};
+
+/* ---------- 끌기 · 확대 ---------- */
+var vp=document.getElementById('vp'), Z={s:.9,x:0,y:0}, pts={}, start=null, moved=0;
+function apply(){world.style.transform='translate('+Z.x+'px,'+Z.y+'px) scale('+Z.s+')'}
+function center(s){var r=vp.getBoundingClientRect();Z.s=s||Z.s;Z.x=r.width/2-CX*Z.s;Z.y=r.height/2-CY*Z.s;apply()}
+function zoomAt(f,px,py){var ns=Math.max(.35,Math.min(2.2,Z.s*f));Z.x=px-(px-Z.x)*ns/Z.s;Z.y=py-(py-Z.y)*ns/Z.s;Z.s=ns;apply()}
+vp.addEventListener('pointerdown',function(e){vp.setPointerCapture(e.pointerId);pts[e.pointerId]={x:e.clientX,y:e.clientY};moved=0;start={x:Z.x,y:Z.y,s:Z.s,pts:JSON.parse(JSON.stringify(pts))}});
+vp.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;pts[e.pointerId]={x:e.clientX,y:e.clientY};var ks=Object.keys(pts),r=vp.getBoundingClientRect();
+  if(ks.length===1&&start.pts[ks[0]]){var p0=start.pts[ks[0]],dx=e.clientX-p0.x,dy=e.clientY-p0.y;if(Math.abs(dx)+Math.abs(dy)>6)moved=1;Z.x=start.x+dx;Z.y=start.y+dy;apply()}
+  else if(ks.length>=2&&start.pts[ks[0]]&&start.pts[ks[1]]){var a=pts[ks[0]],b=pts[ks[1]],a0=start.pts[ks[0]],b0=start.pts[ks[1]];moved=1;
+    var d0=Math.hypot(a0.x-b0.x,a0.y-b0.y),d1=Math.hypot(a.x-b.x,a.y-b.y),mx=(a0.x+b0.x)/2-r.left,my=(a0.y+b0.y)/2-r.top;
+    var ns=Math.max(.35,Math.min(2.2,start.s*d1/d0));Z.s=ns;Z.x=mx-(mx-start.x)*ns/start.s+((a.x+b.x)/2-(a0.x+b0.x)/2);Z.y=my-(my-start.y)*ns/start.s+((a.y+b.y)/2-(a0.y+b0.y)/2);apply()}});
+function up(e){delete pts[e.pointerId];start={x:Z.x,y:Z.y,s:Z.s,pts:JSON.parse(JSON.stringify(pts))}}
+vp.addEventListener('pointerup',function(e){if(!moved){var el=document.elementFromPoint(e.clientX,e.clientY),b=el&&el.closest('[data-k]');if(b){sel=b.dataset.k;draw()}}up(e)});
+vp.addEventListener('pointercancel',up);
+vp.addEventListener('wheel',function(e){e.preventDefault();var r=vp.getBoundingClientRect();zoomAt(e.deltaY<0?1.12:1/1.12,e.clientX-r.left,e.clientY-r.top)},{passive:false});
+document.getElementById('zi').onclick=function(){var r=vp.getBoundingClientRect();zoomAt(1.25,r.width/2,r.height/2)};
+document.getElementById('zo').onclick=function(){var r=vp.getBoundingClientRect();zoomAt(.8,r.width/2,r.height/2)};
+document.getElementById('zc').onclick=function(){center(.75)};
+['zi','zo','zc'].forEach(function(id){document.getElementById(id).addEventListener('pointerdown',function(e){e.stopPropagation()})});
+window.addEventListener('resize',function(){center()});
+center(.75);draw();
+</script></body></html>
