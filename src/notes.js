@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.9.7', date: '2026-11-23', title: '로딩 화면 정리',
+      items: [
+        '로딩 화면 아래 제작사 로고를 조금 더 작고 아래로 옮겼어요.'
+      ] },
     { ver: '0.9.6', date: '2026-11-23', title: '로딩 화면 로고',
       items: [
         '로딩 화면 아래 제작사 로고를 글자만 작게 바꿨어요(더 작게).'
