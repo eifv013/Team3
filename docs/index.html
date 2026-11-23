@@ -251,6 +251,99 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .set-code:focus{outline:none;border-color:var(--acc)}
 .ghost.danger{color:var(--miss);border-color:rgba(255,122,89,.45)}
 .ghost.armed{background:var(--miss);color:var(--ink);border-color:var(--miss)}
+/* ===== 0.8.3 구매 단추: 두 줄(작은 동사 · 큰 값) · 금빛 입체 · 누르면 꾹 · 모자라면 어둡게 + 값 빨갛게 ===== */
+.item .buy,.cr-row .buy,.d-buy{flex:none;min-width:96px;max-width:46%;height:54px;padding:0 12px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  position:relative;overflow:hidden;border:0;border-radius:14px;color:#2A1F04;
+  background:linear-gradient(180deg,#FFE58A 0%,#FFD23F 45%,#F2B71E 100%);
+  box-shadow:0 4px 0 #A8800F,0 6px 14px rgba(255,190,40,.22),inset 0 1px 0 rgba(255,255,255,.75),inset 0 -2px 0 rgba(150,100,0,.25);
+  transition:transform .07s,box-shadow .07s,filter .15s;-webkit-tap-highlight-color:transparent}
+.item .buy::after,.cr-row .buy::after,.d-buy::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:buyshine 3.6s ease-in-out infinite;pointer-events:none}
+@keyframes buyshine{0%,70%{left:-60%}100%{left:140%}}
+.item .buy:active:not(:disabled),.cr-row .buy:active:not(:disabled),.d-buy:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #A8800F,inset 0 1px 0 rgba(255,255,255,.6)}
+.item .buy,.cr-row .buy,.d-buy{width:112px;min-width:0;max-width:none}
+.buy em{font-style:normal;font-size:11.5px;font-weight:800;line-height:1;letter-spacing:.02em;opacity:.72;white-space:nowrap}
+.buy b{font-size:16px;font-weight:900;line-height:1.05;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
+.buy b.cn::before{content:'';width:13px;height:13px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#FFF4C2,#E0A81C 60%,#9C6E08);box-shadow:inset 0 0 0 1.5px rgba(120,80,0,.55)}
+.item .buy.poor,.cr-row .buy.poor,.d-buy.poor,.item .buy.poor:disabled,.cr-row .buy.poor:disabled,.d-buy.poor:disabled{opacity:1;background:linear-gradient(180deg,#2C323E,#232832);color:#A9B1BF;box-shadow:0 4px 0 #161A21,inset 0 1px 0 rgba(255,255,255,.06)}
+.buy.poor::after{display:none}
+.buy.poor b{color:#FF9A8B}
+.buy.poor b.cn::before{filter:grayscale(1) brightness(.75)}
+.item .buy.max,.cr-row .buy.max{opacity:1;background:none;box-shadow:none;border:1.5px solid #3A4352;color:var(--muted)}
+.buy.max::after{display:none}
+.buy.max b{font-size:14px}
+/* ===== 0.8.3 시즌 패스 ===== */
+#pass-body .pass-acts>*{font-size:15px;line-height:1.2}
+#pass-body .pass-acts .shop-buy{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#pass-body .pass-acts .shop-buy small{font-size:11px}
+.pass-claim:disabled{opacity:1;background:#232832;color:#7C8494;box-shadow:inset 0 0 0 1px #343B48}
+.pass-hero{position:relative;display:flex;gap:14px;align-items:center;padding:14px;border-radius:16px;overflow:hidden;
+  background:radial-gradient(120% 140% at 0% 0%,rgba(255,210,63,.20),transparent 55%),linear-gradient(135deg,#232A38,#191D26);box-shadow:inset 0 0 0 1px rgba(255,210,63,.22)}
+.pass-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 10px,transparent 10px 20px);pointer-events:none}
+.pass-hero.prem{box-shadow:inset 0 0 0 1.5px #FFD23F,0 0 22px rgba(255,210,63,.18)}
+.ph-medal{position:relative;flex:none;width:76px;height:76px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;
+  background:radial-gradient(circle at 35% 30%,#FFF1B0,#FFD23F 45%,#C99410 100%);color:#3A2A00;box-shadow:0 0 0 4px #2A2F3A,0 0 0 6px #C99410,0 6px 16px rgba(0,0,0,.4)}
+.ph-medal small{font-size:10px;font-weight:800;opacity:.7}
+.ph-medal b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:32px;margin:1px 0}
+.ph-medal i{font-style:normal;font-size:10px;font-weight:800;opacity:.7}
+.ph-main{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.ph-season{font-family:'Black Han Sans',sans-serif;font-size:20px;color:#fff;white-space:nowrap}
+.ph-season em{font-style:normal;color:var(--acc)}
+.ph-left{align-self:flex-start;font-size:11.5px;font-weight:700;color:#FFB4A8;background:rgba(255,120,100,.12);padding:3px 8px;border-radius:999px}
+.ph-bar{position:relative;height:18px;border-radius:999px;background:#10131A;box-shadow:inset 0 1px 3px rgba(0,0,0,.6);overflow:hidden}
+.ph-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,#F2B71E,#FFE58A);box-shadow:0 0 10px rgba(255,210,63,.6)}
+.ph-bar span{position:relative;display:block;text-align:center;font-size:11px;font-weight:800;line-height:18px;color:#fff;text-shadow:0 1px 2px #000;font-variant-numeric:tabular-nums}
+.ph-how{margin:-2px 0 0;font-size:11.5px;color:var(--muted);text-align:center}
+.pass-claim.glow{animation:claimglow 1.6s ease-in-out infinite}
+@keyframes claimglow{50%{box-shadow:0 0 0 3px rgba(255,210,63,.35),0 0 18px rgba(255,210,63,.5)}}
+.pass-grid{display:grid;grid-template-columns:38px 1fr 1fr;gap:6px;font-size:12px}
+.pass-h{font-size:11.5px;font-weight:800;color:var(--muted);text-align:center;padding-bottom:2px}
+.pass-h.prem{color:var(--acc)}
+.pass-t{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;background:#1E232D;color:#5E6676;font-weight:900;font-size:14px;font-variant-numeric:tabular-nums}
+.pass-t.open{background:linear-gradient(180deg,#FFE58A,#F2B71E);color:#2A1F04}
+.pass-t.now{box-shadow:0 0 0 2px var(--acc);color:var(--acc)}
+.pass-t small{font-size:9px;font-weight:800;line-height:1}
+.pc{position:relative;display:flex;align-items:center;gap:8px;min-height:46px;padding:6px 8px;border-radius:12px;background:#1E232D;color:var(--text);overflow:hidden}
+.pc.prem{background:linear-gradient(135deg,rgba(255,210,63,.13),rgba(255,210,63,.04));box-shadow:inset 0 0 0 1px rgba(255,210,63,.18)}
+.pc-ic{flex:none;width:30px;height:30px;border-radius:9px;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:18px}
+.pc-tx{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.pc-tx b{font-size:13.5px;font-weight:900;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pc-tx small{font-size:11px;color:var(--muted);white-space:nowrap}
+.pc.pick .pc-tx b{font-size:12px;color:var(--acc)}
+.pc.wait{opacity:.5}
+.pc.ready{box-shadow:inset 0 0 0 2px var(--acc),0 0 12px rgba(255,210,63,.25)}
+.pc.ready::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.25),transparent);transform:skewX(-18deg);animation:buyshine 2.8s ease-in-out infinite}
+.pc.got{opacity:.55}
+.pc.got .pc-ic{filter:grayscale(.6)}
+.pc-stamp{position:absolute;right:6px;top:50%;transform:translateY(-50%) rotate(-12deg);width:22px;height:22px;border-radius:50%;border:2px solid #6FD08C;color:#6FD08C;font-style:normal;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center}
+.pc-lock{position:absolute;right:6px;top:6px;font-style:normal;line-height:0;opacity:.85}
+.pc.lock .pc-ic,.pc.lock .pc-tx{opacity:.55}
+/* 0.8.3 받기 · 프리미엄 줄 */
+.pass-claim{position:relative;width:100%;min-height:56px;border:0;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:900;color:#2A1F04;
+  background:linear-gradient(180deg,#FFE58A,#FFD23F 45%,#F2B71E);box-shadow:0 5px 0 #A8800F,0 8px 18px rgba(255,190,40,.3),inset 0 1px 0 rgba(255,255,255,.75)}
+.pass-claim:active{transform:translateY(3px);box-shadow:0 2px 0 #A8800F}
+.pcl-n{min-width:26px;height:26px;padding:0 7px;border-radius:999px;background:#E8473A;color:#fff;font-size:14px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 0 #9E2A20}
+.pass-next{width:100%;min-height:52px;border:1.5px dashed #3A4352;border-radius:16px;background:#1A1E27;color:var(--muted);display:flex;align-items:center;gap:10px;padding:0 14px;opacity:1!important;cursor:default}
+.pass-next small{font-size:12px;font-weight:700;white-space:nowrap}
+.pass-next .pn-it{font-size:15px;font-weight:900;color:var(--text);display:inline-flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
+.pass-next em{margin-left:auto;font-style:normal;font-size:12px;font-weight:800;color:var(--acc);white-space:nowrap;background:rgba(255,210,63,.1);padding:4px 9px;border-radius:999px}
+.pass-next>span:only-child{margin:0 auto;font-weight:800}
+.pass-premcard{position:relative;width:100%;display:flex;align-items:center;gap:12px;padding:12px 12px 12px 10px;border:0;border-radius:18px;text-align:left;overflow:hidden;color:#fff;
+  background:linear-gradient(120deg,#3B2A08 0%,#21180A 45%,#14161D 100%);box-shadow:inset 0 0 0 1.5px rgba(255,210,63,.55),0 8px 22px rgba(0,0,0,.35)}
+.pass-premcard::before{content:'';position:absolute;inset:0;background:radial-gradient(80% 120% at 0% 0%,rgba(255,210,63,.28),transparent 60%);pointer-events:none}
+.pass-premcard::after{content:'';position:absolute;top:0;left:-60%;width:35%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,230,150,.22),transparent);transform:skewX(-18deg);animation:buyshine 4s ease-in-out infinite;pointer-events:none}
+.ppc-crown{position:relative;flex:none;width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,rgba(255,210,63,.35),rgba(255,210,63,.08));box-shadow:inset 0 0 0 1px rgba(255,210,63,.4)}
+.ppc-tx{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ppc-tx b{margin-bottom:2px}
+.ppc-tx small{white-space:nowrap}
+.ppc-tx b{font-size:16px;font-weight:900;background:linear-gradient(180deg,#FFF1B0,#FFD23F);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ppc-tx small{font-size:11.5px;color:#D9C9A0;line-height:1.35;display:inline-flex;align-items:center;flex-wrap:wrap;gap:2px}
+.ppc-price{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 12px;border-radius:12px;background:linear-gradient(180deg,#FFE58A,#F2B71E);color:#2A1F04;box-shadow:0 3px 0 #A8800F}
+.ppc-price b{font-size:15px;font-weight:900;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ppc-price small{font-size:10px;font-weight:800;opacity:.75;white-space:nowrap}
+.pass-premcard[aria-disabled=true] .ppc-price{background:#2C323E;color:#C9CFDA;box-shadow:0 3px 0 #161A21}
+.pass-premcard:active .ppc-price{transform:translateY(2px);box-shadow:0 1px 0 #A8800F}
+.pass-premon{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:linear-gradient(90deg,rgba(255,210,63,.16),rgba(255,210,63,.03));box-shadow:inset 0 0 0 1px rgba(255,210,63,.35)}
+.pass-premon span{display:flex;flex-direction:column}.pass-premon b{color:var(--acc);font-size:14px}.pass-premon small{font-size:11.5px;color:var(--muted)}
 /* ===== 0.8.0 아래 메뉴 · 탭 ===== */
 #s-hub{gap:8px}
 #s-hub .hub-mini{display:none}
@@ -357,6 +450,10 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 #t-pets .pet-card .pet-stage{transform:scale(1.5);margin:26px 0 22px}
 #t-pets .pet-card .pet-tx{align-items:center}
 #t-pets .pet-card #h-pet-open{display:none}
+/* 0.8.3 파트너 탭 말풍선: 카드 위로 넘치면 탭 위끝에 잘려서, 카드 안 맨 위 자리(빈 띠)에 띄운다 */
+#t-pets .pet-card{position:relative;padding-top:64px}
+#t-pets .pet-bubble{top:12px;bottom:auto;left:14px;right:14px;margin:0 auto;width:fit-content;max-width:calc(100% - 28px);border-radius:14px;text-align:center}
+#t-pets .pet-bubble::after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-6px;border:6px solid transparent;border-top-color:#FFF8EA;border-bottom:0}
 .t-plinks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}   /* 0.8.2 매점은 머리의 배지(◆+)로 — 파트너 탭엔 파트너 것만 */
 .t-plinks button{border:1px solid #262D39;background:var(--panel);border-radius:14px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:2px;font-family:inherit;color:var(--text)}
 .t-plinks b{font-size:14px}.t-plinks small{font-size:12px;color:var(--muted)}
@@ -1778,6 +1875,13 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.8.3', date: '2026-11-23', title: '구매 단추 · 시즌 패스 새 단장',
+      items: [
+        '영입 · 훈련 · 장착 단추를 새로 꾸몄어요: 위에 할 일, 아래에 값. 돈이 모자라면 어둡게 바뀌고 값이 빨개져요.',
+        '시즌 패스: 단계 메달 · 경험치 막대 · 보상 칸을 새로 그렸어요. 받을 수 있는 칸은 금빛으로 반짝여요.',
+        '파트너 탭에서 말풍선이 화면 위에 잘리던 것을 고쳤어요.',
+        '팀 탭은 다른 탭에 다녀오면 늘 3팀부터 보여요.'
+      ] },
     { ver: '0.8.2', date: '2026-11-23', title: '"검거!" 도장 고침 · 계급 보기',
       items: [
         '틀렸을 때나 새 판이 시작될 때 지난 "검거!" 도장이 다시 뜨던 것을 고쳤어요.',
@@ -10092,21 +10196,54 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     if (r.treats) o.push(ic('treat') + r.treats);
     return o.join(' ');
   }
+  /* 0.8.3 시즌 패스: 위 메달 띠(단계 큰 숫자 · 남은 날 · 진척 막대) → 받기/프리미엄 → 단계 줄마다 무료 · 프리미엄 보상 칸.
+     칸 상태: 잠김(흐림) · 받을 수 있음(금빛 테두리 + 반짝) · 받음(✓ 도장) · 프리미엄 미구매(자물쇠). 지금 단계 줄엔 '지금' 표시 */
+  var LOCK = '<svg viewBox="0 0 24 24" width="14" height="14" aria-label="잠김"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="#FFD23F"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="#FFD23F" stroke-width="2.2" fill="none"/></svg>';
+  function passCell(track, t, open, got, locked) {
+    var r = M.reward(track, t), parts = [];
+    if (r.pick) parts.push([ic('pick'), '전설 선택권']);
+    if (r.tickets) parts.push([ic('ticket'), '×' + r.tickets]);
+    if (r.gems) parts.push([ic('gem'), '×' + r.gems]);
+    if (r.treats) parts.push([ic('treat'), '×' + r.treats]);
+    var head = parts[0] || ['', ''], rest = parts.slice(1).map(function (x) { return x[0] + x[1]; }).join(' ');
+    var st = got ? ' got' : !open ? ' wait' : locked ? ' lock' : ' ready';
+    return '<span class="pc ' + track + st + (r.pick ? ' pick' : '') + '"><i class="pc-ic">' + head[0] + '</i><span class="pc-tx"><b>' + head[1] + '</b>' + (rest ? '<small>' + rest + '</small>' : '') + '</span>' +
+      (got ? '<em class="pc-stamp">✓</em>' : locked ? '<em class="pc-lock">' + LOCK + '</em>' : '') + '</span>';
+  }
+  /* 0.8.3 받기 · 프리미엄 줄(다시 그림): 덩그러니 큰 단추 두 개 대신
+     받기 — 받을 게 있으면 금빛 큰 단추, 없으면 "다음 보상" 미리보기 띠(무엇을 · 몇 XP 뒤에)
+     프리미엄 — 한 줄 전체를 쓰는 광고 카드(왕관 · 무엇이 더 생기는지 · 값 알약). 샀으면 얇은 "열림" 띠 */
+  var CROWN = '<svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path d="M5 24l-2-13 7.5 6L16 6l5.5 11L29 11l-2 13z" fill="#FFD23F" stroke="#A87A10" stroke-width="1.6" stroke-linejoin="round"/><rect x="5" y="24" width="22" height="3.5" rx="1.5" fill="#E0A81C" stroke="#A87A10" stroke-width="1.2"/><circle cx="16" cy="16" r="2.2" fill="#E8473A"/><circle cx="9.5" cy="19" r="1.4" fill="#7FD3FF"/><circle cx="22.5" cy="19" r="1.4" fill="#7FD3FF"/></svg>';
+  function passActs(ps, tier, into, can) {
+    var h;
+    if (can) h = '<button class="pass-claim glow" id="pass-claim"><span class="pcl-n">' + can + '</span>받을 보상 모두 받기</button>';
+    else if (tier >= M.TIERS) h = '<button class="pass-next" id="pass-claim" disabled><span>모든 보상을 받았어요</span></button>';
+    else {
+      var nt = tier + 1, r = M.reward('free', nt), it = r.pick ? ic('pick') : r.tickets ? ic('ticket') + '×' + r.tickets : r.gems ? ic('gem') + '×' + r.gems : ic('treat') + '×' + r.treats;
+      h = '<button class="pass-next" id="pass-claim" disabled><small>다음 보상 · ' + nt + '단계</small><span class="pn-it">' + it + '</span><em>' + (M.TIER_XP - into) + 'XP 남음</em></button>';
+    }
+    if (ps.premium) return h + '<div class="pass-premon">' + CROWN + '<span><b>프리미엄 열림</b><small>단계마다 보상을 하나 더 받아요</small></span></div>';
+    var p = M.BY_ID.pass, live = Pay.available();
+    return h + '<button class="pass-premcard" data-buy="pass"' + (live ? '' : ' aria-disabled="true"') + '>' +
+      '<i class="ppc-crown">' + CROWN + '</i>' +
+      '<span class="ppc-tx"><b>프리미엄 패스</b><small>단계마다 보상 하나 더</small><small>30단계 ' + ic('pick') + ' 전설 선택권</small></span>' +
+      '<span class="ppc-price"><b>' + won(p.krw) + '</b><small>' + (live ? (Pay.test ? '시험 구매' : '사기') : '출시 때 열려요') + '</small></span></button>';
+  }
   function drawPass() {
     var s = S(), day = ctx.day(), ps = M.passOf(s, day), se = M.seasonOf(s, day), tier = M.tierOf(ps.xp), can = M.claimable(s, day).length;
     var into = ps.xp - tier * M.TIER_XP, pct = tier >= M.TIERS ? 100 : Math.round(into / M.TIER_XP * 100);
-    var html = '<div class="pass-top"><div><span class="label">시즌 ' + se.no + ' · ' + se.left + '일 남음</span><b>' + tier + ' / ' + M.TIERS + '단계</b>' +
-      '<div class="ach-bar"><i style="width:' + pct + '%"></i></div><small class="muted">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '다음 단계까지 ' + (M.TIER_XP - into) + 'XP · 출동마다 10~40XP, 특별 출동 메달 +30') + '</small></div></div>' +
-      '<div class="pass-acts"><button class="primary" id="pass-claim"' + (can ? '' : ' disabled') + '>' + (can ? '받을 보상 ' + can + '개 모두 받기' : '받을 보상이 없어요') + '</button>' +
-      (ps.premium ? '<span class="pass-prem on">프리미엄 열림</span>' : payBtn('pass', '프리미엄 ' + won(M.BY_ID.pass.krw))) + '</div>' +
-      '<div class="pass-grid"><span class="pass-h"></span><span class="pass-h">무료</span><span class="pass-h prem">프리미엄</span>';
+    var html = '<div class="pass-hero' + (ps.premium ? ' prem' : '') + '">' +
+      '<div class="ph-medal"><small>단계</small><b>' + tier + '</b><i>/ ' + M.TIERS + '</i></div>' +
+      '<div class="ph-main"><span class="ph-season">시즌 ' + se.no + (ps.premium ? ' · <em>프리미엄</em>' : '') + '</span>' +
+      '<span class="ph-left">' + se.left + '일 남음</span>' +
+      '<div class="ph-bar"><i style="width:' + pct + '%"></i><span>' + (tier >= M.TIERS ? '완료' : into + ' / ' + M.TIER_XP + ' XP') + '</span></div></div></div>' +
+      '<p class="ph-how">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '출동마다 10~40XP · 특별 출동 메달 +30XP') + '</p>' +
+      passActs(ps, tier, into, can) +
+      '<div class="pass-grid"><span class="pass-h"></span><span class="pass-h">무료</span><span class="pass-h prem">★ 프리미엄</span>';
     for (var t = 1; t <= M.TIERS; t++) {
-      var open = t <= tier;
-      var cell = function (track, got, locked) {
-        var r = M.reward(track, t);
-        return '<span class="pass-c ' + track + (got ? ' got' : open && !locked ? ' ready' : '') + '">' + (got ? '✓ ' : '') + rewardText(r) + '</span>';
-      };
-      html += '<span class="pass-t' + (open ? ' open' : '') + '">' + t + '</span>' + cell('free', ps.free[t], false) + cell('prem', ps.prem[t], !ps.premium);
+      var open = t <= tier, now = t === tier + 1 || (tier >= M.TIERS && t === M.TIERS);
+      html += '<span class="pass-t' + (open ? ' open' : '') + (now ? ' now' : '') + '">' + (now && tier < M.TIERS ? '<small>다음</small>' : '') + t + '</span>' +
+        passCell('free', t, open, ps.free[t], false) + passCell('prem', t, open, ps.prem[t], !ps.premium);
     }
     html += '</div><p class="muted" style="font-size:11.5px">프리미엄을 사면 이미 지난 단계의 프리미엄 보상도 모두 받아요. 30단계 프리미엄 보상 "전설 선택권"은 동물 창 도감에서 원하는 전설에 써요.</p>';
     $('pass-body').innerHTML = html;
@@ -10732,7 +10869,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
         '<div class="d-mid"><b class="d-name">' + x.name + '</b>' +
         '<div class="d-bar' + (fast ? ' fast' : '') + '"><i data-cyc="' + cyc + '"></i><span>' + (n ? '+' + fmtShort(x.pay * n * mult) + ' · ' + (cyc >= 1 ? cyc.toFixed(1) : cyc.toFixed(2)) + '초' : x.what) + '</span></div>' +
         '<small class="d-mile">' + (nm ? nm + '명까지 <em>' + (nm - n) + '명</em> · 채우면 속도 ×2' : '목표 모두 달성 · 속도 ×' + D.mileMult(n)) + '</small></div>' +
-        '<button class="buy d-buy' + (ok ? '' : ' short') + '" data-buy="' + x.id + '"' + (ok ? '' : ' disabled') + '>' + (ok ? '영입 ×' + q + '<small>' + fmtShort(c) + '</small>' : '부족<small>' + fmtShort(c) + '</small>') + '</button></div>';
+        '<button class="buy d-buy' + (ok ? '' : ' poor') + '" data-buy="' + x.id + '"' + (ok ? '' : ' disabled') + '>' + (ok ? '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>' : '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>') + '</button></div>';
     });
     box.innerHTML = html;
   }
@@ -11107,8 +11244,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     return '<div class="item cr-row' + (o.isNew ? ' cr-new' : '') + '" data-cr="' + o.kind + ':' + o.id + '"' + (o.tag ? ' data-tag="' + o.tag + '"' : '') + '>' +
       '<div class="ic cr-ic' + (o.card ? ' cr-card' : '') + '"' + (o.card ? ' style="--c:' + o.card + '"' : '') + '><span aria-hidden="true">' + o.icon + '</span></div>' +
       '<div class="tx"><b>' + o.name + (o.lvText ? ' ' + o.lvText : '') + '</b><small>' + o.sub + '</small>' + o.extra + '</div>' +
-      '<button class="buy' + (max ? ' max' : '') + '" data-crbuy="' + o.kind + ':' + o.id + '"' + (max || !ok ? ' disabled' : '') + ' aria-label="' + o.name + (max ? ' 다 올림' : ' ' + o.verb + ', ' + ctx.fmt(c)) + '">' +
-        (max ? '최고' : o.verb + ' ' + ctx.fmtShort(c)) + '</button>' +
+      '<button class="buy' + (max ? ' max' : ok ? '' : ' poor') + '" data-crbuy="' + o.kind + ':' + o.id + '"' + (max || !ok ? ' disabled' : '') + ' aria-label="' + o.name + (max ? ' 다 올림' : ' ' + o.verb + ', ' + ctx.fmt(c)) + '">' +
+        (max ? '<em>다 올렸어요</em><b>최고</b>' : '<em>' + o.verb + '</em><b class="cn">' + ctx.fmtShort(c) + '</b>') + '</button>' +
       '<span class="cr-eff">' + o.eff + '</span></div>';
   }
   function lockRow(o) {
@@ -11219,6 +11356,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     if (ORDER.indexOf(tab) < 0 || !$('t-' + tab)) return;
     var from = cur;
     if (tab !== from && ctx.CUI) { if (from === 'team') leaveSub(sub); if (from === 'run') ctx.CUI.seen('k'); }
+    // 0.8.3 팀 탭은 3팀이 첫 화면: 다른 큰 탭으로 나가면 3팀 칸으로 되돌려 둔다(다시 오면 3팀부터)
+    if (tab !== from && from === 'team') { setSub('team'); var tt = $('t-team'); if (tt) tt.scrollTop = 0; }
     if (tab !== from) {
       if (!opt.back) { hist = hist.filter(function (x) { return x !== from; }); hist.push(from); if (hist.length > 8) hist.shift(); }
       var dx = ORDER.indexOf(tab) > ORDER.indexOf(from) ? '14px' : '-14px';
@@ -11694,8 +11833,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
       var g = I.GEAR[k], lv = save.gear[k], max = g.costs.length, c = I.cost(save, k);
       return '<div class="item"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + GEAR_ICON[k] + '</svg></div>' +
         '<div class="tx"><b>' + g.name + (max > 1 ? ' ' + lv + '/' + max : '') + '</b><small>' + g.desc + '</small></div>' +
-        '<button class="buy' + (c == null ? ' max' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
-        ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '배치 완료' : fmt(c)) + '</button></div>';
+        '<button class="buy' + (c == null ? ' max' : save.money < c ? ' poor' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
+        ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '<em>배치 완료</em><b>최고</b>' : buyHTML('장착', c)) + '</button></div>';
     }).join('');
   }
 
@@ -11766,7 +11905,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
       var state = id === 'party' && on ? ' · 진행 중 ' + Math.ceil((save.partyUntil - t) / 60000) + '분' : id === 'night' && on ? ' · 대기 중' : '';
       var lock = id === 'night' && on;
       return '<div class="item"><div class="ic">' + icon(id) + '</div><div class="tx"><b>' + it.name + state + '</b><small>' + it.desc + '</small></div>' +
-        '<button class="buy" data-support="' + id + '"' + (lock || save.money < c ? ' disabled' : '') + '>' + (lock ? '준비됨' : fmtShort(c)) + '</button></div>';
+        '<button class="buy' + (lock ? ' max' : save.money < c ? ' poor' : '') + '" data-support="' + id + '"' + (lock || save.money < c ? ' disabled' : '') + '>' + (lock ? '<em>대기 중</em><b>준비됨</b>' : buyHTML('구입', c)) + '</button></div>';
     }).join('');
   }
 
@@ -11796,10 +11935,15 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     } catch (e) { UI.toast('무를 수 없어요: ' + e.message); }
   }
 
+  /* 0.8.3 구매 단추: 위 작은 글(영입 · 훈련 · 장착)과 아래 값 두 줄. 모자라면 값이 빨갛게(얼마 모자란지 aria 로) */
+  function buyHTML(word, c) { return c == null ? '<em>다 갖췄어요</em><b>최고</b>' : '<em>' + word + '</em><b class="cn">' + fmtShort(c) + '</b>'; }
   function setBuy(btn, c, word) {
     btn.classList.toggle('max', c == null);
     btn.disabled = c == null || save.money < c;
-    btn.textContent = c == null ? '최고 단계' : word + ' ' + fmtShort(c);
+    btn.classList.toggle('poor', c != null && save.money < c);
+    var h = buyHTML(word, c);
+    if (btn._bh !== h) { btn._bh = h; btn.innerHTML = h; }
+    btn.setAttribute('aria-label', c == null ? word + ' 최고 단계' : word + ' ' + fmt(c) + (save.money < c ? ', ' + fmt(c - save.money) + ' 모자람' : ''));
   }
 
   /* ---------- 안내 창 ---------- */

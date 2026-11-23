@@ -57,7 +57,7 @@
         '<div class="d-mid"><b class="d-name">' + x.name + '</b>' +
         '<div class="d-bar' + (fast ? ' fast' : '') + '"><i data-cyc="' + cyc + '"></i><span>' + (n ? '+' + fmtShort(x.pay * n * mult) + ' · ' + (cyc >= 1 ? cyc.toFixed(1) : cyc.toFixed(2)) + '초' : x.what) + '</span></div>' +
         '<small class="d-mile">' + (nm ? nm + '명까지 <em>' + (nm - n) + '명</em> · 채우면 속도 ×2' : '목표 모두 달성 · 속도 ×' + D.mileMult(n)) + '</small></div>' +
-        '<button class="buy d-buy' + (ok ? '' : ' short') + '" data-buy="' + x.id + '"' + (ok ? '' : ' disabled') + '>' + (ok ? '영입 ×' + q + '<small>' + fmtShort(c) + '</small>' : '부족<small>' + fmtShort(c) + '</small>') + '</button></div>';
+        '<button class="buy d-buy' + (ok ? '' : ' poor') + '" data-buy="' + x.id + '"' + (ok ? '' : ' disabled') + '>' + (ok ? '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>' : '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>') + '</button></div>';
     });
     box.innerHTML = html;
   }

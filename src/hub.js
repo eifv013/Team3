@@ -263,8 +263,8 @@
       var g = I.GEAR[k], lv = save.gear[k], max = g.costs.length, c = I.cost(save, k);
       return '<div class="item"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + GEAR_ICON[k] + '</svg></div>' +
         '<div class="tx"><b>' + g.name + (max > 1 ? ' ' + lv + '/' + max : '') + '</b><small>' + g.desc + '</small></div>' +
-        '<button class="buy' + (c == null ? ' max' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
-        ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '배치 완료' : fmt(c)) + '</button></div>';
+        '<button class="buy' + (c == null ? ' max' : save.money < c ? ' poor' : '') + '" data-gear="' + k + '"' + (c == null || save.money < c ? ' disabled' : '') +
+        ' aria-label="' + g.name + (c == null ? ' 배치 완료' : ' 사기, ' + fmt(c)) + '">' + (c == null ? '<em>배치 완료</em><b>최고</b>' : buyHTML('장착', c)) + '</button></div>';
     }).join('');
   }
 
@@ -335,7 +335,7 @@
       var state = id === 'party' && on ? ' · 진행 중 ' + Math.ceil((save.partyUntil - t) / 60000) + '분' : id === 'night' && on ? ' · 대기 중' : '';
       var lock = id === 'night' && on;
       return '<div class="item"><div class="ic">' + icon(id) + '</div><div class="tx"><b>' + it.name + state + '</b><small>' + it.desc + '</small></div>' +
-        '<button class="buy" data-support="' + id + '"' + (lock || save.money < c ? ' disabled' : '') + '>' + (lock ? '준비됨' : fmtShort(c)) + '</button></div>';
+        '<button class="buy' + (lock ? ' max' : save.money < c ? ' poor' : '') + '" data-support="' + id + '"' + (lock || save.money < c ? ' disabled' : '') + '>' + (lock ? '<em>대기 중</em><b>준비됨</b>' : buyHTML('구입', c)) + '</button></div>';
     }).join('');
   }
 
@@ -365,10 +365,15 @@
     } catch (e) { UI.toast('무를 수 없어요: ' + e.message); }
   }
 
+  /* 0.8.3 구매 단추: 위 작은 글(영입 · 훈련 · 장착)과 아래 값 두 줄. 모자라면 값이 빨갛게(얼마 모자란지 aria 로) */
+  function buyHTML(word, c) { return c == null ? '<em>다 갖췄어요</em><b>최고</b>' : '<em>' + word + '</em><b class="cn">' + fmtShort(c) + '</b>'; }
   function setBuy(btn, c, word) {
     btn.classList.toggle('max', c == null);
     btn.disabled = c == null || save.money < c;
-    btn.textContent = c == null ? '최고 단계' : word + ' ' + fmtShort(c);
+    btn.classList.toggle('poor', c != null && save.money < c);
+    var h = buyHTML(word, c);
+    if (btn._bh !== h) { btn._bh = h; btn.innerHTML = h; }
+    btn.setAttribute('aria-label', c == null ? word + ' 최고 단계' : word + ' ' + fmt(c) + (save.money < c ? ', ' + fmt(c - save.money) + ' 모자람' : ''));
   }
 
   /* ---------- 안내 창 ---------- */

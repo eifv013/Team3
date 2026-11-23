@@ -27,6 +27,8 @@
     if (ORDER.indexOf(tab) < 0 || !$('t-' + tab)) return;
     var from = cur;
     if (tab !== from && ctx.CUI) { if (from === 'team') leaveSub(sub); if (from === 'run') ctx.CUI.seen('k'); }
+    // 0.8.3 팀 탭은 3팀이 첫 화면: 다른 큰 탭으로 나가면 3팀 칸으로 되돌려 둔다(다시 오면 3팀부터)
+    if (tab !== from && from === 'team') { setSub('team'); var tt = $('t-team'); if (tt) tt.scrollTop = 0; }
     if (tab !== from) {
       if (!opt.back) { hist = hist.filter(function (x) { return x !== from; }); hist.push(from); if (hist.length > 8) hist.shift(); }
       var dx = ORDER.indexOf(tab) > ORDER.indexOf(from) ? '14px' : '-14px';

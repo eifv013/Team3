@@ -20,8 +20,8 @@
     return '<div class="item cr-row' + (o.isNew ? ' cr-new' : '') + '" data-cr="' + o.kind + ':' + o.id + '"' + (o.tag ? ' data-tag="' + o.tag + '"' : '') + '>' +
       '<div class="ic cr-ic' + (o.card ? ' cr-card' : '') + '"' + (o.card ? ' style="--c:' + o.card + '"' : '') + '><span aria-hidden="true">' + o.icon + '</span></div>' +
       '<div class="tx"><b>' + o.name + (o.lvText ? ' ' + o.lvText : '') + '</b><small>' + o.sub + '</small>' + o.extra + '</div>' +
-      '<button class="buy' + (max ? ' max' : '') + '" data-crbuy="' + o.kind + ':' + o.id + '"' + (max || !ok ? ' disabled' : '') + ' aria-label="' + o.name + (max ? ' 다 올림' : ' ' + o.verb + ', ' + ctx.fmt(c)) + '">' +
-        (max ? '최고' : o.verb + ' ' + ctx.fmtShort(c)) + '</button>' +
+      '<button class="buy' + (max ? ' max' : ok ? '' : ' poor') + '" data-crbuy="' + o.kind + ':' + o.id + '"' + (max || !ok ? ' disabled' : '') + ' aria-label="' + o.name + (max ? ' 다 올림' : ' ' + o.verb + ', ' + ctx.fmt(c)) + '">' +
+        (max ? '<em>다 올렸어요</em><b>최고</b>' : '<em>' + o.verb + '</em><b class="cn">' + ctx.fmtShort(c) + '</b>') + '</button>' +
       '<span class="cr-eff">' + o.eff + '</span></div>';
   }
   function lockRow(o) {

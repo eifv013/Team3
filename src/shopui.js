@@ -129,21 +129,54 @@
     if (r.treats) o.push(ic('treat') + r.treats);
     return o.join(' ');
   }
+  /* 0.8.3 시즌 패스: 위 메달 띠(단계 큰 숫자 · 남은 날 · 진척 막대) → 받기/프리미엄 → 단계 줄마다 무료 · 프리미엄 보상 칸.
+     칸 상태: 잠김(흐림) · 받을 수 있음(금빛 테두리 + 반짝) · 받음(✓ 도장) · 프리미엄 미구매(자물쇠). 지금 단계 줄엔 '지금' 표시 */
+  var LOCK = '<svg viewBox="0 0 24 24" width="14" height="14" aria-label="잠김"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="#FFD23F"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="#FFD23F" stroke-width="2.2" fill="none"/></svg>';
+  function passCell(track, t, open, got, locked) {
+    var r = M.reward(track, t), parts = [];
+    if (r.pick) parts.push([ic('pick'), '전설 선택권']);
+    if (r.tickets) parts.push([ic('ticket'), '×' + r.tickets]);
+    if (r.gems) parts.push([ic('gem'), '×' + r.gems]);
+    if (r.treats) parts.push([ic('treat'), '×' + r.treats]);
+    var head = parts[0] || ['', ''], rest = parts.slice(1).map(function (x) { return x[0] + x[1]; }).join(' ');
+    var st = got ? ' got' : !open ? ' wait' : locked ? ' lock' : ' ready';
+    return '<span class="pc ' + track + st + (r.pick ? ' pick' : '') + '"><i class="pc-ic">' + head[0] + '</i><span class="pc-tx"><b>' + head[1] + '</b>' + (rest ? '<small>' + rest + '</small>' : '') + '</span>' +
+      (got ? '<em class="pc-stamp">✓</em>' : locked ? '<em class="pc-lock">' + LOCK + '</em>' : '') + '</span>';
+  }
+  /* 0.8.3 받기 · 프리미엄 줄(다시 그림): 덩그러니 큰 단추 두 개 대신
+     받기 — 받을 게 있으면 금빛 큰 단추, 없으면 "다음 보상" 미리보기 띠(무엇을 · 몇 XP 뒤에)
+     프리미엄 — 한 줄 전체를 쓰는 광고 카드(왕관 · 무엇이 더 생기는지 · 값 알약). 샀으면 얇은 "열림" 띠 */
+  var CROWN = '<svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path d="M5 24l-2-13 7.5 6L16 6l5.5 11L29 11l-2 13z" fill="#FFD23F" stroke="#A87A10" stroke-width="1.6" stroke-linejoin="round"/><rect x="5" y="24" width="22" height="3.5" rx="1.5" fill="#E0A81C" stroke="#A87A10" stroke-width="1.2"/><circle cx="16" cy="16" r="2.2" fill="#E8473A"/><circle cx="9.5" cy="19" r="1.4" fill="#7FD3FF"/><circle cx="22.5" cy="19" r="1.4" fill="#7FD3FF"/></svg>';
+  function passActs(ps, tier, into, can) {
+    var h;
+    if (can) h = '<button class="pass-claim glow" id="pass-claim"><span class="pcl-n">' + can + '</span>받을 보상 모두 받기</button>';
+    else if (tier >= M.TIERS) h = '<button class="pass-next" id="pass-claim" disabled><span>모든 보상을 받았어요</span></button>';
+    else {
+      var nt = tier + 1, r = M.reward('free', nt), it = r.pick ? ic('pick') : r.tickets ? ic('ticket') + '×' + r.tickets : r.gems ? ic('gem') + '×' + r.gems : ic('treat') + '×' + r.treats;
+      h = '<button class="pass-next" id="pass-claim" disabled><small>다음 보상 · ' + nt + '단계</small><span class="pn-it">' + it + '</span><em>' + (M.TIER_XP - into) + 'XP 남음</em></button>';
+    }
+    if (ps.premium) return h + '<div class="pass-premon">' + CROWN + '<span><b>프리미엄 열림</b><small>단계마다 보상을 하나 더 받아요</small></span></div>';
+    var p = M.BY_ID.pass, live = Pay.available();
+    return h + '<button class="pass-premcard" data-buy="pass"' + (live ? '' : ' aria-disabled="true"') + '>' +
+      '<i class="ppc-crown">' + CROWN + '</i>' +
+      '<span class="ppc-tx"><b>프리미엄 패스</b><small>단계마다 보상 하나 더</small><small>30단계 ' + ic('pick') + ' 전설 선택권</small></span>' +
+      '<span class="ppc-price"><b>' + won(p.krw) + '</b><small>' + (live ? (Pay.test ? '시험 구매' : '사기') : '출시 때 열려요') + '</small></span></button>';
+  }
   function drawPass() {
     var s = S(), day = ctx.day(), ps = M.passOf(s, day), se = M.seasonOf(s, day), tier = M.tierOf(ps.xp), can = M.claimable(s, day).length;
     var into = ps.xp - tier * M.TIER_XP, pct = tier >= M.TIERS ? 100 : Math.round(into / M.TIER_XP * 100);
-    var html = '<div class="pass-top"><div><span class="label">시즌 ' + se.no + ' · ' + se.left + '일 남음</span><b>' + tier + ' / ' + M.TIERS + '단계</b>' +
-      '<div class="ach-bar"><i style="width:' + pct + '%"></i></div><small class="muted">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '다음 단계까지 ' + (M.TIER_XP - into) + 'XP · 출동마다 10~40XP, 특별 출동 메달 +30') + '</small></div></div>' +
-      '<div class="pass-acts"><button class="primary" id="pass-claim"' + (can ? '' : ' disabled') + '>' + (can ? '받을 보상 ' + can + '개 모두 받기' : '받을 보상이 없어요') + '</button>' +
-      (ps.premium ? '<span class="pass-prem on">프리미엄 열림</span>' : payBtn('pass', '프리미엄 ' + won(M.BY_ID.pass.krw))) + '</div>' +
-      '<div class="pass-grid"><span class="pass-h"></span><span class="pass-h">무료</span><span class="pass-h prem">프리미엄</span>';
+    var html = '<div class="pass-hero' + (ps.premium ? ' prem' : '') + '">' +
+      '<div class="ph-medal"><small>단계</small><b>' + tier + '</b><i>/ ' + M.TIERS + '</i></div>' +
+      '<div class="ph-main"><span class="ph-season">시즌 ' + se.no + (ps.premium ? ' · <em>프리미엄</em>' : '') + '</span>' +
+      '<span class="ph-left">' + se.left + '일 남음</span>' +
+      '<div class="ph-bar"><i style="width:' + pct + '%"></i><span>' + (tier >= M.TIERS ? '완료' : into + ' / ' + M.TIER_XP + ' XP') + '</span></div></div></div>' +
+      '<p class="ph-how">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '출동마다 10~40XP · 특별 출동 메달 +30XP') + '</p>' +
+      passActs(ps, tier, into, can) +
+      '<div class="pass-grid"><span class="pass-h"></span><span class="pass-h">무료</span><span class="pass-h prem">★ 프리미엄</span>';
     for (var t = 1; t <= M.TIERS; t++) {
-      var open = t <= tier;
-      var cell = function (track, got, locked) {
-        var r = M.reward(track, t);
-        return '<span class="pass-c ' + track + (got ? ' got' : open && !locked ? ' ready' : '') + '">' + (got ? '✓ ' : '') + rewardText(r) + '</span>';
-      };
-      html += '<span class="pass-t' + (open ? ' open' : '') + '">' + t + '</span>' + cell('free', ps.free[t], false) + cell('prem', ps.prem[t], !ps.premium);
+      var open = t <= tier, now = t === tier + 1 || (tier >= M.TIERS && t === M.TIERS);
+      html += '<span class="pass-t' + (open ? ' open' : '') + (now ? ' now' : '') + '">' + (now && tier < M.TIERS ? '<small>다음</small>' : '') + t + '</span>' +
+        passCell('free', t, open, ps.free[t], false) + passCell('prem', t, open, ps.prem[t], !ps.premium);
     }
     html += '</div><p class="muted" style="font-size:11.5px">프리미엄을 사면 이미 지난 단계의 프리미엄 보상도 모두 받아요. 30단계 프리미엄 보상 "전설 선택권"은 동물 창 도감에서 원하는 전설에 써요.</p>';
     $('pass-body').innerHTML = html;
