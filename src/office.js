@@ -35,8 +35,29 @@
       var i = parseInt(k, 10), t = o.cups[k];
       if (i >= 0 && i < DESKS && typeof t === 'number' && isFinite(t) && t > 0) cups[i] = t;
     });
-    save.office = { cell: int(o.cell, 0, 0, CELL_CAP), sent: int(o.sent, 0, 0, 1e12), cups: cups };
+    var names = {};   // 0.10.5 자리마다 형사 이름(바꾼 것만)
+    if (o.names && typeof o.names === 'object') Object.keys(o.names).forEach(function (k) {
+      var i = parseInt(k, 10), v = cleanName(o.names[k]);
+      if (i >= 0 && i < DESKS && v) names[i] = v;
+    });
+    save.office = { cell: int(o.cell, 0, 0, CELL_CAP), sent: int(o.sent, 0, 0, 1e12), cups: cups, names: names };
     return save.office;
+  }
+  /* 0.10.5 형사 이름: 기본은 자리마다 성 + "형사", 바꾸면 8자까지(무료) */
+  var NAME_MAX = 8, DEFAULT_NAMES = ['김 형사', '이 형사', '박 형사', '최 형사', '정 형사', '강 형사', '조 형사', '윤 형사'];
+  function cleanName(v) {
+    if (typeof v !== 'string') return '';
+    v = v.replace(/[\u0000-\u001F\u007F<>]/g, '').replace(/\s+/g, ' ').trim();
+    return Array.from(v).slice(0, NAME_MAX).join('');
+  }
+  function copName(save, i) { var o = O(save); return (o.names && o.names[i]) || DEFAULT_NAMES[i] || (i + 1) + '번 형사'; }
+  /** 이름 바꾸기. 빈 값이나 기본 이름이면 기본으로 되돌린다. 반환: 바뀐 이름 */
+  function renameCop(save, i, v) {
+    if (!(i >= 0 && i < DESKS)) throw OError('BAD_DESK', '없는 자리');
+    var o = O(save); if (!o.names) o.names = {};
+    v = cleanName(v);
+    if (!v || v === DEFAULT_NAMES[i]) delete o.names[i]; else o.names[i] = v;
+    return copName(save, i);
   }
   function O(save) { return save.office && typeof save.office.cell === 'number' ? save.office : clean(save); }
 
@@ -114,5 +135,5 @@
   }
 
   return { CELL_CAP: CELL_CAP, weather: weather, seasonOf: seasonOf, WEATHER_SLOT: WEATHER_SLOT, TRANSFER_MULT: TRANSFER_MULT, DESKS: DESKS, COFFEE_COOL: COFFEE_COOL,
-           clean: clean, addCatches: addCatches, isFull: isFull, transfer: transfer, deskCount: deskCount, coffeeLeft: coffeeLeft, coffee: coffee };
+           clean: clean, copName: copName, renameCop: renameCop, NAME_MAX: NAME_MAX, addCatches: addCatches, isFull: isFull, transfer: transfer, deskCount: deskCount, coffeeLeft: coffeeLeft, coffee: coffee };
 });

@@ -58,13 +58,13 @@
 
   // 광고 자리: 하루 한도(광고 없이 받기를 사면 +1). 무엇을 주는지는 화면 쪽이 정한다(뽑기권 · 2배 · 회식)
   var ADS = {
-    // 0.10.3 광고 보상은 한도 없이(광고가 주 수입). 본 횟수는 날마다 센다(임무 · 통계용)
-    ticket: { name: '뽑기권 1장', daily: Infinity },
+    // 0.10.5 한도 없이는 "출동 끝 수사비 2배"(과 자리 비움 보고 2배)만. 매점에서 받는 보상은 하루 한도
+    ticket: { name: '뽑기권 1장', daily: 5 },
     double: { name: '출동 수사비 2배', daily: Infinity },
-    party: { name: '팀 회식 무료', daily: Infinity },
-    treats: { name: '간식 15개', daily: Infinity },
-    gems: { name: '배지 ◆3', daily: Infinity },
-    clue: { name: '단서 1개', daily: Infinity },
+    party: { name: '팀 회식 무료', daily: 3 },
+    treats: { name: '간식 15개', daily: 5 },
+    gems: { name: '배지 ◆3', daily: 5 },
+    clue: { name: '단서 1개', daily: 3 },
     away: { name: '잠복 보고 수사비 2배', daily: Infinity }
   };
 

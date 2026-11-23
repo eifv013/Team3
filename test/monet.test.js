@@ -42,11 +42,15 @@ test('월정액: 30일, 이어 사면 늘어나고, 하루 보상은 하루 한 
   assert.deepEqual(M.perks(s, T0 + 61 * D), { freePulls: 0, capMin: 0, adFree: false, adFreeDays: 0 });
 });
 
-test('0.10.3 광고 자리: 한도 없이 받고, 오늘 본 횟수는 센다', () => {
+test('0.10.5 광고 자리: 출동 2배만 한도 없음, 매점 보상은 하루 한도', () => {
   const s = fresh(), d = '2026-11-22';
-  for (let i = 0; i < 50; i++) M.adUse(s, 'ticket', d);
-  assert.equal(M.adSeen(s, 'ticket', d), 50);
-  assert.equal(M.adLeft(s, 'clue', d), Infinity);
+  for (let i = 0; i < 50; i++) M.adUse(s, 'double', d);
+  assert.equal(M.adLeft(s, 'double', d), Infinity);
+  for (let i = 0; i < 5; i++) M.adUse(s, 'ticket', d);
+  assert.equal(M.adSeen(s, 'ticket', d), 5);
+  assert.throws(() => M.adUse(s, 'ticket', d), { code: 'NO_LEFT' });
+  assert.equal(M.adLeft(s, 'clue', d), 3);
+  assert.equal(M.adLeft(s, 'ticket', '2026-11-23'), 5);
   assert.equal(M.adSeen(s, 'ticket', '2026-11-23'), 0);
   assert.throws(() => M.adUse(s, 'zzz', d), { code: 'BAD_PLACE' });
 });

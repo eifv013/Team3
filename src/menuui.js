@@ -153,6 +153,7 @@
   }
 
   /* ---------- 매초 ---------- */
+  var seenDot = {};   // 0.10.5 이번 접속에서 확인한 탭 숫자(저장하지 않는다 → 다음 접속에 다시)
   function render() {
     if (!ctx || !$('h-nav')) return;
     var s = S();
@@ -163,8 +164,16 @@
     var ev = ctx.Ev, gain = ev ? ev.gainNow(s) : 0, lg = s.evid && s.evid.log && s.evid.log.length ? s.evid.log[s.evid.log.length - 1].gain : 0;
     var evGlow = gain >= 1 && (lg ? gain > lg : gain >= 3);
     var p = s.pets || {}, unpat = ctx.PT && p.eq && ctx.PT.bondOf(s, p.eq).last !== ctx.dayNow();
-    var np = (p.tickets || 0) + (unpat ? 1 : 0);
-    var dot = function (k, n, cls) { var b = document.querySelector('#h-nav [data-go="' + k + '"] em'); if (!b) return; b.hidden = !n; b.textContent = n > 99 ? '99+' : n; b.className = cls || ''; };
+    var fl0 = ctx.PT && ctx.PT.freeLeft ? ctx.PT.freeLeft(s, ctx.dayNow(), ctx.freeExtra ? ctx.freeExtra() : 0) : 0;
+    var np = (p.tickets || 0) + (unpat ? 1 : 0) + (fl0 > 0 ? 1 : 0);
+    /* 0.10.5 아래 탭 숫자: 그 탭을 한 번 열어 보면 이번 접속 동안은 숨긴다(그 뒤 새로 늘어날 때만 다시) */
+    var dot = function (k, n, cls) {
+      var b = document.querySelector('#h-nav [data-go="' + k + '"] em'); if (!b) return;
+      if (cur === k) seenDot[k] = n;
+      else if (seenDot[k] != null && n < seenDot[k]) seenDot[k] = n;   // 줄었으면 기준도 내려 둔다(다시 늘면 보이게)
+      var show = n > 0 && !(seenDot[k] != null && n <= seenDot[k]);
+      b.hidden = !show; b.textContent = n > 99 ? '99+' : n; b.className = cls || '';
+    };
     dot('team', nt, 'can'); dot('run', nr, 'can'); dot('pets', np, '');   // 0.8.2 출동 숫자는 살 수 있는 것만(특별 출동은 오늘 할 일에)
     var eb = document.querySelector('#h-nav [data-go="evid"]'); if (eb) eb.classList.toggle('glow', evGlow);
     // 작은 탭 숫자

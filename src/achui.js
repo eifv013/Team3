@@ -124,9 +124,15 @@
       }
       var t = e.target.closest('button[data-buy]');
       if (!t) return;
-      try { var tt = H.buy(S(), t.getAttribute('data-buy')); ctx.persist(); toast('칭호 「' + tt.title + '」를 샀어요'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } }
-      catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '살 수 없어요'); }
-      draw();
+      var bid = t.getAttribute('data-buy'), td = (H.SHOP || []).filter(function (z) { return z.id === bid; })[0];
+      var doIt = function () {
+        try { var tt = H.buy(S(), bid); ctx.persist(); toast('칭호 「' + tt.title + '」를 샀어요'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } }
+        catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '살 수 없어요'); }
+        draw();
+      };
+      if (!td || !ctx.UI.confirmBuy) { doIt(); return; }
+      if (S().gems < td.gems) { toast('배지가 모자라요 · ◆' + td.gems + ' 필요'); return; }
+      ctx.UI.confirmBuy({ title: '칭호 「' + td.title + '」를 살까요?', cost: ic('gem') + td.gems, onOk: doIt });
     });
     $('ach-sheet').addEventListener('change', function (e) {
       if (e.target.id !== 'ach-title') return;

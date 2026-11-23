@@ -69,7 +69,8 @@
     { id: 'bow', name: '분홍 리본', treats: 15, gems: 15 },
     { id: 'sunglasses', name: '선글라스', treats: 25, gems: 25 },
     { id: 'fedora', name: '탐정 중절모', treats: 30, gems: 30 },
-    { id: 'raincoat', name: '해무항 우비', treats: 40, gems: 40, need: 2 }
+    { id: 'raincoat', name: '해무항 선장 모자', treats: 40, gems: 40, need: 2 },   // 0.10.5 우비 → 선장 모자(저장 id 그대로)
+    { id: 'monocle', name: '면통실 외알 안경', treats: 50, gems: 50, need: 3 }      // 0.10.5 사건 3 의상
   ];
   var OUTFIT_BY = {};
   OUTFITS.forEach(function (o) { OUTFIT_BY[o.id] = o; });

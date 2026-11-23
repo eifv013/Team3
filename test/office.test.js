@@ -28,7 +28,7 @@ test('커피: 책상마다 5분에 한 번, 1명 수사비 + 유치장 1, 없는
 test('저장: 깨진 값은 바로잡고, idle 저장을 거쳐도 남는다', () => {
   const s = { office: { cell: 99, sent: -3, cups: { 0: T0, 9: T0, x: 1, 2: 'a' } } };
   O.clean(s);
-  assert.deepEqual(s.office, { cell: 20, sent: 0, cups: { 0: T0 } });
+  assert.deepEqual(s.office, { cell: 20, sent: 0, cups: { 0: T0 }, names: {} });
   const a = I.newSave(T0); O.clean(a); O.addCatches(a, 5);
   const b = I.load(I.serialize(a), T0).save; O.clean(b);
   assert.equal(b.office.cell, 5);
@@ -51,4 +51,17 @@ test('날씨: 계절 = 사건 진척, 20분 칸마다 바뀌고 같은 칸에선
   assert.ok(changes >= 5, '20분마다 자주 바뀐다: ' + changes);
   assert.equal(O.weather(new Date(base), 2, 0.1).fog, true);
   assert.equal(O.weather(new Date(2026, 3, 5, 22), 1, 0).time, 'night'); assert.equal(O.weather(new Date(2026, 3, 5, 18), 1, 0).time, 'dusk');
+});
+
+test('0.10.5 형사 이름: 기본 · 바꾸기 · 되돌리기 · 저장 정리', () => {
+  const s = {};
+  O.clean(s);
+  assert.equal(O.copName(s, 0), '김 형사');
+  assert.equal(O.renameCop(s, 0, '  <b>번개</b>형사님입니다  '), 'b번개/b형사님');
+  assert.equal(O.renameCop(s, 0, ''), '김 형사');
+  O.renameCop(s, 3, '독수리');
+  s.office.names[99] = '없는자리'; s.office.names[2] = 42;
+  O.clean(s);
+  assert.deepEqual(s.office.names, { 3: '독수리' });
+  assert.throws(() => O.renameCop(s, 9, 'x'), { code: 'BAD_DESK' });
 });

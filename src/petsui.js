@@ -51,7 +51,7 @@
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
       '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(' · ')) + '</small>' +
-        '<small class="pet-bond">♥ ' + bd.lv + '단계 · ' + (bd.last === today() ? '함께 ' + bd.days + '일 ✓' : '쓰다듬어 줘요') + '</small></div>' +
+        '<small class="pet-bond' + (bd.last === today() ? '' : ' need') + '">♥ ' + bd.lv + '단계 · ' + (bd.last === today() ? '함께 ' + bd.days + '일 ✓' : '그림을 눌러 쓰다듬어 줘요') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
       '<button class="buy" id="h-pet-open">파트너' + dot + '</button>';
   }
@@ -150,6 +150,7 @@
   }
   function close() {
     if (busy) return;
+    if (detailKey && !$('pets-detail').hidden) { detailKey = ''; naming = false; drawDetail(); return; }   // 0.10.5 뒤로가기: 팝업 먼저 닫기
     $('pets-sheet').hidden = true;
     ctx.render();
   }
@@ -227,6 +228,14 @@
    *   결과는 먼저 저장해 두고(P.pull → persist) 연출이 끝나면 창의 결과 칸에 요약을 남긴다.
    *   연출 도중 앱을 닫아도 뽑은 동물은 이미 들어가 있다.
    */
+  // 0.10.5 배지로 뽑을 때만 한 번 묻는다(무료 · 뽑기권은 바로)
+  function askPull(kind) {
+    var c = plan()[kind];
+    if (busy) return;
+    if (!c.ok || c.pay !== 'gems') { doPull(kind); return; }
+    var g = kind === 'one' ? P.COST.one : P.gemCost(c.n);
+    ctx.UI.confirmBuy({ title: '배지로 ' + c.n + '번 뽑을까요?', body: '뽑기권이 없어서 배지를 써요.', cost: ic('gem') + fmt(g), ok: '뽑기', onOk: function () { doPull(kind); } });
+  }
   function doPull(kind) {
     if (busy) return;
     var c = plan()[kind], r, n = c.n;
@@ -420,6 +429,7 @@
   function drawDetail() {
     var box = $('pets-detail'), x = P.parse(detailKey);
     box.hidden = !x;
+    var pb = $('pets-pop-back'); if (pb) pb.hidden = !x;   // 0.10.5 팝업 뒤 어둡게
     if (!x) { box.innerHTML = ''; return; }
     var p = pets(), sp = P.BY_ID[x.id], g = P.GRADE[x.g], st = p.own[detailKey] || 0, shown = st || 1;
     var own = P.describe(P.ownEffect(x.id, x.g, shown)), eq = P.describe(P.eqEffect(x.id, x.g, shown));
@@ -494,26 +504,35 @@
     naming = false;
     detailKey = k;
     drawDetail();
-    $('pets-sheet').querySelector('.sheet').scrollTop = 0;
+    var bx = $('pets-detail'); if (bx) bx.scrollTop = 0;   // 0.10.5 창은 그대로 두고 팝업만 띄운다
   }
 
   /* ---------- 연결 ---------- */
   function mount(c) {
     ctx = c;
     $('pets-x').addEventListener('click', close);
+    // 0.10.5 자세히 팝업은 창(.sheet) 밖, 어두운 바탕 위에 띄운다
+    $('pets-sheet').appendChild($('pets-pop-back')); $('pets-sheet').appendChild($('pets-detail'));
+    $('pets-pop-back').addEventListener('click', function (e) { e.stopPropagation(); detailKey = ''; naming = false; drawDetail(); });
     $('pets-sheet').addEventListener('click', function (e) {
       if (e.target === this) { close(); return; }
       var t = e.target.closest('button');
       if (!t) return;
-      if (t.id === 'pets-one') doPull('one');
-      else if (t.id === 'pets-ten') doPull('multi');
+      if (t.id === 'pets-one') askPull('one');
+      else if (t.id === 'pets-ten') askPull('multi');
       else if (t.getAttribute('data-tab')) { tab = t.getAttribute('data-tab'); detailKey = ''; draw(); }
       else if (t.classList.contains('pet-cell')) showDetail(t.getAttribute('data-k'));
       else if (t.id === 'pets-detail-x') { detailKey = ''; naming = false; drawDetail(); }
       else if (t.getAttribute('data-outfit')) {
-        try { var o = P.buyOutfit(S(), t.getAttribute('data-outfit'), t.getAttribute('data-pay')); ctx.persist(); toast(o.name + '을(를) 옷장에 넣었어요'); try { ctx.UI.sfx.coin(); } catch (e6) { /* 무시 */ } }
-        catch (e7) { toast(e7.code === 'NOT_ENOUGH' ? (t.getAttribute('data-pay') === 'gems' ? '배지가 모자라요' : '간식이 모자라요') : '살 수 없어요'); }
-        draw(); ctx.render();
+        // 0.10.5 의상도 사기 전에 묻는다
+        var oid = t.getAttribute('data-outfit'), opay = t.getAttribute('data-pay'), od = P.OUTFIT_BY ? P.OUTFIT_BY[oid] : P.OUTFITS.filter(function (z) { return z.id === oid; })[0];
+        var have = opay === 'gems' ? S().gems : pets().treats, need = od ? od[opay === 'gems' ? 'gems' : 'treats'] : 0;
+        if (have < need) { toast((opay === 'gems' ? '배지' : '간식') + '가 모자라요 · ' + need + '개 필요'); return; }
+        ctx.UI.confirmBuy({ title: (od ? od.name : '의상') + '을(를) 살까요?', body: '한 번 사면 모든 파트너가 함께 입을 수 있어요.', cost: ic(opay === 'gems' ? 'gem' : 'treat') + need, onOk: function () {
+          try { var o = P.buyOutfit(S(), oid, opay); ctx.persist(); toast(o.name + '을(를) 옷장에 넣었어요'); try { ctx.UI.sfx.coin(); } catch (e6) { /* 무시 */ } }
+          catch (e7) { toast(e7.code === 'NOT_ENOUGH' ? (opay === 'gems' ? '배지가 모자라요' : '간식이 모자라요') : '살 수 없어요'); }
+          draw(); ctx.render();
+        } });
       }
       else if (t.hasAttribute('data-wear')) {
         try { P.wear(S(), pets().eq, t.getAttribute('data-wear')); ctx.persist(); renderPartner(); } catch (e8) { toast('입힐 수 없어요'); }
@@ -534,8 +553,11 @@
       }
       else if (t.id === 'pets-name') startNaming();
       else if (t.id === 'pets-tags') {
-        try { root.SuspectsIdle.buyNameTags(S()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } toast('이름표 ' + root.SuspectsIdle.NAME_TAGS.n + '장을 샀어요'); } catch (e5) { toast('배지가 모자라요'); }
-        draw(); ctx.render();
+        var NT = root.SuspectsIdle.NAME_TAGS;
+        ctx.UI.confirmBuy({ title: '이름표 ' + NT.n + '장을 살까요?', body: '이름표 1장으로 파트너 · 경찰서 · 팀장 이름을 한 번 바꿔요.', cost: ic('gem') + NT.gems, onOk: function () {
+          try { root.SuspectsIdle.buyNameTags(S()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } toast('이름표 ' + NT.n + '장을 샀어요'); } catch (e5) { toast('배지가 모자라요'); }
+          draw(); ctx.render();
+        } });
       }
       else if (t.id === 'pets-name-ok') saveName();
       else if (t.id === 'pets-name-no') { naming = false; drawDetail(); }

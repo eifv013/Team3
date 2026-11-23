@@ -1129,6 +1129,30 @@
 
   /* ---------- 작은 알림 ---------- */
   var toastTimer = 0;
+  /*
+   * 0.10.5 배지·간식을 쓰기 전 확인창. 어떤 창이 열려 있어도 그 위에 뜬다(창 안 단추를 눌러 바로 사지는 일이 없게).
+   *   o = { title, body(HTML), cost(HTML · 예: ◆12), ok, onOk }
+   */
+  function confirmBuy(o) {
+    var host = $('toast').parentNode, el = document.createElement('div');
+    el.className = 'cf-back';
+    el.innerHTML = '<div class="cf-box" role="alertdialog" aria-modal="true"><b class="cf-t"></b><div class="cf-b"></div>' +
+      (o.cost ? '<div class="cf-cost">' + o.cost + '</div>' : '') +
+      '<div class="cf-acts"><button class="ghost" data-cf="no">취소</button><button class="primary" data-cf="ok"></button></div></div>';
+    el.querySelector('.cf-t').textContent = o.title || '살까요?';
+    el.querySelector('.cf-b').innerHTML = o.body || '';
+    el.querySelector('[data-cf="ok"]').textContent = o.ok || '사기';
+    var shut = function () { if (el.parentNode) el.parentNode.removeChild(el); };
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var b = e.target.closest('[data-cf]');
+      if (e.target === el || (b && b.getAttribute('data-cf') === 'no')) { shut(); return; }
+      if (b) { shut(); try { o.onOk && o.onOk(); } catch (err) { toast('살 수 없어요'); } }
+    });
+    host.appendChild(el);
+    try { el.querySelector('[data-cf="ok"]').focus(); } catch (e) { /* 무시 */ }
+    return shut;
+  }
   function toast(text) {
     var t = $('toast');
     t.textContent = text;
@@ -1545,7 +1569,7 @@
   if (FX) FX.setSound({ horn: function () { sfx.horn(); } });
   window.SuspectsUI = {
     hooks: hooks, show: show, back: back, startRun: startRun, goHome: goHome,
-    openTutorial: openTutorial, toast: toast, sfx: sfx, buzz: buzz, store: store, renderSound: renderSound, music: music,
+    openTutorial: openTutorial, toast: toast, confirmBuy: confirmBuy, sfx: sfx, buzz: buzz, store: store, renderSound: renderSound, music: music,
     openSettings: openSettings, closeSettings: closeSettings, openHelp: openHelp, closeHelp: closeHelp, settings: function () { return settings; },
     sheetOpen: sheetOpen, playing: playing,
     _peek: function () { return game; }   // 화면 시험용(지금 판 읽기). 게임 진행에는 쓰지 않는다

@@ -32,7 +32,9 @@
     buy: function (id, done) {
       var c = M.gemPrice(id), sv = S();
       if ((sv.gems || 0) < c) { toast('배지가 모자라요 · ◆' + fmt(c) + ' 필요'); done(false, 'NOT_ENOUGH'); return; }
-      sv.gems -= c; done(true);
+      // 0.10.5 사기 전에 한 번 묻는다
+      ctx.UI.confirmBuy({ title: M.BY_ID[id].name + '을(를) 살까요?', body: '가진 배지 ◆' + fmt(sv.gems) + ' → ◆' + fmt(sv.gems - c),
+        cost: ic('gem') + fmt(c), ok: '사기', onOk: function () { var s2 = S(); if ((s2.gems || 0) < c) { toast('배지가 모자라요'); return; } s2.gems -= c; done(true); } });
     }
   };
   var Pay = M.PAY_MODE === 'gems' ? GemPay : root.Team3Pay || {
@@ -63,8 +65,9 @@
   function watch(place, give) {
     var s = S(), day = ctx.day();
 
+    if (M.adLeft(s, place, day) < 1) { toast('오늘은 다 받았어요 · 내일 다시 받을 수 있어요'); return; }   // 0.10.5 광고를 보기 전에 막는다
     var go = function () {
-      try { M.adUse(S(), place, ctx.day()); } catch (e) { toast('받을 수 없어요'); return; }
+      try { M.adUse(S(), place, ctx.day()); } catch (e) { toast('오늘은 다 받았어요'); return; }
       if (root.Team3QuestUI) root.Team3QuestUI.track('ad', 1);
       give();
       ctx.persist(); ctx.render();
@@ -124,12 +127,12 @@
     } else if (s.shop.bought.wolf) html += '<div class="lim-done">🐺 백랑이 3팀에 있어요 · 파트너 탭에서 장착해요</div>';
     var adf = M.perks(s, t).adFree;
     html += '<span class="label">무료로 받기' + (adf ? ' · 광고 없이 바로' : ' · 짧은 광고를 보면') + '</span>';
-    // 0.10.3 광고 보상은 한도 없이 · 자리 여섯
+    // 0.10.5 매점 광고 보상은 하루 한도(오늘 n / 한도)
     [['ticket', '뽑기권 1장', '파트너 뽑기에 써요'], ['party', '팀 회식 무료', '30분 동안 팀이 2배로 일해요'], ['treats', '간식 15개', '★ 올리기 · 의상에 써요'],
      ['gems', '배지 ◆3', '뭐든 살 수 있어요'], ['clue', '단서 1개', '증거판에서 증거를 열어요']].forEach(function (a) {
-      var seen = M.adSeen(s, a[0], day);
-      html += '<div class="shop-row"><div class="shop-tx"><b>' + a[1] + '</b><small>' + a[2] + (seen ? ' · 오늘 ' + seen + '번 받음' : '') + '</small></div>' +
-        '<button class="ghost" data-ad="' + a[0] + '">' + (adf ? '받기' : '▶ 광고 보고 받기') + '</button></div>';
+      var seen = M.adSeen(s, a[0], day), lim = M.adLimit(s, a[0]), done = seen >= lim;
+      html += '<div class="shop-row' + (done ? ' off' : '') + '"><div class="shop-tx"><b>' + a[1] + '</b><small>' + a[2] + '</small><em class="ad-cnt">오늘 ' + seen + ' / ' + lim + '</em></div>' +
+        '<button class="ghost" data-ad="' + a[0] + '"' + (done ? ' disabled' : '') + '>' + (done ? '내일 다시' : adf ? '받기' : '▶ 광고 보고 받기') + '</button></div>';
     });
     // 0.10.4 유료 상품: 제목 · 받는 것(아이콘 칸) · 조건 한 줄 · 아래 전체 폭 단추 — 글을 점으로 이어 붙이지 않는다
     function chip(icn, txt) { return '<span class="pk-chip">' + (icn ? ic(icn) : '') + '<b>' + txt + '</b></span>'; }
@@ -141,6 +144,8 @@
     var st = M.starterLeft(s, t);
     if (st > 0) html += '<span class="label">처음 시작하는 팀장님께</span>' + card({ cls: 'hot', tag: st === Infinity ? '정식 출시 전까지' : hoursLeft(st) + ' 남음', name: '새내기 지원 꾸러미',
       line: '한 사람당 한 번 · 가장 싼 꾸러미', chips: [chip('ticket', '뽑기권 10장'), chip('gem', '배지 100'), chip('', '😎 선글라스')], btn: payBtn('starter') });
+    if (M.visible(s, 'legendpack', t)) html += '<span class="label">한 번만 · 전설 확정</span>' + card({ cls: 'lp', tag: '한 사람당 한 번', name: '전설 확정 꾸러미',
+      line: '원하는 전설 파트너를 하나 골라 데려와요', chips: [chip('pick', '전설 선택권 1'), chip('ticket', '뽑기권 10장'), chip('gem', '배지 100')], note: '고른 전설은 코드네임 모습이 바로 열려요', btn: payBtn('legendpack') });
     var sub = M.BY_ID.sub30, on = M.subActive(s, t);
     html += '<span class="label">꾸준히 하는 팀장님께</span>' + card({ cls: on ? 'on' : '', tag: on ? M.subDaysLeft(s, t) + '일 남음' : '30일', name: '3팀 월정액',
       line: '사면 바로 배지 100, 그 뒤 30일 동안 매일', chips: [chip('gem', '바로 100'), chip('gem', '매일 ' + M.SUB.dailyGems), chip('ticket', '매일 무료 뽑기 +1'), chip('', '⏱ 자리 비움 +2시간')],
@@ -148,8 +153,6 @@
     var afd = M.perks(s, t).adFreeDays;
     if (!s.shop.adFree) html += card({ cls: afd ? 'on' : '', tag: afd ? afd + '일 남음' : '30일', name: '광고 없이 받기',
       line: '30일 동안 광고 보상을 광고 없이 바로', chips: [chip('', '▶ 광고 건너뛰기'), chip('', '무료 보상 · 2배 받기 전부')], btn: payBtn('adfree', afd ? '연장 ' + priceLabel('adfree') : null) });
-    if (M.visible(s, 'legendpack', t)) html += '<span class="label">한 번만 · 전설 확정</span>' + card({ cls: 'lp', tag: '한 사람당 한 번', name: '전설 확정 꾸러미',
-      line: '원하는 전설 파트너를 하나 골라 데려와요', chips: [chip('pick', '전설 선택권 1'), chip('ticket', '뽑기권 10장'), chip('gem', '배지 100')], note: '고른 전설은 코드네임 모습이 바로 열려요', btn: payBtn('legendpack') });
     // 배지
     if (!Pay.gems) html += '<span class="label">배지</span><div class="shop-gems">' + M.PRODUCTS.filter(function (p) { return p.kind === 'gems'; }).map(function (p) {
       return '<div class="shop-gem"><b>' + esc(p.desc) + '</b><small>' + esc(p.name) + '</small>' + payBtn(p.id) + '</div>';
@@ -208,7 +211,7 @@
   /** 남은 날 글자: 정식 출시 전에는 시즌이 끝나지 않는다(무한) */
   function leftTxt(n) { return n === Infinity ? '정식 출시 전까지' : n + '일 남음'; }
   function premFx(on, left) {
-    var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '하루 한 번 무료 재도전'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장 · 왕관 팀 이름'], ['30단계 뒤', '100XP마다 뽑기권 1 · ◆10 계속']];
+    var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '보상 받은 뒤 한 판 더 · ◆5 대신 무료(하루 1번)'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장 · 왕관 팀 이름'], ['30단계 뒤', '100XP마다 뽑기권 1 · ◆10 계속'], ['유치장', '꽉 차면 자동 이송']];
     return '<div class="pass-fx' + (on ? '' : ' off') + '"><b>👑 프리미엄 효과 · ' + (on ? '켜짐 · ' + leftTxt(left) : left === Infinity ? '사면 정식 출시 전까지 켜져요' : '사면 이번 시즌 동안 켜져요') + '</b>' + rows.map(function (r) { return '<div><span>' + r[0] + '</span><em>' + (on ? '' : '🔒 ') + r[1] + '</em></div>'; }).join('') + '</div>';
   }
   function drawPass() {

@@ -281,6 +281,8 @@
     $('h-train').textContent = save.training;
     setBuy($('h-trainb'), I.cost(save, 'train'), '훈련');
 
+    var gbn = (PT && save.pets && save.pets.eq ? PT.bonus(save, { caseNo: save.caseNo, hour: new Date().getHours() }) : null) || {};
+    petOn('h-gear-pet', [['장비 값 −' + Math.min(50, Math.round((gbn.gear || 0) * 10) / 10) + '%', (gbn.gear || 0) > 0]]);
     $('h-gear').innerHTML = I.gearFor(save).map(function (k) {   // 0.2.0: 이 사건에서 쓰는 장비만
       var g = I.GEAR[k], lv = save.gear[k], max = g.costs.length, c = I.cost(save, k);
       return '<div class="item"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + GEAR_ICON[k] + '</svg></div>' +
@@ -327,7 +329,18 @@
       readOnly: true });
   }
 
+  /* 0.10.5 파트너 효과가 붙었는지 그 자리에서 보이게 */
+  function petOn(id, rows) {
+    var el = $(id); if (!el) return;
+    rows = rows.filter(function (r) { return r[1]; });
+    el.hidden = !rows.length;
+    el.innerHTML = rows.length ? '<em class="pet-on-t">🐾 파트너 효과 적용 중 <small>(장착 + 보유 합계)</small></em>' + rows.map(function (r) { return '<span>' + r[0] + '</span>'; }).join('') : '';
+  }
   function renderPrep(t) {
+    var pbn = (PT && save.pets && save.pets.eq ? PT.bonus(save, { caseNo: save.caseNo, hour: new Date().getHours() }) : null) || {};   // 파트너 몫만
+    var r1 = function (v) { return Math.round(v * 10) / 10; };
+    petOn('h-prep-pet', [['준비물 값 −' + Math.min(50, r1(pbn.prep || 0)) + '%', (pbn.prep || 0) > 0], ['출동 수사비 +' + r1(pbn.pay || 0) + '%', (pbn.pay || 0) > 0],
+      ['출동 시간 +' + Math.round(pbn.time || 0) + '초', (pbn.time || 0) > 0], ['오인 면제 ' + Math.round(pbn.shield || 0) + '번', (pbn.shield || 0) > 0]]);
     $('h-prep').innerHTML = E.PREP_IDS.map(function (id) {
       var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], on = E.owned(save, id, t), c = E.price(save, id, 'money');
       return '<button class="chip' + (on ? ' on' : '') + (!on && save.money < c ? ' poor' : '') + '" data-prep="' + id + '" aria-pressed="' + on + '" aria-label="' + it.name + ', ' + prepDesc(id) + (on ? ', 챙김(누르면 무르기)' : ', ' + fmt(c)) + '">' +
@@ -345,7 +358,11 @@
     var st = E.dailyStatus(save, dayNow()), r = st.rule, box = $('h-daily');
     $('h-daily-name').textContent = r.name;
     $('h-daily-desc').textContent = r.desc;
-    $('h-daily-goal').textContent = '동 ' + fmt(r.medals[0]) + ' · 은 ' + fmt(r.medals[1]) + ' · 금 ' + fmt(r.medals[2]) + (st.best ? ' · 오늘 최고 ' + fmt(st.best) : '');
+    // 0.10.5 메달 목표는 칸으로, 오늘 최고는 따로 한 줄(점으로 이어 붙이면 안 읽힌다)
+    var MC = ['#D08A4E', '#C4CAD6', '#F2C230'];
+    $('h-daily-goal').innerHTML = ['동', '은', '금'].map(function (nm, i) {
+      return '<span class="dg-m' + (st.best >= r.medals[i] ? ' on' : '') + '" style="--mc:' + MC[i] + '"><i></i>' + nm + ' ' + fmt(r.medals[i]) + (st.best >= r.medals[i] ? ' ✓' : '') + '</span>';
+    }).join('') + (st.best ? '<span class="dg-best">오늘 최고<b>' + fmt(st.best) + '</b></span>' : '');
     box.classList.toggle('done', st.done);
     var b = $('h-daily-go');
     b.textContent = st.done ? (premRetry() ? '👑 무료 재도전' : '다시 ◆' + E.RETRY_GEMS) : '도전';
@@ -960,8 +977,12 @@
   $('info-body').addEventListener('click', function (e) {
     if (!e.target.closest('#pf-tags')) return;
     var keep = { station: $('pf-station').value, leader: $('pf-leader').value };
-    try { I.buyNameTags(save); persist(); render(); UI.sfx.coin(); UI.toast('이름표 ' + I.NAME_TAGS.n + '장을 샀어요'); } catch (err) { UI.toast('배지가 모자라요'); }
-    editProfile(keep);
+    if (save.gems < I.NAME_TAGS.gems) { UI.toast('배지가 모자라요 · ◆' + I.NAME_TAGS.gems + ' 필요'); return; }
+    UI.confirmBuy({ title: '이름표 ' + I.NAME_TAGS.n + '장을 살까요?', body: '이름표 1장으로 경찰서 · 팀장 · 파트너 이름을 한 번 바꿔요.',
+      cost: (window.Team3Icons ? window.Team3Icons.icon('gem') : '◆') + I.NAME_TAGS.gems, onOk: function () {
+        try { I.buyNameTags(save); persist(); render(); UI.sfx.coin(); UI.toast('이름표 ' + I.NAME_TAGS.n + '장을 샀어요'); } catch (err) { UI.toast('배지가 모자라요'); }
+        editProfile(keep);
+      } });
   });
   $('h-hire').addEventListener('click', function () { tryBuy('hire'); });
   $('h-trainb').addEventListener('click', function () { tryBuy('train'); });
@@ -1171,7 +1192,7 @@
     showTab: function (t) { if (MUI) MUI.go(t); },
     incomePerSec: function (sv) { return I.incomePerMin(sv, nowMs()) / 60 + (Dp ? Dp.perSec(sv, deptMult(sv)) : 0); },
     onRetreat: function () { applyTheme(); if (PUI) PUI.renderPartner(); } });
-  if (OUI) OUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, idle: I, pets: PT, art: window.Team3PetArt, petsUI: PUI,
+  if (OUI) OUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, idle: I, pets: PT, art: window.Team3PetArt, petsUI: PUI, openInfo: openInfo, dayNow: dayNow,
     progress: function () { return I.progress(save); }, capped: function () { return I.idleCapped(save); }, buffed: function (t) { return I.buffed(save, t); } });
   if (DUI) DUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI });
   // 0.8.0 아래 메뉴(탭 · 뒤로 · 밀기 · 메뉴 숫자 · 오늘 할 일 · 추천 · 출동 기록 · 파트너 탭)

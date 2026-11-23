@@ -77,11 +77,11 @@ def main():
         need(pg.locator('.ad-stub').count() == 1, '매점: 광고 자리(시험판)가 안 뜸')
         pg.clock.run_for(3500)
         need(pg.locator('.ad-stub').count() == 0, '매점: 광고 자리가 안 닫힘')
-        need('1번 받음' in pg.text_content('#shop-body'), '매점: 광고 받은 횟수가 안 보임')
+        need('오늘 1 / 5' in pg.text_content('#shop-body'), '매점: 광고 받은 횟수가 안 보임')
         need(t0 != pg.text_content('#shop-wallet'), '매점: 뽑기권이 늘지 않음')
         # 0.9.0 정식 출시 전: 결제 상품은 배지로 산다 → 한정 늑대를 배지로 데려오기
         g0 = pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}')).gems")
-        pg.click('[data-buy=wolf]'); pg.clock.run_for(500)
+        pg.click('[data-buy=wolf]'); pg.clock.run_for(300); pg.click('.cf-back [data-cf=ok]'); pg.clock.run_for(500)   # 0.10.5 사기 전 확인창
         sv = pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}'))")
         need(sv['gems'] == g0 - 99 and sv['pets']['own'].get('wolf:l') == 5, f"매점: 배지로 한정 늑대 사기 실패 ({g0} → {sv['gems']}, {sv['pets']['own'].get('wolf:l')})")
         need(pg.locator('.lim-card').count() == 0, '매점: 산 뒤에도 한정 칸이 남음')
@@ -118,7 +118,8 @@ def main():
                 break
             n = int(m.group(1))
             need(2 <= n <= 50, f'뽑기: 여러 번 횟수가 범위 밖 ({n})')
-            pg.click('#pets-ten'); pg.clock.run_for(600)
+            pg.click('#pets-ten'); pg.clock.run_for(300)
+            if pg.locator('.cf-back').count(): pg.click('.cf-back [data-cf=ok]'); pg.clock.run_for(600)
             need(pg.locator('.gx-card').count() == n, f'뽑기: {n}회 연출 카드 수가 다름 ({pg.locator(".gx-card").count()})')
             if n > 10 and not shot_many:
                 shot_many = True
@@ -141,8 +142,11 @@ def main():
         pg.click('#pets-pick'); pg.clock.run_for(300)
         need(pg.locator('.pet-cell.have[data-k="panda:l"]').count() == 1, '도감: 전설 선택권으로 데려오지 못함')
         no_hscroll(pg, '도감')
+        need(pg.locator('#pets-detail').is_visible(), '도감: 자세히 팝업이 안 뜸')
+        pg.click('#pets-pop-back', position={'x': 10, 'y': 10}); pg.clock.run_for(200)   # 0.10.5 팝업 바깥을 누르면 닫힘
+        need(not pg.locator('#pets-detail').is_visible(), '도감: 팝업 바깥을 눌러도 안 닫힘')
         pg.click('#pets-tabs [data-tab=closet]'); pg.clock.run_for(200)
-        pg.click('[data-outfit=beanie][data-pay=treats]'); pg.clock.run_for(200)
+        pg.click('[data-outfit=beanie][data-pay=treats]'); pg.clock.run_for(200); pg.click('.cf-back [data-cf=ok]'); pg.clock.run_for(200)
         pg.click('[data-wear=beanie]'); pg.clock.run_for(200)
         need(pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}')).pets.wear['corgi:l']") == 'beanie', '의상: 사서 입히기가 저장되지 않음')
         pg.screenshot(path=SHOT + 's_closet.png')
@@ -180,7 +184,9 @@ def main():
         need(pg.locator('#h-office .of-desk:not(.empty)').count() == min(det, 8), '사무실: 책상 수가 형사 수와 다름')
         need(pg.locator('#of-cell').count() == 1 and pg.locator('#of-send').count() == 1, '사무실: 유치장 · 이송이 없음')
         m1 = money(pg)
-        pg.locator('#h-office .of-desk[data-i="0"]').dispatch_event('click'); pg.clock.run_for(600)
+        pg.locator('#h-office .of-desk[data-i="0"]').dispatch_event('click'); pg.clock.run_for(300)
+        need(pg.locator('#info-sheet').is_visible() and pg.locator('#of-nm').count() == 1, '사무실: 형사를 눌러도 이름 창이 안 뜸')   # 0.10.5
+        pg.click('#info-ok'); pg.clock.run_for(600)
         pg.evaluate("() => Team3Save()")
         need(money(pg) > m1, '사무실: 커피를 눌러도 수사비가 안 늘어남')
         no_hscroll(pg, '사무실')

@@ -199,7 +199,7 @@
     html += '<div class="of-desks" id="of-desks">';
     order.forEach(function (i) {
       var p = SEATS[i], on = i < n;
-      html += '<button class="of-desk' + (on ? '' : ' empty') + (p.s < 0.7 ? ' far' : p.s < 0.9 ? ' mid' : '') + '" data-i="' + i + '" style="left:' + p.x + '%;top:' + p.y + '%;--s:' + p.s + '" ' + (on ? 'aria-label="' + (i + 1) + '번 자리 형사에게 커피"' : 'tabindex="-1" aria-hidden="true"') + '>' +
+      html += '<button class="of-desk' + (on ? '' : ' empty') + (p.s < 0.7 ? ' far' : p.s < 0.9 ? ' mid' : '') + '" data-i="' + i + '" style="left:' + p.x + '%;top:' + p.y + '%;--s:' + p.s + '" ' + (on ? 'aria-label="' + esc(OF.copName(s, i)) + ' · 이름과 커피"' : 'tabindex="-1" aria-hidden="true"') + '>' +
         '<span class="of-pool" aria-hidden="true"></span><span class="of-mons">' + monitors(i) + '</span>' +
         (on ? '<span class="of-cop">' + opBack(i) + '</span><svg class="of-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle class="f" cx="12" cy="12" r="9" id="of-r' + i + '"/></svg><span class="of-cup" id="of-cup' + i + '" aria-hidden="true"></span>' : '<span class="of-chair"></span>') +
         '</button>';
@@ -261,14 +261,18 @@
     b.classList.toggle('ready', full);
     $('of-send-t').textContent = full ? '이송!' : '이송';
     $('of-send-s').textContent = o.cell ? '+' + fmt(o.cell * pay * OF.TRANSFER_MULT) : '비었어요';
+    // 0.10.5 프리미엄 패스: 유치장이 꽉 차면 호송차가 알아서 온다
+    var MO = root.Team3Monet;
+    if (full && !autoSending && MO && ctx.dayNow && S().shop && MO.premOn(S(), ctx.dayNow())) { autoSending = true; later(function () { autoSending = false; send(true); }, 600); }
   }
-  function send() {
+  var autoSending = false;
+  function send(auto) {
     var s = S(), r;
     try { r = OF.transfer(s, ctx.idle.payPerCatch(s)); } catch (e) { return; }
     if (root.Team3Evidence) root.Team3Evidence.earn(s, r.bonus);   // 0.7.0 번 수사비(재수사 단서)
     ctx.persist();
     var v = $('of-van'); v.classList.remove('go'); void v.offsetWidth; v.classList.add('go');
-    $('of-tick').textContent = '호송차 출발 · ' + r.n + '명 이송';
+    $('of-tick').textContent = (auto ? '👑 자동 이송 · ' : '호송차 출발 · ') + r.n + '명 이송';
     try { ctx.UI.sfx.coin(); } catch (e) { /* 무시 */ }
     ctx.UI.buzz([10, 30, 10]);
     later(function () { cell(); burst(rel($('of-send')), '+' + fmt(r.bonus), true); ctx.render(); }, 700);
@@ -310,6 +314,27 @@
   }
 
   /* ---------- 커피 ---------- */
+  /* 0.10.5 형사를 누르면: 이름 · 이름 바꾸기(무료) · 커피 주기 */
+  function copPop(i) {
+    var s = S(), left = Math.ceil(OF.coffeeLeft(s, i, Date.now()));
+    if (!ctx.openInfo) { coffee(i); return; }
+    var nm = OF.copName(s, i);
+    ctx.openInfo({ label: (i + 1) + '번 자리 · 3팀 형사', title: nm,
+      body: '<div class="of-pop"><label class="of-pop-l">이름 바꾸기 <small>(무료 · ' + OF.NAME_MAX + '자까지)</small></label>' +
+        '<div class="of-pop-r"><input id="of-nm" maxlength="' + (OF.NAME_MAX * 2) + '" autocomplete="off"><button class="ghost" id="of-nm-ok" data-i="' + i + '">저장</button></div>' +
+        '<p class="muted" style="font-size:13px">' + (left > 0 ? '☕ 커피는 ' + (left >= 60 ? Math.ceil(left / 60) + '분' : left + '초') + ' 뒤에 줄 수 있어요' : '☕ 커피를 주면 바로 1명을 더 잡아 유치장에 넣어요') + '</p></div>',
+      ok: left > 0 ? '확인' : '☕ 커피 주기', cancel: left > 0 ? null : '닫기',
+      onOk: function () { if (left <= 0) coffee(i); } });
+    var inp = $('of-nm'); if (inp) inp.value = nm;
+  }
+  function saveCopName(i) {
+    var inp = $('of-nm'); if (!inp) return;
+    var v = OF.renameCop(S(), i, inp.value);
+    ctx.persist();
+    var tt = $('info-title'); if (tt) tt.textContent = v;
+    inp.value = v;
+    try { ctx.UI.toast('이름을 "' + v + '"(으)로 바꿨어요'); } catch (e) { /* 무시 */ }
+  }
   function coffee(i) {
     var s = S(), r, now = Date.now();
     try { r = OF.coffee(s, i, now, ctx.idle.payPerCatch(s)); if (root.Team3Evidence) root.Team3Evidence.earn(s, r.gain); }
@@ -504,11 +529,16 @@
     OF.clean(S());
     build();
     box.addEventListener('click', function (e) {
-      var d = e.target.closest('.of-desk'); if (d && !d.classList.contains('empty')) { coffee(+d.getAttribute('data-i')); return; }
+      var d = e.target.closest('.of-desk'); if (d && !d.classList.contains('empty')) { copPop(+d.getAttribute('data-i')); return; }
       if (e.target.closest('#of-send')) { send(); return; }
       if (e.target.closest('#of-pet')) { patPet(); return; }
     });
     box.addEventListener('pointerdown', function (e) { if (e.target.closest('#of-pet')) petDown(e); });
+    var ib = $('info-body');
+    if (ib) {
+      ib.addEventListener('click', function (e) { var b = e.target.closest('#of-nm-ok'); if (b) saveCopName(+b.getAttribute('data-i')); });
+      ib.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'of-nm') { var b = $('of-nm-ok'); if (b) saveCopName(+b.getAttribute('data-i')); } });
+    }
     box.addEventListener('pointermove', petMove);
     box.addEventListener('pointerup', petUp);
     box.addEventListener('pointercancel', petUp);

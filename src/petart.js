@@ -175,13 +175,24 @@
     s += '<circle cx="100" cy="2" r="11" fill="#F0525A" stroke="#9E2A33" stroke-width="3"/><circle cx="96" cy="-2" r="3.5" fill="#fff" opacity=".55"/>';
     return s + '</g>';
   }
+  // 0.10.5 해무항 선장 모자(예전 우비 모자 자리 · 저장 id 'raincoat' 그대로). 채우기는 모두 단색 — 그라디언트 id 가 없는 그림에서도 비지 않게
   function rainHat() {
-    var L = '#B8901C', s = '<g transform="rotate(-8 100 40)">';
-    s += '<path d="M66 50 C64 20 80 8 100 8 C120 8 136 20 134 50 Z" fill="url(#gCoat)" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
-    s += '<path d="M100 10 V46" stroke="#D9A51E" stroke-width="2.6" stroke-linecap="round"/>';
-    s += '<path d="M38 52 Q100 34 162 52 Q168 64 152 66 Q100 54 48 66 Q32 64 38 52 Z" fill="url(#gCoat)" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
-    s += '<path d="M70 44 Q100 52 130 44" stroke="' + L + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    var L = '#1D2740', s = '<g transform="rotate(-8 100 40)">';
+    s += '<path d="M62 46 C58 20 78 8 100 8 C122 8 142 20 138 46 Z" fill="#F4F6FA" stroke="' + L + '" stroke-width="3.5" stroke-linejoin="round"/>';
+    s += '<path d="M70 18 Q100 4 130 18" stroke="#D6DCE8" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    s += '<rect x="63" y="34" width="74" height="13" rx="3" fill="#22305A" stroke="' + L + '" stroke-width="3"/>';
+    s += '<path d="M64 47 Q100 66 136 47 Q132 58 100 62 Q68 58 64 47 Z" fill="#141A26" stroke="#0A0D14" stroke-width="3" stroke-linejoin="round"/>';
+    // 금색 닻 휘장
+    s += '<circle cx="100" cy="26" r="9" fill="#F2C230" stroke="#9A7310" stroke-width="2.4"/>';
+    s += '<path d="M100 20 V32 M95 23 H105 M95 29 Q100 34 105 29" stroke="#6B4E08" stroke-width="2.2" fill="none" stroke-linecap="round"/>';
     return s + '</g>';
+  }
+  // 0.10.5 사건 3 의상: 면통실 외알 안경(오른눈 · 금테 + 사슬). 눈높이(eyeY)에 붙어 모든 동물에 맞는다
+  function monocle(cx, ey) {
+    var x = cx + 28;
+    return '<g><circle cx="' + x + '" cy="' + ey + '" r="17" fill="#DCEBFF" fill-opacity=".35" stroke="#C9971C" stroke-width="4"/>' +
+      '<path d="M' + (x - 8) + ' ' + (ey - 8) + ' q5-4 10-2" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>' +
+      '<path d="M' + (x + 15) + ' ' + (ey + 8) + ' q14 22 2 46" stroke="#C9971C" stroke-width="2.4" fill="none" stroke-dasharray="3 3" stroke-linecap="round"/></g>';
   }
   function detectiveHat() {
     var L = '#24170F', s = '<g transform="rotate(-9 100 40)">';
@@ -204,6 +215,7 @@
     if (hat) s += hatT && hatT !== 'behind' ? '<g transform="' + hatT + '">' + hat + '</g>' : hat;
     if (o.outfit === 'glasses') s += glasses(100, eyeY, 28, 15);
     if (o.outfit === 'sunglasses') s += sunglasses(100, eyeY);
+    if (o.outfit === 'monocle') s += monocle(100, eyeY);
     if (o.outfit === 'mask') s += mask(100, maskY || eyeY + 14, 62);
     return wrap(o, s);
   }
