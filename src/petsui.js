@@ -305,15 +305,19 @@
       el.classList.add('cards');
       // 장수가 많아도 다 뒤집히는 데 2.6초 안쪽
       var cs = el.querySelectorAll('.gx-card'), step = n === 1 ? 0 : Math.min(170, Math.floor(2600 / n)), lead = n === 1 ? 250 : 450;
+      var at = [], tt = lead;
+      results.forEach(function (x, i) { if (i) tt += step; if (x.g === 'l') tt += n > 1 ? 450 : 250; at.push(tt); if (n > 1 && x.g === 'l') tt += 500; else if (n > 1 && x.g === 'h') tt += 220; });
       cs.forEach(function (cd, i) {
         later(function () {
           cd.classList.add('flip');
           var g = results[i].g;
           snd(function (s) { if (g === 'l' || g === 'h') s.none(); else s.pick(3 + (i % 5)); });
-          if (g === 'l') ctx.UI.buzz(40);
-        }, reduce ? 0 : lead + i * step + (results[i].g === 'l' ? 250 : 0));
+          if (g === 'l') ctx.UI.buzz([40, 40, 80]); else if (g === 'h') ctx.UI.buzz(25);
+          // 0.9.2 여러 번 뽑기: 영웅 · 전설 카드가 뒤집힐 때 화면도 번쩍(한 번 뽑기는 상자 연출로 이미 보여 준다)
+          if (n > 1 && (g === 'l' || g === 'h')) { el.classList.remove('hit-l', 'hit-h'); void el.offsetWidth; el.classList.add('hit-' + g); }
+        }, reduce ? 0 : at[i]);
       });
-      later(finish, reduce ? 0 : lead + (n - 1) * step + 700);
+      later(finish, reduce ? 0 : at[n - 1] + 700);
     }
     function finish() {
       clear(); phase = 'done';
@@ -386,21 +390,23 @@
     var html = '<div class="pet-sum"><span class="label">보유 효과 합계 (모은 동물 모두 · 늘 켜짐)</span><b>' + esc(ownSummary()) + '</b></div>' +
       '<div class="pet-sets"><span class="label">세트 보너스 · 한 종류 네 등급 = 그 종류 보유 효과 두 배 · 한 등급 ' + P.SPECIES.length + '종 = 아래 보너스</span><div>' + gs + '</div></div>' +
       '<div class="pet-dex-head"><span></span>' + P.GRADES.map(function (g) { return '<span style="color:' + P.GRADE[g].color + '">' + P.GRADE[g].name + '</span>'; }).join('') + '</div>';
-    P.SPECIES.forEach(function (sp) {
+    // 0.9.2 한정 파트너 줄은 맨 위(전설 칸 하나만 · 나머지 등급 칸은 "없음" 자리)
+    (P.LIMITED || []).forEach(function (sp) {
+      var k = P.key(sp.id, 'l'), st = p.own[k];
+      html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + ' · 한정</small></span>' +
+        '<span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span>' +
+        '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE.l.color + '" aria-label="한정 전설 ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
+        A.draw(sp.id, { grade: 'l' }) + (st ? '<i>' + st + '★</i>' : '') + '</button></div>';
+    });
+    // 0.9.2 새로 들어온 동물(since 가 큰 것)이 한정 줄 바로 아래 맨 위로
+    P.SPECIES.map(function (sp, i) { return { sp: sp, i: i }; }).sort(function (a, b) { return (b.sp.since || 0) - (a.sp.since || 0) || a.i - b.i; }).forEach(function (o) {
+      var sp = o.sp;
       html += '<div class="pet-dex-row"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + (st.species[sp.id] ? ' · <em class="set">세트×2</em>' : '') + '</small></span>' +
         P.GRADES.map(function (g) {
           var k = P.key(sp.id, g), st = p.own[k];
           return '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE[g].color + '" aria-label="' + P.GRADE[g].name + ' ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
             A.draw(sp.id, { grade: g }) + (st ? '<i>' + st + '★</i>' : '') + '</button>';
         }).join('') + '</div>';
-    });
-    // 0.9.0 한정 파트너 줄: 뽑기에 안 나오고 상점에서만 데려와요(전설 한 칸만)
-    (P.LIMITED || []).forEach(function (sp) {
-      var k = P.key(sp.id, 'l'), st = p.own[k];
-      html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>한정 · 상점</small></span>' +
-        '<span></span><span></span><span></span>' +
-        '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE.l.color + '" aria-label="한정 전설 ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
-        A.draw(sp.id, { grade: 'l' }) + (st ? '<i>' + st + '★</i>' : '') + '</button></div>';
     });
     $('pets-dex').innerHTML = html;
   }

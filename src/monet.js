@@ -184,8 +184,9 @@
   function reward(track, t) {
     // t: 1..TIERS
     if (track === 'free') return t % 5 === 0 ? { tickets: 2 } : t % 2 === 0 ? { treats: 10 } : { gems: 5 };
-    if (t === TIERS) return { pick: 'l', tickets: 5 };
-    return t % 10 === 0 ? { tickets: 5, gems: 30 } : t % 5 === 0 ? { tickets: 3 } : t % 2 === 0 ? { gems: 15 } : { tickets: 1, treats: 10 };
+    // 0.9.2 전설 선택권은 시즌 패스(기간 판매)에서 빼고, 뽑기권 5장 묶음도 줄였다(전설은 뽑기 · 천장으로)
+    if (t === TIERS) return { tickets: 3, gems: 50 };
+    return t % 10 === 0 ? { tickets: 3, gems: 30 } : t % 5 === 0 ? { tickets: 2 } : t % 2 === 0 ? { gems: 15 } : { tickets: 1, treats: 10 };
   }
   function passOf(save, day) {
     var s = S(save), se = seasonOf(save, day);   // 처음이면 오늘부터 시즌 1(예전 저장은 경험치 · 받은 보상을 그대로 시즌 1로 옮긴다)

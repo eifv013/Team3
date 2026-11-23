@@ -8,15 +8,15 @@ function seq(values) { let i = 0; return () => values[i++ % values.length]; }
 function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function fresh(gems = 0) { const s = { gems }; P.clean(s); return s; }
 
-test('30종 × 4등급, 등급 확률 합은 100%, 전설 3%(한 마리 0.1%) · 천장 80', () => {
+test('30종 × 4등급, 등급 확률 합은 100%, 전설 3%(한 마리 0.1%) · 천장 120', () => {
   assert.equal(P.SPECIES.length, 30);
   assert.equal(new Set(P.SPECIES.map(x => x.id)).size, 30);
   assert.equal(P.GRADES.reduce((a, g) => a + P.GRADE[g].pct, 0), 100);
-  assert.equal(P.GRADE.l.pct, 1); assert.equal(P.PITY, 80);
+  assert.equal(P.GRADE.l.pct, 1); assert.equal(P.PITY, 120);
   const r = P.rates();
   assert.equal(r.find(x => x.g === 'l').each, 0.033);
   assert.equal(r.find(x => x.g === 'c').each, 2.2);
-  assert.equal(P.effectiveLegend(), 1.8);
+  assert.equal(P.effectiveLegend(), 1.4);   // 0.9.2 천장 120
   // 그림 · 말이 30종 모두 있다
   const A = require('../src/petart.js');
   P.SPECIES.forEach(x => { assert.ok(A.ids.includes(x.id), x.id); assert.ok(P.TALK[x.id], x.id); });
@@ -156,7 +156,7 @@ test('상한: 할인·한도가 너무 커지지 않는다', () => {
 });
 
 test('clean: 깨진 저장은 버리고, 모르는 동물·범위 밖 값은 고친다', () => {
-  const s = { pets: { own: { 'corgi:c': 9, 'cat:c': 1, 'x': 2, 'tiger:l': -3 }, eq: 'cat:c', pity: 99, treats: -5, tickets: 'a', welcome: 1 } };
+  const s = { pets: { own: { 'corgi:c': 9, 'cat:c': 1, 'x': 2, 'tiger:l': -3 }, eq: 'cat:c', pity: 999, treats: -5, tickets: 'a', welcome: 1 } };
   const p = P.clean(s);
   assert.deepEqual(p.own, { 'corgi:c': 5, 'tiger:l': 1 });
   assert.equal(p.eq, '');

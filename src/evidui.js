@@ -128,7 +128,7 @@
      ??? 를 누르면 아래 정보 칸에 "단서 N 열기", 열린 증거를 누르면 효과 · 강화. 열면 붉은 실이 그려지며 이어진다.
      판은 한 번만 만들고(옮긴 자리 · 확대를 지키려고) 자리 상태만 다시 그린다. */
   var Z = { s: 0.95, x: 0, y: 0 }, built = false, fresh = {}, popId = null, zoomed = false;
-  var CASE_TITLE = '해무항 연쇄 실종', CASE_LINE = '3년 전 덮인 사건.<br>놓친 단서를 다시 잇는다.';
+  var CASE_TITLE = '3팀 수사 파일', CASE_LINE = '흩어진 사건 사이,<br>놓친 연결을 다시 잇는다.';   // 0.9.2 특정 사건(해무항) 이름을 빼고 모든 사건을 잇는 파일로
   var LOCK = ['', '재수사 2번', '사건 1 종결', '재수사 6번', '미제 출동 10번'];
   function lockText(t) { return ['', '재수사 2번', '사건 1 종결', '재수사 6번 또는 사건 2 종결', '미제 사건으로 출동 10번'][t]; }
   function strPath(a, b) { var A = Ev.NODE[a], B = Ev.NODE[b], mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2 + Math.min(40, Math.hypot(A.x - B.x, A.y - B.y) * 0.12); return 'M' + A.x + ' ' + (A.y - 30) + ' Q' + mx + ' ' + my + ' ' + B.x + ' ' + (B.y - 30); }
@@ -154,8 +154,9 @@
     if (k === 'core') return st === 'open' ? '<span class="ev-stamp">미제 · 재수사</span><b>' + CASE_TITLE + '</b><small>' + CASE_LINE + '</small>' : '<b class="q">???</b><small>첫 재수사를 하면 열려요</small>';
     var c = Ev.BY_ID[k], lv = s.evid.lv[k] || 1;
     if (st === 'open') return '<b>' + esc(c.name) + '</b><small>' + esc(Ev.shortText(c, lv)) + '</small>' + (lv > 1 ? '<em class="ev-lv">' + '★'.repeat(lv) + '</em>' : '') + (groupOf(k) > 1 ? '<span class="ev-x">×' + groupOf(k) + '</span>' : '');
-    if (st === 'can') return '<b class="q">???</b><small>🔍 ' + c.cost + '로 열기</small>';
-    if (st === 'lock') return '<b class="q">???</b><small>' + LOCK[c.tier] + '</small>';
+    // 0.9.2 실로 이어진(열 수 있거나 묶음 대기) 증거는 이름 · 효과를 보여 준다 — 무엇을 열지 보고 고르게. 안 이어진 것만 ???
+    if (st === 'can') return '<b>' + esc(c.name) + '</b><small>' + esc(Ev.shortText(c, 1)) + '</small><em class="ev-cost">🔍 ' + c.cost + '로 열기</em>';
+    if (st === 'lock') return '<b>' + esc(c.name) + '</b><small>' + esc(Ev.shortText(c, 1)) + '</small><em class="ev-cost lk">🔒 ' + LOCK[c.tier] + '</em>';
     return '<b class="q">???</b>';
   }
   var GM = {};
@@ -195,7 +196,7 @@
   function info() {
     var s = S(), box = $('ev-info'); if (!box) return;
     if (!sel) {
-      box.innerHTML = '<div class="tx"><b>' + (Ev.coreOpen(s) ? '반짝이는 ??? 를 눌러 보세요' : '아직 아무것도 몰라요') + '</b><small>' + (Ev.coreOpen(s) ? '열린 증거와 실로 이어진 칸만 단서로 열 수 있어요. 끌어서 움직이고, 두 손가락으로 확대해요.' : '재수사를 하면 놓쳤던 사건 파일이 판 가운데 붙어요.') + '</small></div>';
+      box.innerHTML = '<div class="tx"><b>' + (Ev.coreOpen(s) ? '반짝이는 증거를 눌러 보세요' : '아직 아무것도 몰라요') + '</b><small>' + (Ev.coreOpen(s) ? '열린 증거와 실로 이어진 칸만 단서로 열 수 있어요. 끌어서 움직이고, 두 손가락으로 확대해요.' : '재수사를 하면 놓쳤던 사건 파일이 판 가운데 붙어요.') + '</small></div>';
       return;
     }
     var st = Ev.state(s, sel);
@@ -208,14 +209,32 @@
       return;
     }
     if (st === 'can') {
-      box.innerHTML = '<div class="tx"><b>??? · 이어진 증거</b><small>' + col.name + ' 쪽 증거예요. 단서로 열면 붉은 실로 이어지고 바로 효과가 나요.</small></div>' +
+      box.innerHTML = '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + ' · 이어진 증거</b><small>' + esc(Ev.describe(c, 1)) + ' · 단서로 열면 붉은 실로 이어지고 바로 효과가 나요.</small></div>' +
         '<button class="ev-act" data-buyc="' + sel + '"' + (Ev.left(s) >= c.cost ? '' : ' disabled') + '><span>열기</span><b>🔍 ' + c.cost + '</b></button>';
       return;
     }
-    box.innerHTML = '<div class="tx"><b>???</b><small>' + (st === 'lock' ? lockText(c.tier) + '부터 열 수 있어요.' : '아직 이어진 증거가 없어요. 옆 증거를 먼저 열어요.') + '</small></div>';
+    box.innerHTML = st === 'lock' ? '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + '</b><small>' + esc(Ev.describe(c, 1)) + ' · ' + lockText(c.tier) + '부터 열 수 있어요.</small></div>'
+      : '<div class="tx"><b>???</b><small>아직 이어진 증거가 없어요. 실로 이어진 옆 증거를 먼저 열어요.</small></div>';
   }
   /* 끌기 · 확대 */
-  function apply() { var w = $('ev-world'); if (w) w.style.transform = 'translate(' + Z.x + 'px,' + Z.y + 'px) scale(' + Z.s + ')'; }
+  /* 0.9.2 판 밖으로 끝없이 끌려가지 않게 증거가 있는 범위(여유 90px) 안으로 묶는다 */
+  var BOX = null;
+  function box() {
+    if (BOX) return BOX;
+    var v = Object.keys(Ev.NODE).map(function (k) { return Ev.NODE[k]; });
+    BOX = { x0: Math.min.apply(null, v.map(function (a) { return a.x; })) - 90, x1: Math.max.apply(null, v.map(function (a) { return a.x; })) + 90,
+            y0: Math.min.apply(null, v.map(function (a) { return a.y; })) - 90, y1: Math.max.apply(null, v.map(function (a) { return a.y; })) + 90 };
+    return BOX;
+  }
+  function lim(v, size, a, b) {   // 한 축: 내용 [a,b]×s 가 화면 size 를 덮으면 끝이 화면 안쪽으로 못 들어오게, 작으면 가운데
+    var lo = size - b * Z.s, hi = -a * Z.s;
+    return lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, v));
+  }
+  function clamp() {
+    var vp = $('ev-vp'); if (!vp) return; var r = vp.getBoundingClientRect(); if (!r.width) return; var B = box();
+    Z.x = lim(Z.x, r.width, B.x0, B.x1); Z.y = lim(Z.y, r.height, B.y0, B.y1);
+  }
+  function apply() { clamp(); var w = $('ev-world'); if (w) w.style.transform = 'translate(' + Z.x + 'px,' + Z.y + 'px) scale(' + Z.s + ')'; }
   function center(s) { var vp = $('ev-vp'); if (!vp) return; var r = vp.getBoundingClientRect(); if (!r.width) return; Z.s = s || Z.s; Z.x = r.width / 2 - Ev.CX * Z.s; Z.y = r.height / 2 - Ev.CY * Z.s; apply(); zoomed = true; }
   function zoomAt(f, px, py) { var ns = Math.max(0.35, Math.min(2.2, Z.s * f)); Z.x = px - (px - Z.x) * ns / Z.s; Z.y = py - (py - Z.y) * ns / Z.s; Z.s = ns; apply(); }
   function bindPan() {
@@ -225,7 +244,13 @@
     vp.addEventListener('pointermove', function (e) {
       if (!pts[e.pointerId] || !start) return; pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       var ks = Object.keys(pts), r = vp.getBoundingClientRect();
-      if (ks.length === 1 && start.pts[ks[0]]) { var p0 = start.pts[ks[0]], dx = e.clientX - p0.x, dy = e.clientY - p0.y; if (Math.abs(dx) + Math.abs(dy) > 6) moved = true; Z.x = start.x + dx; Z.y = start.y + dy; apply(); }
+      if (ks.length === 1 && start.pts[ks[0]]) {
+        var p0 = start.pts[ks[0]], dx = e.clientX - p0.x, dy = e.clientY - p0.y; if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+        var want = start.y + dy; Z.x = start.x + dx; Z.y = want; apply();
+        // 0.9.2 판 위아래 끝에 닿은 뒤 더 끌면 그만큼 증거 탭을 스크롤(판 때문에 아래로 못 내려가던 것)
+        var over = want - Z.y, tab = $('t-evid');
+        if (tab) { tab.scrollTop -= (over - (start.over || 0)); start.over = over; }
+      }
       else if (ks.length >= 2 && start.pts[ks[0]] && start.pts[ks[1]]) {
         var a = pts[ks[0]], b = pts[ks[1]], a0 = start.pts[ks[0]], b0 = start.pts[ks[1]]; moved = true;
         var d0 = Math.hypot(a0.x - b0.x, a0.y - b0.y) || 1, d1 = Math.hypot(a.x - b.x, a.y - b.y), mx = (a0.x + b0.x) / 2 - r.left, my = (a0.y + b0.y) / 2 - r.top;

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!-- 시안: 파트너 전용 업적 · 칭호 — 팀장 칭호와 나누고, 파트너와 함께 한 일로만 파트너 칭호를 얻는다 -->
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>시안 · 파트너 칭호</title>
+<style>
+:root{--ink:#12151C;--panel:#1B1F28;--panel2:#252B36;--text:#EEF1F6;--muted:#8F98A8;--acc:#FFD23F;--ok:#7EE08F}
+*{box-sizing:border-box}body{margin:0;background:var(--ink);color:var(--text);font-family:'IBM Plex Sans KR',system-ui,sans-serif}
+.wrap{max-width:430px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.lab{font-size:12px;color:var(--muted);font-weight:700}h1{font-size:20px;margin:2px 0 0}
+.card{position:relative;background:radial-gradient(ellipse at 50% 70%,rgba(255,210,63,.22),transparent 60%),var(--panel);border-radius:18px;padding:14px;text-align:center}
+.card .pet{width:140px;margin:0 auto}
+.card .nm{font-weight:900;font-size:17px;color:#FFE58A}
+.card .ttl{display:inline-block;margin-bottom:4px;padding:3px 10px;border-radius:999px;background:linear-gradient(90deg,#7A4AD8,#B07CF0);font-size:12px;font-weight:900}
+.card .ttl:empty{display:none}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:#0E1117}
+.seg button{height:38px;border:0;border-radius:10px;background:none;color:var(--muted);font-weight:800;font-family:inherit}.seg button.on{background:var(--panel2);color:var(--text)}
+.ach{display:flex;flex-direction:column;gap:8px}
+.a{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;background:var(--panel);border-radius:14px;padding:12px}
+.a b{font-size:15px}.a small{font-size:12px;color:var(--muted)}
+.a .bar{grid-column:1/span 2;height:6px;border-radius:3px;background:#2A3140;overflow:hidden}.a .bar i{display:block;height:100%;background:linear-gradient(90deg,#7A4AD8,#B07CF0)}
+.a .r{font-size:12px;color:#C9B8FF;font-weight:800;text-align:right;white-space:nowrap}
+.a.done{box-shadow:inset 0 0 0 1.5px #B07CF0}
+.a button{height:40px;padding:0 14px;border:0;border-radius:10px;font-weight:900;font-family:inherit;background:linear-gradient(180deg,#E8D8FF,#B88CF5 55%,#8E5AE0);color:#1A0A2A}
+.grp{font-size:12px;color:var(--muted);font-weight:800;margin-top:6px}
+.tl{display:flex;flex-wrap:wrap;gap:6px}
+.tl button{height:34px;padding:0 12px;border-radius:999px;border:1.5px solid #3A4352;background:var(--panel);color:var(--text);font-weight:800;font-family:inherit}
+.tl button.on{border-color:#B07CF0;background:rgba(176,124,240,.18);color:#E3D6FF}
+.tl button:disabled{opacity:.35}
+.note{font-size:12px;color:var(--muted);line-height:1.65}
+</style></head><body>
+<div class="wrap">
+  <div><div class="lab">시안 · 파트너 칭호 따로</div><h1>파트너 업적</h1></div>
+  <div class="card"><div class="pet" id="pet"></div><span class="ttl" id="ttl"></span><div class="nm">전설 단서 ★★★★★</div></div>
+  <div class="seg"><button class="on" data-t="a">파트너 업적</button><button data-t="t">파트너 칭호 <span id="cnt"></span></button></div>
+  <div id="body"></div>
+  <p class="note">
+    · 팀장 칭호(업적 창)와 따로예요. 파트너 칭호는 파트너와 함께 한 일로만 얻어요.<br>
+    · 진행은 <b>지금 장착한 파트너</b> 기준으로 쌓여요(코기와 30번 출동 → 코기에게 「현장 단짝」). 칭호는 얻은 파트너에게만 붙어요.<br>
+    · 종별 칭호: 그 종을 ★5로 만들면 그 종만의 칭호가 열려요(예: 웰시코기 「골목 수색견」, 늑대 「백야의 사냥꾼」).<br>
+    · 시안이라 "+10번" 단추로 진행을 올려 볼 수 있어요.
+  </p>
+</div>
+<script src="../src/petart.js"></script>
+<script>
+var A=[
+ {id:'run30',grp:'함께 출동',name:'첫 단짝',desc:'이 파트너와 출동 30번',goal:30,k:'run',title:'현장 단짝'},
+ {id:'run150',grp:'함께 출동',name:'오래된 콤비',desc:'이 파트너와 출동 150번',goal:150,k:'run',title:'불꽃 콤비'},
+ {id:'catch500',grp:'함께 출동',name:'같이 잡은 사람들',desc:'이 파트너와 현장 검거 500명',goal:500,k:'catch',title:'검거 듀오'},
+ {id:'gold5',grp:'특별 출동',name:'금빛 발자국',desc:'이 파트너와 특별 출동 금메달 5번',goal:5,k:'gold',title:'금빛 파트너'},
+ {id:'bond5',grp:'친밀도',name:'마음을 연 날',desc:'친밀도 5단계',goal:5,k:'bond',title:'믿음직한'},
+ {id:'bond10',grp:'친밀도',name:'가족 같은',desc:'친밀도 10단계',goal:10,k:'bond',title:'3팀의 가족'},
+ {id:'star5',grp:'성장',name:'다섯 개의 별',desc:'이 파트너 ★5',goal:5,k:'star',title:'골목 수색견',species:true},
+ {id:'noir',grp:'성장',name:'또 다른 얼굴',desc:'코드네임 모습 켜기',goal:1,k:'noir',title:'코드네임 에코'}
+];
+var prog={run:12,catch:180,gold:1,bond:3,star:5,noir:1},claimed={},use='',tab='a';
+document.getElementById('pet').innerHTML=Team3PetArt.draw('corgi',{grade:'l'});
+function $(i){return document.getElementById(i)}
+function draw(){
+ $('ttl').textContent=use?'「'+use+'」':'';
+ var got=A.filter(function(a){return claimed[a.id]});
+ $('cnt').textContent=got.length?got.length:'';
+ document.querySelectorAll('.seg button').forEach(function(b){b.classList.toggle('on',b.dataset.t===tab)});
+ var h='';
+ if(tab==='a'){var g='';h='<div class="ach">';A.forEach(function(a){if(a.grp!==g){g=a.grp;h+='<div class="grp">'+g+'</div>'}var v=Math.min(a.goal,prog[a.k]),done=v>=a.goal;
+  h+='<div class="a'+(done?' done':'')+'"><div><b>'+a.name+'</b><br><small>'+a.desc+' · 칭호 「'+a.title+'」'+(a.species?' (웰시코기 전용)':'')+'</small></div>'+
+  (claimed[a.id]?'<span class="r">받음 ✓</span>':done?'<button data-c="'+a.id+'">받기</button>':'<span class="r">'+v+'/'+a.goal+'<br><button data-up="'+a.k+'" style="height:26px;padding:0 8px;font-size:11px;margin-top:4px">+10번</button></span>')+
+  '<div class="bar"><i style="width:'+(v/a.goal*100)+'%"></i></div></div>'});h+='</div>'}
+ else{h='<div class="grp">이 파트너가 얻은 칭호</div><div class="tl"><button data-u=""'+(use?'':' class="on"')+'>칭호 없음</button>'+A.map(function(a){return '<button data-u="'+a.title+'"'+(claimed[a.id]?'':' disabled')+(use===a.title?' class="on"':'')+'>'+a.title+'</button>'}).join('')+'</div>'}
+ $('body').innerHTML=h;
+}
+document.addEventListener('click',function(e){var t=e.target.closest('button');if(!t)return;
+ if(t.dataset.t){tab=t.dataset.t}
+ else if(t.dataset.c){claimed[t.dataset.c]=true;var a=A.filter(function(x){return x.id===t.dataset.c})[0];if(!use)use=a.title}
+ else if(t.dataset.up){prog[t.dataset.up]+=t.dataset.up==='catch'?100:10}
+ else if('u' in t.dataset){use=t.dataset.u}
+ draw()});
+draw();
+</script></body></html>

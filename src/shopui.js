@@ -191,7 +191,7 @@
     var missH = mk.length ? '<div class="pass-miss">지금 사면 바로 받아요 · ' + mk.map(function (k) { return k === 'pick' ? ic('pick') + '<b>전설 선택권</b>' : ic(k === 'tickets' ? 'ticket' : k === 'gems' ? 'gem' : 'treat') + '<b>×' + miss[k] + '</b>'; }).join(' ') + '</div>' : '';
     return h + missH + '<button class="pass-premcard' + (se.left <= 3 ? ' soon' : '') + '" data-buy="pass"' + (live ? '' : ' aria-disabled="true"') + '>' +
       '<i class="ppc-crown">' + CROWN + '</i>' +
-      '<span class="ppc-tx"><b>프리미엄 패스</b><small>단계마다 보상 하나 더</small><small>30단계 ' + ic('pick') + ' 전설 선택권</small></span>' +
+      '<span class="ppc-tx"><b>프리미엄 패스</b><small>단계마다 보상 하나 더</small><small>30단계 ' + ic('gem') + '50 · 뽑기권 3</small></span>' +
       '<span class="ppc-price"><b>' + priceLabel('pass') + '</b><small>' + (Pay.gems ? '배지로 사기' : live ? (Pay.test ? '시험 구매' : '사기') : '출시 때 열려요') + '</small></span></button>';
   }
   /* 프리미엄 효과 목록 — 산 사람은 켜짐, 안 산 사람은 자물쇠로 보여 준다 */
@@ -200,13 +200,6 @@
   function premFx(on, left) {
     var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '하루 한 번 무료 재도전'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장 · 왕관 팀 이름']];
     return '<div class="pass-fx' + (on ? '' : ' off') + '"><b>👑 프리미엄 효과 · ' + (on ? '켜짐 · ' + leftTxt(left) : left === Infinity ? '사면 정식 출시 전까지 켜져요' : '사면 이번 시즌 동안 켜져요') + '</b>' + rows.map(function (r) { return '<div><span>' + r[0] + '</span><em>' + (on ? '' : '🔒 ') + r[1] + '</em></div>'; }).join('') + '</div>';
-  }
-  /* 연출 3: 30단계 전설 선택권 — 고를 수 있는 전설 코드네임 미리보기 */
-  function pickPreview() {
-    var P = root.Team3Pets, N = root.Team3NoirArt; if (!P) return;
-    var body = '<p style="margin:0 0 8px;font-size:13px;color:#C9CFDA">30단계 프리미엄 보상으로 아래 전설 중 하나를 데려올 수 있어요. 전설은 코드네임 모습이 바로 열려요.</p><div class="pick-prev">' +
-      P.SPECIES.map(function (sp) { return '<div>' + (N ? N.draw(sp.id, { grade: 'l', size: 120 }) : '') + '<b>' + esc(P.codename(sp.id)) + '</b>' + esc(sp.name) + '</div>'; }).join('') + '</div>';
-    if (ctx.openInfo) ctx.openInfo({ label: '시즌 패스 · 30단계', title: '전설 선택권 미리보기', body: body });
   }
   function drawPass() {
     var s = S(), day = ctx.day(), ps = M.passOf(s, day), se = M.seasonOf(s, day), tier = M.tierOf(ps.xp), can = M.claimable(s, day).length;
@@ -224,7 +217,7 @@
       html += '<span class="pass-t' + (open ? ' open' : '') + (now ? ' now' : '') + '">' + (now && tier < M.TIERS ? '<small>다음</small>' : '') + t + '</span>' +
         passCell('free', t, open, ps.free[t], false) + passCell('prem', t, open, ps.prem[t], !ps.premium);
     }
-    html += '</div><p class="muted" style="font-size:11.5px">프리미엄을 사면 이미 지난 단계의 프리미엄 보상도 모두 받아요. 30단계 프리미엄 보상 "전설 선택권"은 동물 창 도감에서 원하는 전설에 써요.</p>';
+    html += '</div><p class="muted" style="font-size:11.5px">프리미엄을 사면 이미 지난 단계의 프리미엄 보상도 모두 받아요.</p>';
     $('pass-body').innerHTML = html;
   }
 
@@ -241,8 +234,6 @@
     $('shop-x').addEventListener('click', close);
     $('shop-sheet').addEventListener('click', function (e) {
       if (e.target === this) { close(); return; }
-      var pk = e.target.closest('#pass-body .pc.prem.pick');   // 30단계 전설 칸 → 미리보기
-      if (pk) { pickPreview(); return; }
       var t = e.target.closest('button');
       if (!t) return;
       if (t.getAttribute('data-tab')) { tab = t.getAttribute('data-tab'); draw(); }

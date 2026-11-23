@@ -72,8 +72,8 @@ test('시즌 패스: 경험치 · 단계 · 무료/프리미엄 · 산 뒤 지�
   assert.deepEqual(got.map(x => x.track + x.t), ['prem1', 'prem2', 'prem3']);
   M.addXp(s, d, 99999);
   got = M.claimPass(s, d, grantTo(s));
-  assert.ok(got.some(x => x.track === 'prem' && x.t === 30 && x.r.pick === 'l'));
-  assert.equal(s.pets.picks.l, 1);
+  assert.ok(got.some(x => x.track === 'prem' && x.t === 30 && x.r.gems === 50 && !x.r.pick));   // 0.9.2 패스에는 전설 선택권이 없다
+  assert.equal(s.pets.picks.l, 0);
   // 다음 시즌
   const next = '2026-12-' + String(22 + se.left - 1 + 1 > 31 ? 31 : 22 + se.left).padStart(2, '0');
   const later = new Date(Date.UTC(2026, 10, 22) + se.left * D).toISOString().slice(0, 10);
