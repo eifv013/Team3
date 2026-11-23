@@ -12,8 +12,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap">
 <style>
+/*FONTS*/
+
 /* ===== 바탕: 세로 고정, 폰 한 화면 ===== */
 :root{
   --ink:#12151C; --panel:#1C212B; --panel2:#232937; --line:#2E3542; --text:#F3F0E8; --muted:#A3ACBA; --acc:#FFD23F;
@@ -21,7 +23,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--ink);color:var(--text);word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty;
-  font-family:'IBM Plex Sans KR',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+  font-family:'Pretendard',system-ui,sans-serif;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 button{font-family:inherit;color:inherit;cursor:pointer}
 button:disabled{cursor:default;opacity:.45}
 .app{position:relative;max-width:430px;height:100vh;height:100dvh;margin:0 auto;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
@@ -114,7 +116,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg) scale(.4);opacity:0;pointer-events:none;z-index:2;
   padding:8px 18px;border:4px solid var(--acc);border-radius:10px;color:var(--acc);background:rgba(18,21,28,.86);
   font-family:'Black Han Sans',sans-serif;font-size:34px;white-space:nowrap;text-align:center;line-height:1.1}
-.stamp small{display:block;font-family:'IBM Plex Sans KR',sans-serif;font-size:15px;font-weight:700}
+.stamp small{display:block;font-family:'Pretendard',sans-serif;font-size:15px;font-weight:700}
 .stamp.bad{border-color:var(--miss);color:var(--miss)}
 .stamp.go{animation:stamp .9s ease-out}
 @keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.8)}18%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}}
@@ -902,7 +904,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .lu-sp.wrong{animation:shake .4s}.lu-sp.wrong .card{box-shadow:0 0 0 3px var(--miss)}
 .lu-sp.right .card{box-shadow:0 0 0 3px var(--ok),0 0 18px var(--ok)}
 .board.luboard.dim .lu-sp:not(.right){filter:brightness(.45) saturate(.5);transition:filter .25s}
-.lu-stamp{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%) rotate(-14deg) scale(2.2);opacity:0;z-index:5;pointer-events:none;border:2.5px solid #E5484F;color:#E5484F;font:900 12px/1 'IBM Plex Sans KR',sans-serif;padding:3px 4px;border-radius:6px;background:rgba(255,255,255,.8);white-space:nowrap}
+.lu-stamp{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%) rotate(-14deg) scale(2.2);opacity:0;z-index:5;pointer-events:none;border:2.5px solid #E5484F;color:#E5484F;font:900 12px/1 'Pretendard',sans-serif;padding:3px 4px;border-radius:6px;background:rgba(255,255,255,.8);white-space:nowrap}
 .lu-sp.right .lu-stamp{animation:lustamp .32s cubic-bezier(.3,1.6,.6,1) forwards}
 @keyframes lustamp{to{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1)}}
 /* 면통실 겹 레이어(fx.js): 형광등 · 유리 반사 · 카메라 플래시 */
@@ -946,7 +948,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .mtg-pic .card::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(40,36,30,.13) 0 1px,transparent 1px 5px)}
 .mq{position:absolute;width:24px;height:24px;border-radius:12px;border:2px dashed #8A8170;color:#8A8170;font-weight:900;font-size:13px;display:flex;align-items:center;justify-content:center;background:rgba(244,238,223,.9);z-index:2}
 .mq.t{top:5px;left:5px}.mq.m{bottom:5px;right:5px}.mq.h{top:4px;left:50%;transform:translateX(-50%)}.mq.f{top:48%;left:50%;transform:translateX(-50%)}
-.mtg-stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-14deg) scale(2);opacity:0;border:3px solid #E5484F;color:#E5484F;font:900 16px/1 'IBM Plex Sans KR',sans-serif;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,.8);z-index:3}
+.mtg-stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-14deg) scale(2);opacity:0;border:3px solid #E5484F;color:#E5484F;font:900 16px/1 'Pretendard',sans-serif;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,.8);z-index:3}
 .mtg-paper.caught .mtg-stamp{animation:lustamp .3s cubic-bezier(.3,1.6,.6,1) forwards}
 .mtg-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .mtg-mult{font:900 30px/1 'Black Han Sans',sans-serif;color:#C0392B}

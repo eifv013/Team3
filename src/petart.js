@@ -83,12 +83,12 @@
   function wrap(o, inner) {
     return '<svg viewBox="0 0 200 200" aria-hidden="true">' + DEFS + shadow() + '<g class="' + (o.mood === 'happy' ? 'pb-hop' : o.mood === 'huh' ? 'pb-tilt' : '') + '">' + inner + '</g></svg>';
   }
-  function huhMark() { return '<g><circle cx="162" cy="40" r="15" fill="#FFD23F"/><text x="162" y="47" font-size="20" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="IBM Plex Sans KR">?</text></g>'; }
+  function huhMark() { return '<g><circle cx="162" cy="40" r="15" fill="#FFD23F"/><text x="162" y="47" font-size="20" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="Pretendard">?</text></g>'; }
   function sparkle(x, y) { return '<path d="M' + x + ' ' + (y - 9) + ' l2.6 6.4 6.4 2.6-6.4 2.6-2.6 6.4-2.6-6.4-6.4-2.6 6.4-2.6z" fill="#FFE27A"/>'; }
   // 가슴의 3팀 배지(별 모양 경찰 배지). 띠 없이 털에 달려 있어 머리와 몸을 끊지 않는다.
   function badge(x, y) {
     return '<path d="M' + x + ' ' + (y - 11) + ' l3.3 6.6 7.3 1-5.3 5.2 1.3 7.2-6.6-3.5-6.6 3.5 1.3-7.2-5.3-5.2 7.3-1z" fill="url(#gGold)"/>' +
-      '<text x="' + x + '" y="' + (y + 4) + '" font-size="8" font-weight="700" text-anchor="middle" fill="#6B4E00" font-family="IBM Plex Sans KR">3</text>';
+      '<text x="' + x + '" y="' + (y + 4) + '" font-size="8" font-weight="700" text-anchor="middle" fill="#6B4E00" font-family="Pretendard">3</text>';
   }
   function mouth(o, y) {
     if (o.outfit === 'mask') return '';

@@ -50,6 +50,15 @@ def build():
         if '</script' in code.lower():
             sys.exit(f'{name} 안에 </script 가 있어 페이지가 깨진다')
         tpl = tpl.replace(mark, code)
+    # 0.9.9 본문 글꼴 프리텐다드(OFL, 한글 2,350자 묶음)를 페이지 안에 넣는다 — 인터넷이 없어도 · 폰마다 같은 모양
+    if tpl.count('/*FONTS*/') != 1:
+        sys.exit('자리표시자 /*FONTS*/ 가 정확히 하나가 아니다')
+    import base64
+    faces = ''
+    for w, f in ((400, 'Pretendard-Regular.subset.woff2'), (700, 'Pretendard-Bold.subset.woff2')):
+        b = base64.b64encode((ROOT / 'assets/fonts' / f).read_bytes()).decode()
+        faces += "@font-face{font-family:'Pretendard';font-weight:%d;font-style:normal;font-display:swap;src:url(data:font/woff2;base64,%s) format('woff2')}\n" % (w, b)
+    tpl = tpl.replace('/*FONTS*/', faces)
     DIST.mkdir(exist_ok=True)
     (DIST / 'index.html').write_text(tpl, encoding='utf-8')
     copy_music(DIST)

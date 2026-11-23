@@ -263,8 +263,8 @@
     '<linearGradient id="gxLid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DDA96E"/><stop offset="1" stop-color="#A9743E"/></linearGradient></defs>' +
     '<g class="gx-body"><rect x="22" y="62" width="156" height="100" rx="8" fill="url(#gxBox)" stroke="#5E3C1C" stroke-width="4"/>' +
     '<rect x="22" y="96" width="156" height="20" fill="#FFD23F" stroke="#5E3C1C" stroke-width="3"/>' +
-    '<text x="100" y="111" font-size="13" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="IBM Plex Sans KR" letter-spacing="2">증거 · EVIDENCE</text>' +
-    '<g transform="rotate(-10 140 140)"><rect x="112" y="124" width="54" height="26" rx="5" fill="none" stroke="#C0392B" stroke-width="3"/><text x="139" y="143" font-size="15" font-weight="700" text-anchor="middle" fill="#C0392B" font-family="IBM Plex Sans KR">3팀</text></g></g>' +
+    '<text x="100" y="111" font-size="13" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="Pretendard" letter-spacing="2">증거 · EVIDENCE</text>' +
+    '<g transform="rotate(-10 140 140)"><rect x="112" y="124" width="54" height="26" rx="5" fill="none" stroke="#C0392B" stroke-width="3"/><text x="139" y="143" font-size="15" font-weight="700" text-anchor="middle" fill="#C0392B" font-family="Pretendard">3팀</text></g></g>' +
     '<rect class="gx-seam" x="26" y="58" width="148" height="8" rx="4"/>' +
     '<g class="gx-lid"><rect x="14" y="40" width="172" height="26" rx="7" fill="url(#gxLid)" stroke="#5E3C1C" stroke-width="4"/><rect x="88" y="40" width="24" height="26" fill="#FFD23F" stroke="#5E3C1C" stroke-width="3"/></g></svg>';
 
