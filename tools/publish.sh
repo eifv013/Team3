@@ -14,7 +14,8 @@ VERSION="$(python3 tools/build.py | sed -n 's/.*버전 \([0-9.]*\),.*/\1/p')"
 if [ "${SKIP_SMOKE:-0}" != "1" ]; then
   # 화면 시험은 실제 시간(애니메이션)에 기대는 곳이 있어 가끔 한 번 어긋난다: 한 번만 다시 돌리고, 그래도 실패면 멈춘다
   python3 tools/smoke.py >/tmp/smoke.log 2>&1 || python3 tools/smoke.py >/tmp/smoke.log 2>&1 || { grep -E "^화면 시험|^[^ ]" /tmp/smoke.log | tail -5 >&2; echo "화면 시험 실패. 올리지 않는다." >&2; exit 1; }
-  python3 tools/pwa_check.py >/dev/null || { echo "설치형 확인 실패. 올리지 않는다." >&2; exit 1; }
+  python3 tools/pwa_check.py || { echo "설치형 확인 실패. 올리지 않는다." >&2; exit 1; }
+  python3 tools/stamp_check.py || { echo "도장 검사 실패(검거하지 않았는데 \"검거!\"). 올리지 않는다." >&2; exit 1; }
   python3 tools/screens_check.py || { echo "수익 · 수집 화면 시험 실패. 올리지 않는다." >&2; exit 1; }
 fi
 

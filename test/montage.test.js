@@ -18,13 +18,13 @@ test('문제: 카드는 서로 다르고 정답 하나, 특징이 다 드러나�
   }
 });
 
-test('그려지는 수 · 배수: 1 → 4, 단계 1은 1.4초 간격, 멈춘 동안은 안 흐름', () => {
+test('그려지는 수 · 배수: 1 → 4, 단계 1은 2.4초 간격, 멈춘 동안은 안 흐름', () => {
   const g = M.createGame({ rng: mul(1), now: T0 });
   assert.equal(M.shown(g, T0), 1); assert.equal(M.multNow(g, T0), 4);
-  assert.equal(M.shown(g, T0 + 1400), 2); assert.equal(M.shown(g, T0 + 9999), 4); assert.equal(M.multNow(g, T0 + 9999), 1);
-  assert.equal(M.nextIn(g, T0 + 400), 1000); assert.equal(M.nextIn(g, T0 + 9999), -1);
+  assert.equal(M.shown(g, T0 + 2400), 2); assert.equal(M.shown(g, T0 + 99999), 4); assert.equal(M.multNow(g, T0 + 99999), 1);
+  assert.equal(M.nextIn(g, T0 + 400), 2000); assert.equal(M.nextIn(g, T0 + 99999), -1);
   M.pause(g, T0 + 500); assert.equal(M.shown(g, T0 + 5000), 1);
-  M.resume(g, T0 + 5000); assert.equal(M.shown(g, T0 + 5800), 1); assert.equal(M.shown(g, T0 + 5900), 2);
+  M.resume(g, T0 + 5000); assert.equal(M.shown(g, T0 + 6800), 1); assert.equal(M.shown(g, T0 + 6900), 2);
   assert.equal(C.timeLeft(g, T0 + 5000), 89.5);
 });
 

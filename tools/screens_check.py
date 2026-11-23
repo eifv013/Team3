@@ -202,7 +202,7 @@ def main():
         pg.clock.run_for(300)
         need(pg.locator('#says.mtg .mtg-paper').count() == 1, '몽타주: 종이가 없음')
         n1 = pg.locator('#says.mtg li:not(.no)').count()
-        pg.clock.run_for(1500)
+        pg.clock.run_for(2500)
         n2 = pg.locator('#says.mtg li:not(.no)').count()
         need(n1 == 1 and n2 == 2, f'몽타주: 특징이 하나씩 안 그려짐 ({n1} → {n2})')
         need('×3' in pg.text_content('.mtg-mult'), '몽타주: 둘째 특징 뒤 배수가 ×3 이 아님')

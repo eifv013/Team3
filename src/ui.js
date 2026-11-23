@@ -336,6 +336,12 @@
 
   function renderBoard(entering) {
     var board = $('board'), stamp = $('stamp'), act = actNow();
+    /*
+     * 0.8.2 "검거!"가 엉뚱할 때 뜨던 버그: 판을 다시 그리면 도장 칸을 떼었다가 다시 붙이는데, 그때 'go'가 남아 있으면
+     *   브라우저가 도장 애니메이션을 처음부터 또 튼다 → 틀렸을 때(판을 다시 그림) · 새 판이 시작될 때 지난 "검거!"가 다시 떴다.
+     *   다 끝난 도장은 끄고, 아직 보이는 중인 도장(방금 검거)은 지난 만큼 앞당겨(음수 지연) 이어서 보여 준다.
+     */
+    keepStamp(stamp);
     board.classList.toggle('luboard', LM());
     board.classList.toggle('mtg', MM());
     if (LM()) { renderLineup(entering, act); return; }
@@ -378,6 +384,7 @@
     board.classList.remove('wit', 'w12', 'forge', 'dim');
     if (!wrap) {
       var stamp = $('stamp');
+      keepStamp(stamp);
       board.innerHTML = '<div class="lu-wrap"></div>';
       board.appendChild(stamp);
       wrap = board.querySelector('.lu-wrap');
@@ -540,8 +547,19 @@
     }, ms);
   }
 
+  var STAMP_MS = 900;   // .stamp.go 애니메이션 길이(template.html)
+  function stopStamp(s) { s = s || $('stamp'); if (!s) return; s.classList.remove('go', 'bad'); s.innerHTML = ''; s.style.animationDelay = ''; clearTimeout(s._t); }
+  function keepStamp(s) {
+    if (!s) return;
+    var el = Date.now() - (s._at || 0);
+    if (s.classList.contains('go') && el < STAMP_MS) s.style.animationDelay = '-' + el + 'ms';
+    else stopStamp(s);
+  }
   function popStamp(main, small, bad) {
     var s = $('stamp');
+    clearTimeout(s._t);
+    s._at = Date.now(); s.style.animationDelay = '';
+    s._t = setTimeout(function () { s.classList.remove('go'); }, STAMP_MS + 50);   // 다 보이고 나면 꺼 둔다(다시 붙여도 재생되지 않게)
     s.innerHTML = main + (small ? '<small>' + small + '</small>' : '');
     s.classList.toggle('bad', !!bad);
     s.classList.remove('go');
@@ -1006,6 +1024,8 @@
   }
 
   function again() {
+    // 0.8.2: 특별 출동을 마치고 "다시 출동"이면 특별 출동으로 다시(오늘 기록 갱신에 도전). 평소 출동은 평소대로
+    if (cfg && cfg.daily && hooks.goDaily) { hooks.goDaily(); return; }
     if (hooks.go) hooks.go(); else startRun();
   }
 

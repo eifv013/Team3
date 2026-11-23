@@ -138,7 +138,6 @@
     set('h-pl-draw', '뽑기권 ' + (p.tickets || 0) + '장' + (fl > 0 ? ' · 무료 ' + fl : ''), (p.tickets || 0) > 0 || fl > 0);
     set('h-pl-dex', pr ? pr.have + ' / ' + pr.total : '');
     set('h-pl-closet', '옷 ' + (p.closet ? Object.keys(p.closet).length : 0) + '벌');
-    set('h-pl-shop', '배지 · 시즌 패스');
     var x = p.eq && PT.parse(p.eq), lines = [];
     if (x) {
       var eff = PT.describe(PT.eqEffect(x.id, x.g, p.own[p.eq])), bd = PT.bondOf(s, p.eq);
@@ -161,7 +160,7 @@
     var p = s.pets || {}, unpat = ctx.PT && p.eq && ctx.PT.bondOf(s, p.eq).last !== ctx.dayNow();
     var np = (p.tickets || 0) + (unpat ? 1 : 0);
     var dot = function (k, n, cls) { var b = document.querySelector('#h-nav [data-go="' + k + '"] em'); if (!b) return; b.hidden = !n; b.textContent = n > 99 ? '99+' : n; b.className = cls || ''; };
-    dot('team', nt, 'can'); dot('run', nr + (dailyLeft ? 1 : 0), 'can'); dot('pets', np, '');
+    dot('team', nt, 'can'); dot('run', nr, 'can'); dot('pets', np, '');   // 0.8.2 출동 숫자는 살 수 있는 것만(특별 출동은 오늘 할 일에)
     var eb = document.querySelector('#h-nav [data-go="evid"]'); if (eb) eb.classList.toggle('glow', evGlow);
     // 작은 탭 숫자
     // 작은 탭: 새로 열린 칸이 있으면 파란 "새 N", 아니면 살 수 있는 개수(초록)
@@ -198,6 +197,11 @@
       if (sx == null) return;
       var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; sx = null;
       if (Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6 || Date.now() - st > 700) return;
+      // 0.8.2 팀 탭에서는 작은 탭(3팀 · 기법 · 부서 · 지원)을 먼저 넘기고, 끝(지원)에서 더 밀면 출동 탭으로
+      if (cur === 'team') {
+        var SUBS = ['team', 'tech', 'dept', 'sup'], j = SUBS.indexOf(sub) + (dx < 0 ? 1 : -1);
+        if (j >= 0 && j < SUBS.length) { setSub(SUBS[j]); var tb = $('t-team'); if (tb) tb.scrollTop = 0; return; }
+      }
       var i = ORDER.indexOf(cur) + (dx < 0 ? 1 : -1);
       if (i >= 0 && i < ORDER.length) go(ORDER[i]);
     }, { passive: true });

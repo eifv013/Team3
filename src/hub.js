@@ -195,6 +195,7 @@
     var t = nowMs(), buff = I.buffed(save, t);
     if (OUI) OUI.tick();   // 0.6.0 사무실 장면(형사 수 · 날씨 · 사기 충전)
     if (EUI) EUI.tick();   // 0.7.0 부서 · 재수사 칸
+    renderRank();   // 0.8.2 계급 카드
     if (CUI) CUI.render();
     if (MUI) MUI.render();   // 0.8.0 메뉴 숫자 · 추천 · 오늘 할 일
     // 내 자리: 사용자가 넣은 이름이라 textContent 로만 넣는다
@@ -731,6 +732,8 @@
   /* ---------- 연결 ---------- */
   UI.hooks.home = home;
   UI.hooks.go = go;
+  $('h-rank').addEventListener('click', showRanks);
+  UI.hooks.goDaily = function () { if (E) goDaily(); else go(); };   // 0.8.2 결과 화면 "다시 출동"이 특별 출동이었으면 특별 출동으로
   UI.hooks.onRunEnd = onRunEnd;
   UI.hooks.onTutorialDone = function () { save.tutorialDone = true; persist(); askDiffSoon(900); };
   /*
@@ -757,6 +760,25 @@
     m.style.fontSize = '';
     var full = m.getBoundingClientRect().width;   // 0.8.0: 글자 칸(inline)은 scrollWidth 가 0 이라 실제 너비로 잰다
     if (full > room && room > 0) m.style.fontSize = Math.max(18, Math.floor(30 * room / full)) + 'px';
+  }
+  /* 0.8.2 계급(승진): 출동 탭 카드 · 머리의 계급 글자를 누르면 계급 표 */
+  function renderRank() {
+    var el = $('h-rank'); if (!el) return;
+    var r = I.rankOf(save), cur = I.RANKS[r.index], nx = r.next;
+    var pct = nx ? Math.max(0, Math.min(100, (save.runCaught - cur.at) / (nx.at - cur.at) * 100)) : 100;
+    var h = '<span class="rk-badge" aria-hidden="true">🎖️</span><b>계급 <em>' + r.name + '</em> · 수사비 +' + Math.round(r.bonus * 100) + '%</b>' +
+      '<small>' + (nx ? nx.name + '까지 현장 검거 ' + fmt(r.toNext) + '명' : '최고 계급이에요') + '</small><span class="rk-go">계급표 ›</span>' +
+      '<span class="bar"><i style="width:' + pct.toFixed(1) + '%"></i></span>';
+    if (el._h !== h) { el._h = h; el.innerHTML = h; }
+  }
+  function showRanks() {
+    var r = I.rankOf(save);
+    openInfo({ label: '계급', title: '승진하면 수사비가 늘어요', readOnly: true,
+      body: '<p>현장 출동에서 <b>직접 잡은 수</b>로 승진해요(팀이 방치로 잡은 수는 안 세요). 승진할 때마다 모든 수사비 +' + Math.round(I.RANK_BONUS * 100) + '%와 배지를 받아요.</p>' +
+        '<p>지금 현장 검거 <b>' + fmt(save.runCaught) + '명</b>' + (r.next ? ' · ' + r.next.name + '까지 ' + fmt(r.toNext) + '명' : '') + '</p>' +
+        '<div class="rk-list">' + I.RANKS.map(function (x, i) {
+          return '<div class="' + (i === r.index ? 'now' : i < r.index ? 'done' : '') + '"><span>' + (i < r.index ? '✓ ' : i === r.index ? '▶ ' : '') + x.name + '</span><em>' + (x.at ? '현장 검거 ' + fmt(x.at) + '명' : '처음') + ' · 수사비 +' + Math.round(i * I.RANK_BONUS * 100) + '%' + (x.gems ? ' · ◆' + x.gems : '') + '</em></div>';
+        }).join('') + '</div>' });
   }
   function diffGoSub() {
     if (!Df) return;
