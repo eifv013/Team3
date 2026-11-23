@@ -152,11 +152,11 @@
       (own.length ? own.map(function (c) {
         var up = Ev.upCost(s, c.id);
         return '<div class="ev-card' + (sel === c.id ? ' sel' : '') + (pinned[c.id] != null ? ' on' : '') + '" style="--c:' + Ev.COLOR[c.color].hex + '"><button class="ev-pick" data-pick="' + c.id + '">' + cardFace(c, e.lv[c.id]) + (pinned[c.id] != null ? '<i class="ev-pinned">꽂음</i>' : '') + '</button>' +
-          '<button class="ev-up" data-up="' + c.id + '"' + (up != null && up <= Ev.left(s) ? '' : ' disabled') + '>' + (up == null ? '최고' : '강화 ' + up) + '</button></div>';
+          '<button class="ev-up" data-up="' + c.id + '"' + (up != null && up <= Ev.left(s) ? '' : ' disabled') + '>' + (up == null ? '<span>최고 단계</span>' : '<span>강화</span><b>🔍 ' + up + '</b>') + '</button></div>';
       }).join('') : '<p class="muted" style="font-size:13px;margin:0">아직 가진 증거가 없어요. 아래에서 단서로 사요.</p>') + '</div>';
     html += '<span class="label ev-sec">단서로 사기</span><div class="ev-list">' + (shop.length ? shop.map(function (c) {
       var ok = Ev.left(s) >= c.cost;
-      return '<div class="ev-card shop" style="--c:' + Ev.COLOR[c.color].hex + '"><span class="ev-pick">' + cardFace(c, 0) + '</span><button class="ev-up buyc' + (ok ? '' : ' short') + '" data-buyc="' + c.id + '"' + (ok ? '' : ' disabled') + '>단서 ' + c.cost + '</button></div>';
+      return '<div class="ev-card shop" style="--c:' + Ev.COLOR[c.color].hex + '"><span class="ev-pick">' + cardFace(c, 0) + '</span><button class="ev-up buyc' + (ok ? '' : ' short') + '" data-buyc="' + c.id + '"' + (ok ? '' : ' disabled') + '><span>사기</span><b>🔍 ' + c.cost + '</b></button></div>';
     }).join('') : '<p class="muted" style="font-size:13px;margin:0">지금 살 수 있는 증거를 다 모았어요.</p>') + '</div>';
     if (locked.length) {
       var byT = {}; locked.forEach(function (c) { (byT[c.tier] = byT[c.tier] || []).push(c); });

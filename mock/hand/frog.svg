@@ -1,0 +1,70 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <radialGradient id="bg" cx="50%" cy="8%" r="95%"><stop offset="0" stop-color="#4A1C22"/><stop offset=".5" stop-color="#1E0C10"/><stop offset="1" stop-color="#08040A"/></radialGradient>
+  <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE6B0" stop-opacity=".32"/><stop offset="1" stop-color="#FFE6B0" stop-opacity="0"/></linearGradient>
+  <radialGradient id="skin" cx="42%" cy="30%" r="75%"><stop offset="0" stop-color="#9BD46A"/><stop offset=".55" stop-color="#5E9C3C"/><stop offset="1" stop-color="#2F5A22"/></radialGradient>
+  <radialGradient id="bulge" cx="40%" cy="30%" r="70%"><stop offset="0" stop-color="#A6DC74"/><stop offset="1" stop-color="#3E7428"/></radialGradient>
+  <radialGradient id="iris" cx="45%" cy="40%" r="60%"><stop offset="0" stop-color="#FFE48A"/><stop offset=".7" stop-color="#E0A21E"/><stop offset="1" stop-color="#8A5A08"/></radialGradient>
+  <linearGradient id="belly" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E8E6B8"/><stop offset="1" stop-color="#B8B890"/></linearGradient>
+  <linearGradient id="tux" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3A3A46"/><stop offset=".5" stop-color="#17171E"/><stop offset="1" stop-color="#08080C"/></linearGradient>
+  <linearGradient id="lap" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4A4A58"/><stop offset="1" stop-color="#1A1A22"/></linearGradient>
+  <linearGradient id="mic" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F2F2F2"/><stop offset=".5" stop-color="#9AA0A8"/><stop offset="1" stop-color="#4A5058"/></linearGradient>
+  <radialGradient id="vig" cx="50%" cy="45%" r="72%"><stop offset=".62" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></radialGradient>
+  <clipPath id="cl"><rect width="200" height="200" rx="18"/></clipPath>
+</defs>
+<g clip-path="url(#cl)">
+  <rect width="200" height="200" fill="url(#bg)"/>
+  <!-- 무대 커튼 주름 -->
+  <g opacity=".5">
+    <path d="M0 0 Q8 100 0 200 L22 200 Q30 100 22 0 Z" fill="#5A1A20"/><path d="M22 0 Q30 100 22 200 L40 200 Q46 100 40 0 Z" fill="#3A0E14"/>
+    <path d="M200 0 Q192 100 200 200 L178 200 Q170 100 178 0 Z" fill="#5A1A20"/><path d="M178 0 Q170 100 178 200 L160 200 Q154 100 160 0 Z" fill="#3A0E14"/>
+  </g>
+  <!-- 핀 조명 -->
+  <path d="M86 0 L114 0 L170 200 L30 200 Z" fill="url(#beam)"/>
+  <!-- 몸: 턱시도 -->
+  <path d="M30 200 L38 168 Q50 150 76 146 L124 146 Q150 150 162 168 L170 200 Z" fill="url(#tux)" stroke="#050508" stroke-width="2.5"/>
+  <path d="M84 146 L100 186 L116 146 Z" fill="#F4F0E6"/>
+  <path d="M84 146 L100 186 L74 168 L66 152 Z" fill="url(#lap)" stroke="#050508" stroke-width="2"/>
+  <path d="M116 146 L100 186 L126 168 L134 152 Z" fill="#14141A" stroke="#050508" stroke-width="2"/>
+  <!-- 나비넥타이 -->
+  <path d="M100 156 L86 149 Q83 156 86 163 Z M100 156 L114 149 Q117 156 114 163 Z" fill="#C42A34" stroke="#4A0A10" stroke-width="1.5"/>
+  <rect x="96.5" y="152.5" width="7" height="7" rx="2" fill="#9A1A24" stroke="#4A0A10" stroke-width="1.2"/>
+  <!-- 가슴 장미 -->
+  <circle cx="132" cy="164" r="5" fill="#C42A34" stroke="#4A0A10" stroke-width="1.2"/><path d="M130 163 Q132 160 134 163 Q132 166 130 163" fill="none" stroke="#7A1018" stroke-width="1"/>
+  <path d="M129 169 L124 174" stroke="#2E6A2A" stroke-width="2" stroke-linecap="round"/>
+  <!-- 마이크 -->
+  <path d="M60 200 L66 170" stroke="#2A2A30" stroke-width="4" stroke-linecap="round"/>
+  <rect x="58" y="146" width="16" height="26" rx="8" fill="url(#mic)" stroke="#202228" stroke-width="1.8"/>
+  <path d="M60 154 L72 154 M60 159 L72 159 M60 164 L72 164" stroke="#5A6068" stroke-width="1"/>
+  <ellipse cx="62" cy="152" rx="1.6" ry="4" fill="#fff" opacity=".7"/>
+  <!-- 머리: 넓적한 개구리 얼굴 -->
+  <path d="M46 112 Q44 84 70 76 Q100 70 130 76 Q156 84 154 112 Q152 140 100 146 Q48 140 46 112 Z" fill="url(#skin)" stroke="#12200C" stroke-width="3"/>
+  <!-- 볼록 눈두덩 -->
+  <ellipse cx="74" cy="78" rx="20" ry="18" fill="url(#bulge)" stroke="#12200C" stroke-width="3"/>
+  <ellipse cx="126" cy="78" rx="20" ry="18" fill="url(#bulge)" stroke="#12200C" stroke-width="3"/>
+  <!-- 눈: 반쯤 감은 무심한 눈 -->
+  <ellipse cx="74" cy="80" rx="12" ry="11" fill="url(#iris)"/>
+  <ellipse cx="126" cy="80" rx="12" ry="11" fill="url(#iris)"/>
+  <rect x="71" y="74" width="6" height="12" rx="3" fill="#120A04"/>
+  <rect x="123" y="74" width="6" height="12" rx="3" fill="#120A04"/>
+  <circle cx="70" cy="76" r="1.8" fill="#fff" opacity=".9"/><circle cx="122" cy="76" r="1.8" fill="#fff" opacity=".9"/>
+  <!-- 눈꺼풀(위 절반 덮음) -->
+  <path d="M60 80 Q60 62 74 61 Q90 62 89 80 Q74 74 60 80 Z" fill="#4E8A34" stroke="#12200C" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M111 80 Q110 62 126 61 Q140 62 140 80 Q126 74 111 80 Z" fill="#4E8A34" stroke="#12200C" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M63 79 Q74 74 87 79" stroke="#12200C" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M113 79 Q126 74 138 79" stroke="#12200C" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <!-- 콧구멍 -->
+  <ellipse cx="94" cy="104" rx="2" ry="1.4" fill="#12200C"/><ellipse cx="106" cy="104" rx="2" ry="1.4" fill="#12200C"/>
+  <!-- 입: 넓게 한쪽만 올라간 미소 -->
+  <path d="M62 116 Q100 132 140 112" stroke="#12200C" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M136 108 Q141 110 140 115" stroke="#12200C" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- 턱 아래 밝은 배 -->
+  <path d="M70 132 Q100 146 130 132 Q118 146 100 147 Q82 146 70 132 Z" fill="url(#belly)" opacity=".85"/>
+  <!-- 볼 점무늬 -->
+  <circle cx="58" cy="102" r="3" fill="#2F5A22" opacity=".6"/><circle cx="64" cy="94" r="2" fill="#2F5A22" opacity=".5"/>
+  <circle cx="144" cy="100" r="3" fill="#2F5A22" opacity=".6"/>
+  <!-- 위에서 떨어지는 핀 조명 하이라이트 -->
+  <ellipse cx="68" cy="70" rx="6" ry="3" fill="#F0FFD8" opacity=".5"/><ellipse cx="120" cy="70" rx="6" ry="3" fill="#F0FFD8" opacity=".5"/>
+  <rect width="200" height="200" fill="url(#vig)"/>
+</g>
+</svg>

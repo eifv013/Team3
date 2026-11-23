@@ -1547,15 +1547,86 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .noir-anim .nz-lamp{animation:nzlamp 5s steps(1) infinite}
 @keyframes nzlamp{0%,100%{opacity:1}62%{opacity:.35}64%{opacity:1}66%{opacity:.5}68%{opacity:1}}
 .noir-anim .nz-body{transform-box:fill-box;transform-origin:50% 100%;animation:nzbreath 4.2s ease-in-out infinite}
-@keyframes nzbreath{50%{transform:translateY(-1.2px) scale(1.006)}}
-.noir-anim .nz-glow{animation:nzglow 2.6s ease-in-out infinite}
-@keyframes nzglow{50%{opacity:.6}}
+@keyframes nzbreath{50%{transform:translateY(-1.2px)}}
+@keyframes nzglow{50%{opacity:.42}}
 @media (prefers-reduced-motion:reduce){.noir-anim .nz-rain,.noir-anim .nz-lamp,.noir-anim .nz-body,.noir-anim .nz-glow{animation:none}}
 /* 0.8.4 알림 띠(토스트)가 아래 단추 누르기를 막던 문제: 띠는 읽기만 하는 것이라 눌림을 통과시킨다 */
 .toast{pointer-events:none}
 .noir-anim .nz-snow{animation:nzsnow 6s linear infinite}.noir-anim .nz-snow.b{animation-delay:-3s}
 @keyframes nzsnow{0%{transform:translate(0,-80px);opacity:0}15%{opacity:.8}85%{opacity:.8}100%{transform:translate(-10px,90px);opacity:0}}
 .noir-anim .nz-fog{animation:nzfog 9s ease-in-out infinite alternate}@keyframes nzfog{to{transform:translateX(30px)}}
+/* 0.8.4b 파트너 탭 바로가기(뽑기 · 도감 · 옷장): 납작한 칸 → 색 띠 · 아이콘 · 두께 있는 카드 */
+.t-plinks button{position:relative;overflow:hidden;padding:12px 12px 11px;gap:3px;border:1px solid #2E3643;border-radius:16px;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--pc) 16%,#232935),#1A1F28 70%);
+  box-shadow:0 4px 0 #0C0F14,inset 0 1px 0 rgba(255,255,255,.08),inset 0 3px 0 color-mix(in srgb,var(--pc) 70%,transparent)}
+.t-plinks button i{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:19px;margin-bottom:4px;
+  background:color-mix(in srgb,var(--pc) 22%,#11141A);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pc) 45%,transparent)}
+.t-plinks b{font-size:15px}
+.t-plinks button:active{transform:translateY(3px);box-shadow:0 1px 0 #0C0F14,inset 0 3px 0 color-mix(in srgb,var(--pc) 70%,transparent)}
+.t-plinks button.hot{border-color:rgba(255,120,100,.6)}
+.t-plinks button.hot::after{content:'';position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 3px rgba(255,95,87,.25);animation:plhot 1.4s ease-in-out infinite}
+@keyframes plhot{50%{box-shadow:0 0 0 6px rgba(255,95,87,0)}}
+.t-plinks.q2{grid-template-columns:1fr 1fr}
+.t-plinks.q2 button{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center}
+.t-plinks.q2 button i{grid-row:1/3;margin:0}
+.t-plinks.q2 small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-quick.t-plinks button.hot small{color:var(--ok)}.t-quick.t-plinks button.glow small{color:#9FD8FF;font-weight:700}
+/* ===== 0.8.5 증거 탭 새 단장 =====
+   판: 나무 액자 + 코르크 결(굵은 알갱이 · 고운 알갱이 · 위에서 비추는 불빛) · 닫힌 칸은 그냥 코르크(격자 없음) · 열린 빈칸은 분필 점선
+   꽂힌 카드: 줄 그은 색인 카드 + 위 색 띠 + 그림자 + 큰 압정 · 실은 털실처럼 굵게
+   카드 목록: 위 색 띠가 있는 서류 카드 + 입체 단추(사기 = 하늘색 · 강화 = 금색) */
+.ev-board{gap:10px;padding:16px 12px 14px;border-radius:14px;margin:4px 2px 6px;
+  background-color:#A9784A;
+  background-image:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,236,200,.22),transparent 70%),
+    radial-gradient(rgba(70,36,12,.38) 1.1px,transparent 1.6px),radial-gradient(rgba(255,226,180,.22) .9px,transparent 1.4px),radial-gradient(rgba(60,30,10,.25) 1.6px,transparent 2.2px);
+  background-size:100% 100%,6px 6px,9px 9px,17px 17px;background-position:0 0,0 0,3px 4px,7px 2px;
+  box-shadow:0 0 0 7px #6A4526,0 0 0 9px #3E2814,0 0 0 10px rgba(255,220,170,.12),0 14px 28px rgba(0,0,0,.5),inset 0 0 26px rgba(40,18,4,.55),inset 0 2px 0 rgba(255,230,190,.15)}
+.ev-board::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;background:radial-gradient(ellipse 90% 80% at 50% 40%,transparent 55%,rgba(30,12,2,.35))}
+.ev-cell{border-radius:4px;transition:transform .15s}
+.ev-cell.shut{background:none;box-shadow:none;visibility:hidden}
+.ev-cell:not(.has):not(.shut){background:rgba(255,246,226,.08);box-shadow:inset 0 0 0 1.5px rgba(255,246,226,.42);outline:1.5px dashed rgba(255,246,226,.0)}
+.ev-cell:not(.has):not(.shut)::after{content:'';position:absolute;inset:3px;border:1.5px dashed rgba(255,246,226,.35);border-radius:3px;pointer-events:none}
+.ev-plus{color:rgba(255,246,226,.6);font-size:18px}
+.ev-cell.has{background:#F7F1E1 repeating-linear-gradient(180deg,transparent 0 9px,rgba(80,120,180,.14) 9px 10px);background-position:0 8px;
+  box-shadow:0 5px 8px rgba(30,12,2,.45),0 1px 1px rgba(0,0,0,.3),inset 0 5px 0 var(--c);z-index:1}
+.ev-cell.has::before{top:-6px;width:14px;height:14px;margin-left:-7px;background:radial-gradient(circle at 32% 30%,#FFB8B0 0 18%,#E0453A 45%,#8E1A14 100%);box-shadow:2px 3px 3px rgba(0,0,0,.45)}
+.ev-cell.has .ev-name{font-size:11.5px;color:#22252C;margin-top:4px}
+.ev-cell.has .ev-eff{color:#4A5262}
+.ev-str path{stroke:#C42A2A;stroke-width:2.8;filter:drop-shadow(0 2px 1px rgba(30,10,0,.5))}
+.ev-head b{font-size:18px}
+/* 카드 목록 */
+.ev-list{gap:8px}
+.ev-card{position:relative;border:1px solid #2E3643;border-radius:14px;background:linear-gradient(180deg,#252B36,#1C2129);box-shadow:0 3px 0 #0E1116,inset 0 1px 0 rgba(255,255,255,.06)}
+.ev-card::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:var(--c);opacity:.9}
+.ev-pick{box-shadow:none;padding:12px 10px 8px}
+.ev-pick .ev-dot{width:12px;height:12px;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}
+.ev-pick .ev-name{font-size:14px}
+.ev-up{display:flex;align-items:center;justify-content:center;gap:6px;height:38px;margin:2px 8px 9px;border:0;border-radius:10px;font-size:13px;font-weight:800;
+  background:linear-gradient(180deg,#FFE58A,#FFD23F 45%,#F2B71E);color:#2A1F04;box-shadow:0 3px 0 #A8800F,inset 0 1px 0 rgba(255,255,255,.7);transition:transform .07s,box-shadow .07s}
+.ev-up b{font-size:15px;font-weight:900}
+.ev-up span{opacity:.8}
+.ev-up:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #A8800F}
+.ev-up.buyc{background:linear-gradient(180deg,#A8E4FF,#6CC6F2 50%,#4AA8DC);color:#062436;box-shadow:0 3px 0 #23729E,inset 0 1px 0 rgba(255,255,255,.6)}
+.ev-up.buyc:active:not(:disabled){box-shadow:0 1px 0 #23729E}
+.ev-up:disabled,.ev-up.buyc.short{background:#1A1E26;color:#6E7686;box-shadow:inset 0 0 0 1px #2A303C}
+.ev-up.buyc.short b{color:#FF9A8B}
+.ev-card.on{opacity:1}.ev-card.on .ev-pick{opacity:.7}
+.ev-pinned{background:rgba(61,220,132,.15);padding:1px 6px;border-radius:6px}
+/* 실은 카드 밑으로(압정에서 압정으로 이어지되 카드 글을 가리지 않게) */
+.ev-str{z-index:0}
+.ev-cell.has{z-index:1}
+.ev-cell.has .ev-name{line-height:1.1}
+/* 꽂힌 카드는 칸 크기 그대로(글이 길어도 카드가 커지지 않게) · 압정은 카드 안 위쪽에 */
+.ev-cell.has{overflow:hidden;padding:10px 3px 3px;justify-content:flex-start}
+.ev-cell.has::before{top:2px}
+.ev-cell.has .ev-name{font-size:10.5px;margin-top:4px;max-width:100%}
+.ev-cell.has .ev-eff{font-size:8.5px}
+.ev-x{right:2px;bottom:2px}
+.ev-cell.has{padding:13px 3px 3px;gap:0}
+.ev-cell.has::before{top:1px;width:10px;height:10px;margin-left:-5px}
+.ev-cell.has .ev-name{margin-top:0}
+.ev-cell.has .ev-lv{position:absolute;left:3px;bottom:1px;font-size:8px}
+.ev-x{top:1px;right:1px;bottom:auto;font-size:8px;padding:0 3px;border-radius:3px}
 </style>
 </head>
 <body>
@@ -1662,7 +1733,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
     <div class="office" id="h-office" aria-label="3팀 사무실"></div>
         <button class="go-btn go-home" id="h-go-home"><b>현장 출동</b><small id="h-go-home-sub">90초 · 잡은 만큼 수사비</small></button>
         <div class="t-todo fold" id="h-todo"></div>
-        <div class="t-quick"><button id="h-q-team"><b>팀</b><small></small></button><button id="h-q-evid"><b>증거</b><small></small></button></div>
+        <div class="t-quick t-plinks q2"><button id="h-q-team" style="--pc:#3DDC84"><i>👥</i><b>팀</b><small></small></button><button id="h-q-evid" style="--pc:#9FD8FF"><i>📌</i><b>증거</b><small></small></button></div>
     <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
       </div>
       <div class="tab scroll" id="t-evid" data-tab="evid" aria-label="증거">
@@ -1673,7 +1744,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
       <div class="tab scroll" id="t-pets" data-tab="pets" aria-label="파트너">
     <!-- 0.3.0 파트너 동물: 그림을 누르면 기뻐하고, 단추로 동물 · 뽑기 창 -->
     <div class="pet-card" id="h-pet"></div>
-        <div class="t-plinks"><button data-pet="draw"><b>뽑기</b><small id="h-pl-draw"></small></button><button data-pet="dex"><b>도감</b><small id="h-pl-dex"></small></button><button data-pet="closet"><b>옷장</b><small id="h-pl-closet"></small></button></div>
+        <div class="t-plinks"><button data-pet="draw" style="--pc:#FFB347"><i>🎟️</i><b>뽑기</b><small id="h-pl-draw"></small></button><button data-pet="dex" style="--pc:#5BB2E8"><i>📖</i><b>도감</b><small id="h-pl-dex"></small></button><button style="--pc:#B07CF0" data-pet="closet"><i>👔</i><b>옷장</b><small id="h-pl-closet"></small></button></div>
         <div class="t-peff" id="h-peff"></div>
       </div>
     </div>

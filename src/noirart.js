@@ -83,7 +83,7 @@
       g += '<ellipse cx="' + (x + sx * 1) + '" cy="' + (y - 1) + '" rx="' + (s.slit ? 1.6 : 2.6) + '" ry="5" fill="#0A0705"/>';
       g += '<circle cx="' + (x - 2) + '" cy="' + (y - 3) + '" r="1.4" fill="#fff" opacity=".9"/>';
       // 빛나는 눈(어둠 속에서)
-      g += P(d, 'class="nz-glow" fill="none" stroke="' + c + '" stroke-width="6" opacity=".28"');
+      // (0.8.5) 예전 '빛나는 눈' 띠는 얼굴 위 반투명 줄로 보여서 없앴다
       // 눈썹
       g += P('M' + (x - 13 * sx) + ' ' + (y - 9 + (k[1] ? 1 : 3)) + ' L' + (x + 12 * sx) + ' ' + (y - 11 + (k[1] ? -2 : 0)), 'stroke="#0A0705" stroke-width="4.5" stroke-linecap="round"');
     });
@@ -174,7 +174,7 @@
   var W = '#EDE3D0';
   var MORE = {
     shiba: gen({ name: '보리', kind: '시바견', fur: '#C9742E', ear: 'point', marks: '<ellipse cx="78" cy="112" rx="14" ry="12" fill="' + W + '"/><ellipse cx="122" cy="112" rx="14" ry="12" fill="' + W + '"/>', eye: '#F2B33D' }),
-    hamster: gen({ name: '도토리', kind: '햄스터', fur: '#D9A066', ear: 'small', rx: 44, ry: 38, marks: '<ellipse cx="68" cy="112" rx="16" ry="13" fill="#F2D2A8"/><ellipse cx="132" cy="112" rx="16" ry="13" fill="#F2D2A8"/>', mzRx: 14, mzRy: 10 }),
+    hamster: gen({ name: '도토리', kind: '햄스터', fur: '#D9A066', ear: 'small', rx: 44, ry: 38, marks: '<ellipse cx="74" cy="112" rx="12" ry="10" fill="#F2D2A8"/><ellipse cx="126" cy="112" rx="12" ry="10" fill="#F2D2A8"/>', mzRx: 14, mzRy: 10 }),
     rabbit: gen({ name: '솜이', kind: '토끼', fur: '#D8D2C6', ear: 'long', inC: '#C98A92', eye: '#E05A6A', mzRx: 15, mzRy: 11 }),
     bear: gen({ name: '곰돌 반장', kind: '곰', fur: '#7A4E2C', ear: 'round', inC: '#3A2414', rx: 42, ry: 38, mzC: '#C9A27A', mzRx: 22, mzRy: 15 }),
     hedgehog: gen({ name: '가시', kind: '고슴도치', fur: '#C9A47E', ear: 'small', back: P('M52 96 L40 70 L60 76 L56 50 L76 62 L80 38 L94 56 L104 34 L112 56 L128 40 L128 62 L148 52 L142 76 L162 72 L148 96 Z', 'fill="#4A3426" stroke="#140D09" stroke-width="3" stroke-linejoin="round"'), backSil: ['M52 96 L40 70 L60 76 L56 50 L76 62 L80 38 L94 56 L104 34 L112 56 L128 40 L128 62 L148 52 L142 76 L162 72 L148 96 Z'], mzRx: 14, mzRy: 10 }),
@@ -189,7 +189,7 @@
     owl: gen({ name: '새벽', kind: '부엉이', fur: '#7A5A3A', ear: 'tuft', inC: '#3A2414', nose: 'beak', muzzle: false, marks: '<ellipse cx="82" cy="92" rx="19" ry="18" fill="#D8C29A"/><ellipse cx="118" cy="92" rx="19" ry="18" fill="#D8C29A"/>', eye: '#FFB23E' }),
     otter: gen({ name: '달수', kind: '수달', fur: '#7A5434', ear: 'small', rx: 40, ry: 34, mzC: '#D8BC98', mzRx: 24, mzRy: 15, marks: P('M78 118 L60 116 M78 122 L62 126 M122 118 L140 116 M122 122 L138 126', 'stroke="#EDE3D0" stroke-width="1.3" opacity=".6"') }),
     panda: gen({ name: '판돌', kind: '판다', fur: '#EDEAE4', ear: 'round', earC: '#1A1818', inC: '#1A1818', rx: 42, marks: '<ellipse cx="82" cy="92" rx="13" ry="16" fill="#1A1818" transform="rotate(25 82 92)"/><ellipse cx="118" cy="92" rx="13" ry="16" fill="#1A1818" transform="rotate(-25 118 92)"/>', mzC: '#F6F3EE', eye: '#E8E2D6' }),
-    sheep: gen({ name: '뭉게', kind: '양', fur: '#3A3430', ear: 'flop', earC: '#3A3430', rx: 30, ry: 36, mzC: '#5A504A', mzRx: 16, mzRy: 11,
+    sheep: gen({ name: '뭉게', kind: '양', fur: '#6A5C52', ear: 'flop', earC: '#55493F', rx: 30, ry: 36, mzC: '#8E8076', mzRx: 16, mzRy: 11,
       back: [[66, 66], [84, 52], [100, 48], [116, 52], [134, 66], [140, 86], [60, 86]].map(function (q) { return '<circle cx="' + q[0] + '" cy="' + q[1] + '" r="17" fill="#ECE6DA" stroke="#140D09" stroke-width="3"/>'; }).join(''),
       backSil: [[66, 66], [84, 52], [100, 48], [116, 52], [134, 66], [140, 86], [60, 86]].map(function (q) { return ell(q[0], q[1], 17, 17); }), hat: 'big' }),
     pig: gen({ name: '복돌', kind: '돼지', fur: '#E6A8AE', ear: 'point', inC: '#B86A74', nose: 'pig', muzzle: false, rx: 42 }),
@@ -221,31 +221,31 @@
     hamster:  { coat: 'vest', hat: 'flat', face: 'none', prop: 'bag', lamp: '#FFB347' },
     rabbit:   { coat: 'trench', cc: '#4A4E58', hat: 'beanie', hc: '#3A2A44', face: 'earpiece', prop: 'radio', lamp: '#9B7BFF' },
     bear:     { coat: 'leather', cc: '#4A2E1C', hat: 'flat', hc: '#3A3026', face: 'none', prop: 'radio', lamp: '#FFB347' },
-    hedgehog: { coat: 'hood', cc: '#2A3A2C', hat: 'none', face: 'shades', prop: 'none', lamp: '#7CFFB0' },
+    hedgehog: { coat: 'hood', cc: '#2A3A2C', hat: 'beanie', hc: '#2E4A30', face: 'shades', prop: 'none', lamp: '#7CFFB0' },
     duck:     { coat: 'rain', cc: '#2E5C8A', hat: 'sailor', face: 'none', prop: 'magnifier', lamp: '#6FD3FF' },
-    frog:     { coat: 'rain', hat: 'rainhat', face: 'none', prop: 'none', lamp: '#7CFFB0' },
-    ragdoll:  { coat: 'tux', tie: '#2E6FD0', hat: 'none', face: 'mono', prop: 'none', lamp: '#6FB8FF' },
-    siamese:  { coat: 'tux', tie: '#8E1F24', hat: 'none', face: 'mask', prop: 'none', lamp: '#FF5FA8' },
+    frog:     { coat: 'rain', hat: 'hood', hatBehind: true, face: 'none', prop: 'none', lamp: '#7CFFB0' },
+    ragdoll:  { coat: 'tux', tie: '#2E6FD0', hat: 'fedora', band: '#2E6FD0', face: 'mono', prop: 'none', lamp: '#6FB8FF' },
+    siamese:  { coat: 'tux', tie: '#8E1F24', hat: 'fedora', band: '#8E1F24', face: 'mask', prop: 'none', lamp: '#FF5FA8' },
     fox:      { coat: 'trench', cc: '#6E2A22', hat: 'fedora', face: 'none', prop: 'paper', lamp: '#FF8A3D' },
-    penguin:  { coat: 'tux', tie: '#C8323A', hat: 'none', face: 'none', prop: 'none', lamp: '#8FD8FF' },
+    penguin:  { coat: 'tux', tie: '#C8323A', hat: 'fedora', band: '#C8323A', face: 'none', prop: 'none', lamp: '#8FD8FF' },
     monkey:   { coat: 'vest', cc: '#3A4A2A', hat: 'flat', hc: '#4A3A22', face: 'goggles', fc: '#3A3A30', prop: 'radio', lamp: '#FFD36A' },
     squirrel: { coat: 'trench', cc: '#5C3E26', hat: 'beret', hc: '#7A2A22', face: 'none', prop: 'bag', lamp: '#FFB347' },
-    koala:    { coat: 'hood', cc: '#3A4456', hat: 'none', face: 'sleep', prop: 'none', lamp: '#9BB8FF' },
+    koala:    { coat: 'hood', cc: '#3A4456', hat: 'beanie', hc: '#5A6A9A', face: 'none', prop: 'none', lamp: '#9BB8FF' },
     raccoon:  { coat: 'hood', cc: '#1E2026', hat: 'beanie', hc: '#14161A', face: 'bandana', prop: 'none', lamp: '#FF5F5F' },
-    owl:      { coat: 'trench', cc: '#3A3A44', hat: 'none', face: 'nvg', prop: 'radio', lamp: '#7CFF8A' },
-    otter:    { coat: 'pea', hat: 'none', face: 'goggles', fc: '#2E7FA8', prop: 'none', lamp: '#4FD1FF' },
+    owl:      { coat: 'trench', cc: '#3A3A44', hat: 'flat', hc: '#3A3A44', face: 'nvg', prop: 'radio', lamp: '#7CFF8A' },
+    otter:    { coat: 'pea', hat: 'sailor', face: 'goggles', fc: '#2E7FA8', prop: 'none', lamp: '#4FD1FF' },
     panda:    { coat: 'trench', cc: '#3C3C40', hat: 'fedora', face: 'none', prop: 'camera', lamp: '#E8E8E8', mono: true },
-    tiger:    { coat: 'leather', hat: 'none', face: 'scar', prop: 'none', lamp: '#FF6B3D' },
+    tiger:    { coat: 'leather', hat: 'flat', hc: '#2A2626', face: 'scar', prop: 'none', lamp: '#FF6B3D' },
     sheep:    { coat: 'pea', cc: '#3A4A6A', hat: 'beret', hc: '#24283A', face: 'none', prop: 'none', lamp: '#C8B8FF' },
     pig:      { coat: 'trench', cc: '#6A5A3A', hat: 'deer', face: 'none', prop: 'magnifier', lamp: '#FFB347' },
-    redpanda: { coat: 'trench', cc: '#7A3A1E', hat: 'none', face: 'shades', prop: 'leaf', lamp: '#FF7A3D' },
+    redpanda: { coat: 'trench', cc: '#7A3A1E', hat: 'fedora', face: 'shades', prop: 'leaf', lamp: '#FF7A3D' },
     alpaca:   { coat: 'vest', cc: '#5A4A6A', hat: 'beanie', hc: '#C8A040', face: 'mono', prop: 'bag', lamp: '#FFD36A' },
     seal:     { coat: 'pea', hat: 'sailor', face: 'none', prop: 'none', lamp: '#6FD3FF' },
-    hippo:    { coat: 'leather', cc: '#3A2A3E', hat: 'none', face: 'headset', prop: 'none', lamp: '#FF5FA8' },
+    hippo:    { coat: 'leather', cc: '#3A2A3E', hat: 'flat', hc: '#3A2A3E', face: 'headset', prop: 'none', lamp: '#FF5FA8' },
     turtle:   { coat: 'pea', cc: '#3A4A2E', hat: 'helmet', face: 'none', prop: 'radio', lamp: '#B8FF6A' },
     mouse:    { coat: 'hood', cc: '#3A2E2E', hat: 'beanie', hc: '#5A2228', face: 'none', prop: 'none', lamp: '#FFD36A' },
     lion:     { coat: 'trench', cc: '#2A2626', hat: 'fedora', face: 'none', prop: 'none', lamp: '#FFD36A', crown: true },
-    deer:     { coat: 'pea', cc: '#4A2E2A', hat: 'none', face: 'none', prop: 'bell', lamp: '#FFE08A' }
+    deer:     { coat: 'pea', cc: '#4A2E2A', hat: 'beret', hc: '#4A2E2A', face: 'none', prop: 'bell', lamp: '#FFE08A' }
   };
   function shade(hex, k) {   // k<1 어둡게, k>1 밝게
     var n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;
@@ -339,47 +339,111 @@
     }
     return y;
   }
+  function pathBox(d) {
+    var x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9, cx = 0, cy = 0, sx = 0, sy = 0, t = d.match(/[MLQAZ]|-?[0-9.]+/g) || [], i = 0, c;
+    function n() { return +t[i++]; }
+    function add(x, y) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    while (i < t.length) {
+      if (/[MLQAZ]/.test(t[i])) c = t[i++];
+      if (c === 'M' || c === 'L') { cx = n(); cy = n(); if (c === 'M') { sx = cx; sy = cy; } add(cx, cy); }
+      else if (c === 'Q') { var qx = n(), qy = n(), x2 = n(), y2 = n(); for (var q = 0; q <= 20; q++) { var u = q / 20; add((1 - u) * (1 - u) * cx + 2 * (1 - u) * u * qx + u * u * x2, (1 - u) * (1 - u) * cy + 2 * (1 - u) * u * qy + u * u * y2); } cx = x2; cy = y2; }
+      else if (c === 'A') { n(); var ry = n(); n(); n(); n(); var ax = n(), ay = n(), mx = (cx + ax) / 2; add(cx, cy); add(ax, ay); add(mx, cy - ry); add(mx, cy + ry); cx = ax; cy = ay; }   // 반타원 호: 양 끝 + 가운데 위아래
+      else if (c === 'Z') { cx = sx; cy = sy; }
+      else i++;
+    }
+    return { x0: x0, x1: x1, y0: y0, y1: y1, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, rx: (x1 - x0) / 2, ry: (y1 - y0) / 2 };
+  }
+  function halfW(b, y) { var v = (y - b.cy) / b.ry; return v >= 1 || v <= -1 ? 0 : b.rx * Math.sqrt(1 - v * v); }
   /* 모자마다 아랫단 y(그린 그대로)와 머리를 얼마나 덮을지(wrap). 아랫단이 '머리 맨 위 + wrap' 에 오도록 내린다.
      둥근 머리는 꼭대기가 좁아서, 아랫단을 꼭대기에 맞추면 양옆이 떠 보인다(0.8.4 검수에서 발견) */
-  var HAT_FIT = { flat: [68, 14], beanie: [68, 18], beret: [62, 10], sailor: [66, 12], helmet: [70, 18], rainhat: [74, 12], deer: [68, 14] };
-  // 모자(머리 좌표). 큰 귀 동물(small)은 줄여서 귀 사이에
-  function hatOf(kind, grade, k, top) {
-    var h = k.hat, band = grade === 'l' ? '#E0B23A' : grade === 'h' ? '#8E1F24' : '#1A1A1E', hc = k.hc, a, b, d = '', rot = 'rotate(-6 100 58)';
-    if (h === 'none' || grade === 'c') return null;
-    if (h === 'fedora') {
-      var t = hat(kind, grade);
-      if (k.crown) t.draw = t.draw.replace('</g>', P('M88 ' + (kind === 'small' ? 50 : 52) + ' l4 -8 l4 5 l4 -7 l4 7 l4 -5 l4 8 z', 'fill="#FFD36A" stroke="#8A6410" stroke-width="1.2"') + '</g>');
-      return t;
+  var HAT_FIT = { flat: [70, 10], beanie: [68, 12], beret: [64, 8], sailor: [66, 10], helmet: [70, 12], rainhat: [74, 10], deer: [70, 10] };
+  /* 0.8.5c 모자: 종마다 머리 모양을 재서 '머리에 씌운다'.
+     모자는 단위 크기로 그리고(챙 줄 y=0, 머리띠 폭 = 1), 그 머리의 챙 높이 폭에 맞춰 늘린다.
+     챙 높이 = 머리 꼭대기에서 머리 높이의 30% 아래, 단 눈썹보다는 위. → 머리보다 커지지도, 떠 있지도 않는다 */
+  var HATS = {
+    fedora: function (c, band) { return { sil: ['M-.74 0 Q0 -.18 .74 0 Q0 .13 -.74 0 Z', 'M-.47 .01 L-.41 -.52 Q-.2 -.6 0 -.5 Q.2 -.6 .41 -.52 L.47 .01 Z'],
+      d: function (sw) { return P('M-.74 0 Q0 -.18 .74 0 Q0 .13 -.74 0 Z', 'fill="' + shade(c, .8) + '" stroke="#08080A" stroke-width="' + sw + '"') + P('M-.47 .01 L-.41 -.52 Q-.2 -.6 0 -.5 Q.2 -.6 .41 -.52 L.47 .01 Z', 'fill="' + c + '" stroke="#08080A" stroke-width="' + sw + '"') +
+        P('M-.45 -.17 L.45 -.17 L.46 -.04 L-.46 -.04 Z', 'fill="' + band + '"') + P('M-.18 -.48 Q0 -.4 .18 -.48', 'stroke="#08080A" stroke-width="' + sw + '" fill="none"'); } }; },
+    flat: function (c) { return { sil: ['M-.53 .03 Q-.52 -.5 0 -.52 Q.52 -.5 .53 .03 Z', 'M-.05 0 Q.4 -.07 .76 .07 Q.4 .16 -.05 .07 Z'],
+      d: function (sw) { return P('M-.53 .03 Q-.52 -.5 0 -.52 Q.52 -.5 .53 .03 Z', 'fill="' + c + '" stroke="#08080A" stroke-width="' + sw + '"') + P('M-.05 0 Q.4 -.07 .76 .07 Q.4 .16 -.05 .07 Z', 'fill="' + shade(c, .75) + '" stroke="#08080A" stroke-width="' + sw + '"') +
+        P('M-.36 -.34 Q0 -.42 .36 -.34 M-.46 -.18 Q0 -.26 .46 -.18', 'stroke="' + shade(c, 1.35) + '" stroke-width="' + (sw * .5) + '" fill="none" opacity=".6"') + '<circle cx="0" cy="-.5" r=".05" fill="' + shade(c, .6) + '"/>'; } }; },
+    beanie: function (c) { return { sil: ['M-.52 0 Q-.52 -.64 0 -.66 Q.52 -.64 .52 0 Z', 'M-.56 -.16 L.56 -.16 L.56 .06 L-.56 .06 Z'],
+      d: function (sw) { var g = P('M-.52 0 Q-.52 -.64 0 -.66 Q.52 -.64 .52 0 Z', 'fill="' + c + '" stroke="#08080A" stroke-width="' + sw + '"') + P('M-.56 -.16 L.56 -.16 L.56 .06 L-.56 .06 Z', 'fill="' + shade(c, .78) + '" stroke="#08080A" stroke-width="' + sw + '"');
+        for (var x = -.44; x <= .45; x += .11) g += P('M' + x.toFixed(2) + ' -.13 L' + x.toFixed(2) + ' .03', 'stroke="' + shade(c, 1.35) + '" stroke-width="' + (sw * .45) + '" opacity=".55"');
+        return g; } }; },
+    beret: function (c) { return { sil: ['M-.6 0 Q-.66 -.4 .05 -.44 Q.7 -.42 .62 -.02 Q0 .1 -.6 0 Z'],
+      d: function (sw) { return P('M-.6 0 Q-.66 -.4 .05 -.44 Q.7 -.42 .62 -.02 Q0 .1 -.6 0 Z', 'fill="' + c + '" stroke="#08080A" stroke-width="' + sw + '"') + P('M-.56 -.01 Q0 .08 .58 -.03', 'stroke="' + shade(c, .6) + '" stroke-width="' + sw + '" fill="none"') + '<rect x=".02" y="-.54" width=".05" height=".12" fill="' + shade(c, .6) + '"/>'; } }; },
+    sailor: function () { return { sil: ['M-.46 .01 L-.42 -.4 Q0 -.5 .42 -.4 L.46 .01 Z', 'M-.44 0 Q0 .2 .44 0 Z'],
+      d: function (sw) { return P('M-.46 .01 L-.42 -.4 Q0 -.5 .42 -.4 L.46 .01 Z', 'fill="#F2EEE6" stroke="#08080A" stroke-width="' + sw + '"') + P('M-.46 -.12 L.46 -.12 L.46 .01 L-.46 .01 Z', 'fill="#22304A"') +
+        P('M-.44 0 Q0 .2 .44 0 Z', 'fill="#14161A" stroke="#08080A" stroke-width="' + sw + '"') + '<circle cx="0" cy="-.26" r=".08" fill="#C9A24A" stroke="#5A4210" stroke-width="' + (sw * .4) + '"/>'; } }; },
+    helmet: function (c) { return { sil: ['M-.56 0 Q-.58 -.7 0 -.72 Q.58 -.7 .56 0 Z', 'M-.66 -.02 L.66 -.02 L.68 .08 L-.68 .08 Z'],
+      d: function (sw) { return P('M-.56 0 Q-.58 -.7 0 -.72 Q.58 -.7 .56 0 Z', 'fill="' + c + '" stroke="#08080A" stroke-width="' + sw + '"') + P('M-.66 -.02 L.66 -.02 L.68 .08 L-.68 .08 Z', 'fill="' + shade(c, .75) + '" stroke="#08080A" stroke-width="' + sw + '"') +
+        P('M-.36 -.48 Q0 -.62 .36 -.48', 'stroke="' + shade(c, 1.35) + '" stroke-width="' + (sw * .7) + '" fill="none" opacity=".5"'); } }; },
+    rainhat: function (c) { return { sil: ['M-.44 .01 Q-.44 -.5 0 -.52 Q.44 -.5 .44 .01 Z', 'M-.68 0 Q0 -.08 .68 0 L.76 .14 Q0 .05 -.76 .14 Z'],
+      d: function (sw) { return P('M-.44 .01 Q-.44 -.5 0 -.52 Q.44 -.5 .44 .01 Z', 'fill="' + c + '" stroke="#08080A" stroke-width="' + sw + '"') + P('M-.68 0 Q0 -.08 .68 0 L.76 .14 Q0 .05 -.76 .14 Z', 'fill="' + shade(c, .82) + '" stroke="#08080A" stroke-width="' + sw + '"'); } }; },
+    deer: function (c) { return { sil: ['M-.5 .02 Q-.5 -.56 0 -.58 Q.5 -.56 .5 .02 Z', 'M-.5 0 Q-.66 .02 -.74 .1 Q-.56 .14 -.4 .06 Z', 'M.5 0 Q.66 .02 .74 .1 Q.56 .14 .4 .06 Z'],
+      d: function (sw) { return P('M-.5 .02 Q-.5 -.56 0 -.58 Q.5 -.56 .5 .02 Z', 'fill="' + c + '" stroke="#08080A" stroke-width="' + sw + '"') +
+        P('M-.25 -.52 L-.25 0 M0 -.58 L0 .02 M.25 -.52 L.25 0 M-.47 -.26 L.47 -.26', 'stroke="' + shade(c, .65) + '" stroke-width="' + (sw * .6) + '" opacity=".75"') +
+        P('M-.5 0 Q-.66 .02 -.74 .1 Q-.56 .14 -.4 .06 Z M.5 0 Q.66 .02 .74 .1 Q.56 .14 .4 .06 Z', 'fill="' + shade(c, .8) + '" stroke="#08080A" stroke-width="' + sw + '"') + '<circle cx="0" cy="-.58" r=".05" fill="' + shade(c, .6) + '"/>'; } }; }
+  };
+  var HAT_COL = { fedora: '#25262C', flat: '#4A4238', beanie: '#2A2E38', beret: '#2A2A30', helmet: '#4A5A3A', rainhat: '#E0B030', deer: '#8A6A44' };
+  function hatOf(grade, k, hb, faceY) {
+    var h = k.hat;
+    // 우비 후드(개구리): 머리 전체를 뒤에서 감싼다. 떠 있는 챙이 없다
+    if (h === 'hood') {
+      var hx0 = hb.x0 - 9, hx1 = hb.x1 + 9, ht = hb.y0 - 40, hbm = hb.y1 - 4, hc = k.hc || '#D9A82A';
+      var hd = 'M' + hx0 + ' ' + hbm + ' Q' + (hx0 - 6) + ' ' + ht + ' 100 ' + ht + ' Q' + (hx1 + 6) + ' ' + ht + ' ' + hx1 + ' ' + hbm + ' Z';
+      return { sil: [hd], rot: '', bot: hb.y0, draw: P(hd, 'fill="' + hc + '" stroke="#0E0B0A" stroke-width="3" stroke-linejoin="round"') +
+        P('M' + (hx0 + 6) + ' ' + (hbm - 4) + ' Q' + (hx0 + 2) + ' ' + (ht + 14) + ' 100 ' + (ht + 10) + ' Q' + (hx1 - 2) + ' ' + (ht + 14) + ' ' + (hx1 - 6) + ' ' + (hbm - 4), 'fill="none" stroke="' + shade(hc, .7) + '" stroke-width="2.5"') +
+        P('M' + (hx0 + 10) + ' ' + hbm + ' l0 12 M' + (hx1 - 10) + ' ' + hbm + ' l0 12', 'stroke="#E8E0C8" stroke-width="2" stroke-linecap="round"') +
+        '<circle cx="' + (hx0 + 10) + '" cy="' + (hbm + 13) + '" r="2.4" fill="#E8E0C8"/><circle cx="' + (hx1 - 10) + '" cy="' + (hbm + 13) + '" r="2.4" fill="#E8E0C8"/>' };
     }
-    if (h === 'flat') { hc = hc || '#4A4238'; a = 'M66 60 Q70 34 100 32 Q132 34 136 58 Z'; b = 'M60 60 Q100 52 140 58 L146 66 Q100 70 58 66 Z'; d = P(a, 'fill="' + hc + '" ' + OUT) + P(b, 'fill="' + shade(hc, .8) + '" ' + OUT) + P('M80 40 L120 40 M76 48 L124 48', 'stroke="' + shade(hc, 1.3) + '" stroke-width="1.2" opacity=".6"') + '<circle cx="100" cy="33" r="3" fill="' + shade(hc, .7) + '"/>'; }
-    else if (h === 'beanie') { hc = hc || '#2A2E38'; a = 'M66 62 Q66 26 100 24 Q134 26 134 62 Z'; b = 'M62 56 L138 56 L138 68 L62 68 Z'; d = P(a, 'fill="' + hc + '" ' + OUT) + P(b, 'fill="' + shade(hc, .8) + '" ' + OUT) + P('M74 58 L74 66 M84 58 L84 66 M94 58 L94 66 M104 58 L104 66 M114 58 L114 66 M124 58 L124 66', 'stroke="' + shade(hc, 1.3) + '" stroke-width="1.5" opacity=".5"'); rot = 'rotate(-4 100 50)'; }
-    else if (h === 'beret') { hc = hc || '#2A2A30'; a = 'M62 58 Q60 34 104 34 Q146 36 140 56 Q100 66 62 58 Z'; b = 'M64 58 Q100 66 138 56 L138 60 Q100 70 64 62 Z'; d = P(a, 'fill="' + hc + '" ' + OUT) + P(b, 'fill="' + shade(hc, .7) + '"') + '<rect x="102" y="28" width="3" height="7" fill="' + shade(hc, .6) + '"/>'; rot = 'rotate(-10 100 50)'; }
-    else if (h === 'sailor') { a = 'M70 60 L74 40 Q100 34 126 40 L130 60 Z'; b = 'M64 58 L136 58 L136 66 L64 66 Z'; d = P(a, 'fill="#F2EEE6" ' + OUT) + P(b, 'fill="#22304A" ' + OUT) + P('M78 62 Q100 58 122 62 L120 72 Q100 66 80 72 Z', 'fill="#14161A"') + '<circle cx="100" cy="50" r="5" fill="#C9A24A" stroke="#5A4210" stroke-width="1"/>'; }
-    else if (h === 'helmet') { hc = '#4A5A3A'; a = 'M62 64 Q60 26 100 24 Q140 26 138 64 Z'; b = 'M56 62 L144 62 L146 70 L54 70 Z'; d = P(a, 'fill="' + hc + '" ' + OUT) + P(b, 'fill="' + shade(hc, .75) + '" ' + OUT) + P('M70 44 Q100 30 130 44', 'stroke="' + shade(hc, 1.3) + '" stroke-width="2" fill="none" opacity=".5"'); rot = 'rotate(-3 100 50)'; }
-    else if (h === 'rainhat') { a = 'M70 58 Q72 32 100 30 Q128 32 130 58 Z'; b = 'M48 60 Q100 46 152 60 L160 74 Q140 66 100 66 Q60 66 40 74 Z'; d = P(a, 'fill="#E0B030" ' + OUT) + P(b, 'fill="#C8981E" ' + OUT); rot = 'rotate(-5 100 56)'; }
-    else if (h === 'deer') { a = 'M66 62 Q66 28 100 26 Q134 28 134 62 Z'; b = 'M60 60 Q78 56 92 60 L84 68 Q70 68 60 60 Z M108 60 Q122 56 140 60 Q130 68 116 68 Z'; d = P(a, 'fill="#8A6A44" ' + OUT) + P('M80 30 L80 60 M100 26 L100 62 M120 30 L120 60 M68 44 L132 44', 'stroke="#5A4228" stroke-width="2" opacity=".7"') + P(b, 'fill="#6E5234" ' + OUT) + '<circle cx="100" cy="26" r="3" fill="#5A4228"/>'; }
-    var sc = kind === 'small' ? 'translate(100 54) scale(.74) translate(-100 -54)' : '';
-    var fit = HAT_FIT[h], bot = kind === 'small' ? 54 + .74 * (fit[0] - 54) : fit[0];
-    var dy = Math.round(((top || 62) + fit[1] - bot) * 10) / 10;
-    var tf = 'translate(0 ' + dy + ') ' + rot + (sc ? ' ' + sc : '');
-    return { sil: [a, b], rot: tf, draw: '<g transform="' + tf + '">' + d + '</g>' };
+    if (!h || h === 'none' || !HATS[h]) return null;
+    var band = grade === 'l' ? '#E0B23A' : grade === 'h' ? '#8E1F24' : (k.band || '#1A1A1E');
+    var H = HATS[h](k.hc || HAT_COL[h] || '#2A2E38', band);
+    // 챙 · 차양이 챙 줄 아래로 내려오는 길이(단위). 이만큼까지 더해도 눈썹(faceY-15)보다 위여야 한다
+    var ext = { fedora: .13, flat: .16, beanie: .06, beret: .1, sailor: .2, helmet: .08, rainhat: .14, deer: .14 }[h] || .1;
+    var H0 = hb.y1 - hb.y0, by = hb.y0 + H0 * .3, sc = 60;
+    for (var it = 0; it < 4; it++) {
+      by = Math.min(hb.y0 + H0 * .3, faceY - 15 - ext * sc);
+      // 머리 폭: 챙 줄이 머리 꼭대기보다 위로 올라가면(개구리처럼 눈이 위에 붙은 종) 머리 윗부분 폭을 쓴다
+      sc = 2 * Math.max(halfW(hb, by), halfW(hb, hb.y0 + H0 * .18)) * 1.08;
+    }
+    // 개구리처럼 눈이 머리 위로 솟은 종: 모자를 머리 '뒤'에 씌운다(챙이 머리 꼭대기에 걸리고, 눈은 챙 앞으로 솟는다)
+    if (k.hatBy) { by = k.hatBy; sc = k.hatW; }
+    sc = Math.round(sc * 10) / 10; by = Math.round(by * 10) / 10;
+    var sw = Math.round(2.6 / sc * 1000) / 1000;
+    var tf = 'translate(100 ' + by + ') rotate(-5) scale(' + sc + ')';
+    var d = H.d(sw);
+    if (k.crown) d += P('M-.2 -.17 l.07 -.13 l.06 .08 l.07 -.12 l.07 .12 l.06 -.08 l.07 .13 z', 'fill="#FFD36A" stroke="#8A6410" stroke-width="' + (sw * .5) + '"');
+    return { sil: H.sil, rot: tf, bot: by, draw: '<g transform="' + tf + '">' + d + '</g>' };
   }
   // 얼굴 소품(눈 위에 그린다). 눈 자리: x 84 · 116, y = faceY
-  function faceOf(f, s, k) {
+  // 머리 뒤에 그릴 것(헤드셋 머리띠): 얼굴 위가 아니라 머리 테두리 바깥으로만 보인다
+  function faceBack(f, s, hb) {
+    if (f !== 'headset' || !hb) return '';
+    var ey = s.faceY + 4, el = 100 - halfW(hb, ey), er = 100 + halfW(hb, ey);
+    return P('M' + (el - 3) + ' ' + ey + ' Q' + (el - 6) + ' ' + (hb.y0 - 8) + ' 100 ' + (hb.y0 - 8) + ' Q' + (er + 6) + ' ' + (hb.y0 - 8) + ' ' + (er + 3) + ' ' + ey, 'stroke="#1A1C22" stroke-width="5" fill="none" stroke-linecap="round"');
+  }
+  function faceOf(f, s, k, hb) {
     var y = s.faceY, ny = s.noseY;
+    hb = hb || { x0: 62, x1: 138, y0: 60, cx: 100, cy: 98, rx: 38, ry: 36 };
+    var L = 100 - halfW(hb, y), R = 100 + halfW(hb, y);
     if (f === 'shades') return P('M70 ' + (y - 6) + ' L96 ' + (y - 6) + ' L94 ' + (y + 6) + ' Q83 ' + (y + 10) + ' 72 ' + (y + 5) + ' Z M104 ' + (y - 6) + ' L130 ' + (y - 6) + ' L128 ' + (y + 5) + ' Q117 ' + (y + 10) + ' 106 ' + (y + 6) + ' Z', 'fill="#0C0E12" stroke="#000" stroke-width="2"') +
       P('M96 ' + (y - 4) + ' L104 ' + (y - 4), 'stroke="#000" stroke-width="3"') + P('M75 ' + (y - 3) + ' L84 ' + (y - 3) + ' M109 ' + (y - 3) + ' L118 ' + (y - 3), 'stroke="' + (k.lamp || '#fff') + '" stroke-width="1.6" opacity=".7"');
     if (f === 'mono') return '<circle cx="116" cy="' + (y - 1) + '" r="11" fill="#BFE6FF" fill-opacity=".18" stroke="#E0B23A" stroke-width="2.6"/>' + P('M126 ' + (y + 4) + ' Q134 ' + (y + 26) + ' 126 ' + (y + 48), 'stroke="#E0B23A" stroke-width="1.4" fill="none"');
-    if (f === 'headset') return P('M62 ' + (y - 4) + ' Q100 ' + (y - 60) + ' 138 ' + (y - 4), 'stroke="#1A1C22" stroke-width="5" fill="none"') + '<rect x="54" y="' + (y - 10) + '" width="12" height="20" rx="4" fill="#1E2026" stroke="#000" stroke-width="1.5"/>' +
-      P('M60 ' + (y + 8) + ' Q66 ' + (ny + 14) + ' 86 ' + (ny + 12), 'stroke="#1A1C22" stroke-width="2.6" fill="none"') + '<circle cx="88" cy="' + (ny + 12) + '" r="3" fill="#2A2E36"/>';
-    if (f === 'earpiece') return '<circle cx="136" cy="' + (y + 4) + '" r="3.5" fill="#D8D4CC"/>' + P('M136 ' + (y + 8) + ' q-4 4 0 8 q4 4 0 8 q-4 4 0 8 q4 4 0 8 L130 ' + (y + 60), 'stroke="#D8D4CC" stroke-width="1.5" fill="none"');
+    // 헤드셋: 머리띠는 머리 꼭대기를 감싸고, 귀덮개는 머리 옆에 딱 붙는다(머리 폭을 재서)
+    if (f === 'headset') { var ey = y + 4, el = 100 - halfW(hb, ey), er = 100 + halfW(hb, ey);
+      return '<rect x="' + (el - 6) + '" y="' + (ey - 10) + '" width="11" height="20" rx="4" fill="#1E2026" stroke="#000" stroke-width="1.5"/>' +
+        P('M' + (el - 1) + ' ' + (ey + 9) + ' Q' + (el + 2) + ' ' + (ny + 14) + ' 86 ' + (ny + 12), 'stroke="#1A1C22" stroke-width="2.6" fill="none"') + '<circle cx="88" cy="' + (ny + 12) + '" r="3" fill="#2A2E36"/>'; }
+    if (f === 'earpiece') return '<circle cx="' + (R - 3) + '" cy="' + (y + 4) + '" r="3.5" fill="#D8D4CC"/>' + P('M' + (R - 3) + ' ' + (y + 8) + ' q-4 4 0 8 q4 4 0 8 q-4 4 0 8 q4 4 0 8 L130 ' + (y + 60), 'stroke="#D8D4CC" stroke-width="1.5" fill="none"');
     if (f === 'mask') return P('M62 ' + (y - 4) + ' Q70 ' + (y - 16) + ' 100 ' + (y - 8) + ' Q130 ' + (y - 16) + ' 138 ' + (y - 4) + ' Q134 ' + (y + 12) + ' 114 ' + (y + 10) + ' Q104 ' + (y + 8) + ' 100 ' + (y + 2) + ' Q96 ' + (y + 8) + ' 86 ' + (y + 10) + ' Q66 ' + (y + 12) + ' 62 ' + (y - 4) + ' Z' +
       ' M73 ' + (y + 1) + ' Q84 ' + (y - 9) + ' 95 ' + (y - 2) + ' Q84 ' + (y + 7) + ' 73 ' + (y + 1) + ' Z M127 ' + (y + 1) + ' Q116 ' + (y - 9) + ' 105 ' + (y - 2) + ' Q116 ' + (y + 7) + ' 127 ' + (y + 1) + ' Z', 'fill="#1A0E14" fill-rule="evenodd" stroke="#C9A24A" stroke-width="1.8"');
     if (f === 'goggles' || f === 'nvg') {
-      var gy = y - 24, fc = k.fc || '#2A3440', lens = f === 'nvg' ? '#7CFF8A' : '#9FE0FF';
-      if (f === 'nvg') return P('M60 ' + (gy + 2) + ' Q100 ' + (gy - 8) + ' 140 ' + (gy + 2), 'stroke="#1A1C1A" stroke-width="5" fill="none"') + '<rect x="78" y="' + (gy - 9) + '" width="16" height="18" rx="3" fill="#22261E" stroke="#000" stroke-width="1.5"/><rect x="106" y="' + (gy - 9) + '" width="16" height="18" rx="3" fill="#22261E" stroke="#000" stroke-width="1.5"/>' +
+      var gy = y, fc = k.fc || '#2A3440', lens = f === 'nvg' ? '#7CFF8A' : '#9FE0FF', gl = 100 - halfW(hb, gy) + 2, gr = 100 + halfW(hb, gy) - 2;   // 줄은 머리 폭 안에서만
+      if (f === 'nvg') return P('M' + gl + ' ' + (gy + 2) + ' Q100 ' + (gy - 8) + ' ' + gr + ' ' + (gy + 2), 'stroke="#1A1C1A" stroke-width="5" fill="none"') + '<rect x="78" y="' + (gy - 9) + '" width="16" height="18" rx="3" fill="#22261E" stroke="#000" stroke-width="1.5"/><rect x="106" y="' + (gy - 9) + '" width="16" height="18" rx="3" fill="#22261E" stroke="#000" stroke-width="1.5"/>' +
         '<circle cx="86" cy="' + gy + '" r="5" fill="' + lens + '"/><circle cx="114" cy="' + gy + '" r="5" fill="' + lens + '"/><circle cx="86" cy="' + gy + '" r="9" fill="' + lens + '" opacity=".2"/><circle cx="114" cy="' + gy + '" r="9" fill="' + lens + '" opacity=".2"/>';
-      return P('M60 ' + gy + ' L140 ' + gy, 'stroke="' + fc + '" stroke-width="5"') + '<circle cx="86" cy="' + gy + '" r="10" fill="' + lens + '" fill-opacity=".55" stroke="' + shade(fc, .6) + '" stroke-width="3"/><circle cx="114" cy="' + gy + '" r="10" fill="' + lens + '" fill-opacity=".55" stroke="' + shade(fc, .6) + '" stroke-width="3"/>' +
+      return P('M' + gl + ' ' + gy + ' L' + gr + ' ' + gy, 'stroke="' + fc + '" stroke-width="5" stroke-linecap="round"') + '<circle cx="86" cy="' + gy + '" r="10" fill="' + lens + '" fill-opacity=".55" stroke="' + shade(fc, .6) + '" stroke-width="3"/><circle cx="114" cy="' + gy + '" r="10" fill="' + lens + '" fill-opacity=".55" stroke="' + shade(fc, .6) + '" stroke-width="3"/>' +
         P('M81 ' + (gy - 4) + ' Q84 ' + (gy - 7) + ' 88 ' + (gy - 6) + ' M109 ' + (gy - 4) + ' Q112 ' + (gy - 7) + ' 116 ' + (gy - 6), 'stroke="#fff" stroke-width="1.6" fill="none" opacity=".8"');
     }
     if (f === 'sleep') { var sy = y - 22; return P('M64 ' + sy + ' Q100 ' + (sy - 10) + ' 136 ' + sy + ' L134 ' + (sy + 12) + ' Q100 ' + (sy + 4) + ' 66 ' + (sy + 12) + ' Z', 'fill="#7A8CC8" stroke="#2A3050" stroke-width="2"') + P('M78 ' + (sy + 5) + ' Q84 ' + (sy + 9) + ' 90 ' + (sy + 5) + ' M110 ' + (sy + 5) + ' Q116 ' + (sy + 9) + ' 122 ' + (sy + 5), 'stroke="#fff" stroke-width="1.8" fill="none"'); }
@@ -411,7 +475,7 @@
     interro: function (n) {
       var br = ''; for (var yy = 0; yy < 200; yy += 14) for (var xx = (yy / 14) % 2 ? -12 : 0; xx < 200; xx += 24) br += '<rect x="' + xx + '" y="' + yy + '" width="22" height="12" fill="#2A1E1A" opacity=".55"/>';
       return '<rect width="200" height="200" fill="#120C0A"/>' + br + '<path d="M100 0 L100 18" stroke="#2A2A2A" stroke-width="2"/>' +
-        '<path class="nz-lamp" d="M100 22 L30 200 L170 200 Z" fill="#FFE8A8" opacity=".14"/><ellipse class="nz-lamp" cx="100" cy="24" rx="9" ry="6" fill="#FFF3C8"/><circle cx="100" cy="24" r="22" fill="#FFE8A8" opacity=".2"/>';
+        '<g class="nz-lamp"><path d="M100 22 L30 200 L170 200 Z" fill="#FFE8A8" opacity=".14"/></g><ellipse class="nz-lamp" cx="100" cy="24" rx="9" ry="6" fill="#FFF3C8"/><circle cx="100" cy="24" r="22" fill="#FFE8A8" opacity=".2"/>';
     },
     roof: function () {
       var w = '', hs = [[0, 120, 26], [26, 96, 22], [48, 132, 30], [78, 108, 18], [140, 100, 24], [164, 126, 36]];
@@ -428,8 +492,8 @@
     },
     office: function (n) {
       var bl = ''; for (var yy = 10; yy < 120; yy += 9) bl += '<rect x="110" y="' + yy + '" width="80" height="5" fill="#E8D8A8" opacity=".22"/>';
-      return '<rect width="200" height="200" fill="#16120C" opacity=".5"/>' + bl + '<path class="nz-lamp" d="M110 10 L190 10 L200 200 L60 200 Z" fill="#E8D8A8" opacity=".06"/>' +
-        '<path d="M14 120 L24 96 L40 96 L44 120 Z" fill="#1E4A2A"/><path d="M28 120 L28 140" stroke="#2A2A2A" stroke-width="3"/><ellipse class="nz-lamp" cx="32" cy="124" rx="18" ry="5" fill="#B8FF9A" opacity=".25"/>';
+      return '<rect width="200" height="200" fill="#16120C" opacity=".5"/>' + bl + '<g class="nz-lamp"><path d="M110 10 L190 10 L200 200 L60 200 Z" fill="#E8D8A8" opacity=".06"/></g>' +
+        '<path d="M14 120 L24 96 L40 96 L44 120 Z" fill="#1E4A2A"/><path d="M28 120 L28 140" stroke="#2A2A2A" stroke-width="3"/><g class="nz-lamp"><ellipse cx="32" cy="124" rx="18" ry="5" fill="#B8FF9A" opacity=".25"/></g>';
     },
     snow: function (n) {
       var f = function (cls) { return '<g class="' + cls + '" fill="#fff" opacity=".7">' + [[14, 10], [40, 60], [70, 24], [130, 40], [160, 90], [186, 20], [100, 6], [24, 110], [176, 140]].map(function (q, i) { return '<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + (1.2 + (i % 3) * .6) + '"/>'; }).join('') + '</g>'; };
@@ -437,8 +501,8 @@
     },
     station: function (n) {
       return '<rect width="200" height="200" fill="#121418" opacity=".5"/><circle cx="160" cy="34" r="18" fill="#E8E2D0" stroke="#2A2A2A" stroke-width="3"/><path d="M160 34 L160 22 M160 34 L168 38" stroke="#1A1A1A" stroke-width="2.2" stroke-linecap="round"/>' +
-        '<rect x="0" y="0" width="200" height="8" fill="#0A0A0C"/>' + [30, 80, 130].map(function (x) { return '<rect class="nz-lamp" x="' + (x - 14) + '" y="8" width="28" height="4" fill="#FFF3C8" opacity=".8"/><path d="M' + (x - 14) + ' 12 L' + (x - 34) + ' 200 L' + (x + 34) + ' 200 L' + (x + 14) + ' 12 Z" fill="#FFF3C8" opacity=".05"/>'; }).join('') +
-        '<rect x="14" y="56" width="52" height="16" rx="2" fill="#0A0A0C"/><text x="40" y="68" text-anchor="middle" font-size="10" font-weight="800" fill="#FF9A3D" font-family="monospace">막차 00:12</text>';
+        '<rect x="0" y="0" width="200" height="8" fill="#0A0A0C"/>' + [30, 80, 130].map(function (x) { return '<g class="nz-lamp"><rect x="' + (x - 14) + '" y="8" width="28" height="4" fill="#FFF3C8" opacity=".8"/></g><path d="M' + (x - 14) + ' 12 L' + (x - 34) + ' 200 L' + (x + 34) + ' 200 L' + (x + 14) + ' 12 Z" fill="#FFF3C8" opacity=".05"/>'; }).join('') +
+        '<rect x="6" y="150" width="44" height="26" rx="2" fill="#0A0A0C"/><text x="28" y="161" text-anchor="middle" font-size="8" font-weight="800" fill="#FF9A3D" font-family="monospace">막차</text><text x="28" y="172" text-anchor="middle" font-size="8" font-weight="800" fill="#FF9A3D" font-family="monospace">00:12</text>';
     }
   };
   function draw(id, o) {
@@ -446,35 +510,44 @@
     var s = SP[id], grade = o.grade || 'r', n = 'nz' + (++uid);
     var k = KIT[id] || { coat: 'trench', hat: 'fedora', face: 'none', prop: 'none' };
     var rim = grade === 'l' ? '#FFD36A' : (k.lamp || '#FFB347');
-    var H = s.head(), C = coatOf(grade, k), T = hatOf(s.hat, grade, k, pathTop(H.sil[H.sil.length - 1]));
-    var HT = 'translate(100 92) scale(1.16) translate(-100 -96)';
+    var H = s.head(), C = coatOf(grade, k), T = hatOf(grade, k, pathBox(H.sil[H.sil.length - 1]), s.faceY);
+    var HT = 'translate(100 100) scale(1.08) translate(-100 -96)';
     // 모자는 기울여 그리므로 실루엣도 같이 기울인다(안 그러면 림 라이트가 엉뚱한 자리에 모자 테두리를 그린다)
     function silOut(attr) {
       var m = function (a) { return a.map(function (d) { return P(d, attr); }).join(''); };
       return m(C.sil) + '<g transform="' + HT + '">' + m(H.sil) + (T ? '<g transform="' + T.rot + '">' + m(T.sil) + '</g>' : '') + '</g>';
     }
-    var silG = silOut('fill="#fff"');
+    /* 0.8.5b 휴대폰에서 얼굴이 까맣게 · 반쪽만 나오던 문제: mask · 필터(흐림 · 필름 결)와 움직이는 묶음이 겹치면
+       일부 휴대폰 브라우저가 가면을 잘못 그린다. → mask · filter 를 하나도 안 쓰는 그리기로 바꿨다.
+       그림자 · 얼굴 빛은 '같은 모양을 그라데이션으로 한 번 더 칠하기', 테두리 빛은 '뒤에 빛 색 실루엣을 살짝 비껴 깔기',
+       모자챙 그림자는 clipPath(머리 모양으로 자르기)로. */
+    var headD = H.sil[H.sil.length - 1];
     var defs = '<defs>' +
       '<radialGradient id="' + n + 'bg" cx="22%" cy="18%" r="95%"><stop offset="0" stop-color="' + (grade === 'l' ? '#3A2E14' : '#1C2836') + '"/><stop offset=".55" stop-color="#0C1119"/><stop offset="1" stop-color="#040508"/></radialGradient>' +
-      '<linearGradient id="' + n + 'sh" x1="0" y1="0" x2="1" y2="0.2"><stop offset=".38" stop-color="#000" stop-opacity="0"/><stop offset=".62" stop-color="#05070C" stop-opacity=".55"/><stop offset="1" stop-color="#05070C" stop-opacity=".8"/></linearGradient>' +
-      '<linearGradient id="' + n + 'rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset=".42" stop-color="#fff" stop-opacity=".0"/></linearGradient>' +
-      '<mask id="' + n + 'm">' + silG + '</mask>' +
-      '<mask id="' + n + 'rm"><rect width="200" height="200" fill="url(#' + n + 'rg)"/></mask>' +
-      '<pattern id="' + n + 'bl" width="200" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(-14)"><rect width="200" height="5" fill="#000" opacity=".16"/></pattern>' +
+      '<linearGradient id="' + n + 'sh" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="30"><stop offset=".45" stop-color="#05070C" stop-opacity="0"/><stop offset=".72" stop-color="#05070C" stop-opacity=".4"/><stop offset="1" stop-color="#05070C" stop-opacity=".62"/></linearGradient>' +
+      '<radialGradient id="' + n + 'hl" gradientUnits="userSpaceOnUse" cx="80" cy="74" r="64"><stop offset="0" stop-color="#FFF4DC" stop-opacity=".2"/><stop offset=".55" stop-color="#FFF4DC" stop-opacity="0"/><stop offset=".85" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".2"/></radialGradient>' +
+      '<radialGradient id="' + n + 'br" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="' + n + 'vg" cx="50%" cy="45%" r="72%"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>' +
+      '<clipPath id="' + n + 'cl"><rect width="200" height="200" rx="18"/></clipPath>' +
+      '<clipPath id="' + n + 'hc">' + P(headD, '') + '</clipPath>' +
       '<radialGradient id="' + n + 'lamp" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="' + rim + '" stop-opacity=".55"/><stop offset="1" stop-color="' + rim + '" stop-opacity="0"/></radialGradient>' +
       '</defs>';
     var bgId = o.bg && BGS[o.bg] ? o.bg : 'alley';
-    var bg = '<rect width="200" height="200" rx="18" fill="url(#' + n + 'bg)"/>' + BGS[bgId](n, rim);
-    var body = '<g class="nz-body">' + C.draw + '<g transform="' + HT + '">' + H.draw + eyes(s, s.faceY, grade) + noseOf(s) + faceOf(k.face, s, k) + (T ? T.draw : '') + '</g></g>';
-    // 오른쪽 그림자(실루엣 안에만)
-    var shade = '<rect width="200" height="200" fill="url(#' + n + 'sh)" mask="url(#' + n + 'm)"/>';
-    // 왼쪽 림 라이트(실루엣 테두리, 왼쪽에만)
-    var rimG = '<g mask="url(#' + n + 'rm)" fill="none" stroke="' + rim + '" stroke-width="3" opacity=".9" stroke-linejoin="round">' + silOut('') + '</g>';
-    var blinds = '<rect width="200" height="200" fill="url(#' + n + 'bl)" mask="url(#' + n + 'm)"/>';
+    var wall = '<g opacity=".07" transform="rotate(-14 150 40)">' + [0, 1, 2, 3, 4, 5].map(function (q) { return '<rect x="96" y="' + (q * 13 - 10) + '" width="130" height="6" fill="' + rim + '"/>'; }).join('') + '</g>';
+    var bg = '<rect width="200" height="200" rx="18" fill="url(#' + n + 'bg)"/>' + (bgId === 'alley' ? wall : '') + BGS[bgId](n, rim);
+    // 얼굴 빛 · 모자챙 그림자: 머리를 그린 바로 뒤, 눈 · 모자보다 먼저(눈과 모자는 덮지 않게)
+    var face = P(headD, 'fill="url(#' + n + 'hl)"') +
+      (T && !k.hatBehind ? '<g clip-path="url(#' + n + 'hc)"><ellipse cx="100" cy="' + (T.bot + 5) + '" rx="44" ry="11" fill="url(#' + n + 'br)"/></g>' : '');
+    var headG = '<g transform="' + HT + '">' + faceBack(k.face, s, pathBox(headD)) + (T && k.hatBehind ? T.draw : '') + H.draw + face + eyes(s, s.faceY, grade) + noseOf(s) + faceOf(k.face, s, k, pathBox(headD)) + (T && !k.hatBehind ? T.draw : '') + '</g>';
+    // 테두리 빛: 빛 색 실루엣을 왼쪽 위로 살짝 비껴서 인물 뒤에 깐다(겉 테두리에만 보인다)
+    var rimBack = '<g transform="translate(-2.6 -1.3)" opacity=".85">' + silOut('fill="' + rim + '"') + '</g>';
+    // 오른쪽 그림자: 같은 실루엣을 오른쪽이 어두운 그라데이션으로 한 번 더 칠한다
+    var shade = silOut('fill="url(#' + n + 'sh)"');
+    var body = '<g class="nz-body">' + rimBack + C.draw + headG + shade + '</g>';
+    var over = '<rect width="200" height="200" fill="url(#' + n + 'vg)"/>';
     var glow = grade === 'l' ? '<rect x="2" y="2" width="196" height="196" rx="17" fill="none" stroke="#E0B23A" stroke-width="3"/>' : '';
     var w = o.size || 200;
-    if (k.mono) body = '<g style="filter:grayscale(1) contrast(1.15)">' + body + '</g>';
-    return '<svg viewBox="0 0 200 200" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg">' + defs + '<g clip-path="inset(0 round 18px)">' + bg + body + shade + blinds + rimG + '</g>' + glow + '</svg>';
+    return '<svg viewBox="0 0 200 200" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg">' + defs + '<g clip-path="url(#' + n + 'cl)">' + bg + body + over + '</g>' + glow + '</svg>';
   }
     var IDS = Object.keys(SP);
   return { BG_LIST: BG_LIST, draw: draw, ids: IDS, has: function (id) { return !!SP[id]; } };
