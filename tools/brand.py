@@ -74,5 +74,88 @@ def main():
     for k, v in files.items(): (OUT / k).write_text(v, encoding='utf-8')
     print('로고 세트:', ', '.join(files))
 
+
+
+# ---------- 0.9.5 고급 궤도 · 도장 로고 ----------
+DEF2 = ('<defs>'
+  '<radialGradient id="p2" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="#FFF8DC"/><stop offset=".35" stop-color="#FFD84A"/><stop offset=".75" stop-color="#E89A0A"/><stop offset="1" stop-color="#9A5A02"/></radialGradient>'
+  '<radialGradient id="p2s" cx="78%" cy="80%" r="70%"><stop offset="0" stop-color="#3A1E00" stop-opacity=".55"/><stop offset=".6" stop-color="#3A1E00" stop-opacity="0"/></radialGradient>'
+  '<linearGradient id="r2" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#4FA8D8"/><stop offset=".5" stop-color="#E6F7FF"/><stop offset="1" stop-color="#7FD3FF"/></linearGradient>'
+  '<radialGradient id="m2" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#9FB0C8"/></radialGradient>'
+  '<radialGradient id="g2" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFD23F" stop-opacity=".55"/><stop offset="1" stop-color="#FFD23F" stop-opacity="0"/></radialGradient>'
+  '<clipPath id="pc2"><circle cx="100" cy="100" r="40"/></clipPath>'
+  '</defs>')
+
+def star(x, y, r, c='#FFF3C2'):
+    return '<path d="M%g %g Q%g %g %g %g Q%g %g %g %g Q%g %g %g %g Q%g %g %g %gZ" fill="%s"/>' % (
+        x, y - r, x, y, x + r, y, x, y, x, y + r, x, y, x - r, y, x, y, x, y - r, c)
+
+def mark2(cx=100, cy=100, s=1.0):
+    """행성(음영 · 띠 무늬) + 앞뒤로 나뉜 빛나는 고리 + 달 + 반짝이"""
+    d, w = textpath('L', 44, 0, 0); x = 100 - w / 2 - 1; y = 104
+    ring_back = '<path d="M30 112 A74 24 -18 0 1 170 74" fill="none" stroke="#2E6E93" stroke-width="7" stroke-linecap="round"/>'
+    ring_front = ('<path d="M170 74 A74 24 -18 0 1 30 112" fill="none" stroke="#0E1A28" stroke-width="13" stroke-linecap="round" opacity=".6"/>'
+                  '<path d="M170 74 A74 24 -18 0 1 30 112" fill="none" stroke="url(#r2)" stroke-width="8" stroke-linecap="round"/>'
+                  )
+    planet = ('<circle cx="100" cy="100" r="40" fill="url(#p2)"/>'
+              '<g clip-path="url(#pc2)" opacity=".35"><path d="M56 86 Q100 76 144 88" stroke="#B86A00" stroke-width="5" fill="none"/>'
+              '<path d="M56 118 Q100 110 144 120" stroke="#B86A00" stroke-width="4" fill="none"/></g>'
+              '<circle cx="100" cy="100" r="40" fill="url(#p2s)"/>'
+              '<ellipse cx="86" cy="80" rx="12" ry="7" fill="#FFFFFF" opacity=".45" transform="rotate(-25 86 80)"/>'
+              '<path d="%s" fill="#7A4300" opacity=".6" transform="translate(%g %g)"/><path d="%s" fill="#2A1A04" transform="translate(%g %g)"/>' % (d, x + 2, y + 2, d, x, y))
+    moon = '<circle cx="160" cy="112" r="9" fill="url(#m2)"/><circle cx="163" cy="115" r="2" fill="#8090A8" opacity=".6"/>'
+    sparks = star(40, 58, 6) + star(156, 44, 4.5) + star(52, 146, 3.5, '#BFE8FF')
+    return ('<g transform="translate(%g %g) scale(%g) translate(-100 -100)">' % (cx, cy, s) +
+            '<circle cx="100" cy="100" r="70" fill="url(#g2)"/>' + ring_back + planet + ring_front + moon + sparks + '</g>')
+
+def arc_text(cx, cy, R, parts, size, top=True, spacing=1.5):
+    """윗호는 시계 방향으로, 아랫호는 반대로 — 둘 다 똑바로 읽히게. parts=[(글자, 색)]"""
+    chars = [(ch, col, textpath(ch, size, 0, 0)[1] if ch != ' ' else size * 0.35) for wd, col in parts for ch in wd]
+    total = sum(c[2] for c in chars) + spacing * (len(chars) - 1)
+    span = total / R  # 라디안
+    a = (-math.pi / 2 - span / 2) if top else (math.pi / 2 + span / 2)
+    out = ''
+    for ch, col, cw in chars:
+        step = (cw / 2) / R
+        a += step if top else -step
+        px, py = cx + R * math.cos(a), cy + R * math.sin(a)
+        if ch != ' ':
+            d, _ = textpath(ch, size, 0, 0)
+            rot = math.degrees(a) + (90 if top else -90)
+            out += '<path d="%s" fill="%s" transform="translate(%.1f %.1f) rotate(%.1f) translate(%.1f %.1f)"/>' % (d, col, px, py, rot, -cw / 2, size * 0.36)
+        st = (cw / 2 + spacing) / R
+        a += st if top else -st
+    return out
+
+def ring_text(cx, cy, R, size=14):
+    """도장 둘레: 위 LOOP & LAMP(흰 · & 금) · 아래 STUDIO(회색) · 양옆 금빛 점 — 가운데 글자와 같은 문구 · 같은 색"""
+    out = arc_text(cx, cy, R, [('LOOP', W), (' ', W), ('&', Y), (' ', W), ('LAMP', W)], size, True, 2)
+    out += arc_text(cx, cy, R, [('STUDIO', '#AEB6C4')], size, False, 5)
+    for ang in (180, 0):
+        out += '<circle cx="%.1f" cy="%.1f" r="2.6" fill="%s"/>' % (cx + R * math.cos(math.radians(ang)), cy + R * math.sin(math.radians(ang)), Y)
+    return out
+
+def badge2(cx=80, cy=80):
+    return ('<circle cx="%d" cy="%d" r="78" fill="#1A1F2B"/>' % (cx, cy) +
+            '<circle cx="%d" cy="%d" r="76" fill="none" stroke="%s" stroke-width="3"/>' % (cx, cy, Y) +
+            '<circle cx="%d" cy="%d" r="71" fill="none" stroke="%s" stroke-width="1" opacity=".5"/>' % (cx, cy, Y) +
+            '<circle cx="%d" cy="%d" r="50" fill="#0F131C" stroke="%s" stroke-width="2"/>' % (cx, cy, C) +
+            ring_text(cx, cy, 61) + mark2(cx, cy, 0.5))
+
+def main2():
+    t, w = word(190, 92, sub=False)
+    d4, w4 = textpath('STUDIO', 19, 0, 0, spacing=10); sx = 190 + (w - w4) / 2
+    d4, _ = textpath('STUDIO', 19, sx, 128, spacing=10)
+    lines = '<path d="M%g 121 H%g M%g 121 H%g" stroke="#4A5262" stroke-width="2"/>' % (190, sx - 14, sx + w4 + 14, 190 + w)
+    body = badge2(84, 80) + t + lines + '<path d="%s" fill="%s"/>' % (d4, G)
+    files = {
+        'loopandlamp_logo.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d 160">' % int(190 + w + 20) + DEF + DEF2 + body + '</svg>',
+        'loopandlamp_badge.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">' + DEF + DEF2 + badge2() + '</svg>',
+        'loopandlamp_mark.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">' + DEF2 + mark2() + '</svg>',
+        'loopandlamp_icon.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">' + DEF + DEF2 + '<rect width="200" height="200" rx="44" fill="#151A26"/>' + mark2(100, 100, 0.95) + '</svg>',
+    }
+    for k, v in files.items(): (OUT / k).write_text(v, encoding='utf-8')
+    print('로고 세트(0.9.5):', ', '.join(files))
+
 if __name__ == '__main__':
-    main()
+    main(); main2()
