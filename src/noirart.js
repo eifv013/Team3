@@ -522,9 +522,19 @@
     return '<svg viewBox="0 0 200 200" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="' + n + 'c"><rect width="200" height="200" rx="18"/></clipPath></defs>' +
       '<g clip-path="url(#' + n + 'c)"><g class="nz-body"><image href="' + src + '" x="-4" y="-4" width="208" height="208" preserveAspectRatio="xMidYMid slice"/></g>' + fx + '</g>' + badge + gold + '</svg>';
   }
+  function soonDraw(id, o) {
+    var sz = o.size || 200, g = o.grade || 'r', gold = g === 'l';
+    return '<svg class="noir-svg nz-soon" viewBox="0 0 200 200" width="' + sz + '" height="' + sz + '" role="img" aria-label="코드네임 그림 준비 중">' +
+      '<rect x="2" y="2" width="196" height="196" rx="22" fill="#14171E" stroke="' + (gold ? '#E8B931' : '#3A4150') + '" stroke-width="4"/>' +
+      '<g opacity=".5" stroke="#5A6272" stroke-width="2" fill="none"><circle cx="100" cy="78" r="30"/><path d="M52 160 q48-56 96 0"/></g>' +
+      '<text x="100" y="84" text-anchor="middle" font-size="30" font-weight="900" fill="#8F98A8">?</text>' +
+      '<text x="100" y="186" text-anchor="middle" font-size="17" font-weight="800" fill="#C9CFDA" font-family="IBM Plex Sans KR,sans-serif">그림 준비 중</text></svg>';
+  }
   function draw(id, o) {
     o = o || {};
     var pic = pics()[id]; if (pic) return picDraw(id, o, pic);
+    // 0.9.0 그림이 아직 없는 동물은 코드로 그리지 않고 "준비 중" 카드를 보여 준다(모든 그림은 새 그림으로 바뀐다)
+    if (o.code !== true) return soonDraw(id, o);
     var s = SP[id], grade = o.grade || 'r', n = 'nz' + (++uid);
     var k = KIT[id] || { coat: 'trench', hat: 'fedora', face: 'none', prop: 'none' };
     var rim = grade === 'l' ? '#FFD36A' : (k.lamp || '#FFB347');
@@ -568,5 +578,5 @@
     return '<svg viewBox="0 0 200 200" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg">' + defs + '<g clip-path="url(#' + n + 'cl)">' + bg + body + over + '</g>' + glow + '</svg>';
   }
     var IDS = Object.keys(SP);
-  return { hasPic: function (id) { return !!pics()[id]; }, BG_LIST: BG_LIST, draw: draw, ids: IDS, has: function (id) { return !!SP[id]; } };
+  return { hasPic: function (id) { return !!pics()[id]; }, BG_LIST: BG_LIST, draw: draw, ids: IDS, has: function (id) { return !!SP[id] || !!pics()[id]; } };
 });

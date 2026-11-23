@@ -192,7 +192,7 @@
     var box = $('h-tabs'), sx = null, sy = 0, st = 0;
     box.addEventListener('touchstart', function (e) {
       // 0.8.1: 끌어 옮기는 파트너 · 글 넣는 칸 위에서만 밀기를 하지 않는다(증거판 · 상황실은 누르기만 해서 밀어도 된다)
-      if (e.target.closest('#of-pet, input, textarea')) { sx = null; return; }
+      if (e.target.closest('#of-pet, #ev-vp, input, textarea')) { sx = null; return; }
       sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
     }, { passive: true });
     box.addEventListener('touchend', function (e) {

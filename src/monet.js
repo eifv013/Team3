@@ -38,11 +38,19 @@
     { id: 'gems330', kind: 'gems', name: '배지 주머니', krw: 5900, desc: '◆330 (10% 더)', gives: { gems: 330 } },
     { id: 'gems700', kind: 'gems', name: '배지 상자', krw: 11000, desc: '◆700 (17% 더)', gives: { gems: 700 } },
     { id: 'gems1500', kind: 'gems', name: '배지 금고', krw: 22000, desc: '◆1,500 (25% 더)', gives: { gems: 1500 } },
-    { id: 'pass', kind: 'pass', name: '시즌 패스 프리미엄', krw: 9900, desc: '이번 시즌 프리미엄 보상 줄 열기(이미 지난 단계도 받아요)', gives: {} }
+    { id: 'pass', kind: 'pass', name: '시즌 패스 프리미엄', krw: 9900, desc: '이번 시즌 프리미엄 보상 줄 열기(이미 지난 단계도 받아요) · 시즌 동안 프리미엄 효과', gives: {} },
+    // 0.9.0 한정 파트너: 정식 출시 전까지는 기한 없이(LAUNCHED 가 true 가 되면 기간 한정으로 바꾼다). 뽑기에는 안 나온다
+    { id: 'wolf', kind: 'limited', name: '한정 파트너 · 백랑(고스트)', krw: 9900, once: true, desc: '특수수사팀 늑대 · 전설 ★5 · 코드네임 바로 열림', gives: { pet: 'wolf:l' } }
   ];
   var BY_ID = {};
   PRODUCTS.forEach(function (p) { BY_ID[p.id] = p; });
   var SUB = { dailyGems: 20, freePulls: 1, capMin: 120 };
+  /* 0.9.0 결제 방식. 'gems' = 정식 출시 전 임시: 실제 결제 상품을 배지(◆)로 산다(값 = 원 ÷ 100). 'store' = 출시 뒤 실제 결제(Team3Pay).
+     상품마다 krw 는 그대로 두고 배지 값은 여기서만 정한다 — 출시 때 PAY_MODE 만 바꾸면 된다 */
+  var PAY_MODE = 'gems', LAUNCHED = false;
+  function gemPrice(id) { var p = BY_ID[id]; return p ? Math.ceil(p.krw / 100) : 0; }
+  /* 시즌 패스 프리미엄 효과(시즌 동안). 퍼즐 실력(시간 · 힌트 · 오인)은 팔지 않는다 */
+  var PREM = { pay: 15, idle: 10, xp: 25, retry: 1, treats: 5 };
 
   // 광고 자리: 하루 한도(광고 없이 받기를 사면 +1). 무엇을 주는지는 화면 쪽이 정한다(뽑기권 · 2배 · 회식)
   var ADS = {
@@ -67,13 +75,14 @@
     s.subUntil = int(d.subUntil, 0, 0, 9e15);
     s.subDay = typeof d.subDay === 'string' && DAY_RE.test(d.subDay) ? d.subDay : '';
     s.adFree = d.adFree === true;
+    s.passWarn = typeof d.passWarn === 'string' && DAY_RE.test(d.passWarn) ? d.passWarn : '';   // 0.9.0 시즌 끝 알림을 띄운 날
     var a = d.ads && typeof d.ads === 'object' ? d.ads : {};
     s.ads = { day: typeof a.day === 'string' && DAY_RE.test(a.day) ? a.day : '', n: {} };
     var an = a.n && typeof a.n === 'object' ? a.n : {};
     Object.keys(an).forEach(function (k) { if (ADS[k]) s.ads.n[k] = int(an[k], 0, 0, 99); });
     var ps = d.pass && typeof d.pass === 'object' ? d.pass : {};
     s.passStart = typeof d.passStart === 'string' && DAY_RE.test(d.passStart) ? d.passStart : '';
-    s.pass = { season: int(ps.season, -1, -1, 1e6), xp: int(ps.xp, 0, 0, 1e7), free: {}, prem: {}, premium: ps.premium === true };
+    s.pass = { season: int(ps.season, -1, -1, 1e6), xp: int(ps.xp, 0, 0, 1e7), free: {}, prem: {}, premium: ps.premium === true, treatDay: typeof ps.treatDay === 'string' && DAY_RE.test(ps.treatDay) ? ps.treatDay : '' };
     ['free', 'prem'].forEach(function (t) {
       var o = ps[t] && typeof ps[t] === 'object' ? ps[t] : {};
       Object.keys(o).forEach(function (k) { if (o[k] === true && /^\d{1,2}$/.test(k)) s.pass[t][k] = true; });
@@ -107,6 +116,7 @@
     var g = p.gives || {};
     if (g.gems) save.gems = (save.gems || 0) + g.gems;
     if (typeof grant === 'function') {
+      if (g.pet) grant('pet', g.pet);
       if (g.tickets) grant('tickets', g.tickets);
       if (g.treats) grant('treats', g.treats);
       if (g.outfit) grant('outfit', g.outfit);
@@ -152,18 +162,25 @@
 
   /* ---------- 시즌 패스 ---------- */
   /*
-   * 28일 한 시즌. 출동 · 특별 출동으로 경험치(XP)를 모아 TIER_XP 마다 한 단계, 모두 TIERS 단계.
+   * 30일 한 시즌. 출동 · 특별 출동으로 경험치(XP)를 모아 TIER_XP 마다 한 단계, 모두 TIERS 단계.
    *   무료 줄은 누구나, 프리미엄 줄은 패스를 산 사람(산 뒤 지난 단계도 받는다).
    *   마지막 프리미엄 단계: 전설 선택권(전설 동물 하나를 골라 데려오기).
    */
-  var SEASON_DAYS = 28, TIERS = 30, TIER_XP = 100, EPOCH = Date.UTC(2026, 0, 5);
+  var SEASON_DAYS = 30, TIERS = 30, TIER_XP = 100, EPOCH = Date.UTC(2026, 0, 5);
   function dayNum(day) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day || ''); return m ? Math.floor((Date.UTC(+m[1], +m[2] - 1, +m[3]) - EPOCH) / D) : 0; }
   /*
-   * 0.6.0 시즌은 플레이어마다: 시즌 패스를 처음 연 날(passStart)부터 28일씩. 누구나 시즌 1 · 28일로 시작한다.
+   * 0.6.0 시즌은 플레이어마다: 시즌 패스를 처음 연 날(passStart)부터 30일씩(0.9.0 부터, 그전엔 28일). 누구나 시즌 1 · 30일로 시작한다.
    *   (예전에는 2026-01-05 부터 다 같이 28일씩이라 출시 전인데 "시즌 12", 중간에 시작하면 남은 날이 모자랐다)
    */
   function season(day, start) { var n = dayNum(day) - (start ? dayNum(start) : dayNum(day)), s = Math.max(0, Math.floor(n / SEASON_DAYS)); return { no: s + 1, idx: s, left: (s + 1) * SEASON_DAYS - Math.max(0, n) }; }
-  function seasonOf(save, day) { var s = S(save); if (!s.passStart) { s.passStart = day; s.pass.season = 0; } return season(day, s.passStart); }
+  /* 0.9.0 정식 출시 전에는 시즌이 끝나지 않는다(시즌 1 · 남은 날 무한). 출시하면 출시일부터 30일씩(그전에 시작한 사람도 출시일부터) */
+  function seasonOf(save, day) {
+    var s = S(save); if (!s.passStart) { s.passStart = day; s.pass.season = 0; }
+    if (!LAUNCHED || !LAUNCH_DAY) return { no: 1, idx: 0, left: Infinity };
+    return season(day, s.passStart < LAUNCH_DAY ? LAUNCH_DAY : s.passStart);
+  }
+  /** 시험용: 정식 출시 상태를 바꾼다(launch(false) 로 되돌림) */
+  function launch(day) { LAUNCHED = !!day; LAUNCH_DAY = day || ''; }
   function reward(track, t) {
     // t: 1..TIERS
     if (track === 'free') return t % 5 === 0 ? { tickets: 2 } : t % 2 === 0 ? { treats: 10 } : { gems: 5 };
@@ -172,7 +189,7 @@
   }
   function passOf(save, day) {
     var s = S(save), se = seasonOf(save, day);   // 처음이면 오늘부터 시즌 1(예전 저장은 경험치 · 받은 보상을 그대로 시즌 1로 옮긴다)
-    if (s.pass.season !== se.idx) s.pass = { season: se.idx, xp: 0, free: {}, prem: {}, premium: false };   // 새 시즌: 처음부터(프리미엄도 시즌마다)
+    if (s.pass.season !== se.idx) s.pass = { season: se.idx, xp: 0, free: {}, prem: {}, premium: false, treatDay: '' };   // 새 시즌: 처음부터(프리미엄도 시즌마다)
     return s.pass;
   }
   function tierOf(xp) { return Math.min(TIERS, Math.floor(xp / TIER_XP)); }
@@ -180,6 +197,7 @@
   function runXp(score, medal) { return 10 + Math.min(30, Math.floor((score || 0) / 500)) + (medal ? 30 : 0); }
   function addXp(save, day, xp) {
     var ps = passOf(save, day), before = tierOf(ps.xp);
+    if (ps.premium) xp = xp * (1 + PREM.xp / 100);   // 0.9.0 프리미엄: 패스 경험치 +25%
     ps.xp = Math.min(TIERS * TIER_XP, ps.xp + Math.max(0, Math.floor(xp)));
     return { tier: tierOf(ps.xp), up: tierOf(ps.xp) - before };
   }
@@ -203,7 +221,34 @@
     return got;
   }
 
+  /* ---------- 0.9.0 프리미엄 효과 ---------- */
+  function premOn(save, day) { return passOf(save, day).premium; }
+  /** hub 효과 합치기용: 출동 수사비 · 팀 수사비 % */
+  function premBonus(save, day) { return premOn(save, day) ? { pay: PREM.pay, idle: PREM.idle } : { pay: 0, idle: 0 }; }
+  /** 하루 간식(프리미엄). 오늘 받았거나 프리미엄이 아니면 0 */
+  function claimPremTreats(save, day) { var ps = passOf(save, day); if (!ps.premium || ps.treatDay === day) return 0; ps.treatDay = day; return PREM.treats; }
+  /** 프리미엄을 사면 바로 받는 지난 단계 보상 합(놓친 보상 보여 주기) */
+  function missedPrem(save, day) {
+    var ps = passOf(save, day), tier = tierOf(ps.xp), sum = {};
+    if (ps.premium) return sum;
+    for (var t = 1; t <= tier; t++) { var r = reward('prem', t); Object.keys(r).forEach(function (k) { sum[k] = k === 'pick' ? 1 : (sum[k] || 0) + r[k]; }); }
+    return sum;
+  }
+  /** 0.9.0 한정 상품 판매 기간: 정식 출시 전까지는 무제한, 출시하면 출시일(LAUNCH_DAY)부터 30일(마지막 날 포함)
+   *   출시 때 LAUNCHED = true, LAUNCH_DAY = 'YYYY-MM-DD' 두 줄만 바꾸면 된다 */
+  var LAUNCH_DAY = '', LIMITED_DAYS = 30;
+  /** 한정 상품이 남은 날(오늘 포함). 기간이 지났거나 없는 상품이면 0 */
+  function limitedLeft(id, day) {
+    var p = BY_ID[id];
+    if (!p || p.kind !== 'limited') return 0;
+    if (!LAUNCHED || !LAUNCH_DAY) return Infinity;   // 정식 출시 전: 기한 없음
+    var n = dayNum(LAUNCH_DAY) + LIMITED_DAYS - dayNum(day);
+    return n > 0 ? n : 0;
+  }
+  function limitedOpen(save, id, day) { var p = BY_ID[id]; return !!p && p.kind === 'limited' && limitedLeft(id, day) > 0 && !(p.once && S(save).bought[id]); }
+
   return {
+    PAY_MODE: PAY_MODE, launch: launch, launched: function () { return LAUNCHED; }, gemPrice: gemPrice, PREM: PREM, premOn: premOn, premBonus: premBonus, claimPremTreats: claimPremTreats, missedPrem: missedPrem, limitedOpen: limitedOpen, limitedLeft: limitedLeft, LIMITED_DAYS: LIMITED_DAYS,
     PRODUCTS: PRODUCTS, BY_ID: BY_ID, SUB: SUB, ADS: ADS, SEASON_DAYS: SEASON_DAYS, seasonOf: seasonOf, TIERS: TIERS, TIER_XP: TIER_XP,
     clean: clean, visible: visible, starterLeft: starterLeft, applyPurchase: applyPurchase,
     subActive: subActive, subDaysLeft: subDaysLeft, claimSub: claimSub, perks: perks,

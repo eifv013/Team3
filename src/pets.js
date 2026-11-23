@@ -116,8 +116,12 @@
     { id: 'lion', kind: '사자', name: '갈기', own: 'pay', eq: { pay: 11 }, line: '갈기 휘날리는 출동 대장' },
     { id: 'deer', kind: '사슴', name: '방울', own: 'idle', eq: { idle: 9 }, line: '뿔에 방울 달고 순찰 중' }
   ];
+  /* 0.9.0 한정 파트너: 뽑기 · 도감 세트에는 안 들어간다(SPECIES 밖). 상점 한정 칸에서만 데려온다(★5로) */
+  var LIMITED = [
+    { id: 'wolf', kind: '늑대', name: '백랑', own: 'pay', eq: { pay: 12, idle: 8 }, line: '특수수사팀에서 온 말 없는 사냥꾼', limited: true }
+  ];
   var BY_ID = {};
-  SPECIES.forEach(function (s) { BY_ID[s.id] = s; });
+  SPECIES.concat(LIMITED).forEach(function (s) { BY_ID[s.id] = s; });
 
   // 보유 효과: 한 마리(★1)가 주는 값. 퍼센트 갈래와 분 갈래
   var OWN_VAL = { c: { pct: 0.5, min: 5 }, r: { pct: 1, min: 10 }, h: { pct: 2, min: 20 }, l: { pct: 3, min: 40 } };
@@ -185,7 +189,7 @@
      전설 등급이면 바로, 그 밖의 등급은 ★5(최고)가 되면 열린다. 켜면 파트너 카드 · 도감 자세히 · 출동 머리 사진이 누아르 그림으로.
      상황실(사무실) 안 파트너는 늘 귀여운 모습 그대로. 효과는 없음(꾸미기). */
   // 코드네임(0.8.4): 종마다 하나. 성격 한 줄(line)에서 따왔다. 켜면 초상이 누아르 그림으로, 이름 옆에 코드네임이 붙는다
-  var CODENAME = {"corgi": "에코", "shiba": "스톤페이스", "hamster": "포켓", "rabbit": "안테나", "bear": "그리즐리", "hedgehog": "니들", "duck": "패들", "frog": "재즈", "ragdoll": "블루아이", "siamese": "마스크", "fox": "폴리그래프", "penguin": "턱시도", "monkey": "스카이워치", "squirrel": "컬렉터", "koala": "슬리퍼", "raccoon": "밴딧", "owl": "제로쓰리", "otter": "다이버", "panda": "모노크롬", "tiger": "헌터", "sheep": "클라우드", "pig": "트러플", "redpanda": "메이플", "alpaca": "패커", "seal": "하버", "hippo": "부스터", "turtle": "아이언쉘", "mouse": "크랙", "lion": "킹", "deer": "실버벨"};
+  var CODENAME = {"corgi": "에코", "shiba": "스톤페이스", "hamster": "포켓", "rabbit": "안테나", "bear": "그리즐리", "hedgehog": "니들", "duck": "패들", "frog": "재즈", "ragdoll": "블루아이", "siamese": "마스크", "fox": "폴리그래프", "penguin": "턱시도", "monkey": "스카이워치", "squirrel": "컬렉터", "koala": "슬리퍼", "raccoon": "밴딧", "owl": "제로쓰리", "otter": "다이버", "panda": "모노크롬", "tiger": "헌터", "sheep": "클라우드", "pig": "트러플", "redpanda": "메이플", "alpaca": "패커", "seal": "하버", "hippo": "부스터", "turtle": "아이언쉘", "mouse": "크랙", "lion": "킹", "deer": "실버벨", "wolf": "고스트"};
   function codename(id) { return CODENAME[id] || ''; }
   function canNoirP(p, k) { var x = parse(k); return !!(x && p.own[k] && (x.g === 'l' || p.own[k] >= STAR_MAX)); }
   function canNoir(save, k) { return canNoirP(P(save), k); }
@@ -447,9 +451,19 @@
   }
 
   /** 전설 선택권(0.4.0, 시즌 패스 보상): 전설 동물 하나를 골라 데려오기(이미 있으면 ★). 반환: grant 결과 */
+  /** 0.9.0 한정 파트너 데려오기: ★5(최고)로. 이미 있으면 그대로 */
+  function grantLimited(save, k) {
+    var p = P(save), x = parse(k);
+    if (!x || !BY_ID[x.id].limited) return null;
+    var isNew = !p.own[k];
+    p.own[k] = STAR_MAX;
+    p.noirSeen[k] = true;   // 상점 칸에서 코드네임을 이미 보여 줬다 → 각성 알림은 다시 띄우지 않는다
+    return { key: k, isNew: isNew };
+  }
   function usePick(save, id) {
     var p = P(save);
     if (!BY_ID[id]) throw PetError('BAD_PET', '모르는 동물');
+    if (BY_ID[id].limited) throw PetError('LIMITED', '한정 파트너는 상점에서만');
     if (!(p.picks.l > 0)) throw PetError('NOT_ENOUGH', '선택권이 없다');
     if (p.own[key(id, 'l')] >= STAR_MAX) throw PetError('MAXED', '이미 ★5');
     p.picks.l -= 1;
@@ -458,6 +472,7 @@
   /** 간식으로 원하는 동물 받기. 반환: grant 결과 */
   function swap(save, id, g) {
     if (!BY_ID[id] || !GRADE[g]) throw PetError('BAD_PET', '모르는 동물');
+    if (BY_ID[id].limited) throw PetError('LIMITED', '한정 파트너는 상점에서만');   // 0.9.0 간식으로 데려오기 막기
     var p = P(save), c = GRADE[g].swap;
     if (p.own[key(id, g)] >= STAR_MAX) throw PetError('MAXED', '이미 ★5');
     if (p.treats < c) throw PetError('NOT_ENOUGH', '간식이 모자란다');
@@ -561,6 +576,7 @@
 
   return {
     codename: codename, CODENAME: CODENAME,
+    LIMITED: LIMITED, grantLimited: grantLimited,
     canNoir: canNoir, noirOn: noirOn, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,
     STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, MAX_PULL: MAX_PULL, gemCost: gemCost, maxPull: maxPull, WELCOME: WELCOME, CAPS: CAPS,

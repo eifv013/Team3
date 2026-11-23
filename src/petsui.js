@@ -394,6 +394,14 @@
             A.draw(sp.id, { grade: g }) + (st ? '<i>' + st + '★</i>' : '') + '</button>';
         }).join('') + '</div>';
     });
+    // 0.9.0 한정 파트너 줄: 뽑기에 안 나오고 상점에서만 데려와요(전설 한 칸만)
+    (P.LIMITED || []).forEach(function (sp) {
+      var k = P.key(sp.id, 'l'), st = p.own[k];
+      html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>한정 · 상점</small></span>' +
+        '<span></span><span></span><span></span>' +
+        '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE.l.color + '" aria-label="한정 전설 ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
+        A.draw(sp.id, { grade: 'l' }) + (st ? '<i>' + st + '★</i>' : '') + '</button></div>';
+    });
     $('pets-dex').innerHTML = html;
   }
 
@@ -404,7 +412,7 @@
     var p = pets(), sp = P.BY_ID[x.id], g = P.GRADE[x.g], st = p.own[detailKey] || 0, shown = st || 1;
     var own = P.describe(P.ownEffect(x.id, x.g, shown)), eq = P.describe(P.eqEffect(x.id, x.g, shown));
     var zapLocked = sp.zap && x.g !== 'h' && x.g !== 'l' ? '<small class="muted">⚡ ' + esc(P.describe(sp.zap).join(' · ').replace(/⚡ /g, '')) + ' — 영웅 · 전설 등급에서 열려요</small>' : '';
-    var swapCost = g.swap, canSwap = st < P.STAR_MAX;
+    var swapCost = g.swap, canSwap = st < P.STAR_MAX && !sp.limited;   // 한정 파트너는 간식·선택권으로 못 데려와요
     box.style.setProperty('--gc', g.color);
     box.innerHTML = '<button class="pet-x" id="pets-detail-x" aria-label="자세히 닫기">×</button>' +
       '<div class="pet-big' + (st ? '' : ' locked') + (st && isNoir(detailKey) ? ' noir' : '') + '">' + (st ? portrait(detailKey, x, { grade: x.g, anim: true, outfit: P.wearing(S(), detailKey) }) : A.draw(x.id, { grade: x.g })) + '</div>' +

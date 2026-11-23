@@ -308,6 +308,7 @@
       day: typeof dl.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dl.day) ? dl.day : '',
       done: dl.done === true, best: int(dl.best, 0, 0), tries: int(dl.tries, 0, 0, 99)
     };
+    if (dl.freeUsed === true) s.daily.freeUsed = true;   // 0.9.0 프리미엄 무료 재도전을 쓴 날만 남긴다
     s.profileEdits = int(data.profileEdits, 0, 0, 1e6);
     s.nameTags = int(data.nameTags, 0, 0, 9999);
     // 0.3.0: 동물 저장은 객체만 그대로 넘긴다(안쪽 검사는 Team3Pets.clean)

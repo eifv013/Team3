@@ -34,6 +34,8 @@
     // 0.8.0 팀원 직무 · 공용 장비 · 수사 기법도
     if (Cr) { var cb = Cr.bonus(sv); b = b || (PT ? PT.zero() : {}); Object.keys(cb).forEach(function (k) { b[k] = (b[k] || 0) + (cb[k] || 0); }); }
     if (Ev && sv.evid) { var eb = Ev.bonus(sv); b = b || (PT ? PT.zero() : {}); Object.keys(eb).forEach(function (k) { b[k] = (b[k] || 0) + (eb[k] || 0); }); }
+    // 0.9.0 시즌 패스 프리미엄: 출동 수사비 +15% · 팀 수사비 +10%
+    if (M && sv.shop) { var pb = M.premBonus(sv, dayNow()); if (pb.pay || pb.idle) { b = b || (PT ? PT.zero() : {}); b.pay = (b.pay || 0) + pb.pay; b.idle = (b.idle || 0) + pb.idle; } }
     return b;
   }
   // 0.7.0 부서 수입 배수: 계급 배수 × (부서 효과 %)
@@ -48,6 +50,7 @@
     else if (kind === 'treats') p.treats += v;
     else if (kind === 'outfit' && PT.OUTFIT_BY[v]) p.closet[v] = true;
     else if (kind === 'pick') p.picks[v] = (p.picks[v] || 0) + 1;
+    else if (kind === 'pet' && PT.grantLimited) PT.grantLimited(save, v);   // 0.9.0 한정 파트너(★5로)
     if (PUI) PUI.renderPartner();
   }
   // 광고 보상 "팀 회식 무료": 상점 회식과 같은 효과(토끼 효과 포함)
@@ -213,8 +216,23 @@
     checkAch();
     // 0.4.0 월정액 하루 보상: 사무실에 오면 하루 한 번
     if (M) { var sg = M.claimSub(save, nowMs(), dayNow()); if (sg) { persist(); UI.toast('3팀 월정액: 오늘의 배지 ◆' + sg); } }
+    // 0.9.0 시즌 패스 프리미엄: 하루 간식 +5
+    if (M && PT && save.pets) { var pt = M.claimPremTreats(save, dayNow()); if (pt) { save.pets.treats += pt; persist(); UI.toast('👑 프리미엄: 오늘의 간식 +' + pt); } }
     // 0.4.1 재화 아이콘(Team3Icons 가 없으면 ◆ 글자)
     $('h-gems').innerHTML = (window.Team3Icons ? window.Team3Icons.icon('gem') : '◆ ') + fmt(save.gems);
+    // 0.9.0 시즌 패스 프리미엄: 머리에 👑 남은 날(3일 이하면 빨갛게) · 금빛 도장/왕관 팀 이름(body.prem-on)
+    if (window.Team3Monet) {
+      var MO = window.Team3Monet, pOn = MO.premOn(save, dayNow()), pc = $('h-prem');
+      document.body.classList.toggle('prem-on', pOn);
+      if (pc) { pc.hidden = !pOn; if (pOn) { var lf = MO.seasonOf(save, dayNow()).left; pc.textContent = lf === Infinity ? '👑 프리미엄' : '👑 ' + lf + '일'; pc.classList.toggle('soon', lf <= 3); } }
+      // 연출 5: 시즌 끝 3일 전부터 하루 한 번 알림(받을 보상이 남았으면 그 수도)
+      var se5 = MO.seasonOf(save, dayNow());
+      if (se5.left <= 3 && save.shop && save.shop.passWarn !== dayNow()) {
+        save.shop.passWarn = dayNow(); persist();
+        var left5 = MO.claimable ? MO.claimable(save, dayNow()).length : 0;
+        setTimeout(function () { UI.toast('⏳ 시즌이 ' + se5.left + '일 남았어요' + (left5 ? ' · 받을 보상 ' + left5 + '개' : '') + (pOn ? '' : ' · 프리미엄 보상도 함께 사라져요')); }, 1200);
+      }
+    }
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
     // 형사가 늘면 1명당 값이 아니라 잡는 수가 늘어 "1분에 버는 수사비"가 오른다 — 그걸 바로 보여 준다
     // 0.4.0 동물 효과가 보이게: 분당 수사비 중 동물(보유 + 파트너) 몫을 따로
@@ -327,8 +345,8 @@
     $('h-daily-goal').textContent = '동 ' + fmt(r.medals[0]) + ' · 은 ' + fmt(r.medals[1]) + ' · 금 ' + fmt(r.medals[2]) + (st.best ? ' · 오늘 최고 ' + fmt(st.best) : '');
     box.classList.toggle('done', st.done);
     var b = $('h-daily-go');
-    b.textContent = st.done ? '다시 ◆' + E.RETRY_GEMS : '도전';
-    b.disabled = st.done && save.gems < E.RETRY_GEMS;
+    b.textContent = st.done ? (premRetry() ? '👑 무료 재도전' : '다시 ◆' + E.RETRY_GEMS) : '도전';
+    b.disabled = st.done && !premRetry() && save.gems < E.RETRY_GEMS;
   }
   function renderSupport(t) {
     $('h-support').innerHTML = ['party', 'night'].map(function (id) {
@@ -589,12 +607,13 @@
     return opts;
   }
   // 하루 한 번 특별 출동: 준비물·장비 없이 그날 규칙으로. 오늘 보상을 받았으면 배지로 한 번 더
+  function premRetry() { return !!(M && save.shop && M.premOn(save, dayNow()) && save.daily && save.daily.done && !save.daily.freeUsed); }
   function goDaily() {
     if (dispatching || !E) return;
     var day = dayNow(), st = E.dailyStatus(save, day);
     var begin = function (useGems) {
       var cfg;
-      try { cfg = E.startDaily(save, day, useGems); } catch (e) { UI.toast(e.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '시작할 수 없어요: ' + e.message); return; }
+      try { cfg = E.startDaily(save, day, useGems, premRetry()); } catch (e) { UI.toast(e.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '시작할 수 없어요: ' + e.message); return; }
       cfg.ruleName = st.rule.name; cfg.day = day; cfg.boss = false;
       if (Df) cfg = Df.applyRun(cfg, Df.get(save));
       persist();
@@ -606,6 +625,7 @@
         .then(function () { dispatching = false; }, function () { dispatching = false; });
     };
     if (!st.done) { begin(false); return; }
+    if (premRetry()) { begin(false); return; }   // 0.9.0 프리미엄: 하루 한 번 무료 재도전
     openInfo({ label: '특별 출동', title: '한 번 더 도전할까요?', body: p('오늘 보상은 이미 받았어요. 배지 ◆' + E.RETRY_GEMS + '개로 한 번 더 도전하면, 메달을 따면 보상을 다시 받아요.') + p('<span class="muted">가진 배지 ◆' + fmt(save.gems) + '</span>'),
       ok: '◆' + E.RETRY_GEMS + '개로 도전', cancel: '취소', onOk: function () { begin(true); } });
   }
@@ -1036,7 +1056,8 @@
   if (CUI) CUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, fmt: fmt, fmtShort: fmtShort, bonus: function () { return petBonus(save); }, showTab: function (t) { if (MUI) MUI.go(t); } });
   if (MUI) MUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, I: I, Cr: Cr, CUI: CUI, E: E, PT: PT, PUI: PUI, SUI: SUI, AUI: AUI, EUI: EUI, Ev: Ev, Dp: Dp, Df: Df, H: H, OF: OF, M: M,
     deptMult: deptMult, nowMs: nowMs, dayNow: dayNow, fmt: fmt, fmtShort: fmtShort, freeExtra: function () { return M ? M.perks(save, nowMs()).freePulls : 0; } });
-  if (SUI) SUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, grant: grant, freeParty: freeParty, day: dayNow });
+  if ($('h-prem')) $('h-prem').addEventListener('click', function () { if (SUI && SUI.open) SUI.open('pass'); });
+  if (SUI) SUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, grant: grant, freeParty: freeParty, day: dayNow, openInfo: openInfo });
   // 출동 결과의 "수사비 2배 받기"(광고 자리): 한 번만
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('#res-double');

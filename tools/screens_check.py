@@ -4,7 +4,7 @@
 
 보는 것
   사무실 파트너 칸(쓰다듬기 → 친밀도 · 말풍선) · 배지 칸 → 매점
-  매점: 광고 자리(시험판 3초) → 뽑기권 +1, 하루 한도 줄어듦 · 결제는 "출시 때 열려요"(시험판 결제 꺼짐)
+  매점: 광고 자리(시험판 3초) → 뽑기권 +1, 하루 한도 줄어듦 · 결제 상품은 정식 출시 전까지 배지로 산다(한정 늑대 사기)
   시즌 패스 탭: 단계 · 받기 단추
   동물 창: 픽업 띠 · 오늘 무료 뽑기 → 뽑기 연출 → 닫힘 · 도감 세트 · 전설 선택권 · 의상 사기/입히기
   출동 결과: 동물 효과 줄 · 시즌 패스 XP · 2배 받기(광고) → 수사비가 실제로 늘어남
@@ -22,8 +22,8 @@ problems = []
 
 
 def seed():
-    js = """const I=require('./src/idle.js');const s=I.newSave(Date.now());s.gems=500;s.tutorialDone=true;s.runs=3;s.diff={k:'normal',set:true};
-s.pets={own:{'corgi:c':1,'corgi:r':1,'corgi:h':1,'corgi:l':2},eq:'corgi:l',welcome:true,tickets:2,treats:40,picks:{l:1},noirSeen:{'corgi:l':true}};
+    js = """const I=require('./src/idle.js');const s=I.newSave(Date.now());s.gems=599;s.tutorialDone=true;s.runs=3;s.diff={k:'normal',set:true};
+s.pets={own:{'corgi:c':1,'corgi:r':1,'corgi:h':1,'corgi:l':2},eq:'corgi:l',welcome:true,tickets:2,treats:40,picks:{l:1},noirSeen:{'corgi:l':true,'wolf:l':true}};
 process.stdout.write(I.serialize(s))"""
     return subprocess.run(['node', '-e', js], cwd=ROOT, capture_output=True, text=True, check=True).stdout
 
@@ -79,8 +79,12 @@ def main():
         need(pg.locator('.ad-stub').count() == 0, '매점: 광고 자리가 안 닫힘')
         need('2/3' in pg.text_content('#shop-body'), '매점: 광고 한도가 줄지 않음')
         need(t0 != pg.text_content('#shop-wallet'), '매점: 뽑기권이 늘지 않음')
-        pg.click('[data-buy=gems60]', force=True); pg.clock.run_for(300)   # aria-disabled(출시 전)이어도 누르면 안내가 떠야 한다
-        need('출시 때' in (pg.text_content('#toast') or ''), '매점: 시험판 결제가 꺼져 있지 않음')
+        # 0.9.0 정식 출시 전: 결제 상품은 배지로 산다 → 한정 늑대를 배지로 데려오기
+        g0 = pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}')).gems")
+        pg.click('[data-buy=wolf]'); pg.clock.run_for(500)
+        sv = pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}'))")
+        need(sv['gems'] == g0 - 99 and sv['pets']['own'].get('wolf:l') == 5, f"매점: 배지로 한정 늑대 사기 실패 ({g0} → {sv['gems']}, {sv['pets']['own'].get('wolf:l')})")
+        need(pg.locator('.lim-card').count() == 0, '매점: 산 뒤에도 한정 칸이 남음')
         no_hscroll(pg, '매점')
         pg.screenshot(path=SHOT + 's_shop.png')
         pg.click('#shop-tabs [data-tab=pass]'); pg.clock.run_for(200)
@@ -145,6 +149,9 @@ def main():
         pg.click('#pets-x'); pg.clock.run_for(300)
 
         # 출동 → 결과(시간을 빨리 감는다)
+        if pg.locator('#info-sheet').is_visible():   # 전설 선택권으로 데려온 전설 → 코드네임 알림이 뜬다
+            need('코드네임' in (pg.text_content('#info-sheet') or ''), '코드네임 알림이 아닌 창이 떠 있음')
+            pg.click('#info-x'); pg.clock.run_for(300)
         pg.evaluate("Team3MenuUI.go('home')"); pg.click('#h-go-home'); pg.clock.run_for(6000)
         # 판에서 맞는 한 패를 몇 번 잡는다(smoke.py 와 같은 방법)
         for _ in range(4):

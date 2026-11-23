@@ -6,10 +6,12 @@
  *   처음으로: 수사비 · 형사(1명) · 훈련 · 장비 · 부서 · 지금 사건의 진척(검거 수) · 유치장.
  *   남는 것: 사건 번호 · 닫은 사건 · 열어 본 일지(caseBest 로 계속 열려 있다) · 동물 · 배지 · 업적 · 계급 · 상점 · 프로필 · 단서 · 증거판.
  *
- * 증거판(코르크 보드)
- *   단서로 증거 카드를 산다(한 장씩, 다시 살 필요 없음). 산 카드는 단서로 강화(1 → 5단계): 효과 × 단계, 다음 단계 값 = 카드 값 × 다음 단계. 산 카드는 보드 칸에 핀으로 꽂아야 효과가 난다(옮기기는 공짜).
- *   같은 색 카드가 가로 · 세로로 이어지면 붉은 실로 묶여 그 묶음의 효과가 커진다: 2장 ×1.5 · 3~4장 ×2 · 5장 이상 ×2.5.
- *   보드는 5×8 칸(40). 처음엔 가운데 9칸, 재수사할수록 · 사건을 닫을수록 바깥으로 열린다.
+ * 증거판(0.9.0 연결판)
+ *   51장이 판 위 정해진 자리에 ??? 로 놓여 있다. 가운데는 사건 파일(첫 재수사 때 열린다).
+ *   열린 증거(또는 사건 파일)와 실로 이어진 ??? 만 단서로 열 수 있다. 연 증거는 바로 효과가 난다(꽂기 없음).
+ *   열린 같은 색 증거가 실로 이어진 묶음이면 효과가 커진다: 2장 ×1.5 · 3~4장 ×2 · 5장 이상 ×2.5.
+ *   강화(1 → 5단계): 효과 × 단계, 다음 단계 값 = 카드 값 × 다음 단계.
+ *   판 자리: 가운데(1000,1000)에서 색마다 방향(사람 위왼쪽 · 기록 위오른쪽 · 돈 아래오른쪽 · 장소 아래왼쪽), 묶음(단계)이 클수록 바깥.
  *   카드는 51장. 처음 12장, 재수사 2번 · 사건 1 종결 · 재수사 6번(또는 사건 2 종결)마다 12장씩 더 나온다.
  *   0.7.0: 미제 사건(난이도) 전용 3장 — 미제 사건으로 출동 10번이면 나온다.
  *
@@ -17,7 +19,7 @@
  *   cap 자리 비움 한도 +분 · off 자리 비움 속도 +%p · gear 장비 할인 % · buff 사기 충전 +초 · time 출동 시간 +초 · combo 연속 배수 상한 + ·
  *   shield 오인 면제 +번 · miss 오인 벌점 −초 · startDet 재수사 뒤 형사 +명 · startMoney 재수사 뒤 수사비 + · clue 단서 +%
  *
- * save.evid = { clues, spent, own: {카드: true}, pins: {칸: 카드}, runEarned, retreats, log: [{at, gain, earned}], caseBest }
+ * save.evid = { clues, spent, own: {카드: true}, lv: {카드: 단계}, runEarned, retreats, log: [{at, gain, earned}], caseBest }   (0.9.0: pins 는 없어졌다 — 산 카드는 모두 열린 증거)
  */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -26,7 +28,6 @@
   'use strict';
 
   var CLUE_UNIT = 20000;
-  var COLS = 5, ROWS = 8;   // 폰 세로 화면에서 칸이 읽히는 크기(한 칸 ≈ 55px)
   var COLOR = { r: { name: '사람 · 증언', hex: '#E5484F' }, b: { name: '기록 · 영상', hex: '#2F6FD6' }, y: { name: '돈 · 거래', hex: '#E0A100' }, g: { name: '장소 · 물건', hex: '#2E9E5B' } };
   var KEY_NAME = { speed: '팀 속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서 수입', cap: '자리 비움 한도', off: '자리 비움 속도', gear: '장비 할인',
                    buff: '사기 충전', time: '출동 시간', combo: '연속 배수 상한', shield: '오인 면제', miss: '오인 벌점', startDet: '재수사 뒤 형사', startMoney: '재수사 뒤 수사비', clue: '단서' };
@@ -60,19 +61,46 @@
   var BY_ID = {}; CARDS.forEach(function (c) { BY_ID[c.id] = c; });
   var MAX_LV = 5;
 
+  /* ---------- 0.9.0 연결판: 자리 · 실 ---------- */
+  var CX = 1000, CY = 1000, RING = [0, 215, 385, 555, 725, 880], DIR = { r: -135, b: -45, y: 45, g: 135 };
+  var NODE = { core: { id: 'core', x: CX, y: CY, rot: 0 } };
+  ['r', 'b', 'y', 'g'].forEach(function (col) {
+    for (var t = 0; t <= 4; t++) {
+      var list = CARDS.filter(function (c) { return c.color === col && c.tier === t; }); if (!list.length) continue;
+      var spread = t === 0 ? 64 : t === 4 ? 20 : 72, n = list.length;
+      list.forEach(function (c, i) {
+        var a = (DIR[col] + (n === 1 ? 0 : (-spread / 2 + spread * i / (n - 1)))) * Math.PI / 180, rr = RING[t + 1] + (i % 2) * 18;
+        NODE[c.id] = { id: c.id, x: Math.round(CX + Math.cos(a) * rr), y: Math.round(CY + Math.sin(a) * rr), rot: ((i * 37 + t * 13) % 9) - 4 };
+      });
+    }
+  });
+  // 실: 0단계는 사건 파일과, 그 밖은 같은 색 한 단계 아래 가장 가까운 증거와. 색이 다른 이웃끼리 다리 몇 개(판이 그물처럼)
+  var EDGES = [];
+  CARDS.forEach(function (c) {
+    if (c.tier === 0) { EDGES.push(['core', c.id]); return; }
+    var best = null, bd = 1e9, n = NODE[c.id];
+    CARDS.forEach(function (m) { if (m.color !== c.color || m.tier !== c.tier - 1) return; var d = Math.hypot(NODE[m.id].x - n.x, NODE[m.id].y - n.y); if (d < bd) { bd = d; best = m.id; } });
+    if (best) EDGES.push([best, c.id]);
+  });
+  [['glove', 'tape'], ['coin', 'map'], ['bank', 'log'], ['shoe', 'print'], ['alibi', 'gps'], ['cash', 'ticket'], ['diary', 'drone'], ['crypto', 'ship']].forEach(function (e) { EDGES.push(e); });
+  var NEI = {}; EDGES.forEach(function (e) { (NEI[e[0]] = NEI[e[0]] || []).push(e[1]); (NEI[e[1]] = NEI[e[1]] || []).push(e[0]); });
+
   function EError(code, message) { var e = new Error(message); e.name = 'EvidenceError'; e.code = code; return e; }
   function int(v, d, lo, hi) { v = typeof v === 'number' && isFinite(v) ? Math.floor(v) : d; return Math.max(lo, Math.min(hi, v)); }
   function closedCount(save) { return (save.past || []).length; }
 
-  // 칸 여는 순서: 가운데(3,2)에서 가까운 칸부터(같은 거리면 위 → 왼쪽). 처음 9칸, 재수사마다 +2, 사건 종결마다 +4, 최대 42
-  var ORDER = (function () {
-    var cells = [];
-    var cc = (COLS - 1) / 2, cr = (ROWS - 1) / 2;
-    for (var r = 0; r < ROWS; r++) for (var c = 0; c < COLS; c++) cells.push({ i: r * COLS + c, d: Math.abs(c - cc) * 1.1 + Math.abs(r - cr) + (r < cr ? 0 : 0.01) });
-    return cells.sort(function (a, b) { return a.d - b.d || a.i - b.i; }).map(function (x) { return x.i; });
-  })();
-  function openCount(save) { var e = E(save); return Math.min(COLS * ROWS, 9 + e.retreats * 2 + closedCount(save) * 4); }
-  function isOpen(save, cell) { return ORDER.indexOf(cell) >= 0 && ORDER.indexOf(cell) < openCount(save); }
+  /** 사건 파일이 열렸나(첫 재수사부터) */
+  function coreOpen(save) { return E(save).retreats >= 1; }
+  /** 판 위 자리가 열렸나: 사건 파일 · 산 증거 */
+  function opened(save, id) { return id === 'core' ? coreOpen(save) : !!E(save).own[id]; }
+  /** 열린 것과 실로 이어졌나(열 수 있는 자리) */
+  function linked(save, id) { return (NEI[id] || []).some(function (q) { return opened(save, q); }); }
+  /** 자리 상태: open · can(지금 열 수 있음) · lock(이어졌지만 아직 안 나온 묶음) · shut(???) */
+  function state(save, id) {
+    if (opened(save, id)) return 'open';
+    if (id === 'core' || !coreOpen(save) || !linked(save, id)) return 'shut';
+    return tierOpen(save, BY_ID[id].tier) ? 'can' : 'lock';
+  }
   function tierOpen(save, t) {
     var e = E(save);
     if (t === 0) return true;
@@ -84,13 +112,11 @@
   var HARD_RUNS = 10;
 
   function clean(save) {
-    var d = save.evid && typeof save.evid === 'object' ? save.evid : {}, own = {}, pins = {}, lv = {};
-    var dO = d.own && typeof d.own === 'object' ? d.own : {}, dP = d.pins && typeof d.pins === 'object' ? d.pins : {}, dL = d.lv && typeof d.lv === 'object' ? d.lv : {};
+    var d = save.evid && typeof save.evid === 'object' ? save.evid : {}, own = {}, lv = {};
+    var dO = d.own && typeof d.own === 'object' ? d.own : {}, dL = d.lv && typeof d.lv === 'object' ? d.lv : {};
     Object.keys(dO).forEach(function (k) { if (dO[k] === true && BY_ID[k]) { own[k] = true; lv[k] = int(dL[k], 1, 1, MAX_LV); } });
-    var used = {};
-    Object.keys(dP).forEach(function (k) { var i = parseInt(k, 10), c = dP[k]; if (i >= 0 && i < COLS * ROWS && own[c] && !used[c]) { pins[i] = c; used[c] = 1; } });
     var log = Array.isArray(d.log) ? d.log.filter(function (x) { return x && typeof x === 'object'; }).slice(-20).map(function (x) { return { at: int(x.at, 0, 0, 9e15), gain: int(x.gain, 0, 0, 1e9), earned: int(x.earned, 0, 0, 1e18) }; }) : [];
-    save.evid = { clues: int(d.clues, 0, 0, 1e9), spent: int(d.spent, 0, 0, 1e9), own: own, lv: lv, pins: pins, runEarned: Math.max(0, +d.runEarned || 0), retreats: int(d.retreats, 0, 0, 1e6), log: log,
+    save.evid = { clues: int(d.clues, 0, 0, 1e9), spent: int(d.spent, 0, 0, 1e9), own: own, lv: lv, runEarned: Math.max(0, +d.runEarned || 0), retreats: int(d.retreats, 0, 0, 1e6), log: log,
                   caseBest: int(d.caseBest, 0, 0, 1e9) };
     if (save.evid.spent > save.evid.clues) save.evid.spent = save.evid.clues;
     return save.evid;
@@ -108,44 +134,29 @@
   /** 다음 단서 +1 까지 더 벌어야 하는 수사비(효과 전 기준) */
   function nextAt(save) { var e = E(save), b = baseGain(e.runEarned); return Math.pow(b + 1, 3) * CLUE_UNIT - e.runEarned; }
 
-  /* ---------- 보드 · 묶음 ---------- */
+  /* ---------- 묶음(열린 같은 색 증거가 실로 이어진 덩어리) ---------- */
   function groups(save) {
     var e = E(save), seen = {}, out = [];
-    Object.keys(e.pins).forEach(function (k) {
-      var i0 = +k; if (seen[i0]) return;
-      var col = BY_ID[e.pins[i0]].color, st = [i0], mem = []; seen[i0] = 1;
+    Object.keys(e.own).forEach(function (id0) {
+      if (seen[id0]) return;
+      var col = BY_ID[id0].color, st = [id0], mem = []; seen[id0] = 1;
       while (st.length) {
-        var i = st.pop(), r = Math.floor(i / COLS), c = i % COLS; mem.push(i);
-        [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].forEach(function (p) {
-          if (p[0] < 0 || p[0] >= ROWS || p[1] < 0 || p[1] >= COLS) return;
-          var j = p[0] * COLS + p[1];
-          if (!seen[j] && e.pins[j] && BY_ID[e.pins[j]].color === col) { seen[j] = 1; st.push(j); }
-        });
+        var id = st.pop(); mem.push(id);
+        (NEI[id] || []).forEach(function (q) { if (q !== 'core' && !seen[q] && e.own[q] && BY_ID[q].color === col) { seen[q] = 1; st.push(q); } });
       }
-      out.push({ color: col, cells: mem.sort(function (a, b) { return a - b; }), mult: groupMult(mem.length) });
+      out.push({ color: col, ids: mem, mult: groupMult(mem.length) });
     });
     return out;
   }
   function groupMult(n) { return n >= 5 ? 2.5 : n >= 3 ? 2 : n === 2 ? 1.5 : 1; }
-  /** 이웃한 같은 색 쌍(붉은 실) [[칸, 칸]…] */
-  function links(save) {
-    var e = E(save), out = [];
-    Object.keys(e.pins).forEach(function (k) {
-      var i = +k, r = Math.floor(i / COLS), c = i % COLS, col = BY_ID[e.pins[i]].color;
-      [[r, c + 1], [r + 1, c]].forEach(function (p) {
-        if (p[0] >= ROWS || p[1] >= COLS) return;
-        var j = p[0] * COLS + p[1];
-        if (e.pins[j] && BY_ID[e.pins[j]].color === col) out.push([i, j]);
-      });
-    });
-    return out;
-  }
-  /** 꽂힌 카드 효과 합(묶음 배수 반영). 반환 { speed: …, … } */
+  /** 붉은 실: 양 끝이 모두 열린 실 [[a, b]…](사건 파일 포함) */
+  function links(save) { return EDGES.filter(function (e) { return opened(save, e[0]) && opened(save, e[1]); }); }
+  /** 열린 증거 효과 합(묶음 배수 반영). 반환 { speed: …, … } */
   function effects(save) {
     var e = E(save), out = {};
     Object.keys(KEY_NAME).forEach(function (k) { out[k] = 0; });
     groups(save).forEach(function (g) {
-      g.cells.forEach(function (i) { var c = BY_ID[e.pins[i]]; out[c.key] += c.value * (e.lv[c.id] || 1) * g.mult; });
+      g.ids.forEach(function (id) { var c = BY_ID[id]; out[c.key] += c.value * (e.lv[c.id] || 1) * g.mult; });
     });
     Object.keys(out).forEach(function (k) { out[k] = Math.round(out[k] * 10) / 10; });
     out.startDet = Math.floor(out.startDet); out.shield = Math.floor(out.shield); out.combo = Math.floor(out.combo); out.miss = Math.floor(out.miss);
@@ -166,6 +177,8 @@
     if (!c) throw EError('BAD_CARD', '모르는 증거');
     if (!tierOpen(save, c.tier)) throw EError('LOCKED', '아직 안 나온 증거');
     if (e.own[id]) throw EError('ALREADY', '이미 가진 증거');
+    if (!coreOpen(save)) throw EError('NO_CASE', '아직 사건 파일이 없다(첫 재수사부터)');
+    if (!linked(save, id)) throw EError('NOT_LINKED', '열린 증거와 이어지지 않았다');
     if (left(save) < c.cost) throw EError('NOT_ENOUGH', '단서가 모자란다');
     e.own[id] = true; e.lv[id] = 1; e.spent += c.cost;
     return c;
@@ -180,21 +193,6 @@
     e.lv[id] += 1; e.spent += k;
     return e.lv[id];
   }
-  /** 꽂기: 같은 카드가 다른 칸에 있으면 옮긴다. 칸에 다른 카드가 있으면 자리를 바꾼다(옮겨 온 칸으로) */
-  function pin(save, id, cell) {
-    var e = E(save);
-    if (!e.own[id]) throw EError('NOT_OWNED', '가진 증거가 아니다');
-    if (!isOpen(save, cell)) throw EError('CLOSED_CELL', '아직 닫힌 칸');
-    var from = null;
-    Object.keys(e.pins).forEach(function (k) { if (e.pins[k] === id) from = +k; });
-    var there = e.pins[cell];
-    if (from != null) delete e.pins[from];
-    if (there && from != null) e.pins[from] = there;
-    e.pins[cell] = id;
-    return { moved: from, swapped: there && from != null ? there : null, bumped: there && from == null ? there : null };
-  }
-  function unpin(save, cell) { var e = E(save); if (!e.pins[cell]) throw EError('EMPTY', '빈 칸'); var id = e.pins[cell]; delete e.pins[cell]; return id; }
-
   /* ---------- 재수사 ---------- */
   /**
    * 재수사: 단서를 받고 처음으로. idle 은 몰라서 부르는 쪽이 넘긴다: opts = { now, newTeam(save) — 형사 · 훈련 · 장비 · 수사비 · 진척을 처음으로 }
@@ -221,8 +219,9 @@
     return KEY_NAME[c.key] + (c.key === 'miss' ? ' −' : ' +') + num + u;
   }
 
-  return { CLUE_UNIT: CLUE_UNIT, MAX_LV: MAX_LV, RANK_PCT: RANK_PCT, careerPct: careerPct, upCost: upCost, upgrade: upgrade, COLS: COLS, ROWS: ROWS, COLOR: COLOR, KEY_NAME: KEY_NAME, CARDS: CARDS, BY_ID: BY_ID, ORDER: ORDER,
-           clean: clean, left: left, earn: earn, gainNow: gainNow, nextAt: nextAt, openCount: openCount, isOpen: isOpen, tierOpen: tierOpen,
-           groups: groups, groupMult: groupMult, links: links, effects: effects, bonus: bonus, buyCard: buyCard, pin: pin, unpin: unpin,
+  return { CLUE_UNIT: CLUE_UNIT, MAX_LV: MAX_LV, RANK_PCT: RANK_PCT, careerPct: careerPct, upCost: upCost, upgrade: upgrade, COLOR: COLOR, KEY_NAME: KEY_NAME, CARDS: CARDS, BY_ID: BY_ID,
+           NODE: NODE, EDGES: EDGES, CX: CX, CY: CY, coreOpen: coreOpen, opened: opened, linked: linked, state: state,
+           clean: clean, left: left, earn: earn, gainNow: gainNow, nextAt: nextAt, tierOpen: tierOpen,
+           groups: groups, groupMult: groupMult, links: links, effects: effects, bonus: bonus, buyCard: buyCard,
            retreat: retreat, lastGain: lastGain, describe: describe, shortText: shortText };
 });

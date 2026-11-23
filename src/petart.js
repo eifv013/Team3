@@ -338,6 +338,19 @@
     s += kEyes(o, 102) + kFace(o, 108, '#2A1E1A') + kPaws(F, L, D);
     return kWrap(o, s, 102);
   }
+  // 0.9.0 한정 파트너 늑대(백랑): 여우와 같은 틀, 은회색 털 · 뾰족한 귀 · 볼 흉터 · 덥수룩한 앞머리
+  function kWolf(o) {
+    o = o || {}; var F = '#B8C0CC', L = '#4E5866', C = '#F6F8FB', D = '#2E3440', s = '';
+    s += '<g class="' + (o.anim ? 'pb-sway' : '') + '"><path d="M140 184 q46 2 44-42 q-2-20-14-18 q14 40-30 60z"' + k(F, L) + '/><path d="M170 124 q14 2 14 18 q-8-4-18-4z"' + k(C, L) + '/></g>';
+    s += mirror('M36 74 L32 10 Q36 6 42 10 L86 44 Z', k(F, L)) + mirror('M38 30 L36 14 L50 24 Z', ' fill="' + D + '"') + mirror('M44 62 L40 24 L72 46 Z', ' fill="#E7D8DE"');
+    s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
+    s += '<path d="M78 66 Q100 58 122 66 L100 96 Z" fill="#8E98A6" opacity=".7"/>';   // 이마의 짙은 털 무늬(늑대 가면)
+    s += '<path d="M28 104 q30 4 58 22 q6 8 14 8 q8 0 14-8 q28-18 58-22 q-4 34-36 44 q-18 6-36 6 q-18 0-36-6 q-32-10-36-44z" fill="' + C + '"/>';
+    s += '<path d="M100 150 q22 0 24 40 h-48 q2-40 24-40z" fill="' + C + '"/>';
+    s += '<path d="M138 92 l10 16" stroke="#C98A8A" stroke-width="3" stroke-linecap="round"/>';
+    s += kEyes(o, 102) + kFace(o, 108, '#1E2228') + kPaws(F, L, D);
+    return kWrap(o, s, 102);
+  }
   function kPenguin(o) {
     o = o || {}; var F = '#3D4A63', L = '#222A3B', C = '#FFFFFF', s = '';
     s += '<path d="' + MOCHI + '"' + k(F, L) + '/>' + kShine();
@@ -614,7 +627,7 @@
     ragdoll: function (o) { return kCat(o, 'ragdoll'); }, siamese: function (o) { return kCat(o, 'siamese'); },
     raccoon: kRaccoon, owl: kOwl, panda: kPanda, monkey: kMonkey, hamster: kHamster, rabbit: kRabbit, fox: kFox, penguin: kPenguin, bear: kBear,
     hedgehog: kHedgehog, squirrel: kSquirrel, otter: kOtter, duck: kDuck, frog: kFrog, koala: kKoala, tiger: kTiger,
-    sheep: kSheep, pig: kPig, redpanda: kRedPanda, alpaca: kAlpaca, seal: kSeal, hippo: kHippo, turtle: kTurtle, mouse: kMouse, lion: kLion, deer: kDeer
+    sheep: kSheep, pig: kPig, redpanda: kRedPanda, alpaca: kAlpaca, seal: kSeal, hippo: kHippo, turtle: kTurtle, mouse: kMouse, lion: kLion, deer: kDeer, wolf: kWolf
   };
   /** 동물 그림. 모르는 종류면 빈 문자열 */
   function draw(id, o) {

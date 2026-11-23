@@ -9,6 +9,9 @@ const T0 = Date.UTC(2026, 10, 22, 3), H = 3600e3, D = 24 * H;
 function fresh() { const s = I.newSave(T0); P.clean(s); M.clean(s, T0); return s; }
 function grantTo(s) { return (k, v) => { if (k === 'tickets') P.addTickets(s, v); else if (k === 'treats') s.pets.treats += v; else if (k === 'outfit') s.pets.closet[v] = true; else if (k === 'pick') s.pets.picks[v] += 1; }; }
 
+// 0.9.0: 출시 전에는 시즌이 끝나지 않는다. 이 파일은 출시 뒤 규칙(30일 시즌)을 본다 → 아주 예전에 출시한 것으로 둔다
+M.launch('2000-01-01');
+
 test('새내기 꾸러미: 72시간 동안만, 한 번만, 산 것이 다 들어온다', () => {
   const s = fresh();
   assert.equal(M.visible(s, 'starter', T0 + 71 * H), true);
@@ -53,11 +56,11 @@ test('광고 자리: 하루 한도, 날이 바뀌면 다시, 광고 없이 받�
 
 test('시즌 패스: 경험치 · 단계 · 무료/프리미엄 · 산 뒤 지난 단계도 · 새 시즌에 처음부터', () => {
   const s = fresh(), d = '2026-11-22';
-  // 0.6.0: 시즌은 처음 연 날부터 — 시즌 1, 28일 남음. 27일 뒤 1일 남음, 28일 뒤 시즌 2
+  // 0.6.0: 시즌은 처음 연 날부터 — 시즌 1, 30일 남음. 29일 뒤 1일 남음, 30일 뒤 시즌 2
   const se = M.seasonOf(s, d);
-  assert.deepEqual(se, { no: 1, idx: 0, left: 28 });
-  assert.deepEqual(M.season('2026-12-19', d), { no: 1, idx: 0, left: 1 });
-  assert.deepEqual(M.season('2026-12-20', d), { no: 2, idx: 1, left: 28 });
+  assert.deepEqual(se, { no: 1, idx: 0, left: 30 });
+  assert.deepEqual(M.season('2026-12-21', d), { no: 1, idx: 0, left: 1 });
+  assert.deepEqual(M.season('2026-12-22', d), { no: 2, idx: 1, left: 30 });
   assert.equal(M.runXp(0), 10); assert.equal(M.runXp(20000), 40); assert.equal(M.runXp(3000, '금'), 46);
   const r = M.addXp(s, d, 350);
   assert.deepEqual(r, { tier: 3, up: 3 });
@@ -107,6 +110,6 @@ test('시즌 패스(0.6.0): 예전 저장(전체 기준 시즌 12)은 경험치 
   M.clean(s, T0);
   const ps = M.passOf(s, '2026-11-22');
   assert.equal(ps.xp, 550); assert.equal(ps.premium, true); assert.deepEqual(ps.free, { 1: true, 2: true });
-  assert.deepEqual(M.seasonOf(s, '2026-11-22'), { no: 1, idx: 0, left: 28 });
+  assert.deepEqual(M.seasonOf(s, '2026-11-22'), { no: 1, idx: 0, left: 30 });
   assert.equal(s.shop.passStart, '2026-11-22');
 });

@@ -219,8 +219,10 @@
    * 특별 출동을 시작한다. 오늘 이미 보상을 받았으면 배지 RETRY_GEMS 개로 한 번 더(보상도 다시 받는다).
    * 반환: 판 설정 { duration, level, freeHints:0, nonePenalty, mods, daily:true, ruleId }
    */
-  function startDaily(save, day, useGems) {
+  function startDaily(save, day, useGems, freeRetry) {
     var st = dailyStatus(save, day);
+    // 0.9.0 시즌 패스 프리미엄: 하루 한 번 무료 재도전
+    if (st.done && freeRetry && !save.daily.freeUsed) { save.daily.freeUsed = true; save.daily.done = false; st.done = false; }
     if (st.done) {
       if (!useGems) throw EcoError('DAILY_DONE', '오늘 특별 출동은 끝났다');
       if (save.gems < RETRY_GEMS) throw EcoError('NOT_ENOUGH', '배지가 모자란다');
