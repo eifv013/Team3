@@ -13,6 +13,10 @@
 (function (root) {
   'use strict';
   var P = root.Team3Pets, A = root.Team3PetArt;
+  /* 0.8.4 누아르 각성 그림. 켜진 동물이면 초상(파트너 카드 · 도감 자세히)을 누아르로. 표정·의상은 귀여운 그림에만 있다 */
+  function noirArt() { return root.Team3NoirArt; }
+  function isNoir(k) { return !!(noirArt() && k && P.noirOn(S(), k)); }
+  function portrait(k, x, o) { return isNoir(k) ? '<span class="noir-pic' + (o && o.anim ? ' noir-anim' : '') + '">' + noirArt().draw(x.id, { grade: x.g }) + '</span>' : A.draw(x.id, o); }
   if (!P || !A) return;
   var $ = function (id) { return document.getElementById(id); };
   function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
@@ -45,8 +49,8 @@
     // 0.4.1 무대: 등급 빛(영웅 · 전설은 도는 후광) · 바닥 그림자 · 전설 반짝이. 버튼 안에는 그림만(act 가 갈아 끼운다)
     box.innerHTML = '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
-      '<button class="pet-art" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + A.draw(x.id, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
-      '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b><small>' + esc(eff.join(' · ')) + '</small>' +
+      '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
+      '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(' · ')) + '</small>' +
         '<small class="pet-bond">♥ ' + bd.lv + '단계 · ' + (bd.last === today() ? '함께 ' + bd.days + '일 ✓' : '쓰다듬어 줘요') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
       '<button class="buy" id="h-pet-open">동물' + dot + '</button>';
@@ -57,8 +61,8 @@
   function act(mood, move, ms) {
     var b = $('h-pet-art'), x = P.parse(pets().eq);
     if (!b || !x) return;
-    var o = P.wearing(S(), pets().eq);
-    b.innerHTML = A.draw(x.id, { grade: x.g, mood: mood, anim: true, outfit: o });
+    var o = P.wearing(S(), pets().eq), nz = isNoir(pets().eq);
+    if (!nz) b.innerHTML = A.draw(x.id, { grade: x.g, mood: mood, anim: true, outfit: o });
     b.classList.remove('pa-jump', 'pa-peek', 'pa-wiggle', 'pa-doze');
     void b.offsetWidth;   // 같은 몸짓을 다시 시작하게
     if (move) b.classList.add(move);
@@ -67,7 +71,7 @@
       var bb = $('h-pet-art'), xx = P.parse(pets().eq);
       if (!bb || !xx) return;
       bb.classList.remove('pa-jump', 'pa-peek', 'pa-wiggle', 'pa-doze');
-      bb.innerHTML = A.draw(xx.id, { grade: xx.g, anim: true, outfit: P.wearing(S(), pets().eq) });
+      if (!isNoir(pets().eq)) bb.innerHTML = A.draw(xx.id, { grade: xx.g, anim: true, outfit: P.wearing(S(), pets().eq) });
     }, ms || 1400);
   }
   // 말풍선(0.4.0)
@@ -341,9 +345,18 @@
   }
 
   /* 의상 탭(0.3.1): 파트너(없으면 일반 코기)에게 입혀 본 모습 · 간식/배지로 사기 · 파트너에게 입히기 */
+  /* 0.8.4 옷장 맨 위 "누아르 각성" 카드: 파트너가 열렸으면 켜기/끄기, 아니면 잠긴 맛보기와 조건 */
+  function closetNoir(p, x) {
+    var N = noirArt();
+    if (!N || !p.eq) return '';
+    var can = P.canNoir(S(), p.eq), on = isNoir(p.eq), st = p.own[p.eq] || 1;
+    return '<div class="pet-noircard' + (can ? '' : ' locked') + (on ? ' on' : '') + '"><span class="pnc-art' + (can ? ' noir-anim' : '') + '">' + N.draw(x.id, { grade: x.g, size: 84 }) + (can ? '' : '<i>' + LOCK + '</i>') + '</span>' +
+      '<span class="pnc-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (can ? '비밀 요원 모습의 반신 초상 · 파트너 카드와 도감에서 보여요' : (x.g === 'l' ? '전설은 데려오면 바로 받아요' : '이 파트너가 ★5가 되면 받아요 · 지금 ★' + st)) + '</small>' +
+      (can ? '<button class="' + (on ? 'ghost' : 'primary') + '" data-noircl="' + (on ? 0 : 1) + '">' + (on ? '본명으로' : '코드네임으로') + '</button>' : '') + '</span></div>';
+  }
   function drawCloset() {
     var p = pets(), x = P.parse(p.eq) || { id: 'corgi', g: 'c' }, cur = p.eq ? P.wearing(S(), p.eq) : '';
-    var html = '<p class="muted" style="font-size:12px;margin:0">한 번 사면 모든 동물이 함께 입어요. 꾸미기 전용이에요(효과 없음). 동물마다 다른 옷은 도감의 자세히에서 골라요.</p><div class="pet-closet-g">';
+    var html = closetNoir(p, x) + '<p class="muted" style="font-size:12px;margin:0">한 번 사면 모든 동물이 함께 입어요. 꾸미기 전용이에요(효과 없음). 동물마다 다른 옷은 도감의 자세히에서 골라요.</p><div class="pet-closet-g">';
     P.OUTFITS.forEach(function (o) {
       var have = !!p.closet[o.id], open = P.outfitOpen(S(), o.id);
       var btns = have
@@ -394,20 +407,36 @@
     var swapCost = g.swap, canSwap = st < P.STAR_MAX;
     box.style.setProperty('--gc', g.color);
     box.innerHTML = '<button class="pet-x" id="pets-detail-x" aria-label="자세히 닫기">×</button>' +
-      '<div class="pet-big' + (st ? '' : ' locked') + '">' + A.draw(x.id, { grade: x.g, anim: !!st, outfit: st ? P.wearing(S(), detailKey) : '' }) + '</div>' +
+      '<div class="pet-big' + (st ? '' : ' locked') + (st && isNoir(detailKey) ? ' noir' : '') + '">' + (st ? portrait(detailKey, x, { grade: x.g, anim: true, outfit: P.wearing(S(), detailKey) }) : A.draw(x.id, { grade: x.g })) + '</div>' +
       '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' · ' + esc(sp.kind) + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
+        (st && isNoir(detailKey) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') +
         '<small class="muted">' + esc(sp.line) + '</small></div>' +
       '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(' · ')) + '</b><small>갖고만 있어도 늘 켜짐</small></div>' +
         '<div><em>장착 효과</em><b class="eq">' + esc(eq.join(' · ')) + '</b><small>파트너 1마리만' + (eq.join('').indexOf('⚡') >= 0 ? ' · ⚡는 특별 출동에서 꺼짐' : '') + '</small>' + zapLocked + '</div></div>' +
       (st ? '' : '<p class="muted" style="font-size:12px">아직 없어서 ★1 기준으로 보여 줘요.</p>') +
       (st ? nameRow() : '') +
-      (st ? outfitSelect() : '') +
+      (st ? noirRow(x, st) : '') +
+      (st && !isNoir(detailKey) ? outfitSelect() : '') +
       (st && root.Team3AchUI ? '<div class="pet-name">' + root.Team3AchUI.titleSelect('pets-ttl', (S().ach && S().ach.pet[detailKey]) || '', '칭호') + '</div>' : '') +
       '<div class="pet-acts">' +
-        (st ? (p.eq === detailKey ? '<button class="ghost" disabled>지금 파트너</button>' : '<button class="primary" id="pets-equip">파트너로</button>') : '') +
-        (x.g === 'l' && canSwap && p.picks && p.picks.l > 0 ? '<button class="primary" id="pets-pick">전설 선택권으로 ' + (st ? '★ 올리기' : '데려오기') + ' (' + p.picks.l + '장)</button>' : '') +
-        (canSwap ? '<button class="ghost" id="pets-swap"' + (p.treats < swapCost ? ' disabled' : '') + '>' + ic('treat') + swapCost + '개로 ' + (st ? '★ 올리기' : '데려오기') + '</button>' : '') +
+        (st ? (p.eq === detailKey ? '<span class="pet-cur">✓ 현재 파트너</span>' : '<button class="primary" id="pets-equip">파트너로</button>') : '') +
+        (x.g === 'l' && canSwap && p.picks && p.picks.l > 0 ? '<button class="primary" id="pets-pick">' + (st ? '★ 올리기' : '데려오기') + '<small>전설 선택권 ' + p.picks.l + '장</small></button>' : '') +
+        (canSwap ? '<button class="ghost" id="pets-swap"' + (p.treats < swapCost ? ' disabled' : '') + '>' + (st ? '★ 올리기' : '데려오기') + '<small>' + ic('treat') + '간식 ' + swapCost + '개</small></button>' : '') +
       '</div>';
+  }
+  /* 0.8.4 각성 줄(자세히): 열렸으면 "귀여운 모습 / 누아르 각성" 고르기, 아직이면 어두운 맛보기 그림 + 여는 조건 */
+  var LOCK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="#FFD23F"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="#FFD23F" stroke-width="2.2" fill="none"/></svg>';
+  function noirRow(x, st) {
+    var N = noirArt();
+    if (!N) return '';
+    if (P.canNoir(S(), detailKey)) {
+      var on = isNoir(detailKey);
+      return '<div class="pet-noir"><span class="label">코드네임 · ' + esc(P.codename(x.id)) + '</span><div class="pn-seg">' +
+        '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on ? 'on' : '') + '" data-noir="1">코드네임</button></div>' +
+        (on ? '<small class="muted">코드네임일 땐 의상이 안 보여요 · 상황실 안에서는 본명 모습 그대로예요</small>' : '') + '</div>';
+    }
+    return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, size: 56 }) + '<i>' + LOCK + '</i></span>' +
+      '<span class="pn-tx"><b>코드네임 <em>???</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : '★5가 되면 받아요 · 지금 ★' + st) + '</small></span></div>';
   }
   function outfitSelect() {
     var p = pets(), have = P.OUTFITS.filter(function (o) { return p.closet[o.id]; }), cur = P.wearing(S(), detailKey);
@@ -475,6 +504,14 @@
         catch (e10) { toast('쓸 수 없어요'); }
         renderPartner(); draw();
       }
+      else if (t.hasAttribute('data-noircl')) {
+        var onC = t.getAttribute('data-noircl') === '1';
+        if (P.setNoir(S(), pets().eq, onC)) { ctx.persist(); renderPartner(); draw(); ctx.render(); if (onC) toast('코드네임 ' + P.codename(P.parse(pets().eq).id) + ', 임무 시작'); }
+      }
+      else if (t.hasAttribute('data-noir')) {
+        var onN = t.getAttribute('data-noir') === '1';
+        if (P.setNoir(S(), detailKey, onN)) { ctx.persist(); renderPartner(); drawDetail(); ctx.render(); if (onN) { toast('코드네임 ' + P.codename(P.parse(detailKey).id) + ', 임무 시작'); try { ctx.UI.sfx.none(); } catch (e11) { /* 무시 */ } } }
+      }
       else if (t.id === 'pets-name') startNaming();
       else if (t.id === 'pets-tags') {
         try { root.SuspectsIdle.buyNameTags(S()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } toast('이름표 ' + root.SuspectsIdle.NAME_TAGS.n + '장을 샀어요'); } catch (e5) { toast('배지가 모자라요'); }
@@ -516,5 +553,19 @@
     idleLoop();
   }
 
-  root.Team3PetsUI = { mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
+  /* 0.8.4 각성이 새로 열린 동물을 한 번 알려 주기(허브가 한가할 때 부른다). 알려 준 뒤엔 다시 안 뜬다 */
+  function noirAnnounce(openInfo) {
+    var N = noirArt(), ks = N ? P.noirNew(S()) : [];
+    if (!ks.length) return false;
+    var k = ks.indexOf(pets().eq) >= 0 ? pets().eq : ks[0], x = P.parse(k);   // 지금 파트너가 열렸으면 그 동물부터
+    ks.forEach(function (q) { P.noirSeen(S(), q); });
+    ctx.persist();
+    openInfo({ label: '코드네임', title: P.nameOf(S(), k) + '에게 코드네임이 생겼어요',
+      body: '<div class="noir-reveal noir-anim">' + N.draw(x.id, { grade: x.g, size: 220 }) + '</div><p class="cn-big">코드네임 <b>' + esc(P.codename(x.id)) + '</b></p><p style="text-align:center;margin:6px 0 0">' + (x.g === 'l' ? '전설 등급' : '★5') + '에 닿아 비밀 요원 모습이 열렸어요.<br>파트너 카드와 도감에서 이 모습으로 보여 줄 수 있어요.</p>' +
+        (ks.length > 1 ? '<p class="muted" style="text-align:center;font-size:12px">그 밖에 ' + (ks.length - 1) + '마리도 받았어요 · 도감 자세히에서 골라요</p>' : ''),
+      ok: '코드네임으로', cancel: '나중에',
+      onOk: function () { P.setNoir(S(), k, true); ctx.persist(); renderPartner(); ctx.render(); toast('코드네임 ' + P.codename(x.id) + ', 임무 시작'); } });
+    return true;
+  }
+  root.Team3PetsUI = { noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
 })(typeof self !== 'undefined' ? self : this);

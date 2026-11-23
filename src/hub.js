@@ -183,7 +183,8 @@
     $('hm-case').textContent = '사건 ' + cs.no + ' · ' + cs.title + ' · ' + fmt(Math.min(save.caught, cs.goal)) + ' / ' + fmt(cs.goal);
     $('hm-fill').style.width = (I.progress(save) * 100).toFixed(1) + '%';
     var x = PT && save.pets && save.pets.eq ? PT.parse(save.pets.eq) : null, pe = $('hm-pet'), key = x ? save.pets.eq : '';
-    if (pe.getAttribute('data-k') !== key) { pe.setAttribute('data-k', key); pe.innerHTML = x && window.Team3PetArt ? window.Team3PetArt.draw(x.id, { grade: x.g }) : ''; }
+    var nzK = key && PT.noirOn && PT.noirOn(save, key) ? key + '|n' : key;   // 0.8.4 각성이면 머리 사진도 누아르
+    if (pe.getAttribute('data-k') !== nzK) { pe.setAttribute('data-k', nzK); pe.innerHTML = !x ? '' : nzK !== key && window.Team3NoirArt ? window.Team3NoirArt.draw(x.id, { grade: x.g }) : window.Team3PetArt ? window.Team3PetArt.draw(x.id, { grade: x.g }) : ''; }
   }
   function miniScroll() {
     var hub = $('s-hub'), m = $('h-mini'), money = $('h-money'); if (!hub || !m || !money) return;
@@ -727,6 +728,9 @@
       render();
       if (r.catches) { renderNext(t, true); showGain(r); }
     }
+    // 0.8.4 코드네임을 새로 받았으면 파트너 탭을 보고 있을 때(창 · 출동 없음) 한 번 알려 준다.
+    //   아무 때나 띄우면 출동 시작과 겹쳐 판을 가린다(화면 시험에서 발견) → 파트너 탭에서만
+    if (PUI && PUI.noirAnnounce && MUI && MUI.current && MUI.current() === 'pets' && $('s-hub').classList.contains('on') && !UI.sheetOpen() && !(UI.playing && UI.playing()) && !(PUI.isBusy && PUI.isBusy())) PUI.noirAnnounce(openInfo);
     if (r.closedNow) {
       if ($('s-hub').classList.contains('on') && $('info-sheet').hidden) showCaseClosed();
       else pendingClose = true;

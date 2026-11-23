@@ -39,7 +39,7 @@
     c: { name: '일반', pct: 66, color: '#A3ACBA', treat: 1, swap: 20 },
     r: { name: '희귀', pct: 28, color: '#5BB2E8', treat: 3, swap: 60 },
     h: { name: '영웅', pct: 5, color: '#B07CF0', treat: 10, swap: 250 },
-    l: { name: '전설', pct: 1, color: '#FFD23F', treat: 40, swap: 900 }   // 0.4.1: 전설 1%(한 마리 약 0.033%), 천장 80 → 천장 포함 약 1.8% (0.4.0 에 3% 로 잘못 올라갔던 것을 바로잡음)
+    l: { name: '전설', pct: 1, color: '#FFD23F', treat: 40, swap: 600 }   // 0.4.1: 전설 1%(한 마리 약 0.033%), 천장 80 → 천장 포함 약 1.8% (0.4.0 에 3% 로 잘못 올라갔던 것을 바로잡음)
   };
   var GRADE_MUL = { c: 1, r: 1.5, h: 2, l: 3 };   // 장착 효과 배수
   var STAR_MAX = 5, STAR_STEP = 0.25;
@@ -140,7 +140,7 @@
     var m = /^([a-z0-9]+):([crhl])$/.exec(k || '');
     return m && BY_ID[m[1]] ? { id: m[1], g: m[2] } : null;
   }
-  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, free: null, picks: { l: 0 }, bond: {} }; }
+  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {} }; }
   function int(v, def, min, max) {
     if (typeof v !== 'number' || !isFinite(v)) return def;
     v = Math.floor(v);
@@ -174,9 +174,32 @@
     Object.keys(cl).forEach(function (k) { if (cl[k] === true && OUTFIT_BY[k]) p.closet[k] = true; });
     var wr = d.wear && typeof d.wear === 'object' ? d.wear : {};
     Object.keys(wr).forEach(function (k) { if (parse(k) && p.own[k] && p.closet[wr[k]]) p.wear[k] = wr[k]; });
+    // 0.8.4 누아르 각성: 켠 동물(noir) · 각성이 열린 걸 이미 알려 준 동물(noirSeen). 조건이 안 되는 키는 버린다
+    var nr = d.noir && typeof d.noir === 'object' ? d.noir : {}, ns = d.noirSeen && typeof d.noirSeen === 'object' ? d.noirSeen : {};
+    Object.keys(nr).forEach(function (k) { if (nr[k] === true && canNoirP(p, k)) p.noir[k] = true; });
+    Object.keys(ns).forEach(function (k) { if (ns[k] === true && canNoirP(p, k)) p.noirSeen[k] = true; });
     save.pets = p;
     return p;
   }
+  /* ---------- 코드네임(0.8.4, 안에서는 noir) ----------
+     전설 등급이면 바로, 그 밖의 등급은 ★5(최고)가 되면 열린다. 켜면 파트너 카드 · 도감 자세히 · 출동 머리 사진이 누아르 그림으로.
+     상황실(사무실) 안 파트너는 늘 귀여운 모습 그대로. 효과는 없음(꾸미기). */
+  // 코드네임(0.8.4): 종마다 하나. 성격 한 줄(line)에서 따왔다. 켜면 초상이 누아르 그림으로, 이름 옆에 코드네임이 붙는다
+  var CODENAME = {"corgi": "에코", "shiba": "스톤페이스", "hamster": "포켓", "rabbit": "안테나", "bear": "그리즐리", "hedgehog": "니들", "duck": "패들", "frog": "레인코트", "ragdoll": "블루아이", "siamese": "마스크", "fox": "폴리그래프", "penguin": "턱시도", "monkey": "스카이워치", "squirrel": "컬렉터", "koala": "슬리퍼", "raccoon": "밴딧", "owl": "제로쓰리", "otter": "다이버", "panda": "모노크롬", "tiger": "헌터", "sheep": "클라우드", "pig": "트러플", "redpanda": "메이플", "alpaca": "패커", "seal": "하버", "hippo": "부스터", "turtle": "아이언쉘", "mouse": "크랙", "lion": "킹", "deer": "실버벨"};
+  function codename(id) { return CODENAME[id] || ''; }
+  function canNoirP(p, k) { var x = parse(k); return !!(x && p.own[k] && (x.g === 'l' || p.own[k] >= STAR_MAX)); }
+  function canNoir(save, k) { return canNoirP(P(save), k); }
+  function noirOn(save, k) { var p = P(save); return !!(p.noir[k] && canNoirP(p, k)); }
+  function setNoir(save, k, on) {
+    var p = P(save);
+    if (!canNoirP(p, k)) return false;
+    if (on) p.noir[k] = true; else delete p.noir[k];
+    p.noirSeen[k] = true;
+    return true;
+  }
+  // 각성이 새로 열렸는데 아직 안 알려 준 동물들(처음 알릴 때 한 번 깜짝 보여 주려고)
+  function noirNew(save) { var p = P(save); return Object.keys(p.own).filter(function (k) { return canNoirP(p, k) && !p.noirSeen[k]; }); }
+  function noirSeen(save, k) { var p = P(save); if (canNoirP(p, k)) p.noirSeen[k] = true; }
   function P(save) { return save.pets && save.pets.own ? save.pets : clean(save); }
 
   /* ---------- 이름(0.3.0) ---------- */
@@ -537,6 +560,8 @@
   }
 
   return {
+    codename: codename, CODENAME: CODENAME,
+    canNoir: canNoir, noirOn: noirOn, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,
     STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, MAX_PULL: MAX_PULL, gemCost: gemCost, maxPull: maxPull, WELCOME: WELCOME, CAPS: CAPS,
     key: key, parse: parse, clean: clean, rates: rates, effectiveLegend: effectiveLegend, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,

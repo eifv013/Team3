@@ -23,7 +23,7 @@ problems = []
 
 def seed():
     js = """const I=require('./src/idle.js');const s=I.newSave(Date.now());s.gems=500;s.tutorialDone=true;s.runs=3;s.diff={k:'normal',set:true};
-s.pets={own:{'corgi:c':1,'corgi:r':1,'corgi:h':1,'corgi:l':2},eq:'corgi:l',welcome:true,tickets:2,treats:40,picks:{l:1}};
+s.pets={own:{'corgi:c':1,'corgi:r':1,'corgi:h':1,'corgi:l':2},eq:'corgi:l',welcome:true,tickets:2,treats:40,picks:{l:1},noirSeen:{'corgi:l':true}};
 process.stdout.write(I.serialize(s))"""
     return subprocess.run(['node', '-e', js], cwd=ROOT, capture_output=True, text=True, check=True).stdout
 

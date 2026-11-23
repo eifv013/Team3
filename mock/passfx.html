@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>시안 · 시즌 패스 프리미엄 효과</title>
+<style>
+:root{--bg:#12151C;--panel:#1C212B;--panel2:#252B36;--text:#EEF1F6;--muted:#8F98A8;--acc:#FFD23F;--ink:#1B1E24}
+*{box-sizing:border-box}body{margin:0;background:#0B0D12;color:var(--text);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;display:flex;justify-content:center}
+.phone{width:390px;min-height:100vh;background:var(--bg);padding:14px 16px 40px;display:flex;flex-direction:column;gap:12px}
+.note{font-size:12px;color:#9BD0FF;background:#14263A;border-radius:10px;padding:8px 10px;line-height:1.45}
+.seg{display:flex;gap:6px}.seg button{flex:1;height:38px;border-radius:10px;border:1.5px solid #343B48;background:none;color:var(--muted);font-weight:800;font-size:13px}
+.seg button.on{border-color:var(--acc);color:var(--acc)}
+/* 머리 */
+.head{display:flex;flex-direction:column;gap:2px}
+.hrow{display:flex;align-items:center;gap:8px}
+.money{font-size:34px;font-weight:900;color:var(--acc)}
+.chip{margin-left:auto;height:30px;padding:0 10px;border-radius:999px;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:800;border:1.5px solid #343B48;color:var(--muted)}
+.chip.prem{border-color:#C99410;color:#FFE58A;background:linear-gradient(90deg,rgba(255,210,63,.2),rgba(255,210,63,.04));box-shadow:0 0 12px rgba(255,210,63,.25)}
+.rate{font-size:13px;color:var(--muted)}.rate b{color:#7EE08F}
+.teamname{font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.1em;display:flex;align-items:center;gap:6px}
+.teamname .crown{display:none}.prem-on .teamname .crown{display:inline}
+/* 효과 카드 */
+.card{border-radius:18px;padding:14px;background:var(--panel)}
+.fx-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.fx-h b{font-size:16px}.fx-h small{display:block;font-size:11.5px;color:var(--muted)}
+.fx-list{display:flex;flex-direction:column;gap:8px}
+.fx{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:#1A1E27;position:relative}
+.fx i{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:19px;background:rgba(255,210,63,.1)}
+.fx span{flex:1;display:flex;flex-direction:column;gap:2px}.fx span b{font-size:14px}.fx span small{font-size:11.5px;color:var(--muted)}
+.fx em{font-style:normal;font-weight:900;font-size:15px;color:#7EE08F;white-space:nowrap}
+.fx.off{opacity:.55}.fx.off em{color:var(--muted)}
+.fx .lk{position:absolute;right:8px;top:6px;font-size:10px;color:var(--acc)}
+.premcard{width:100%;display:flex;align-items:center;gap:12px;padding:12px 12px 12px 10px;border:0;border-radius:18px;text-align:left;color:#fff;margin-top:10px;
+  background:linear-gradient(120deg,#3B2A08,#21180A 45%,#14161D);box-shadow:inset 0 0 0 1.5px rgba(255,210,63,.55)}
+.premcard .t{flex:1}.premcard b{font-size:16px;color:#FFE58A}.premcard small{display:block;font-size:11.5px;color:#D9C9A0}
+.price{padding:8px 12px;border-radius:12px;background:linear-gradient(180deg,#FFE58A,#F2B71E);color:#2A1F04;font-weight:900;box-shadow:0 3px 0 #A8800F;text-align:center}
+.price small{display:block;font-size:10px;color:#5a4400}
+.owned{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;margin-top:10px;background:linear-gradient(90deg,rgba(255,210,63,.18),rgba(255,210,63,.03));box-shadow:inset 0 0 0 1px rgba(255,210,63,.4)}
+.owned b{color:var(--acc)}.owned small{display:block;font-size:11.5px;color:var(--muted)}
+/* 결과 화면 */
+.res{border-radius:18px;padding:16px;background:linear-gradient(180deg,#1E2430,#161A22);display:flex;flex-direction:column;gap:8px;position:relative;overflow:hidden}
+.stamp{align-self:center;font-size:34px;font-weight:900;padding:4px 18px;border:4px solid #E8473A;color:#E8473A;border-radius:10px;transform:rotate(-8deg);margin:4px 0 6px}
+.prem-on .stamp{border-color:#FFD23F;color:#FFD23F;box-shadow:0 0 18px rgba(255,210,63,.45);text-shadow:0 0 8px rgba(255,210,63,.5)}
+.line{display:flex;justify-content:space-between;font-size:14px}.line span{color:var(--muted)}
+.line.pl{display:none}.prem-on .line.pl{display:flex}.line.pl b{color:#FFE58A}
+.line.tot{border-top:1px solid #2C3340;padding-top:8px;font-size:16px}.line.tot b{color:var(--acc)}
+.xp{font-size:12px;color:#9CD3F2;text-align:center}
+.go{height:50px;border:0;border-radius:14px;background:var(--acc);color:var(--ink);font-weight:900;font-size:16px}
+.sel{display:flex;flex-direction:column;gap:6px}
+.sel label{display:flex;gap:8px;align-items:center;font-size:13px;padding:8px 10px;border-radius:10px;background:var(--panel)}
+h3{margin:6px 0 0;font-size:13px;color:var(--muted)}
+</style></head>
+<body><div class="phone" id="ph">
+<div class="note">시안: 프리미엄을 사면 이번 시즌 동안 효과가 켜져요. 퍼즐 실력(시간·힌트·오인)은 팔지 않고, 돈·성장 속도·멋만 올려요. 아래 "효과 후보"를 끄고 켜며 조합을 골라 보세요.</div>
+<div class="seg"><button id="b-off" class="on">프리미엄 전</button><button id="b-on">프리미엄 산 뒤</button></div>
+
+<div class="head">
+  <span class="teamname"><span class="crown">👑</span>중앙서 · 수사 3팀</span>
+  <div class="hrow"><span class="money" id="money">₩ 12,400</span><span class="chip" id="chip">시즌 1</span></div>
+  <span class="rate" id="rate"></span>
+</div>
+
+<div class="card">
+  <div class="fx-h"><span style="font-size:26px">👑</span><span><b>프리미엄 효과</b><small>이번 시즌(28일) 동안 계속 켜져요</small></span></div>
+  <div class="fx-list" id="fxl"></div>
+  <div id="buy"></div>
+</div>
+
+<h3>출동 결과 화면(예시)</h3>
+<div class="res">
+  <div class="stamp">검거!</div>
+  <div class="line"><span>기본 수사비</span><b>₩ 3,000</b></div>
+  <div class="line"><span>파트너 효과</span><b>+₩ 1,125</b></div>
+  <div class="line pl" id="l-run"><span>👑 프리미엄</span><b id="v-run"></b></div>
+  <div class="line tot"><span>받은 수사비</span><b id="v-tot"></b></div>
+  <div class="xp" id="v-xp"></div>
+  <button class="go">다시 출동</button>
+</div>
+
+<h3>효과 후보 (켜고 끄며 골라 보세요)</h3>
+<div class="sel" id="sel"></div>
+</div>
+<script>
+// 후보: 퍼즐 실력과 무관한 것만. on = 기본으로 켠 추천 조합
+var FX=[
+ {id:'run', ic:'💰', name:'출동 수사비', val:'+15%', desc:'현장 출동으로 받는 수사비', on:true},
+ {id:'idle',ic:'👥', name:'팀 수사비', val:'+10%', desc:'자리 비워도 팀이 버는 수사비', on:true},
+ {id:'xp',  ic:'⚡', name:'패스 경험치', val:'+25%', desc:'단계가 더 빨리 열려요', on:true},
+ {id:'look',ic:'✨', name:'금빛 검거 도장 · 왕관 팀명', val:'꾸미기', desc:'검거 도장이 금빛, 팀 이름 앞에 왕관', on:true},
+ {id:'daily',ic:'🚨',name:'특별 출동 재도전', val:'+1번', desc:'하루 한 번 더 기록에 도전', on:false},
+ {id:'treat',ic:'🦴',name:'파트너 간식', val:'매일 +5', desc:'접속하면 간식 5개', on:false}
+];
+var prem=false;
+function has(id){return FX.filter(function(f){return f.id===id&&f.on})[0]}
+function draw(){
+  document.getElementById('ph').classList.toggle('prem-on',prem&&!!has('look'));
+  document.getElementById('b-off').classList.toggle('on',!prem);document.getElementById('b-on').classList.toggle('on',prem);
+  var c=document.getElementById('chip');c.className='chip'+(prem?' prem':'');c.textContent=prem?'👑 프리미엄':'시즌 1';
+  var idle=6*(prem&&has('idle')?1.1:1);
+  document.getElementById('rate').innerHTML='팀이 1분에 수사비 +'+idle.toFixed(1)+'/분'+(prem&&has('idle')?' <b>(👑 +10%)</b>':'');
+  document.getElementById('fxl').innerHTML=FX.filter(function(f){return f.on}).map(function(f){
+    return '<div class="fx'+(prem?'':' off')+'"><i>'+f.ic+'</i><span><b>'+f.name+'</b><small>'+f.desc+'</small></span><em>'+(prem?f.val:'🔒 '+f.val)+'</em></div>'}).join('');
+  document.getElementById('buy').innerHTML=prem?'<div class="owned"><span style="font-size:24px">👑</span><span><b>프리미엄 켜짐 · 27일 남음</b><small>효과가 시즌 끝까지 계속돼요</small></span></div>'
+   :'<button class="premcard" onclick="prem=true;draw()"><span style="font-size:28px">👑</span><span class="t"><b>프리미엄 패스</b><small>위 효과 '+FX.filter(function(f){return f.on}).length+'가지 + 단계마다 보상 하나 더</small></span><span class="price">₩9,900<small>시험으로 사 보기</small></span></button>';
+  var base=4125,add=prem&&has('run')?Math.round(base*.15):0;
+  document.getElementById('l-run').style.display=add?'':'none';
+  document.getElementById('v-run').textContent='+₩ '+add.toLocaleString();
+  document.getElementById('v-tot').textContent='₩ '+(base+add).toLocaleString();
+  document.getElementById('v-xp').textContent='패스 경험치 +'+(prem&&has('xp')?'30 (👑 +25%)':'24');
+  document.getElementById('sel').innerHTML=FX.map(function(f,i){return '<label><input type="checkbox" data-i="'+i+'"'+(f.on?' checked':'')+'> '+f.ic+' '+f.name+' <b style="margin-left:auto;color:var(--acc)">'+f.val+'</b></label>'}).join('');
+}
+document.getElementById('b-off').onclick=function(){prem=false;draw()};
+document.getElementById('b-on').onclick=function(){prem=true;draw()};
+document.getElementById('sel').onchange=function(e){var i=e.target.getAttribute('data-i');if(i!=null){FX[i].on=e.target.checked;draw()}};
+draw();
+</script></body></html>
