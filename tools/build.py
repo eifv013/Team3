@@ -58,6 +58,9 @@ def build():
     for w, f in ((400, 'Pretendard-Regular.subset.woff2'), (700, 'Pretendard-Bold.subset.woff2')):
         b = base64.b64encode((ROOT / 'assets/fonts' / f).read_bytes()).decode()
         faces += "@font-face{font-family:'Pretendard';font-weight:%d;font-style:normal;font-display:swap;src:url(data:font/woff2;base64,%s) format('woff2')}\n" % (w, b)
+    # 0.10.0 제목 · 숫자 글꼴 블랙한산스(OFL)도 넣는다: KS 한글 2,350자 + 게임에 쓰인 글자만(assets/fonts/BlackHanSans.subset.woff)
+    b = base64.b64encode((ROOT / 'assets/fonts/BlackHanSans.subset.woff').read_bytes()).decode()
+    faces += "@font-face{font-family:'Black Han Sans';font-weight:400;font-style:normal;font-display:block;src:url(data:font/woff;base64,%s) format('woff')}\n" % b
     tpl = tpl.replace('/*FONTS*/', faces)
     DIST.mkdir(exist_ok=True)
     (DIST / 'index.html').write_text(tpl, encoding='utf-8')
