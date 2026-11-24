@@ -515,6 +515,15 @@
             A.draw(sp.id, { grade: g }) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button>';
         }).join('') + '</div>';
     });
+    // 0.12.4 나올 예정인 파트너: 이름도 그림도 "???" (눌러도 아무 일 없음)
+    var soon = function (lim) {
+      var n = (P.UPCOMING || []).filter(function (u) { return !!u.limited === lim; }).length, Q = '<span class="pet-cell soon" aria-hidden="true">?</span>', X = '<span class="pet-cell none" aria-hidden="true"></span>', out = '';
+      if (!n) return '';
+      out += '<div class="pet-dex-soon">' + (lim ? '한정 파트너 예정' : '다음 파트너 예정') + ' <b>' + n + '</b></div>';
+      for (var q = 0; q < n; q++) out += '<div class="pet-dex-row soon" aria-label="준비 중인 파트너"><span class="pet-dex-name"><b>???</b><small>' + (lim ? '한정, 준비 중' : '준비 중') + '</small></span>' + (lim ? X + X + X + Q : Q + Q + Q + Q) + '</div>';
+      return out;
+    };
+    html += soon(false) + soon(true);
     $('pets-dex').innerHTML = html;
   }
 

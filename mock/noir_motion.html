@@ -1,24 +1,23 @@
 <!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>코드네임 그림 움직임 시안</title>
 <style>
-body{margin:0;background:#0F1218;color:#E9ECF2;font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif;padding:14px 12px 40px}
+body{margin:0;background:#0B0D12;color:#E9ECF2;font-family:system-ui,-apple-system,'Noto Sans KR',sans-serif;padding:14px 12px 40px}
 h1{font-size:18px;margin:0 0 4px}p{margin:0 0 12px;font-size:13px;color:#9AA3B2;line-height:1.5}
 .pick{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px}.pick button,.seg button{border:0;font:inherit;font-weight:800;font-size:13px}
 .pick button{flex:none;border-radius:999px;padding:7px 13px;background:#1C222C;color:#C9CFDA}.pick button.on{background:#FFD23F;color:#2A1E04}
 .seg{display:flex;gap:6px;margin-bottom:10px}.seg button{flex:1;border-radius:10px;padding:9px;background:#1C222C;color:#C9CFDA}.seg button.on{background:#7FD3FF;color:#06202E}
-.stage{position:relative;width:100%;max-width:460px;margin:0 auto;aspect-ratio:1;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 0 0 3px #E0B23A}
-.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 40%}
-.stage canvas{position:absolute;inset:0;width:100%;height:100%}
-.cam img{animation:cam 14s ease-in-out infinite alternate}
-@keyframes cam{0%{transform:scale(1.04) translate(-1.2%,.8%)}50%{transform:scale(1.1) translate(1%,-.6%)}100%{transform:scale(1.16) translate(-.4%,-1.6%)}}
-.shake img{animation:cam 14s ease-in-out infinite alternate}
+.wrap{perspective:900px;max-width:460px;margin:6px auto 0;touch-action:pan-y}
+.stage{position:relative;width:100%;aspect-ratio:1;border-radius:22px;overflow:hidden;background:#000;box-shadow:0 0 0 3px #E0B23A,0 18px 40px rgba(0,0,0,.6);transform-style:preserve-3d;will-change:transform}
+.stage img,.stage canvas{position:absolute;left:-6%;top:-6%;width:112%;height:112%;will-change:transform}
+.stage img{object-fit:cover}
+.stage .vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(0,0,0,.5) 100%);pointer-events:none}
+.stage .sheen{position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 42%,rgba(255,240,200,.16) 50%,transparent 58%);mix-blend-mode:screen;pointer-events:none;will-change:transform}
 </style></head><body>
-<h1>코드네임 그림 움직임 시안</h1>
-<p>그림 한 장을 실제로 움직여 보이게 하는 방법을 모았어요. "끔"은 그림 그대로, "켬"은 카메라가 천천히 다가가고 장면에 맞는 효과가 붙어요.</p>
+<h1>코드네임 그림 움직임 시안 2</h1>
+<p>그림을 손가락으로 문지르면(또는 폰을 기울이면) 카드가 기울고 앞뒤 겹이 따로 움직여요. 불빛 효과는 그림마다 실제 등과 경광등 자리를 찾아서 붙였어요.</p>
 <div class="pick" id="pick"></div>
 <div class="seg" id="seg"><button data-s="a">사무실</button><button data-s="b" class="on">현장</button></div>
-<div class="seg" id="fx"><button data-f="0">끔 (그림 그대로)</button><button data-f="1" class="on">켬 (새 움직임)</button></div>
-<div class="stage cam" id="stage"><img id="im" alt=""><canvas id="cv"></canvas></div>
-<p style="margin-top:12px">현장: 카메라 이동, 앞뒤 두 겹 비, 바닥 물 튐, 번개, 경광등 빛, 낮게 깔리는 안개.<br>사무실: 카메라 이동, 책상 등 불빛 숨쉬기, 블라인드 사이로 지나가는 빛, 떠다니는 먼지, 커피 김.</p>
+<div class="seg" id="fx"><button data-f="0">끔 (그림 그대로)</button><button data-f="1" class="on">켬</button></div>
+<div class="wrap" id="wrap"><div class="stage" id="stage"><img id="im" alt=""><canvas id="far"></canvas><canvas id="near"></canvas><div class="vig"></div><div class="sheen" id="sheen"></div></div></div>
 <script>/*
  * Team3NoirPics(0.8.6) — 코드네임 초상 그림(그림 도구로 뽑은 그림, 320×320 webp).
  * 없는 종은 Team3NoirArt 가 예전 그림으로 그린다. 새 그림을 받으면 tools/noir_pics.py 로 다시 만든다.
@@ -32,54 +31,69 @@ h1{font-size:18px;margin:0 0 4px}p{margin:0 0 12px;font-size:13px;color:#9AA3B2;
 });
 </script>
 <script>
-var P=Team3NoirPics,NAMES={tiger:'호랑이',corgi:'코기',shiba:'시바',hamster:'햄스터',rabbit:'토끼',bear:'곰',hedgehog:'고슴도치',duck:'오리',frog:'개구리',ragdoll:'랙돌',siamese:'샴',fox:'여우',penguin:'펭귄',monkey:'원숭이',squirrel:'다람쥐',koala:'코알라',raccoon:'너구리',owl:'부엉이',otter:'수달',panda:'판다'};
-var ids=Object.keys(NAMES),id='tiger',sc='b',on=1,cv=document.getElementById('cv'),c=cv.getContext('2d'),R=[],D=[],last=0,flash=0,nextFlash=3;
+var HOT={"bear_a": {"w": "in", "h": [[0.023, 0.508, "w"], [0.836, 0.102, "w"]]}, "bear_b": {"w": "rain", "h": []}, "corgi_a": {"w": "in", "h": [[0.039, 0.43, "w"], [0.445, 0.148, "w"], [0.227, 0.336, "w"]]}, "corgi_b": {"w": "rain", "h": [[0.242, 0.102, "w"], [0.148, 0.883, "w"], [0.555, 0.836, "w"]]}, "duck_a": {"w": "in", "h": [[0.758, 0.07, "w"], [0.727, 0.945, "w"], [0.273, 0.32, "w"]]}, "duck_b": {"w": "rain", "h": [[0.789, 0.602, "w"], [0.727, 0.273, "w"], [0.898, 0.867, "w"]]}, "fox_a": {"w": "in", "h": [[0.945, 0.164, "w"], [0.07, 0.539, "w"], [0.195, 0.211, "w"], [0.445, 0.07, "r"], [0.211, 0.711, "r"]]}, "fox_b": {"w": "rain", "h": [[0.914, 0.398, "w"], [0.992, 0.898, "w"], [0.133, 0.633, "r"], [0.008, 0.648, "b"]]}, "frog_a": {"w": "in", "h": [[0.07, 0.602, "w"]]}, "frog_b": {"w": "rain", "h": [[0.773, 0.477, "b"]]}, "hamster_a": {"w": "in", "h": [[0.07, 0.477, "w"], [0.133, 0.852, "w"]]}, "hamster_b": {"w": "rain", "h": [[0.883, 0.32, "w"], [0.836, 0.102, "w"], [0.883, 0.711, "w"], [0.039, 0.258, "b"]]}, "hedgehog_a": {"w": "in", "h": [[0.961, 0.164, "w"], [0.742, 0.945, "w"]]}, "hedgehog_b": {"w": "rain", "h": [[0.82, 0.68, "w"], [0.805, 0.93, "w"]]}, "koala_a": {"w": "in", "h": [[0.023, 0.43, "w"], [0.023, 0.805, "w"], [0.289, 0.211, "w"]]}, "koala_b": {"w": "snow", "h": [[0.18, 0.289, "w"], [0.133, 0.789, "w"]]}, "monkey_a": {"w": "in", "h": [[0.773, 0.055, "w"], [0.977, 0.93, "w"], [0.789, 0.336, "w"]]}, "monkey_b": {"w": "rain", "h": [[0.086, 0.133, "w"]]}, "otter_a": {"w": "in", "h": [[0.945, 0.195, "w"]]}, "otter_b": {"w": "rain", "h": [[0.117, 0.133, "w"]]}, "owl_a": {"w": "in", "h": [[0.836, 0.086, "w"]]}, "owl_b": {"w": "rain", "h": [[0.289, 0.117, "w"]]}, "panda_a": {"w": "in", "h": [[0.117, 0.711, "w"], [0.852, 0.086, "w"], [0.242, 0.945, "w"]]}, "panda_b": {"w": "rain", "h": []}, "penguin_a": {"w": "in", "h": [[0.195, 0.07, "w"], [0.336, 0.992, "w"], [0.93, 0.508, "b"]]}, "penguin_b": {"w": "rain", "h": [[0.273, 0.086, "w"]]}, "rabbit_a": {"w": "in", "h": [[0.945, 0.383, "w"]]}, "rabbit_b": {"w": "rain", "h": [[0.961, 0.117, "b"], [0.93, 0.477, "b"]]}, "raccoon_a": {"w": "in", "h": [[0.945, 0.664, "w"], [0.727, 0.836, "w"], [0.102, 0.711, "w"]]}, "raccoon_b": {"w": "rain", "h": [[0.852, 0.633, "w"], [0.008, 0.68, "w"], [0.852, 0.992, "w"]]}, "ragdoll_a": {"w": "in", "h": [[0.18, 0.148, "w"], [0.258, 0.398, "w"], [0.18, 0.617, "w"]]}, "ragdoll_b": {"w": "snow", "h": []}, "shiba_a": {"w": "in", "h": [[0.086, 0.508, "w"], [0.289, 0.836, "w"], [0.102, 0.82, "w"]]}, "shiba_b": {"w": "rain", "h": [[0.242, 0.117, "w"], [0.164, 0.617, "w"]]}, "siamese_a": {"w": "in", "h": [[0.852, 0.445, "w"], [0.93, 0.93, "w"]]}, "siamese_b": {"w": "rain", "h": []}, "squirrel_a": {"w": "in", "h": [[0.961, 0.539, "w"], [0.914, 0.805, "w"], [0.93, 0.352, "w"]]}, "squirrel_b": {"w": "rain", "h": [[0.805, 0.617, "w"], [0.914, 0.086, "w"], [0.883, 0.805, "w"], [0.898, 0.367, "r"]]}, "tiger_a": {"w": "in", "h": [[0.008, 0.555, "w"], [0.367, 0.07, "w"], [0.211, 0.977, "w"]]}, "tiger_b": {"w": "rain", "h": [[0.93, 0.898, "w"], [0.211, 0.18, "w"], [0.164, 0.039, "r"], [0.961, 0.992, "r"]]}};
+var P=Team3NoirPics,NAMES={tiger:'호랑이',fox:'여우',koala:'코알라',corgi:'코기',shiba:'시바',hamster:'햄스터',rabbit:'토끼',bear:'곰',hedgehog:'고슴도치',duck:'오리',frog:'개구리',ragdoll:'랙돌',siamese:'샴',penguin:'펭귄',monkey:'원숭이',squirrel:'다람쥐',raccoon:'너구리',owl:'부엉이',otter:'수달',panda:'판다'};
+var ids=Object.keys(NAMES),id='tiger',sc='b',on=1,$=function(i){return document.getElementById(i)};
+var im=$('im'),far=$('far'),near=$('near'),stage=$('stage'),sheen=$('sheen'),cf=far.getContext('2d'),cn=near.getContext('2d');
+var tx=0,ty=0,sx=0,sy=0,last=0,flash=0,nextFlash=4,A=[],B=[],C=[],D=[];
 function rnd(a,b){return a+Math.random()*(b-a)}
-function init(){R=[];D=[];for(var i=0;i<150;i++)R.push({x:rnd(-.2,1.1),y:rnd(0,1),z:Math.random()});for(i=0;i<40;i++)D.push({x:rnd(0,1),y:rnd(0,1),r:rnd(.8,2.2),p:rnd(0,6.3),v:rnd(.004,.014)})}
+function init(){A=[];B=[];C=[];D=[];var i;
+  for(i=0;i<120;i++)A.push({x:rnd(-.2,1.2),y:rnd(0,1),v:rnd(.8,1.2),l:rnd(.03,.06)});     // 먼 비
+  for(i=0;i<46;i++)B.push({x:rnd(-.2,1.2),y:rnd(0,1),v:rnd(1.5,2.1),l:rnd(.08,.14)});      // 가까운 비
+  for(i=0;i<7;i++)C.push({x:rnd(-.2,1.2),y:rnd(0,1),v:rnd(2.6,3.4),l:rnd(.2,.3)});         // 코앞을 스치는 굵은 비
+  for(i=0;i<70;i++)D.push({x:rnd(0,1),y:rnd(0,1),z:Math.random(),p:rnd(0,6.3)});}           // 눈 · 먼지
 function ui(){
-  document.getElementById('pick').innerHTML=ids.map(function(k){return '<button data-id="'+k+'"'+(k===id?' class="on"':'')+'>'+NAMES[k]+'</button>'}).join('');
+  $('pick').innerHTML=ids.map(function(k){return '<button data-id="'+k+'"'+(k===id?' class="on"':'')+'>'+NAMES[k]+'</button>'}).join('');
   [].forEach.call(document.querySelectorAll('#seg button'),function(b){b.className=b.getAttribute('data-s')===sc?'on':''});
   [].forEach.call(document.querySelectorAll('#fx button'),function(b){b.className=(+b.getAttribute('data-f'))===on?'on':''});
-  document.getElementById('im').src=P[id+'_'+sc]; document.getElementById('stage').className='stage'+(on?' cam':'');
+  im.src=P[id+'_'+sc];
 }
-function glow(x,y,r,col,a){var g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2)}
+function size(cv){var w=cv.clientWidth,h=cv.clientHeight,d=Math.min(2,devicePixelRatio||1);if(cv.width!==Math.round(w*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d)}var c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,w,h);return [w,h]}
+function glow(c,x,y,r,col,a){var g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(.35,'rgba('+col+','+a*.35+')');g.addColorStop(1,'rgba('+col+',0)');c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2)}
+function streaks(c,arr,w,h,dt,wd,al,slant){c.lineCap='round';for(var i=0;i<arr.length;i++){var o=arr[i];o.y+=o.v*dt;o.x-=o.v*dt*slant;if(o.y>1.1){o.y=-.15-Math.random()*.2;o.x=rnd(-.1,1.3)}
+  var x=o.x*w,y=o.y*h,L=o.l*h,g=c.createLinearGradient(x,y,x-L*slant,y+L);g.addColorStop(0,'rgba(200,212,255,0)');g.addColorStop(1,'rgba(214,224,255,'+al+')');c.strokeStyle=g;c.lineWidth=wd;c.beginPath();c.moveTo(x,y);c.lineTo(x-L*slant,y+L);c.stroke()}}
 function frame(ms){
-  var t=ms/1000,dt=Math.min(.05,t-last||.016);last=t;
-  var w=cv.clientWidth,h=cv.clientHeight,dpr=Math.min(2,devicePixelRatio||1);
-  if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
-  c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
-  if(on){
-    if(sc==='b'){
-      // 경광등 빛이 좌우에서 번갈아
-      c.globalCompositeOperation='screen';
-      var k=(Math.sin(t*5)+1)/2;glow(0,h*.55,w*.7,'255,40,60',.16*k);glow(w,h*.5,w*.7,'60,90,255',.16*(1-k));
-      // 번개
-      nextFlash-=dt;if(nextFlash<0){flash=1;nextFlash=rnd(5,10)}
-      if(flash>0){c.fillStyle='rgba(215,205,255,'+(.4*flash*(Math.sin(t*50)>-.3?1:.3))+')';c.fillRect(0,0,w,h);flash-=dt*2.4}
-      // 안개
-      for(var i=0;i<4;i++){var fx=((t*.03*(i+1)+i*.31)%1.6-.3)*w;glow(fx,h*(.82+.05*Math.sin(t*.4+i)),w*.45,'190,180,230',.13)}
-      // 비: 뒤(가늘고 느림) → 앞(굵고 빠름)
-      c.lineCap='round';
-      for(i=0;i<R.length;i++){var o=R[i],sp=.9+o.z*1.6;o.y+=sp*dt;o.x-=sp*dt*.18;if(o.y>1.08){o.y=-.1;o.x=rnd(-.1,1.25)}
-        var len=(.04+o.z*.1)*h;c.strokeStyle='rgba(205,215,255,'+(.12+o.z*.3)+')';c.lineWidth=.5+o.z*1.1;c.beginPath();c.moveTo(o.x*w,o.y*h);c.lineTo(o.x*w-len*.18,o.y*h+len);c.stroke()}
-      // 바닥 물 튐
-      for(i=0;i<12;i++){var a=(t*1.8+i*.37)%1,px=((i*.618+Math.floor(t*1.8+i*.37)*.271)%1)*w,py=(.86+(i%4)*.035)*h;c.strokeStyle='rgba(225,230,255,'+(.55*(1-a))+')';c.lineWidth=1.2;c.beginPath();c.ellipse(px,py,4+a*16,1.5+a*4,0,0,6.3);c.stroke()}
-      c.globalCompositeOperation='source-over';
-    }else{
-      c.globalCompositeOperation='screen';
-      // 책상 등 불빛 숨쉬기 + 가끔 깜빡
-      var lamp=(t%9)<.12?.05:.2+.07*Math.sin(t*1.6);glow(w*.12,h*.42,w*.55,'255,190,110',lamp);glow(w*.9,h*.12,w*.5,'255,200,130',lamp*.8);
-      // 블라인드 사이로 지나가는 차 불빛(비스듬한 띠가 천천히 쓸고 감)
-      var s=(t%7)/4;if(s<1){var bx=(-.4+s*1.8)*w,g=c.createLinearGradient(bx-w*.25,0,bx+w*.25,0);g.addColorStop(0,'rgba(170,160,255,0)');g.addColorStop(.5,'rgba(170,160,255,'+(.22*Math.sin(s*3.14))+')');g.addColorStop(1,'rgba(170,160,255,0)');c.fillStyle=g;c.save();c.transform(1,0,-.35,1,h*.17,0);c.fillRect(bx-w*.25,0,w*.5,h);c.restore()}
-      // 먼지
-      for(var j=0;j<D.length;j++){var d=D[j];d.y-=d.v*dt*6;if(d.y<0)d.y=1;c.fillStyle='rgba(255,225,180,'+(.25+.35*Math.sin(t*1.2+d.p))+')';c.beginPath();c.arc((d.x+Math.sin(t*.5+d.p)*.02)*w,d.y*h,d.r,0,6.3);c.fill()}
-      // 김
-      for(j=0;j<5;j++){var u=(t*.25+j*.2)%1;glow(w*(.14+.03*Math.sin(t+j*2)),h*(.86-u*.22),w*(.03+u*.05),'230,225,255',.16*(1-u))}
-      c.globalCompositeOperation='source-over';
-    }
+  var t=ms/1000,dt=Math.min(.05,t-last||.016);last=t;sx+=(tx-sx)*.08;sy+=(ty-sy)*.08;
+  var info=HOT[id+'_'+sc]||{w:'in',h:[]},wf=size(far),wn=size(near),w=wf[0],h=wf[1],i,o;
+  if(!on){stage.style.transform='';im.style.transform='';im.style.filter='';far.style.transform=near.style.transform='';sheen.style.opacity=0;requestAnimationFrame(frame);return}
+  // 카메라: 천천히 다가가며 흐르고, 손가락 · 기울기에 따라 겹마다 다르게 밀린다
+  var dx=Math.sin(t*.21)*.9,dy=Math.cos(t*.17)*.7,zm=1.03+.025*Math.sin(t*.13);
+  stage.style.transform='rotateY('+(sx*7)+'deg) rotateX('+(-sy*7)+'deg)';
+  im.style.transform='translate('+(dx-sx*1.6)+'%,'+(dy-sy*1.6)+'%) scale('+zm+')';
+  far.style.transform='translate('+(dx*1.4-sx*3)+'%,'+(dy*1.4-sy*3)+'%)';
+  near.style.transform='translate('+(-sx*5.5)+'%,'+(-sy*5.5)+'%)';
+  sheen.style.opacity=1;sheen.style.transform='translateX('+(((t*.11)%1)*160-80+sx*30)+'%)';
+  // 번개(현장): 그림 자체가 번쩍
+  var br=1;
+  if(info.w==='rain'){nextFlash-=dt;if(nextFlash<0){flash=1;nextFlash=rnd(6,12)}if(flash>0){br=1+.55*flash*(Math.sin(t*46)>-.2?1:.25);flash-=dt*2.2}}
+  im.style.filter=br>1.01?'brightness('+br.toFixed(2)+') contrast(1.06)':'';
+  // 불빛: 그림에서 찾은 등 · 경광등 자리에서만
+  cf.globalCompositeOperation='screen';
+  for(i=0;i<info.h.length;i++){o=info.h[i];var x=o[0]*w,y=o[1]*h;
+    if(o[2]==='w'){var fl=(Math.sin(t*37+i*9)>.985?.3:1)*(.75+.25*Math.sin(t*1.7+i*2.1));glow(cf,x,y,w*.2,'255,205,140',.5*fl);glow(cf,x,y,w*.42,'255,180,110',.12*fl)}
+    else if(o[2]==='r'){glow(cf,x,y,w*.34,'255,40,70',.55*Math.max(0,Math.sin(t*6)))}
+    else{glow(cf,x,y,w*.34,'70,110,255',.55*Math.max(0,Math.sin(t*6+3.14)))}}
+  if(info.w==='rain'){
+    streaks(cf,A,w,h,dt,.7,.2,.14);
+    for(i=0;i<4;i++){var fxp=((t*.025*(i+1)+i*.31)%1.6-.3)*w;glow(cf,fxp,h*(.9+.03*Math.sin(t*.4+i)),w*.5,'175,165,225',.12)}
+    for(i=0;i<14;i++){var a=(t*1.7+i*.37)%1,px=((i*.618+Math.floor(t*1.7+i*.37)*.271)%1)*w,py=(.86+(i%5)*.028)*h;cf.strokeStyle='rgba(225,230,255,'+(.5*(1-a))+')';cf.lineWidth=1;cf.beginPath();cf.ellipse(px,py,3+a*15,1+a*3.6,0,0,6.3);cf.stroke();
+      if(a<.25){cf.fillStyle='rgba(235,240,255,'+(.6*(1-a*4))+')';cf.fillRect(px-1,py-10*a*4*(1-a*2),1.6,3)}}
+    cn.globalCompositeOperation='screen';streaks(cn,B,w,h,dt,1.3,.32,.16);streaks(cn,C,w,h,dt,3.2,.16,.18);
+  }else if(info.w==='snow'){
+    for(i=0;i<D.length;i++){o=D[i];var sp=.03+o.z*.12;o.y+=sp*dt;o.x+=Math.sin(t*.8+o.p)*.0006*(1+o.z);if(o.y>1.05){o.y=-.05;o.x=rnd(0,1)}
+      var c2=o.z>.7?cn:cf,r=1+o.z*o.z*7;if(o.z>.7){glow(c2,o.x*w,o.y*h,r*1.8,'255,255,255',.35)}else{c2.fillStyle='rgba(255,255,255,'+(.4+o.z*.5)+')';c2.beginPath();c2.arc(o.x*w,o.y*h,r*.6,0,6.3);c2.fill()}}
+  }else{
+    // 실내: 등 불빛 안에서 떠다니는 먼지 + 창밖 빛이 쓸고 지나감
+    var s=(t%8)/4.5;if(s<1){var bx=(-.5+s*2)*w,g=cf.createLinearGradient(bx-w*.3,0,bx+w*.3,0);g.addColorStop(0,'rgba(150,140,255,0)');g.addColorStop(.5,'rgba(170,160,255,'+(.2*Math.sin(s*3.14))+')');g.addColorStop(1,'rgba(150,140,255,0)');cf.fillStyle=g;cf.save();cf.transform(1,0,-.4,1,h*.2,0);cf.fillRect(bx-w*.3,0,w*.6,h);cf.restore()}
+    cn.globalCompositeOperation='screen';
+    for(i=0;i<46;i++){o=D[i];o.y-=(.006+o.z*.012)*dt;o.x+=Math.sin(t*.4+o.p)*.0004;if(o.y<0)o.y=1;var lit=.12;for(var j=0;j<info.h.length;j++)if(info.h[j][2]==='w'){var q=Math.hypot(o.x-info.h[j][0],o.y-info.h[j][1]);lit=Math.max(lit,1-q*3)}
+      if(lit>.13){cn.fillStyle='rgba(255,228,185,'+(lit*(.4+.3*Math.sin(t*1.3+o.p)))+')';cn.beginPath();cn.arc(o.x*w,o.y*h,.8+o.z*1.8,0,6.3);cn.fill()}}
   }
   requestAnimationFrame(frame);
 }
+function point(e){var r=stage.getBoundingClientRect(),p=e.touches?e.touches[0]:e;tx=Math.max(-1,Math.min(1,((p.clientX-r.left)/r.width-.5)*2));ty=Math.max(-1,Math.min(1,((p.clientY-r.top)/r.height-.5)*2))}
+$('wrap').addEventListener('pointermove',point);$('wrap').addEventListener('touchmove',point,{passive:true});$('wrap').addEventListener('pointerleave',function(){tx=ty=0});$('wrap').addEventListener('touchend',function(){tx=ty=0});
+window.addEventListener('deviceorientation',function(e){if(e.gamma==null)return;tx=Math.max(-1,Math.min(1,e.gamma/25));ty=Math.max(-1,Math.min(1,(e.beta-45)/25))});
 document.addEventListener('click',function(e){var t=e.target.closest('[data-id]');if(t){id=t.getAttribute('data-id')}else if((t=e.target.closest('[data-s]'))){sc=t.getAttribute('data-s')}else if((t=e.target.closest('[data-f]'))){on=+t.getAttribute('data-f')}else return;ui()});
 init();ui();requestAnimationFrame(frame);
 </script></body></html>

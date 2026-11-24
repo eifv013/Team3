@@ -121,6 +121,15 @@
   var LIMITED = [
     { id: 'wolf', kind: '늑대', name: '백랑', own: 'pay', eq: { pay: 12, idle: 8 }, line: '특수수사팀에서 온 말 없는 사냥꾼', limited: true }
   ];
+  /* 0.12.4 나올 예정인 파트너(일반 6 · 한정 4). 도감에 "???" 줄로만 보인다 — 뽑기 · 세트 · 도감 수에는 들어가지 않는다(SPECIES · LIMITED 밖).
+   *   내보낼 때 이 줄을 SPECIES 나 LIMITED 로 옮기고 그림과 효과를 채운다. 자세한 계획은 mock/partner_roadmap.md */
+  var UPCOMING = [
+    { id: 'crow', kind: '까마귀', name: '깜지', code: '블랙박스' }, { id: 'beaver', kind: '비버', name: '댐이', code: '바리케이드' },
+    { id: 'bat', kind: '박쥐', name: '까망', code: '에코로케이터' }, { id: 'chameleon', kind: '카멜레온', name: '물감', code: '블렌드' },
+    { id: 'kangaroo', kind: '캥거루', name: '주머니', code: '파우치' }, { id: 'sloth', kind: '나무늘보', name: '느긋', code: '스테이크아웃' },
+    { id: 'dragon', kind: '용', name: '청운', code: '드래곤', limited: true }, { id: 'snowleopard', kind: '눈표범', name: '설화', code: '화이트아웃', limited: true },
+    { id: 'orca', kind: '범고래', name: '파랑', code: '딥블루', limited: true }, { id: 'blackcat', kind: '검은 고양이', name: '자정', code: '미드나잇', limited: true }
+  ];
   var BY_ID = {};
   SPECIES.concat(LIMITED).forEach(function (s) { BY_ID[s.id] = s; });
 
@@ -619,7 +628,7 @@
 
   return {
     codename: codename, CODENAME: CODENAME,
-    BGS: BGS, BG_BY: BG_BY, buyBg: buyBg, useBg: useBg, bgNow: bgNow,
+    UPCOMING: UPCOMING, BGS: BGS, BG_BY: BG_BY, buyBg: buyBg, useBg: useBg, bgNow: bgNow,
     LIMITED: LIMITED, grantLimited: grantLimited,
     canNoir: canNoir, noirOn: noirOn, noirScene: noirScene, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,

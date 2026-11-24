@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.12.4', date: '2026-11-25', title: '예정 파트너',
+      items: [
+        '도감 맨 아래에 앞으로 나올 파트너 10마리의 자리가 "???"로 생겼어요. 일반 6마리, 한정 4마리예요.'
+      ] },
     { ver: '0.12.3', date: '2026-11-25', title: '새 코드네임 그림',
       items: [
         '코드네임 그림 20종을 새 그림으로 바꿨어요.',

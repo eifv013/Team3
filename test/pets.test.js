@@ -441,3 +441,10 @@ test('0.12.0 파트너 배경: 사고 고르기, 황금 무대는 전설 파트�
   assert.throws(() => P.useBg(s, 'snow'), { code: 'NO_BG' });
   P.useBg(s, 'alley'); P.clean(s); assert.equal(s.pets.bg, 'alley'); assert.ok(s.pets.bgs.gold);
 });
+
+test('0.12.4 예정 파트너 10종은 기록만: 뽑기 · 세트 · 도감 수에 안 들어간다', () => {
+  assert.equal(P.UPCOMING.length, 10); assert.equal(P.UPCOMING.filter(u => u.limited).length, 4);
+  const ids = new Set(P.SPECIES.concat(P.LIMITED).map(x => x.id));
+  P.UPCOMING.forEach(u => { assert.ok(!ids.has(u.id), u.id); assert.equal(P.parse(u.id + ':c'), null, u.id + ' 는 아직 데려올 수 없다'); });
+  assert.equal(P.SPECIES.length, 30);
+});
