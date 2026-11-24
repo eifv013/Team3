@@ -439,7 +439,7 @@
    *   tools/art_check.py 가 크기(A) · 눈 가림(B) · 넘침(C)을 본다.
    */
   // [크기, 모자 아래 끝 y, 눈 위 어디에 맞출지 y] — 비니는 방울이 높아 조금 더 내려 쓴다
-  var FROG_HAT = { beanie: [0.78, 55, 34], fedora: [0.85, 58, 30], raincoat: [0.8, 66, 30], cap: [0.8, 62, 30] };
+  var FROG_HAT = { beanie: [0.78, 55, 34], fedora: [0.85, 58, 30], raincoat: [0.8, 66, 30], cap: [0.6, 62, 37] };
   function frogHat(kind) {
     var f = FROG_HAT[kind];
     return f ? 'translate(100 ' + f[2] + ') scale(' + f[0] + ') translate(-100 -' + f[1] + ')' : '';
@@ -608,11 +608,24 @@
     var at = CAP_AT[id] ? '<g transform="' + CAP_AT[id] + '">' : '<g>';
     return at + capInner(gold) + '</g>';
   }
+  // 0.12.5 경찰모를 다시 그렸다: 위가 부푼 모자 몸통 + 띠 + 반짝이는 챙 + 휘장(예전 것은 납작한 판 두 장이라 만들다 만 것처럼 보였다)
   function capInner(gold) {
-    var body = gold ? 'url(#gGold)' : '#26324A', line = gold ? '#A87A10' : '#121826';
-    return '<g transform="rotate(-8 100 36)"><path d="M64 44 q36-30 72 0 l-4 10 q-32-9-64 0z" fill="' + body + '" stroke="' + line + '" stroke-width="3" stroke-linejoin="round"/>' +
-      '<path d="M60 54 q40-11 80 0 l-3 8 q-37-9-74 0z" fill="' + (gold ? '#C99A1C' : '#121826') + '"/>' +
-      '<path d="M100 30 l3.4 6.6 7.2 1-5.2 5.2 1.2 7.2-6.6-3.4-6.6 3.4 1.2-7.2-5.2-5.2 7.2-1z" fill="' + (gold ? '#FFF6D0' : 'url(#gGold)') + '"/></g>';
+    var top = gold ? 'url(#gGold)' : '#34446A', line = gold ? '#8A6410' : '#101624', band = gold ? '#B8860B' : '#161D2E', visor = gold ? '#6E4E08' : '#0A0E17';
+    var pipe = gold ? '#FFF6D0' : '#E8B931', shine = gold ? '#FFFBE6' : '#6F86BC';
+    var star = '<path d="M100 14 l3.6 7.2 7.9 1.1-5.7 5.6 1.3 7.9-7.1-3.7-7.1 3.7 1.3-7.9-5.7-5.6 7.9-1.1z"';
+    return '<g transform="rotate(-8 100 36)">' +
+      // 모자 몸통(위가 넓게 부풀고 띠 쪽으로 좁아진다)
+      '<path d="M57 42 C50 22 74 6 100 6 C126 6 150 22 143 42 Q100 31 57 42 Z" fill="' + top + '" stroke="' + line + '" stroke-width="3.2" stroke-linejoin="round"/>' +
+      '<path d="M68 20 Q100 6 132 20" stroke="' + shine + '" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>' +
+      // 띠와 장식 줄
+      '<path d="M62 40 Q100 30 138 40 L136 52 Q100 43 64 52 Z" fill="' + band + '" stroke="' + line + '" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path d="M65 45.5 Q100 36 135 45.5" stroke="' + pipe + '" stroke-width="2.2" fill="none" stroke-linecap="round"/>' +
+      // 챙(반짝이는 줄 하나)
+      '<path d="M60 52 Q100 42 140 52 Q138 63 100 64 Q62 63 60 52 Z" fill="' + visor + '" stroke="' + line + '" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path d="M72 55 Q100 49 128 55" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".35"/>' +
+      // 휘장: 동그란 바탕 위 별
+      '<circle cx="100" cy="24" r="12.5" fill="' + (gold ? '#FFF6D0' : '#1A2338') + '" stroke="' + (gold ? '#B8860B' : '#E8B931') + '" stroke-width="2.4"/>' +
+      star + ' fill="' + (gold ? '#E0A91A' : 'url(#gGold)') + '" stroke="' + (gold ? '#8A6410' : '#8A6410') + '" stroke-width="1.2" stroke-linejoin="round" transform="translate(100 24) scale(.74) translate(-100 -25.5)"/></g>';
   }
   var CAPE = '<path d="M30 108 q-28 52-8 86 h156 q20-34-8-86 q-70 32-140 0z" fill="url(#gCape)" stroke="#7A1219" stroke-width="3" stroke-linejoin="round"/>';
   var AURA = '<circle cx="100" cy="104" r="98" fill="url(#gAura)"/>';
