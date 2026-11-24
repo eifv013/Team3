@@ -1641,6 +1641,40 @@ button.ev-chip{border:0;font:inherit;color:inherit;cursor:pointer}
 .pass-btn b{position:absolute;right:1px;bottom:5px;min-width:16px;height:15px;padding:0 3px;border-radius:8px;background:#FFD23F;color:#1B1500;font-size:10px;font-weight:900;line-height:15px;text-align:center}
 .pass-btn.prem b{background:linear-gradient(180deg,#FFE58A,#F2B71E)}
 .pass-btn i{position:absolute;top:7px;right:5px;width:9px;height:9px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 2px var(--bg,#12151B)}
+button.ev-legend{flex-direction:row;align-items:center;gap:3px;border:0;font-family:inherit;pointer-events:auto;padding:7px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
+button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{margin-left:4px;white-space:nowrap}button.ev-legend b{display:inline-flex;width:15px;height:15px;border-radius:50%;align-items:center;justify-content:center;background:#FFD23F;color:#1B1500;font-size:10px;font-weight:900;margin-left:2px}
+.ev-effbtn{position:absolute;left:8px;top:42px;z-index:3;border:0;font-family:inherit;padding:5px 10px;border-radius:999px;background:rgba(20,14,8,.78);color:#FFE58A;font-size:11.5px;font-weight:800}
+.ev-vp .ev-info.evp{left:8px;right:auto;transform:none;max-width:none;bottom:44px;white-space:nowrap}
+.ev-vp:has(.ev-info.evc) .ev-legend{display:none}
+.ev-lg-rule{display:flex;gap:6px;margin:4px 0}.ev-lg-rule span{padding:4px 10px;border-radius:9px;background:rgba(255,255,255,.07);font-size:12.5px}.ev-lg-rule b{color:#FFD23F;font-size:14px;margin-left:2px}
+.ev-lg-cols{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:12.5px;color:#C9CFDA;margin-bottom:2px}
+@media (max-height:700px){.ev-effbtn{top:38px}}
+.d-bar.idle i{transform:scaleX(0)!important}.d-bar.idle{opacity:.7}
+.d-bar span{display:flex;justify-content:center;align-items:baseline;gap:6px}.d-bar span em{font-style:normal;font-size:11px;font-weight:700;opacity:.9}
+.d-miles{display:flex;align-items:center;gap:4px;margin-top:1px}
+.d-miles i{font-style:normal;min-width:24px;height:16px;padding:0 4px;border-radius:5px;background:#232832;color:#6E7686;font-size:10px;font-weight:800;line-height:16px;text-align:center}
+.d-miles i.on{background:linear-gradient(180deg,#FFE58A,#F2B71E);color:#2A1F04}.d-miles i.next{box-shadow:inset 0 0 0 1.5px #FFD23F;color:#FFE58A}
+.d-miles span{margin-left:4px;font-size:11.5px;color:var(--muted);white-space:nowrap}.d-miles span em{font-style:normal;color:var(--acc);font-weight:800}
+.d-need{height:8px;border-radius:999px;background:#232832;overflow:hidden}.d-need i{display:block;height:100%;background:#FFD23F;border-radius:999px}
+.dept.locked{opacity:.75}.dept.locked .d-mile em{font-style:normal;color:var(--acc);font-weight:800}
+.dl-time{font-style:normal;margin-left:8px;padding:2px 8px;border-radius:999px;background:rgba(159,140,255,.18);color:#C9B8FF;font-size:12px;font-weight:800;vertical-align:2px}
+/* 0.10.9 가운뎃점으로 잇던 글을 칸으로 */
+#h-rate i{font-style:normal;margin-right:12px}#h-rate b{color:var(--text);font-weight:700}#h-rate i.fx{color:#9FEBAD}
+#h-go-sub{display:flex;justify-content:center;gap:6px}#h-go-sub i{font-style:normal;padding:2px 9px;border-radius:999px;background:rgba(0,0,0,.14);font-weight:800}
+.rk-b{margin-left:8px;padding:2px 8px;border-radius:999px;background:rgba(255,210,63,.14);color:#FFE58A;font-size:12px;font-weight:800;vertical-align:1px}
+.sup-note{margin:0 2px 2px;font-size:12.5px;color:var(--muted)}
+.sup-on{font-style:normal;margin-left:8px;padding:2px 8px;border-radius:999px;background:rgba(126,224,143,.14);color:#9FEBAD;font-size:11.5px;font-weight:800;vertical-align:1px}
+.pet-sum b{display:flex;flex-wrap:wrap;gap:5px}.pet-sum b i{font-style:normal;padding:3px 9px;border-radius:999px;background:rgba(156,211,242,.12);font-size:12.5px}
+.pet-sum .label small{margin-left:8px;font-weight:600;letter-spacing:0;text-transform:none;opacity:.8}
+.d-miles{gap:3px;overflow:hidden}.d-miles i{flex:none;min-width:0;padding:0 5px}.d-miles span{font-size:11px}.d-miles span{flex:none;margin-left:0;margin-right:4px}
+/* 0.10.9 다 올린(MAX) 칸: 한 줄로 접고 아래로 */
+.shop:not(#h-support) .item:has(>.buy.max):not(.open){order:9;padding:6px 12px;gap:10px;background:transparent;box-shadow:inset 0 0 0 1px #262C37;cursor:pointer}
+.shop:not(#h-support) .item:has(>.buy.max):not(.open) .ic{width:26px;height:26px;font-size:15px;background:none;opacity:.7}
+.shop:not(#h-support) .item:has(>.buy.max):not(.open) .ic svg{width:17px;height:17px}
+.shop:not(#h-support) .item:has(>.buy.max):not(.open) .tx small,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .cr-pips,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .cr-eff,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy em{display:none}
+.shop:not(#h-support) .item:has(>.buy.max):not(.open) .tx b{font-size:13.5px;color:var(--muted);font-weight:700}
+.shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy{width:auto;min-width:0;height:24px;padding:0 9px;border-radius:999px;box-shadow:none;background:rgba(126,224,143,.12);pointer-events:none}
+.shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy b{font-size:11px;color:#9FEBAD}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -1940,7 +1974,7 @@ body.prem-on #h-station::before{content:'👑 '}
     </div>
     <button class="go-btn" id="h-go">
       <b>현장 출동</b>
-      <small id="h-go-sub">90초 · 잡은 만큼 수사비</small>
+      <small id="h-go-sub"><i>⏱ 90초</i></small>
     </button>
     <!-- 하루 한 번 특별 출동(0.1.19): 날마다 규칙이 바뀐다. 준비물·장비 없이 실력으로 -->
     <div class="daily" id="h-daily">

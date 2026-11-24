@@ -159,3 +159,15 @@ test('저장 되읽기: 0.1.19 값이 그대로 오가고, 예전 저장은 기�
   const bad = I.load(JSON.stringify({ v: 1, gems: -5, recent: ['x', 5, Infinity], prep: { coffee: 'yes', '<b>': true }, daily: { day: 'nope' } }), T0).save;
   assert.equal(bad.gems, 0); assert.deepEqual(bad.recent, [5]); assert.deepEqual(bad.prep, {}); assert.equal(bad.daily.day, '');
 });
+
+test('0.10.9 지원: 합동 수사본부(부서 2배) · 호송 지원은 30분 동안', () => {
+  const s = rich();
+  E.buy(s, 'joint', T0); E.buy(s, 'escort', T0);
+  assert.equal(E.owned(s, 'joint', T0 + 29 * 60000), true);
+  assert.equal(E.owned(s, 'joint', T0 + 31 * 60000), false);
+  assert.equal(E.owned(s, 'escort', T0 + 1000), true);
+  // 부서 수입: 겹친 구간만 2배
+  const s2 = rich(); s2.detectives = 0; s2.money = 0; s2.lastSeen = T0; s2.jointUntil = T0 + 50000;
+  I.setExtraIncome(() => 1);
+  try { assert.equal(I.advance(s2, T0 + 100000).dept, 150); } finally { I.setExtraIncome(null); }
+});

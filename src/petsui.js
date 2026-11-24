@@ -51,7 +51,7 @@
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
       '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(' · ')) + '</small>' +
-        '<small class="pet-bond' + (bd.last === today() ? '' : ' need') + '">♥ ' + bd.lv + '단계 · ' + (bd.last === today() ? '함께 ' + bd.days + '일 ✓' : '그림을 눌러 쓰다듬어 줘요') + '</small></div>' +
+        '<small class="pet-bond' + (bd.last === today() ? '' : ' need') + '">♥ ' + bd.lv + '단계' + (bd.last === today() ? ' (함께 ' + bd.days + '일 ✓)' : ', 그림을 눌러 쓰다듬어 줘요') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
       '<button class="buy" id="h-pet-open">파트너' + dot + '</button>';
   }
@@ -395,7 +395,7 @@
     Object.keys(p.own).forEach(function (k) { var x = P.parse(k); if (!x) return; var e = P.ownEffect(x.id, x.g, p.own[k]); Object.keys(e).forEach(function (q) { sum[q] = (sum[q] || 0) + e[q]; }); });
     Object.keys(sum).forEach(function (q) { if (P.CAPS[q] && sum[q] > P.CAPS[q]) sum[q] = P.CAPS[q]; });
     var lines = P.describe(sum);
-    return lines.length ? lines.join(' · ') : '아직 없어요. 파트너를 모으면 하나하나 쌓여요.';
+    return lines.length ? lines.map(function (t) { return '<i>' + esc(t) + '</i>'; }).join('') : '아직 없어요. 파트너를 모으면 하나하나 쌓여요.';
   }
   function drawDex() {
     var p = pets();
@@ -403,7 +403,7 @@
       var have = P.SPECIES.filter(function (x) { return p.own[P.key(x.id, g)]; }).length;
       return '<span class="' + (st.grades[g] ? 'on' : '') + '" style="--gc:' + P.GRADE[g].color + '">' + P.GRADE[g].name + ' ' + have + '/' + P.SPECIES.length + '<i>' + esc(P.describe(P.GRADE_SET[g]).join(' · ')) + '</i></span>';
     }).join('');
-    var html = '<div class="pet-sum"><span class="label">보유 효과 합계 (모은 파트너 모두 · 늘 켜짐)</span><b>' + esc(ownSummary()) + '</b></div>' +
+    var html = '<div class="pet-sum"><span class="label">보유 효과 합계<small>모은 파트너 모두, 늘 켜져 있어요</small></span><b>' + ownSummary() + '</b></div>' +
       '<div class="pet-sets"><span class="label">세트 보너스 · 한 종류 네 등급 = 그 종류 보유 효과 두 배 · 한 등급 ' + P.SPECIES.length + '종 = 아래 보너스</span><div>' + gs + '</div></div>' +
       '<div class="pet-dex-head"><span></span>' + P.GRADES.map(function (g) { return '<span style="color:' + P.GRADE[g].color + '">' + P.GRADE[g].name + '</span>'; }).join('') + '</div>';
     // 0.9.2 한정 파트너 줄은 맨 위(전설 칸 하나만 · 나머지 등급 칸은 "없음" 자리)

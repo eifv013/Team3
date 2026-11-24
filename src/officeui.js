@@ -263,7 +263,7 @@
     $('of-send-s').textContent = o.cell ? '+' + fmt(o.cell * pay * OF.TRANSFER_MULT) : '비었어요';
     // 0.10.5 프리미엄 패스: 유치장이 꽉 차면 호송차가 알아서 온다
     var MO = root.Team3Monet;
-    if (full && !autoSending && MO && ctx.dayNow && S().shop && MO.premOn(S(), ctx.dayNow())) { autoSending = true; later(function () { autoSending = false; send(true); }, 600); }
+    if (full && !autoSending && ((MO && ctx.dayNow && S().shop && MO.premOn(S(), ctx.dayNow())) || (S().escortUntil || 0) > Date.now())) { autoSending = true; later(function () { autoSending = false; send(true); }, 600); }   // 0.10.9 지원 '호송 지원' 중에도 }, 600); }
   }
   var autoSending = false;
   function send(auto) {
@@ -272,7 +272,7 @@
     if (root.Team3Evidence) root.Team3Evidence.earn(s, r.bonus);   // 0.7.0 번 수사비(재수사 단서)
     ctx.persist();
     var v = $('of-van'); v.classList.remove('go'); void v.offsetWidth; v.classList.add('go');
-    $('of-tick').textContent = (auto ? '👑 자동 이송 · ' : '호송차 출발 · ') + r.n + '명 이송';
+    $('of-tick').textContent = (auto ? '자동 이송 · ' : '호송차 출발 · ') + r.n + '명 이송';
     try { ctx.UI.sfx.coin(); } catch (e) { /* 무시 */ }
     ctx.UI.buzz([10, 30, 10]);
     later(function () { cell(); burst(rel($('of-send')), '+' + fmt(r.bonus), true); ctx.render(); }, 700);
@@ -334,6 +334,14 @@
     var tt = $('info-title'); if (tt) tt.textContent = v;
     inp.value = v;
     try { ctx.UI.toast('이름을 "' + v + '"(으)로 바꿨어요'); } catch (e) { /* 무시 */ }
+  }
+  /* 0.10.9 커피 돌리기: 누른 자리부터, 커피를 마실 수 있는 자리 모두에게 한 번에. 아무도 못 마시면 누른 형사가 한마디 */
+  function coffeeAll(i) {
+    var s = S(), now = Date.now(), n = OF.deskCount ? OF.deskCount(s) : OF.DESKS, ready = [];
+    for (var k = 0; k < n; k++) if (OF.coffeeLeft(s, k, now) <= 0) ready.push(k);
+    if (!ready.length) { coffee(i); return; }
+    ready.sort(function (a, b) { return (a === i ? -1 : 0) - (b === i ? -1 : 0); });
+    ready.forEach(function (k, j) { later(function () { coffee(k); }, j * 90); });
   }
   function coffee(i) {
     var s = S(), r, now = Date.now();
@@ -529,7 +537,7 @@
     OF.clean(S());
     build();
     box.addEventListener('click', function (e) {
-      var d = e.target.closest('.of-desk'); if (d && !d.classList.contains('empty')) { copPop(+d.getAttribute('data-i')); return; }
+      var d = e.target.closest('.of-desk'); if (d && !d.classList.contains('empty')) { coffeeAll(+d.getAttribute('data-i')); return; }   // 0.10.9 형사 한 명을 누르면 마실 수 있는 모두에게 커피(이름 창은 뺐다)
       if (e.target.closest('#of-send')) { send(); return; }
       if (e.target.closest('#of-pet')) { patPet(); return; }
     });

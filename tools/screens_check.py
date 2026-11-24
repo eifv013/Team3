@@ -185,8 +185,7 @@ def main():
         need(pg.locator('#of-cell').count() == 1 and pg.locator('#of-send').count() == 1, '사무실: 유치장 · 이송이 없음')
         m1 = money(pg)
         pg.locator('#h-office .of-desk[data-i="0"]').dispatch_event('click'); pg.clock.run_for(300)
-        need(pg.locator('#info-sheet').is_visible() and pg.locator('#of-nm').count() == 1, '사무실: 형사를 눌러도 이름 창이 안 뜸')   # 0.10.5
-        pg.click('#info-ok'); pg.clock.run_for(600)
+        pg.clock.run_for(900)   # 0.10.9 누르면 바로 커피(모두에게)
         pg.evaluate("() => Team3Save()")
         need(money(pg) > m1, '사무실: 커피를 눌러도 수사비가 안 늘어남')
         no_hscroll(pg, '사무실')

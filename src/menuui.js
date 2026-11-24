@@ -140,15 +140,15 @@
     var s = S(), p = s.pets || {}, PT = ctx.PT; if (!PT) return;
     var day = ctx.dayNow(), fl = PT.freeLeft ? PT.freeLeft(s, day, ctx.freeExtra ? ctx.freeExtra() : 0) : 0, pr = PT.progress ? PT.progress(s) : null;
     var set = function (id, t, hot) { var e = $(id); if (e) { e.textContent = t; e.parentNode.classList.toggle('hot', !!hot); } };
-    set('h-pl-draw', '뽑기권 ' + (p.tickets || 0) + '장' + (fl > 0 ? ' · 무료 ' + fl : ''), (p.tickets || 0) > 0 || fl > 0);
+    set('h-pl-draw', fl > 0 ? '무료 ' + fl + '번 가능' : '뽑기권 ' + (p.tickets || 0) + '장', (p.tickets || 0) > 0 || fl > 0);
     var fcn = PT.freshCount ? PT.freshCount(s) : 0;
-    set('h-pl-dex', pr ? pr.have + ' / ' + pr.total + (fcn ? ' · NEW ' + fcn : '') : '', fcn > 0);   // 0.10.6 새로 얻은 파트너
+    set('h-pl-dex', pr ? (fcn ? 'NEW ' + fcn + '마리' : pr.have + ' / ' + pr.total) : '', fcn > 0);   // 0.10.6 새로 얻은 파트너
     set('h-pl-closet', '옷 ' + (p.closet ? Object.keys(p.closet).length : 0) + '벌');
     var x = p.eq && PT.parse(p.eq), lines = [];
     if (x) {
       var eff = PT.describe(PT.eqEffect(x.id, x.g, p.own[p.eq])), bd = PT.bondOf(s, p.eq);
       eff.forEach(function (t) { var m = /^(.*?)\s*([+−-].*)$/.exec(t); lines.push('<div><span>' + esc(m ? m[1] : t) + '</span><b>' + esc(m ? m[2] : '') + '</b></div>'); });
-      lines.push('<div><span>친밀도</span><b style="color:#FF8FB0">♥ ' + bd.lv + '단계 · 함께 ' + bd.days + '일</b></div>');
+      lines.push('<div><span>친밀도</span><b style="color:#FF8FB0">♥ ' + bd.lv + '단계 (함께 ' + bd.days + '일)</b></div>');
     }
     setHTML($('h-peff'), lines.length ? '<span class="section-t" style="margin:4px 0 0">파트너 효과</span>' + lines.join('') : '');
   }

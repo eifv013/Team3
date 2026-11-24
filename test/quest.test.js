@@ -38,3 +38,16 @@ test('일간을 다 받으면 완료 상자', () => {
   assert.ok(got.includes('tickets1'));
   assert.equal(Q.boxState(s, d).got, true);
 });
+
+test('0.10.9 주간 · 월간 완료 상자', () => {
+  const s = {}, d = '2026-11-24'; Q.clean(s);
+  Q.LIST.w.forEach((x) => Q.track(s, x.kind, x.goal, d));
+  assert.equal(Q.boxState(s, d, 'w').ready, false);
+  Q.LIST.w.forEach((x) => Q.claim(s, x.id, d));
+  assert.equal(Q.boxState(s, d, 'w').ready, true);
+  const g0 = s.gems || 0, got = [];
+  assert.deepEqual(Q.claim(s, 'box:w', d, (k, v) => got.push(k + v)), { tickets: 3, gems: 30 });
+  assert.equal(s.gems - g0, 30); assert.deepEqual(got, ['tickets3']);
+  assert.throws(() => Q.claim(s, 'box:w', d), { code: 'ALREADY' });
+  assert.throws(() => Q.claim(s, 'box:m', d), { code: 'NOT_DONE' });
+});

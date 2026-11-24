@@ -158,7 +158,7 @@ function simulate(pf, days, seed) {
   }
   function claims(day) {
     ['d', 'w', 'm'].forEach(sc => Q.list(s, sc, day).forEach(q => { if (q.done && !q.got) gemsBy('임무', () => Q.claim(s, q.id, day, grant('임무'))); }));
-    try { if (Q.boxState(s, day).ready) Q.claim(s, 'box', day, grant('임무')); } catch (e) { /* 아직 */ }
+    ['d', 'w', 'm'].forEach(sc => { if (Q.boxState(s, day, sc).ready) gemsBy('임무', () => Q.claim(s, sc === 'd' ? 'box' : 'box:' + sc, day, grant('임무'))); });
     gemsBy('시즌 패스', () => M.claimPass(s, day, grant('시즌 패스')));
     try { H.check(s); const c = gemsBy('업적', () => H.claim(s, null, (sv, n) => P.addTickets(sv, n))); add('tickets', '업적', c.tickets); } catch (e) { /* 업적은 다른 모듈 값이 없으면 건너뛴다 */ }
     pulls(day);

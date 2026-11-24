@@ -35,7 +35,10 @@
     { id: 'lawyer', kind: 'prep', name: '변호사 대기', desc: '오인 체포 벌점 2번 면제', price: { base: 0.6, gems: 4 } },
     { id: 'press', kind: 'prep', name: '언론 브리핑', desc: '이번 출동 수사비 1.5배', price: { base: 1.0, gems: 6 } },
     { id: 'party', kind: 'boost', name: '팀 회식', desc: '30분 동안 팀이 2배로 일해요', price: { base: 0.4, teamMin: 20, gems: 8 } },
-    { id: 'night', kind: 'boost', name: '야간 잠복조', desc: '다음에 자리를 비울 때 한도 4시간 → 8시간', price: { base: 0.5, teamMin: 30, gems: 6 } }
+    { id: 'night', kind: 'boost', name: '야간 잠복조', desc: '다음에 자리를 비울 때 한도 4시간 → 8시간', price: { base: 0.5, teamMin: 30, gems: 6 } },
+    // 0.10.9 지원 둘 추가(모두 30분 · 진행 중에 다시 사면 처음부터)
+    { id: 'joint', kind: 'boost', name: '합동 수사본부', desc: '30분 동안 부서 수입이 2배', price: { base: 0.4, teamMin: 25, gems: 8 } },
+    { id: 'escort', kind: 'boost', name: '호송 지원', desc: '30분 동안 유치장이 차면 알아서 이송해요', price: { base: 0.3, teamMin: 15, gems: 5 } }
   ];
   var BY_ID = {};
   ITEMS.forEach(function (it) { BY_ID[it.id] = it; });
@@ -79,6 +82,8 @@
     if (it.kind === 'prep') return !!(save.prep && save.prep[id]);
     if (id === 'party') return (save.partyUntil || 0) > now;
     if (id === 'night') return !!save.nightWatch;
+    if (id === 'joint') return (save.jointUntil || 0) > now;
+    if (id === 'escort') return (save.escortUntil || 0) > now;
     return false;
   }
 
@@ -100,6 +105,8 @@
     if (it.kind === 'prep') { save.prep[id] = true; savePaid(save, id, wallet, c); }
     else if (id === 'party') save.partyUntil = now + I.TUNE.partySec * (1 + bn(save, 'party') / 100) * 1000;   // 0.3.0 토끼: 회식 시간 +%
     else if (id === 'night') save.nightWatch = true;
+    else if (id === 'joint') save.jointUntil = now + I.TUNE.partySec * 1000;
+    else if (id === 'escort') save.escortUntil = now + I.TUNE.partySec * 1000;
     return { id: id, currency: wallet, paid: c };
   }
   // 준비물은 출동 전이면 무를 수 있어야 해서, 낸 값을 따로 적어 둔다(저장 형식은 prep: {id:true} 그대로 두고 옆에 둔다)
@@ -176,17 +183,17 @@
    *   준비물·장비는 쓰지 않는다(실력 겨루기). 보상: 받은 메달 등급 × 기준값 + 배지(하루 한 번).
    */
   var DAILY = [
-    { id: 'blitz', name: '60초 속공', desc: '60초 · 처음부터 네 가지를 다 봐요', config: { duration: 60, level: 4 }, mods: {}, medals: [1000, 2100, 3800] },
-    { id: 'bare', name: '맨손 수사', desc: '단서를 쓸 수 없어요 · 점수 2배', config: { duration: 90, level: 1 }, mods: { noHints: true, scoreMult: 2 }, medals: [4200, 7700, 14000] },
+    { id: 'blitz', name: '60초 속공', desc: '네 가지 특징을 처음부터 다 봐요', config: { duration: 60, level: 4 }, mods: {}, medals: [1000, 2100, 3800] },
+    { id: 'bare', name: '맨손 수사', desc: '단서 없이 풀어요. 점수는 2배예요', config: { duration: 90, level: 1 }, mods: { noHints: true, scoreMult: 2 }, medals: [4200, 7700, 14000] },
     { id: 'chain', name: '연쇄 검거', desc: '연속 검거 배수가 5배까지 올라요', config: { duration: 90, level: 1 }, mods: { comboMax: 5 }, medals: [2800, 5600, 11200] },
-    { id: 'strict', name: '엄격한 서장', desc: '오인 체포 벌점 −10초 · 점수 1.5배', config: { duration: 90, level: 1 }, mods: { missPenalty: 10, scoreMult: 1.5 }, medals: [2800, 5600, 10500] },
-    { id: 'clock', name: '마감 수사', desc: '120초 · 검거해도 시간이 늘지 않아요', config: { duration: 120, level: 1 }, mods: { hitTime: 0 }, medals: [2100, 4200, 7700] },
-    { id: 'void', name: '빈 골목', desc: '처음부터 네 가지 · 검거 불가 점수 3배', config: { duration: 90, level: 4 }, mods: { noneMult: 3 }, medals: [2100, 4200, 7700] },
-    { id: 'calm', name: '차분한 밤', desc: '150초 · 오인 체포 벌점 없음 · 점수 0.7배', config: { duration: 150, level: 1 }, mods: { missPenalty: 0, scoreMult: 0.7 }, medals: [2100, 4200, 7700] },
+    { id: 'strict', name: '엄격한 서장', desc: '오인 체포 벌점이 10초예요. 점수는 1.5배예요', config: { duration: 90, level: 1 }, mods: { missPenalty: 10, scoreMult: 1.5 }, medals: [2800, 5600, 10500] },
+    { id: 'clock', name: '마감 수사', desc: '검거해도 시간이 늘지 않아요', config: { duration: 120, level: 1 }, mods: { hitTime: 0 }, medals: [2100, 4200, 7700] },
+    { id: 'void', name: '빈 골목', desc: '네 가지 특징을 다 봐요. 검거 불가 점수는 3배예요', config: { duration: 90, level: 4 }, mods: { noneMult: 3 }, medals: [2100, 4200, 7700] },
+    { id: 'calm', name: '차분한 밤', desc: '오인 체포 벌점이 없어요. 점수는 0.7배예요', config: { duration: 150, level: 1 }, mods: { missPenalty: 0, scoreMult: 0.7 }, medals: [2100, 4200, 7700] },
     // 0.2.1: 다른 퍼즐(forgery.js) — 세 명씩 지은 줄 중 써드가 위조한 가짜 한 줄 찾기
-    { id: 'forge', name: '위조된 한 패', desc: '줄마다 세 명 · 써드가 위조한 가짜 줄을 찾아요', config: { duration: 90, level: 1, mode: 'forgery' }, mods: {}, medals: [2100, 4200, 7700] },
+    { id: 'forge', name: '위조된 한 패', desc: '세 명씩 지은 줄에서 써드가 위조한 가짜 줄을 찾아요', config: { duration: 90, level: 1, mode: 'forgery' }, mods: {}, medals: [2100, 4200, 7700] },
     // 0.5.0: 사건 3과 함께 들어온 서브 퍼즐(montage.js) — 몽타주가 그려지는 동안 빨리 찾을수록 ×4
-    { id: 'montage', name: '몽타주 수배', desc: '특징이 하나씩 그려져요 · 일찍 찾을수록 점수 ×4', config: { duration: 90, level: 1, mode: 'montage' }, mods: {}, medals: [2400, 4900, 8400] }
+    { id: 'montage', name: '몽타주 수배', desc: '특징이 하나씩 그려져요. 일찍 찾을수록 점수가 커요(최대 4배)', config: { duration: 90, level: 1, mode: 'montage' }, mods: {}, medals: [2400, 4900, 8400] }
   ];
   var DAILY_GEMS = [1, 2, 3];   // 동·은·금 배지
   var DAILY_BASE = [1, 2, 3];   // 동·은·금 × 기준값

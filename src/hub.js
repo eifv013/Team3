@@ -163,7 +163,7 @@
     if (chips && f.getBoundingClientRect().right > chips.getBoundingClientRect().left - 4) f.parentNode.removeChild(f);
     setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 1400);
     // 팀 속도 줄 자리에 4초 동안 소식을 띄웠다가 되돌린다
-    $('h-feed').textContent = (from || '방금') + ' 3팀이 ' + fmt(r.catches) + '명 검거 · +' + fmt(r.money);
+    $('h-feed').textContent = (from ? from + ' ' : '') + '3팀이 ' + fmt(r.catches) + '명을 검거했어요. 수사비 +' + fmt(r.money);   // 0.10.9 가운뎃점으로 잇지 않고 문장으로
     var line = $('h-feed').parentNode;
     line.classList.add('news');
     clearTimeout(feedTimer);
@@ -181,12 +181,12 @@
     fill.parentNode.classList.toggle('stream', stream);
     if (stream) {
       fill.style.width = '100%';
-      $('h-next').textContent = '1초에 ' + perMin(1 / I.catchInterval(save, t)) + '명 · +' + I.payPerCatch(save) + '씩';   // 단추 옆 좁은 칸이라 짧게
+      $('h-next').textContent = '1초에 ' + perMin(1 / I.catchInterval(save, t)) + '명, 한 명에 +' + I.payPerCatch(save);   // 단추 옆 좁은 칸이라 짧게
       return;
     }
     var sec = Math.ceil(n.sec);
     $('h-next').textContent = !isFinite(sec) ? '쉬는 중' : '다음 검거까지 ' + (sec >= 60 ? Math.floor(sec / 60) + '분 ' + (sec % 60 ? (sec % 60) + '초' : '') : sec + '초') +
-      ' · +' + I.payPerCatch(save);
+      ', 수사비 +' + I.payPerCatch(save);
   }
 
   /* ---------- 그리기 ---------- */
@@ -262,7 +262,7 @@
     // 0.4.0 동물 효과가 보이게: 분당 수사비 중 동물(보유 + 파트너) 몫을 따로
     var inc = I.incomePerMin(save, t), pb = PT ? petBonus(save) : null, petInc = 0;
     if (pb && (pb.idle || pb.speed)) petInc = Math.round(inc - inc / ((1 + pb.idle / 100) * (1 + pb.speed / 100)));
-    $('h-rate').textContent = '팀이 1분에 ' + perMin(rate) + '명 · 수사비 +' + fmt(inc) + '/분' + (petInc > 0 ? ' (효과 +' + fmt(petInc) + ')' : '');
+    $('h-rate').innerHTML = '<i>검거 <b>' + perMin(rate) + '명</b>/분</i><i>수사비 <b>+' + fmt(inc) + '</b>/분</i>' + (petInc > 0 ? '<i class="fx">효과 +' + fmt(petInc) + '</i>' : '');   // 0.10.9 항목마다 칸으로
     renderMini(inc, petInc);
     var b = $('h-buff');
     b.hidden = !buff;
@@ -284,7 +284,7 @@
     $('h-cap').style.width = save.closed ? '0' : capPct.toFixed(1) + '%';
     var capped = I.idleCapped(save);
     $('h-cap-note').classList.toggle('on', capped);
-    if (capped) $('h-cap-text').textContent = '남은 ' + fmt(goal - save.caught) + '명은 주범 조 · 현장 출동으로만 잡을 수 있어요';
+    if (capped) $('h-cap-text').textContent = '남은 ' + fmt(goal - save.caught) + '명은 현장 출동으로만 잡을 수 있어요';
     $('h-go').classList.toggle('urgent', capped);
     renderStoryButton();
 
@@ -293,7 +293,7 @@
     var dur = o.duration + (pc.coffee ? 15 : 0) + (zb && zb.time ? Math.round(zb.time) : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
     if (Df) { var DLn = Df.info(Df.get(save)); dur = Math.max(Math.min(dur, Df.MIN_SEC), dur + DLn.time); fh += DLn.freeHints; }   // 0.7.0 난이도
     diffGoSub();
-    $('h-go-sub').textContent = dur + '초' + (fh ? ' · 무료 단서 ' + fh : '') + (pc.press ? ' · 수사비 1.5배' : ' · 잡은 만큼 수사비');
+    $('h-go-sub').innerHTML = '<i>⏱ ' + dur + '초</i>' + (fh ? '<i>무료 단서 ' + fh + '</i>' : '') + (pc.press ? '<i>수사비 1.5배</i>' : '');
     if (E) { renderPrep(t); renderDaily(t); renderSupport(t); }
 
     $('h-det').textContent = save.detectives;
@@ -321,7 +321,9 @@
     lawyer: '<path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0zM17 7l-3 7a3 3 0 0 0 6 0z"/>',
     press: '<rect x="4" y="9" width="7" height="6" rx="1"/><path d="M11 10l8-5v14l-8-5"/>',
     party: '<path d="M8 3h8l-1 7a3 3 0 0 1-6 0zM12 13v7M8 21h8"/>',
-    night: '<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/>'
+    night: '<path d="M20 14A8 8 0 0 1 10 4a8 8 0 1 0 10 10z"/>',
+    joint: '<path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/>',
+    escort: '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>'
   };
   var SHORT = { coffee: '커피', tip: '제보 전화', sketch: '몽타주', lawyer: '변호사', press: '언론 브리핑' };
   function icon(id) { return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (PREP_ICON[id] || '') + '</svg>'; }
@@ -370,14 +372,14 @@
     var packed = E.PREP_IDS.filter(function (id) { return E.owned(save, id, t); });
     // 챙긴 것은 한 줄에 하나씩(이어 붙이면 문장이 길게 꺾인다)
     $('h-prep-now').innerHTML = packed.length ? packed.map(function (id) { return '<span class="pn-row"><b>' + SHORT[id] + '</b> ' + esc(prepDesc(id)) + '</span>'; }).join('')
-      : '누르면 다음 출동에 챙겨 가요 · 효과는 <b>?</b> 를 눌러 보세요';
+      : '누르면 다음 출동에 챙겨 가요';
     $('h-medals').innerHTML = E.MEDALS.map(function (m, mi) {
       return '<i class="' + m.key + (save.medals[m.key] ? ' on' : '') + '" title="' + m.name + ' 메달 ' + fmt(m.at) + '점">' + medalIcon(mi, 15) + fmtShort(m.at) + '</i>';
     }).join('');
   }
   function renderDaily() {
     var st = E.dailyStatus(save, dayNow()), r = st.rule, box = $('h-daily');
-    $('h-daily-name').textContent = r.name;
+    $('h-daily-name').innerHTML = esc(r.name) + '<i class="dl-time">⏱ ' + r.config.duration + '초</i>';   // 0.10.9 시간은 이름 옆 칸으로, 설명은 한 문장으로
     $('h-daily-desc').textContent = r.desc;
     // 0.10.5 메달 목표는 칸으로, 오늘 최고는 따로 한 줄(점으로 이어 붙이면 안 읽힌다)
     // 0.10.6 메달은 그림으로, 받은 메달은 밝게 · 기회는 점으로(재화 없음)
@@ -398,9 +400,11 @@
       '<circle cx="12" cy="15" r="7.5" fill="' + C[0] + '" stroke="' + C[1] + '" stroke-width="1.6"/><path d="M12 10.6l1.3 2.7 3 .4-2.2 2 .6 3-2.7-1.5-2.7 1.5.6-3-2.2-2 3-.4z" fill="' + C[2] + '" opacity=".9"/></svg>';
   }
   function renderSupport(t) {
-    $('h-support').innerHTML = ['party', 'night'].map(function (id) {
+    // 0.10.9 지원 넷(회식 · 합동 수사본부 · 호송 지원 · 야간 잠복조). 진행 중이면 이름 옆 초록 딱지, 값은 팀 수입에 따라 정해진다(쓴다고 오르지 않는다)
+    var UNTIL = { party: 'partyUntil', joint: 'jointUntil', escort: 'escortUntil' };
+    $('h-support').innerHTML = '<p class="sup-note">값은 팀 수입에 따라 정해져요. 쓴다고 오르지 않아요.</p>' + ['party', 'joint', 'escort', 'night'].map(function (id) {
       var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], c = E.price(save, id, 'money'), on = E.owned(save, id, t);
-      var state = id === 'party' && on ? ' · 진행 중 ' + Math.ceil((save.partyUntil - t) / 60000) + '분' : id === 'night' && on ? ' · 대기 중' : '';
+      var state = !on ? '' : '<em class="sup-on">' + (UNTIL[id] ? '진행 중 ' + Math.ceil((save[UNTIL[id]] - t) / 60000) + '분' : '대기 중') + '</em>';
       var lock = id === 'night' && on;
       return '<div class="item"><div class="ic">' + icon(id) + '</div><div class="tx"><b>' + it.name + state + '</b><small>' + it.desc + '</small></div>' +
         '<button class="buy' + (lock ? ' max' : save.money < c ? ' poor' : '') + '" data-support="' + id + '"' + (lock || save.money < c ? ' disabled' : '') + '>' + (lock ? '<em>대기 중</em><b>준비됨</b>' : buyHTML('구입', c)) + '</button></div>';
@@ -857,7 +861,7 @@
   }
   function questHTML() {
     var day = dayNow(), tabs = ['d', 'w', 'm'].map(function (k) {
-      var c = QS.list(save, k, day).filter(function (x) { return x.done && !x.got; }).length + (k === 'd' && QS.boxState(save, day).ready ? 1 : 0);
+      var c = QS.list(save, k, day).filter(function (x) { return x.done && !x.got; }).length + (QS.boxState(save, day, k).ready ? 1 : 0);
       return '<button class="' + (questTab === k ? 'on' : '') + '" data-qt="' + k + '">' + QS.NAME[k] + (c ? '<em>' + c + '</em>' : '') + '</button>';
     }).join('');
     var rows = QS.list(save, questTab, day).map(function (x) {
@@ -867,13 +871,13 @@
         (x.got ? '<span class="qs-ok">받음 ✓</span>' : '<button class="primary qs-get" data-qc="' + x.id + '"' + (x.done ? '' : ' disabled') + '>받기</button>') + '</div>';
     }).join('');
     var box = '';
-    if (questTab === 'd') {
-      var b = QS.boxState(save, day);
-      box = '<div class="qs-row box' + (b.got ? ' got' : b.ready ? ' done' : '') + '"><div class="qs-tx"><b>🎁 일간 완료 상자</b><small>일간 임무를 다 받으면</small></div><div class="qs-r">' + rwText(b.r) + '</div>' +
-        (b.got ? '<span class="qs-ok">받음 ✓</span>' : '<button class="primary qs-get" data-qc="box"' + (b.ready ? '' : ' disabled') + '>열기</button>') + '</div>';
+    {   // 0.10.9 일간 · 주간 · 월간 모두 완료 상자
+      var b = QS.boxState(save, day, questTab);
+      box = '<div class="qs-row box' + (b.got ? ' got' : b.ready ? ' done' : '') + '"><div class="qs-tx"><b>🎁 ' + QS.NAME[questTab] + ' 완료 상자</b><small>임무 ' + b.n + ' / ' + b.total + '</small></div><div class="qs-r">' + rwText(b.r) + '</div>' +
+        (b.got ? '<span class="qs-ok">받음 ✓</span>' : '<button class="primary qs-get" data-qc="' + (questTab === 'd' ? 'box' : 'box:' + questTab) + '"' + (b.ready ? '' : ' disabled') + '>열기</button>') + '</div>';
     }
     var reset = questTab === 'd' ? '자정에 새로 시작해요' : questTab === 'w' ? '월요일 0시에 새로 시작해요' : '매달 1일 0시에 새로 시작해요';
-    return '<div class="qs-tabs">' + tabs + '</div><div class="qs-left" id="qs-left">' + questLeft(questTab) + '</div><div class="qs-list">' + rows + box + '</div><p class="qs-note">' + reset + '</p>';
+    return '<div class="qs-tabs">' + tabs + '</div><div class="qs-left" id="qs-left">' + questLeft(questTab) + '</div><div class="qs-list">' + rows + box + '</div>';   // 0.10.9 "언제 새로 시작" 글은 뺐다(위에 남은 시간이 있다)
   }
   /* 0.10.6 일간 · 주간 · 월간 남은 시간(이 기기 시각 기준 0시에 바뀐다) */
   function questLeft(k) {
@@ -933,6 +937,11 @@
     if (!b) return;
     setTimeout(function () { var sh = b.closest('.sheet'); if (sh) sh.scrollTop = 0; }, 0);
   });
+  // 0.10.9 다 올린(MAX) 칸은 한 줄로 접혀 아래로 내려간다. 누르면 펼쳐 본다
+  document.addEventListener('click', function (e) {
+    var it = e.target.closest && e.target.closest('.shop:not(#h-support) .item');
+    if (it && it.querySelector(':scope > .buy.max')) it.classList.toggle('open');
+  });
   window.Team3AttendUI = { open: openAttend, can: function () { return !!AT && AT.canCheck(save, dayNow()); } };
   // 하루 한 번, 상황실에 있을 때(창 · 출동 없음) 자동으로 띄운다
   function attendAuto() {
@@ -971,7 +980,7 @@
     var el = $('h-rank'); if (!el) return;
     var r = I.rankOf(save), cur = I.RANKS[r.index], nx = r.next;
     var pct = nx ? Math.max(0, Math.min(100, (save.runCaught - cur.at) / (nx.at - cur.at) * 100)) : 100;
-    var h = '<span class="rk-badge" aria-hidden="true">🎖️</span><b>계급 <em>' + r.name + '</em> · 수사비 +' + Math.round(r.bonus * 100) + '%</b>' +
+    var h = '<span class="rk-badge" aria-hidden="true">🎖️</span><b>계급 <em>' + r.name + '</em><span class="rk-b">수사비 +' + Math.round(r.bonus * 100) + '%</span></b>' +
       '<small>' + (nx ? nx.name + '까지 현장 검거 ' + fmt(r.toNext) + '명' : '최고 계급이에요') + '</small><span class="rk-go">계급표 ›</span>' +
       '<span class="bar"><i style="width:' + pct.toFixed(1) + '%"></i></span>';
     if (el._h !== h) { el._h = h; el.innerHTML = h; }

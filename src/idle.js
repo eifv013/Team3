@@ -221,6 +221,7 @@
       gems: 0,             // 배지: 유료 재화. 지금은 계급·메달·특별 출동으로만 조금씩 얻는다
       rankSeen: 0,         // 승진 연출을 보여 준 계급(이보다 높아지면 사무실에서 승진 창)
       partyUntil: 0,       // 팀 회식이 끝나는 시각
+      jointUntil: 0, escortUntil: 0,   // 0.10.9 합동 수사본부(부서 2배) · 호송 지원(자동 이송)이 끝나는 시각
       nightWatch: false,   // 야간 잠복조를 사 뒀는가(다음 자리 비움에 한 번 쓰임)
       medals: { b: false, s: false, g: false },   // 출동 점수 메달(처음 달성 보상은 한 번만)
       recent: [],          // 최근 출동 점수(최대 5개) — 상품 값의 기준
@@ -289,6 +290,7 @@
     // 예전 저장(0.1.18 까지)은 0 부터: 이미 잡아 둔 만큼의 승진을 업데이트 뒤 사무실에서 한꺼번에 받는다
     s.rankSeen = int(data.rankSeen, 0, 0, RANKS.length - 1);
     s.partyUntil = num(data.partyUntil, 0, 0);
+    s.jointUntil = num(data.jointUntil, 0, 0); s.escortUntil = num(data.escortUntil, 0, 0);
     s.nightWatch = data.nightWatch === true;
     var md = data.medals && typeof data.medals === 'object' ? data.medals : {};
     s.medals = { b: md.b === true, s: md.s === true, g: md.g === true };
@@ -419,7 +421,9 @@
     save.frac = total - whole;
     var money = whole * payPerCatch(save);
     // 0.7.0 부서 수입: 팀과 같은 시간(자리 비움이면 절반 · 한도까지). 사기 충전 배수는 팀에만
-    var deptSec = dt * (offline ? Math.min(1, TUNE.offlineRate + pctOf(bn, 'off')) : 1), dept = Math.floor(extraPerSec(save) * deptSec + (save.dfrac || 0));
+    // 0.10.9 합동 수사본부: 겹친 구간만큼 부서 수입 한 번 더(2배)
+    var jointSec = Math.min(dt, Math.max(0, Math.min(save.jointUntil || 0, now) - start) / 1000);
+    var deptSec = (dt + jointSec) * (offline ? Math.min(1, TUNE.offlineRate + pctOf(bn, 'off')) : 1), dept = Math.floor(extraPerSec(save) * deptSec + (save.dfrac || 0));
     save.dfrac = Math.max(0, Math.min(1, extraPerSec(save) * deptSec + (save.dfrac || 0) - dept));
     money += dept;
     save.money += money;                       // 수사비는 상한과 상관없이 잡은 만큼 다 들어온다

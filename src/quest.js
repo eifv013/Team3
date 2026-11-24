@@ -36,6 +36,8 @@
     ]
   };
   var DAILY_BOX = { tickets: 1 };   // 일간 임무를 다 받으면
+  // 0.10.9 주간 · 월간에도 완료 상자(다 한 보람이 있게)
+  var BOX = { d: DAILY_BOX, w: { tickets: 3, gems: 30 }, m: { tickets: 10, gems: 100 } };
   var NAME = { d: '일간', w: '주간', m: '월간' };
   var DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -78,15 +80,16 @@
       return { id: x.id, name: x.name, goal: x.goal, n: v, r: x.r, done: v >= x.goal, got: !!s.got[x.id] };
     });
   }
-  function boxState(save, day) {
-    var s = scope(save, 'd', day), all = LIST.d.every(function (x) { return s.got[x.id]; });
-    return { ready: all && !s.box, got: s.box, r: DAILY_BOX };
+  function boxState(save, day, sc) {
+    sc = BOX[sc] ? sc : 'd';
+    var s = scope(save, sc, day), all = LIST[sc].every(function (x) { return s.got[x.id]; }), n = LIST[sc].filter(function (x) { return s.got[x.id]; }).length;
+    return { ready: all && !s.box, got: s.box, r: BOX[sc], n: n, total: LIST[sc].length };
   }
   /** 받을 수 있는 임무 수(상자 포함) */
   function ready(save, day) {
     var c = 0;
     ['d', 'w', 'm'].forEach(function (sc) { list(save, sc, day).forEach(function (x) { if (x.done && !x.got) c++; }); });
-    return c + (boxState(save, day).ready ? 1 : 0);
+    return c + ['d', 'w', 'm'].filter(function (sc) { return boxState(save, day, sc).ready; }).length;
   }
   function give(save, r, grant) {
     if (r.gems) save.gems = (save.gems || 0) + r.gems;
@@ -95,10 +98,10 @@
   /** 임무 하나 받기(id) 또는 'box'(일간 완료 상자). 반환: 보상 */
   function claim(save, id, day, grant) {
     var err = function (c) { var e = new Error(c); e.code = c; return e; };
-    if (id === 'box') {
-      var b = boxState(save, day);
+    if (id === 'box' || /^box:[dwm]$/.test(id)) {   // 'box' = 일간(예전 이름), 'box:w' · 'box:m' = 주간 · 월간
+      var bs = id === 'box' ? 'd' : id.slice(4), b = boxState(save, day, bs);
       if (!b.ready) throw err(b.got ? 'ALREADY' : 'NOT_DONE');
-      scope(save, 'd', day).box = true; give(save, DAILY_BOX, grant); return DAILY_BOX;
+      scope(save, bs, day).box = true; give(save, BOX[bs], grant); return BOX[bs];
     }
     var sc = id.charAt(0), x = (LIST[sc] || []).filter(function (q) { return q.id === id; })[0];
     if (!x) throw err('BAD_ID');
@@ -107,5 +110,5 @@
     if ((s.n[x.kind] || 0) < x.goal) throw err('NOT_DONE');
     s.got[id] = true; give(save, x.r, grant); return x.r;
   }
-  return { LIST: LIST, NAME: NAME, DAILY_BOX: DAILY_BOX, keyOf: keyOf, clean: clean, track: track, list: list, boxState: boxState, ready: ready, claim: claim };
+  return { LIST: LIST, NAME: NAME, DAILY_BOX: DAILY_BOX, BOX: BOX, keyOf: keyOf, clean: clean, track: track, list: list, boxState: boxState, ready: ready, claim: claim };
 });

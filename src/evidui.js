@@ -39,6 +39,7 @@
     swat: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
     intl: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'
   };
+  function fmtPay(v) { return v < 10 ? String(Math.round(v * 10) / 10) : fmtShort(v); }   // 작은 값은 소수 한 자리(+0 으로 보이지 않게)
   function disc() { return 0; }
   function qty(s, id) { return mode === 'max' ? Math.max(1, D.maxBuy(s, id, s.money, disc())) : +mode; }
   function renderDept() {
@@ -50,13 +51,15 @@
     var html = '';
     D.LIST.forEach(function (x) {
       var n = s.dept.n[x.id];
-      if (!s.dept.seen[x.id]) { html += '<div class="dept locked"><div class="d-ico"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><div class="d-mid"><b class="d-name">???</b><small class="d-mile">수사비 ' + fmtShort(x.cost / 2) + '을 모으면 보여요</small></div></div>'; return; }
+      if (!s.dept.seen[x.id]) { html += '<div class="dept locked"><div class="d-ico"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div><div class="d-mid"><b class="d-name">???</b><div class="d-need"><i style="width:' + Math.min(100, s.money / (x.cost / 2) * 100).toFixed(1) + '%"></i></div><small class="d-mile">수사비 <em>' + fmtShort(Math.min(s.money, x.cost / 2)) + '</em> / ' + fmtShort(x.cost / 2) + '</small></div></div>'; return; }   // 0.10.9 설명 글 대신 모은 양 / 필요한 양
       var q = qty(s, x.id), c = D.cost(s, x.id, q, disc()), ok = s.money >= c && (mode !== 'max' || D.maxBuy(s, x.id, s.money, disc()) > 0);
       var nm = D.nextMile(n), cyc = D.cycle(s, x.id), fast = n > 0 && cyc < 0.6;
       html += '<div class="dept" data-dept="' + x.id + '"><div class="d-ico"><svg viewBox="0 0 24 24">' + ICON[x.id] + '</svg><b>' + n + '</b></div>' +
         '<div class="d-mid"><b class="d-name">' + x.name + '</b>' +
-        '<div class="d-bar' + (fast ? ' fast' : '') + '"><i data-cyc="' + cyc + '"></i><span>' + (n ? '+' + fmtShort(x.pay * n * mult) + ' · ' + (cyc >= 1 ? cyc.toFixed(1) : cyc.toFixed(2)) + '초' : x.what) + '</span></div>' +
-        '<small class="d-mile">' + (nm ? nm + '명까지 <em>' + (nm - n) + '명</em> · 채우면 속도 ×2' : '목표 모두 달성 · 속도 ×' + D.mileMult(n)) + '</small></div>' +
+        // 0.10.9 인원이 없으면 막대는 멈춘다 · 한 바퀴 시간과 버는 값은 처음부터 보인다 · 속도 ×2 목표는 점(채운 것은 금색)으로
+        '<div class="d-bar' + (fast ? ' fast' : '') + (n ? '' : ' idle') + '"><i data-cyc="' + (n ? cyc : 0) + '"></i><span>' + (n ? '<b>+' + fmtPay(x.pay * n * mult) + '</b>' : '<b>1명당 +' + fmtPay(x.pay * mult) + '</b>') + '<em>' + (cyc >= 1 ? cyc.toFixed(1) : cyc.toFixed(2)) + '초마다</em></span></div>' +
+        '<div class="d-miles" aria-label="' + (nm ? nm + '명을 채우면 속도 2배' : '목표 모두 달성') + '"><span>' + (nm ? '속도 ×2' : '속도 ×' + D.mileMult(n)) + '</span>' + D.MILES.map(function (m) { return '<i class="' + (n >= m ? 'on' : m === nm ? 'next' : '') + '">' + m + '</i>'; }).join('') +
+          '</div></div>' +
         '<button class="buy d-buy' + (ok ? '' : ' poor') + '" data-buy="' + x.id + '"' + (ok ? '' : ' disabled') + '>' + (ok ? '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>' : '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>') + '</button></div>';
     });
     box.innerHTML = html;
@@ -147,7 +150,9 @@
       '<div class="ev-vp" id="ev-vp"><div class="ev-world" id="ev-world"><svg class="ev-str2" id="ev-str" viewBox="0 0 2000 2000"></svg></div>' +
         '<div class="ev-hud"><span>🔍 단서 <b id="ev-left"></b></span><span id="ev-count"></span></div>' +
         '<div class="ev-info" id="ev-info"></div>' +
-        '<div class="ev-legend">' + ['r', 'b', 'y', 'g'].map(function (c) { return '<span><i style="background:' + Ev.COLOR[c].hex + '"></i>' + Ev.COLOR[c].name + '</span>'; }).join('') + '</div>' +
+        // 0.10.9 색 이름만 있던 범례 → "같은 색끼리 이으면 효과가 커진다"는 뜻을 적은 단추(누르면 설명)
+        '<button class="ev-legend" id="ev-legend" aria-label="색 묶음 설명">' + ['r', 'b', 'y', 'g'].map(function (c) { return '<i style="background:' + Ev.COLOR[c].hex + '"></i>'; }).join('') + '<span>같은 색 묶음 <b>?</b></span></button>' +
+        '<button class="ev-effbtn" id="ev-effbtn">켜진 효과 보기</button>' +
         '<div class="ev-zoom"><button id="ev-zi" aria-label="확대">+</button><button id="ev-zo" aria-label="축소">−</button><button id="ev-zc" aria-label="가운데로">◎</button></div></div>' +
       '<div class="ev-locks" id="ev-locks" hidden></div>';   // 0.10.8 효과 합계는 가운데 사건 파일을 누르면 나온다   // 0.10.2 아래 묶음 안내 칩은 뺐다(잠긴 칸 자체에 조건이 보인다)
     var w = $('ev-world'), h = '';
@@ -205,9 +210,17 @@
     var s = S(), box = $('ev-info'); if (!box) return;
     box.className = 'ev-info' + (sel ? ' evc' : ' evp');   // (card 는 퍼즐 카드 클래스와 겹쳐서 쓰지 않는다)
     if (!sel) {
-      box.innerHTML = Ev.coreOpen(s) ? '<span>증거를 누르면 자세히 · 가운데 파일은 효과 합계</span>' : '<span>재수사를 하면 사건 파일이 열려요</span>';
+      box.innerHTML = Ev.coreOpen(s) ? '<span>증거를 누르면 설명이 나와요</span>' : '<span>재수사하면 사건 파일이 열려요</span>';
       return;
       box.innerHTML = '<div class="tx"><b>' + (Ev.coreOpen(s) ? '반짝이는 증거를 눌러 보세요' : '아직 아무것도 몰라요') + '</b><small>' + (Ev.coreOpen(s) ? '열린 증거와 실로 이어진 칸만 단서로 열 수 있어요. 끌어서 움직이고, 두 손가락으로 확대해요.' : '재수사를 하면 놓쳤던 사건 파일이 판 가운데 붙어요.') + '</small></div>';
+      return;
+    }
+    if (sel === 'legend') {
+      var gs = Ev.groups(s).filter(function (g) { return g.ids.length > 1; });
+      box.innerHTML = '<div class="tx"><b>같은 색 증거를 실로 이으면 효과가 커져요</b>' +
+        '<div class="ev-lg-rule"><span>2장 <b>×1.5</b></span><span>3장 <b>×2</b></span><span>5장 <b>×2.5</b></span></div>' +
+        '<div class="ev-lg-cols">' + ['r', 'b', 'y', 'g'].map(function (c) { return '<span><i class="dot" style="background:' + Ev.COLOR[c].hex + '"></i>' + Ev.COLOR[c].name + '</span>'; }).join('') + '</div>' +
+        '<small>' + (gs.length ? '현재 묶음: ' + gs.map(function (g) { return Ev.COLOR[g.color].name.split(' ')[0] + ' ' + g.ids.length + '장 ×' + g.mult; }).join(', ') : '색은 증거의 종류예요. 효과는 증거마다 따로 적혀 있어요.') + '</small></div>';
       return;
     }
     var st = Ev.state(s, sel);
@@ -251,7 +264,7 @@
   function bindPan() {
     var vp = $('ev-vp'), pts = {}, start = null, moved = false;
     function snap() { start = { x: Z.x, y: Z.y, s: Z.s, pts: JSON.parse(JSON.stringify(pts)) }; }
-    vp.addEventListener('pointerdown', function (e) { if (e.target.closest('.ev-zoom, .ev-info.evc')) return; try { vp.setPointerCapture(e.pointerId); } catch (x) { /* 무시 */ } pts[e.pointerId] = { x: e.clientX, y: e.clientY }; moved = false; snap(); });
+    vp.addEventListener('pointerdown', function (e) { if (e.target.closest('.ev-zoom, .ev-info.evc, .ev-legend, .ev-effbtn')) return; try { vp.setPointerCapture(e.pointerId); } catch (x) { /* 무시 */ } pts[e.pointerId] = { x: e.clientX, y: e.clientY }; moved = false; snap(); });
     vp.addEventListener('pointermove', function (e) {
       if (!pts[e.pointerId] || !start) return; pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       var ks = Object.keys(pts), r = vp.getBoundingClientRect();
@@ -287,6 +300,8 @@
     $('ev-zi').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); });
     $('ev-zo').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(0.8, r.width / 2, r.height / 2); });
     $('ev-zc').addEventListener('click', function () { center(0.95); });
+    $('ev-legend').addEventListener('click', function () { sel = 'legend'; draw(); });
+    $('ev-effbtn').addEventListener('click', function () { if (!Ev.coreOpen(S())) { toast('재수사하면 열려요'); return; } sel = 'core'; draw(); });
   }
   // 0.8.0 증거판은 아래 메뉴 '증거' 탭 안에 있다(창이 아니다). open = 그 탭으로 옮기고 다시 그리기
   function open() { if (ctx.showTab) ctx.showTab('evid'); draw(); if (!zoomed) requestAnimationFrame(function () { center(0.95); }); }
