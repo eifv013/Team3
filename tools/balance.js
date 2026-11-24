@@ -20,6 +20,7 @@ const PROFILES = {
   regular: { name: '보통',   ses: 4, min: 15, runs: 3, hitSec: 6.0, brk: 0.12, adT: 2, adG: 2, adDouble: 0.3 },
   hard:    { name: '열심히', ses: 6, min: 30, runs: 8, hitSec: 4.6, brk: 0.05, adT: 5, adG: 5, adDouble: 0.8 }
 };
+if (process.env.DEPT_PAY) D.LIST.forEach(x => { x.pay *= +process.env.DEPT_PAY; });   // 실험: 부서 수입 배수
 const DAYS = +process.argv[2] || 60, WHO = process.argv[3] || 'all', SEED = +process.argv[4] || 1;
 const SNAP = [1, 2, 3, 5, 7, 10, 14, 21, 30, 45, 60, 90];
 const fmt = n => n >= 1e12 ? (n / 1e12).toFixed(1) + '조' : n >= 1e8 ? (n / 1e8).toFixed(1) + '억' : n >= 1e4 ? (n / 1e4).toFixed(1) + '만' : String(Math.round(n));

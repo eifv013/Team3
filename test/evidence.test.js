@@ -99,7 +99,7 @@ test('부서: 값 · 목표 ×2 · 최대 · 보이기 · 수입', () => {
   assert.throws(() => D.buy(s, 'swat', 1), { code: 'LOCKED' });
   const r = D.buy(s, 'patrol', 10); assert.equal(r.mile, 10);
   assert.equal(D.cycle(s, 'patrol'), 1);
-  assert.ok(Math.abs(D.perSec(s) - 0.2 * 10 / 1) < 1e-9);
+  assert.ok(Math.abs(D.perSec(s) - 0.02 * 10 / 1) < 1e-9);
   assert.deepEqual(D.reveal(s), ['analyst', 'csi', 'swat', 'intl']);
   s.money = 0; assert.equal(D.maxBuy(s, 'patrol', 0), 0);
   assert.throws(() => D.buy(s, 'patrol', 1), { code: 'NOT_ENOUGH' });
@@ -110,9 +110,9 @@ test('idle: 부서 수입은 자리 비움이면 절반 · 번 수사비 알림'
   let earned = 0;
   I.setExtraIncome(sv => D.perSec(sv)); I.setEarn((sv, v) => { earned += v; });
   try {
-    const r = I.advance(s, T0 + 100000);   // 100초 · 초당 2
-    assert.equal(r.dept, 200); assert.equal(s.money, 200); assert.equal(earned, 200);
+    const r = I.advance(s, T0 + 100000);   // 100초 · 초당 0.2
+    assert.equal(r.dept, 20); assert.equal(s.money, 20); assert.equal(earned, 20);
     const r2 = I.advance(s, T0 + 200000, { offline: true });
-    assert.equal(r2.dept, 100);
+    assert.equal(r2.dept, 10);
   } finally { I.setExtraIncome(null); I.setEarn(null); }
 });

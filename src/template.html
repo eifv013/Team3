@@ -1612,6 +1612,29 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 #pets-tab-dex{position:relative}.tab-new{position:absolute;top:-6px;right:2px;font-style:normal;padding:1px 6px;border-radius:999px;background:#FF5F57;color:#fff;font-size:10.5px;font-weight:900;line-height:1.4;box-shadow:0 2px 0 rgba(0,0,0,.3)}
 .rt-help{border:0;background:none;color:var(--muted);font-size:12px;padding:2px 0;text-align:right}.rt-help i{font-style:normal;display:inline-flex;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;background:#2E3542;color:#FFD23F;font-size:11px;font-weight:900;margin-left:2px}
 button.ev-chip{border:0;font:inherit;color:inherit;cursor:pointer}
+/* 0.10.8 증거 탭 A안: 판이 탭을 채운다(스크롤 없음) · 위 얇은 재수사 막대 · 아래에서 올라오는 카드 */
+#t-evid{overflow:hidden;gap:8px;padding-bottom:6px!important}
+#t-evid .retreat{padding:8px 10px;flex:none}
+.rt-bar{display:flex;align-items:center;gap:10px}
+.rt-b1{display:flex;flex-direction:column;align-items:flex-start;flex:none}.rt-b1 .rt-gain{font-size:26px}
+.rt-b2{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.rt-b2 small{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rt-b2 small b{color:var(--text)}
+.rt-b2 .rt-help{text-align:left;padding:0;font-size:11.5px}
+.rt-bar>.primary{flex:none;height:44px;padding:0 16px}
+#evid-body{flex:1;min-height:0}
+#evid-body .ev-vp{flex:1;height:auto;min-height:0;margin:0 2px}
+.ev-hud{position:absolute;left:8px;top:8px;right:8px;z-index:3;display:flex;justify-content:space-between;pointer-events:none}
+.ev-hud span{padding:5px 10px;border-radius:999px;background:rgba(20,14,8,.78);font-size:12px;font-weight:700;color:#EEE}.ev-hud b{color:#7FD3FF;font-size:14px}
+.ev-vp .ev-info{position:absolute;z-index:4;left:8px;right:8px;bottom:8px;min-height:0}
+.ev-vp .ev-info.evp{left:50%;right:auto;transform:translateX(-50%);max-width:calc(100% - 120px);padding:6px 12px;border-radius:999px;background:rgba(20,14,8,.78);font-size:11.5px;color:#EEE;text-align:center;pointer-events:none;bottom:10px}
+.ev-vp .ev-info.evc{background:rgba(24,28,36,.97);border:1.5px solid #3A4252;box-shadow:0 -6px 20px rgba(0,0,0,.5);animation:evup .2s ease-out;max-height:60%;overflow-y:auto}
+@keyframes evup{from{transform:translateY(30px);opacity:0}}
+.ev-vp:has(.ev-info.evc) .ev-legend,.ev-vp:has(.ev-info.evc) .ev-zoom{display:none}
+.ev-vp .ev-info .ev-eff-sum{margin-top:4px}.ev-vp .ev-info .ev-chip{white-space:nowrap;font-size:12px;padding:4px 9px}
+@media (max-height:700px){.ev-vp .ev-info.evp{display:none}.ev-legend{font-size:9px}}
+.ev-str2 .flow{stroke:rgba(255,220,160,.9);stroke-width:2;stroke-dasharray:6 34;animation:evflow 1.6s linear infinite}
+@keyframes evflow{to{stroke-dashoffset:-40}}
+.ev-n .ev-max{position:absolute;left:-4px;bottom:3px;font-style:normal;padding:1px 6px 1px 7px;background:#D2343A;color:#fff;font-size:8.5px;font-weight:900;letter-spacing:.5px;border-radius:0 3px 3px 0;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+@media (prefers-reduced-motion:reduce){.ev-str2 .flow{animation:none;display:none}}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
