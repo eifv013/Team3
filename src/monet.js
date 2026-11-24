@@ -217,9 +217,10 @@
     ps.xp = Math.min(1e7, ps.xp + Math.max(0, Math.floor(xp)));
     return { tier: tierOf(ps.xp), up: tierOf(ps.xp) - before };
   }
-  var EXTRA = { tickets: 1, gems: 10 };
+  // 0.10.7 반복 보상을 줄였다: 100XP마다 뽑기권 1 · ◆10 → 300XP마다 간식 15, 시즌에 10번까지(보통 성향이 하루 5번씩 받아 너무 많았다)
+  var EXTRA = { treats: 15 }, EXTRA_XP = 300, EXTRA_MAX = 10;
   /** 프리미엄 반복 보상: 30단계 뒤 쌓인 경험치 100마다 하나 */
-  function extraEarned(ps) { return ps.premium ? Math.max(0, Math.floor((ps.xp - TIERS * TIER_XP) / TIER_XP)) : 0; }
+  function extraEarned(ps) { return ps.premium ? Math.min(EXTRA_MAX, Math.max(0, Math.floor((ps.xp - TIERS * TIER_XP) / EXTRA_XP))) : 0; }
   /** 받을 수 있는 보상 목록 [{ track, t, r }] */
   function claimable(save, day) {
     var ps = passOf(save, day), tier = tierOf(ps.xp), out = [];
@@ -276,6 +277,6 @@
     clean: clean, visible: visible, starterLeft: starterLeft, applyPurchase: applyPurchase,
     subActive: subActive, subDaysLeft: subDaysLeft, claimSub: claimSub, perks: perks,
     adLimit: adLimit, adLeft: adLeft, adUse: adUse, adSeen: adSeen,
-    season: season, reward: reward, passOf: passOf, tierOf: tierOf, runXp: runXp, addXp: addXp, claimable: claimable, claimPass: claimPass, EXTRA: EXTRA, extraEarned: extraEarned
+    season: season, reward: reward, passOf: passOf, tierOf: tierOf, runXp: runXp, addXp: addXp, claimable: claimable, claimPass: claimPass, EXTRA: EXTRA, EXTRA_XP: EXTRA_XP, EXTRA_MAX: EXTRA_MAX, extraEarned: extraEarned
   };
 });

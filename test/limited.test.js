@@ -84,14 +84,18 @@ test('0.9.3 전설 확정 꾸러미: 선택권 1장 · 뽑기권 10 · ◆100, �
   assert.throws(() => M.applyPurchase(s, 'legendpack', 0, () => {}), (e) => e.code === 'ALREADY');
 });
 
-test('0.10.3 프리미엄은 30단계 뒤에도 100XP마다 반복 보상', () => {
+test('0.10.7 프리미엄은 30단계 뒤 300XP마다 간식 15(시즌 10번까지)', () => {
   const s = fresh(), day = '2026-11-24', ps = M.passOf(s, day);
-  M.addXp(s, day, M.TIERS * M.TIER_XP + 250);
+  M.addXp(s, day, M.TIERS * M.TIER_XP + 650);
   assert.equal(M.claimable(s, day).filter((x) => x.track === 'extra').length, 0);   // 프리미엄 아님
   ps.premium = true;
   assert.equal(M.claimable(s, day).filter((x) => x.track === 'extra').length, 2);
   M.claimPass(s, day, () => {});
   assert.equal(M.claimable(s, day).length, 0);
-  M.addXp(s, day, 100);
-  assert.equal(M.claimable(s, day).filter((x) => x.track === 'extra').length, 1);
+  M.addXp(s, day, 300);
+  const ex = M.claimable(s, day).filter((x) => x.track === 'extra');
+  assert.equal(ex.length, 1); assert.deepEqual(ex[0].r, { treats: 15 });
+  M.addXp(s, day, 99999); M.claimPass(s, day, () => {});
+  assert.equal(M.passOf(s, day).extra, 10, '시즌에 10번까지');
+  assert.equal(M.claimable(s, day).length, 0);
 });

@@ -2246,6 +2246,11 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.10.7', date: '2026-11-24', title: '시즌 패스 손질',
+      items: [
+        '프리미엄 패스의 30단계 뒤 반복 보상을 줄였어요: 300XP마다 간식 15개, 시즌에 10번까지.',
+        '프리미엄을 사면 단계마다 무료 보상과 프리미엄 보상을 둘 다 받는 건 그대로예요.'
+      ] },
     { ver: '0.10.6', date: '2026-11-24', title: '특별 출동 기회',
       items: [
         '오늘의 특별 출동: 배지로 다시 하기를 없애고 하루 기회 5번이 생겼어요. 같은 메달은 한 번만, 더 높은 메달을 따면 차액을 받아요.',
@@ -7307,9 +7312,10 @@ body.prem-on #h-station::before{content:'👑 '}
     ps.xp = Math.min(1e7, ps.xp + Math.max(0, Math.floor(xp)));
     return { tier: tierOf(ps.xp), up: tierOf(ps.xp) - before };
   }
-  var EXTRA = { tickets: 1, gems: 10 };
+  // 0.10.7 반복 보상을 줄였다: 100XP마다 뽑기권 1 · ◆10 → 300XP마다 간식 15, 시즌에 10번까지(보통 성향이 하루 5번씩 받아 너무 많았다)
+  var EXTRA = { treats: 15 }, EXTRA_XP = 300, EXTRA_MAX = 10;
   /** 프리미엄 반복 보상: 30단계 뒤 쌓인 경험치 100마다 하나 */
-  function extraEarned(ps) { return ps.premium ? Math.max(0, Math.floor((ps.xp - TIERS * TIER_XP) / TIER_XP)) : 0; }
+  function extraEarned(ps) { return ps.premium ? Math.min(EXTRA_MAX, Math.max(0, Math.floor((ps.xp - TIERS * TIER_XP) / EXTRA_XP))) : 0; }
   /** 받을 수 있는 보상 목록 [{ track, t, r }] */
   function claimable(save, day) {
     var ps = passOf(save, day), tier = tierOf(ps.xp), out = [];
@@ -7366,7 +7372,7 @@ body.prem-on #h-station::before{content:'👑 '}
     clean: clean, visible: visible, starterLeft: starterLeft, applyPurchase: applyPurchase,
     subActive: subActive, subDaysLeft: subDaysLeft, claimSub: claimSub, perks: perks,
     adLimit: adLimit, adLeft: adLeft, adUse: adUse, adSeen: adSeen,
-    season: season, reward: reward, passOf: passOf, tierOf: tierOf, runXp: runXp, addXp: addXp, claimable: claimable, claimPass: claimPass, EXTRA: EXTRA, extraEarned: extraEarned
+    season: season, reward: reward, passOf: passOf, tierOf: tierOf, runXp: runXp, addXp: addXp, claimable: claimable, claimPass: claimPass, EXTRA: EXTRA, EXTRA_XP: EXTRA_XP, EXTRA_MAX: EXTRA_MAX, extraEarned: extraEarned
   };
 });
 
@@ -11881,7 +11887,7 @@ body.prem-on #h-station::before{content:'👑 '}
   /** 남은 날 글자: 정식 출시 전에는 시즌이 끝나지 않는다(무한) */
   function leftTxt(n) { return n === Infinity ? '정식 출시 전까지' : n + '일 남음'; }
   function premFx(on, left) {
-    var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '하루 기회 +1번'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장 · 왕관 팀 이름'], ['30단계 뒤', '100XP마다 뽑기권 1 · ◆10 계속'], ['유치장', '꽉 차면 자동 이송']];
+    var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '하루 기회 +1번'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장 · 왕관 팀 이름'], ['30단계 뒤', M.EXTRA_XP + 'XP마다 간식 ' + M.EXTRA.treats + ' (' + M.EXTRA_MAX + '번까지)'], ['유치장', '꽉 차면 자동 이송']];
     return '<div class="pass-fx' + (on ? '' : ' off') + '"><b>👑 프리미엄 효과 · ' + (on ? '켜짐 · ' + leftTxt(left) : left === Infinity ? '사면 정식 출시 전까지 켜져요' : '사면 이번 시즌 동안 켜져요') + '</b>' + rows.map(function (r) { return '<div><span>' + r[0] + '</span><em>' + (on ? '' : '🔒 ') + r[1] + '</em></div>'; }).join('') + '</div>';
   }
   function drawPass() {
