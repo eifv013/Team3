@@ -1635,6 +1635,12 @@ button.ev-chip{border:0;font:inherit;color:inherit;cursor:pointer}
 @keyframes evflow{to{stroke-dashoffset:-40}}
 .ev-n .ev-max{position:absolute;left:-4px;bottom:3px;font-style:normal;padding:1px 6px 1px 7px;background:#D2343A;color:#fff;font-size:8.5px;font-weight:900;letter-spacing:.5px;border-radius:0 3px 3px 0;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 @media (prefers-reduced-motion:reduce){.ev-str2 .flow{animation:none;display:none}}
+/* 0.10.8 시즌 패스 단추(오른쪽 위): 표 그림 + 현재 단계, 받을 보상이 있으면 빨간 점 */
+.icon-pair .icon-btn{width:40px}
+.pass-btn{position:relative;color:#FFD23F}
+.pass-btn b{position:absolute;right:1px;bottom:5px;min-width:16px;height:15px;padding:0 3px;border-radius:8px;background:#FFD23F;color:#1B1500;font-size:10px;font-weight:900;line-height:15px;text-align:center}
+.pass-btn.prem b{background:linear-gradient(180deg,#FFE58A,#F2B71E)}
+.pass-btn i{position:absolute;top:7px;right:5px;width:9px;height:9px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 2px var(--bg,#12151B)}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -1876,7 +1882,7 @@ body.prem-on #h-station::before{content:'👑 '}
           <span class="leader" id="h-leader">신임 팀장 · 이름 정하기</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
         </button>
-        <div class="icon-pair"><button class="icon-btn" id="h-ach" aria-label="업적과 칭호"></button><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
+        <div class="icon-pair"><button class="icon-btn pass-btn" id="h-pass" aria-label="시즌 패스"></button><button class="icon-btn" id="h-ach" aria-label="업적과 칭호"></button><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
         <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span>
         <div class="head-chips"><button class="go-diff" id="h-go-diff" aria-label="난이도 바꾸기">🚨 강력</button><button class="gem-chip" id="h-gems" aria-label="배지 · 3팀 매점 열기">◆ 0</button></div>
         <!-- 팀 속도 줄과 검거 소식이 같은 자리에서 번갈아 보인다(높이 고정이라 아래 칸이 움직이지 않는다) -->

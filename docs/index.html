@@ -1636,6 +1636,12 @@ button.ev-chip{border:0;font:inherit;color:inherit;cursor:pointer}
 @keyframes evflow{to{stroke-dashoffset:-40}}
 .ev-n .ev-max{position:absolute;left:-4px;bottom:3px;font-style:normal;padding:1px 6px 1px 7px;background:#D2343A;color:#fff;font-size:8.5px;font-weight:900;letter-spacing:.5px;border-radius:0 3px 3px 0;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 @media (prefers-reduced-motion:reduce){.ev-str2 .flow{animation:none;display:none}}
+/* 0.10.8 시즌 패스 단추(오른쪽 위): 표 그림 + 현재 단계, 받을 보상이 있으면 빨간 점 */
+.icon-pair .icon-btn{width:40px}
+.pass-btn{position:relative;color:#FFD23F}
+.pass-btn b{position:absolute;right:1px;bottom:5px;min-width:16px;height:15px;padding:0 3px;border-radius:8px;background:#FFD23F;color:#1B1500;font-size:10px;font-weight:900;line-height:15px;text-align:center}
+.pass-btn.prem b{background:linear-gradient(180deg,#FFE58A,#F2B71E)}
+.pass-btn i{position:absolute;top:7px;right:5px;width:9px;height:9px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 2px var(--bg,#12151B)}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -1877,7 +1883,7 @@ body.prem-on #h-station::before{content:'👑 '}
           <span class="leader" id="h-leader">신임 팀장 · 이름 정하기</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
         </button>
-        <div class="icon-pair"><button class="icon-btn" id="h-ach" aria-label="업적과 칭호"></button><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
+        <div class="icon-pair"><button class="icon-btn pass-btn" id="h-pass" aria-label="시즌 패스"></button><button class="icon-btn" id="h-ach" aria-label="업적과 칭호"></button><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
         <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span>
         <div class="head-chips"><button class="go-diff" id="h-go-diff" aria-label="난이도 바꾸기">🚨 강력</button><button class="gem-chip" id="h-gems" aria-label="배지 · 3팀 매점 열기">◆ 0</button></div>
         <!-- 팀 속도 줄과 검거 소식이 같은 자리에서 번갈아 보인다(높이 고정이라 아래 칸이 움직이지 않는다) -->
@@ -2275,6 +2281,7 @@ body.prem-on #h-station::before{content:'👑 '}
         '재수사는 위쪽 얇은 막대로, 증거를 누르면 아래에서 카드가 올라와요. 빈 곳을 누르면 내려가요.',
         '가운데 사건 파일을 누르면 현재 켜진 효과 합계가 나와요.',
         '이어진 실 위로 빛이 흐르고, 끝까지 강화한 증거에는 MAX 띠가 붙어요.',
+        '오른쪽 위에 시즌 패스 단추가 생겼어요. 현재 단계가 보이고, 받을 보상이 있으면 빨간 점이 떠요.',
         '부서 수입을 10분의 1로 낮췄어요. 부서가 다른 수입을 다 묻어 버려서 출동 · 이송 · 광고 2배 수사비가 의미가 없었어요.'
       ] },
     { ver: '0.10.7', date: '2026-11-24', title: '시즌 패스 손질',
@@ -13650,6 +13657,14 @@ body.prem-on #h-station::before{content:'👑 '}
     if (window.Team3Monet) {
       var MO = window.Team3Monet, pOn = MO.premOn(save, dayNow()), pc = $('h-prem');
       document.body.classList.toggle('prem-on', pOn);
+      // 0.10.8 오른쪽 위 시즌 패스 단추: 현재 단계 · 받을 보상 점
+      var pb0 = $('h-pass');
+      if (pb0) {
+        var pt = MO.tierOf(MO.passOf(save, dayNow()).xp), pn = MO.claimable(save, dayNow()).length, ph = pt + '|' + (pn > 0) + '|' + pOn;
+        if (pb0._h !== ph) { pb0._h = ph; pb0.className = 'icon-btn pass-btn' + (pOn ? ' prem' : '');
+          pb0.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M12 9.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 11.3l2-.3z" fill="currentColor" stroke="none"/></svg><b>' + pt + '</b>' + (pn > 0 ? '<i></i>' : '');
+          pb0.setAttribute('aria-label', '시즌 패스 ' + pt + '단계' + (pn > 0 ? ' · 받을 보상 ' + pn + '개' : '')); }
+      }
       if (pc) { pc.hidden = !pOn; if (pOn) { var lf = MO.seasonOf(save, dayNow()).left; pc.textContent = lf === Infinity ? '👑 프리미엄' : '👑 ' + lf + '일'; pc.classList.toggle('soon', lf <= 3); } }
       // 연출 5: 시즌 끝 3일 전부터 하루 한 번 알림(받을 보상이 남았으면 그 수도)
       var se5 = MO.seasonOf(save, dayNow());
@@ -14643,6 +14658,7 @@ body.prem-on #h-station::before{content:'👑 '}
   if (CUI) CUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, fmt: fmt, fmtShort: fmtShort, bonus: function () { return petBonus(save); }, showTab: function (t) { if (MUI) MUI.go(t); } });
   if (MUI) MUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, I: I, Cr: Cr, CUI: CUI, E: E, PT: PT, PUI: PUI, SUI: SUI, AUI: AUI, EUI: EUI, Ev: Ev, Dp: Dp, Df: Df, H: H, OF: OF, M: M,
     deptMult: deptMult, nowMs: nowMs, dayNow: dayNow, fmt: fmt, fmtShort: fmtShort, freeExtra: function () { return M ? M.perks(save, nowMs()).freePulls : 0; } });
+  if ($('h-pass')) $('h-pass').addEventListener('click', function () { if (SUI && SUI.open) SUI.open('pass'); });
   if ($('h-prem')) $('h-prem').addEventListener('click', function () { if (SUI && SUI.open) SUI.open('pass'); });
   if (SUI) SUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, grant: grant, freeParty: freeParty, day: dayNow, openInfo: openInfo });
   // 출동 결과의 "수사비 2배 받기"(광고 자리): 한 번만

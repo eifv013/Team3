@@ -240,6 +240,14 @@
     if (window.Team3Monet) {
       var MO = window.Team3Monet, pOn = MO.premOn(save, dayNow()), pc = $('h-prem');
       document.body.classList.toggle('prem-on', pOn);
+      // 0.10.8 오른쪽 위 시즌 패스 단추: 현재 단계 · 받을 보상 점
+      var pb0 = $('h-pass');
+      if (pb0) {
+        var pt = MO.tierOf(MO.passOf(save, dayNow()).xp), pn = MO.claimable(save, dayNow()).length, ph = pt + '|' + (pn > 0) + '|' + pOn;
+        if (pb0._h !== ph) { pb0._h = ph; pb0.className = 'icon-btn pass-btn' + (pOn ? ' prem' : '');
+          pb0.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M12 9.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 11.3l2-.3z" fill="currentColor" stroke="none"/></svg><b>' + pt + '</b>' + (pn > 0 ? '<i></i>' : '');
+          pb0.setAttribute('aria-label', '시즌 패스 ' + pt + '단계' + (pn > 0 ? ' · 받을 보상 ' + pn + '개' : '')); }
+      }
       if (pc) { pc.hidden = !pOn; if (pOn) { var lf = MO.seasonOf(save, dayNow()).left; pc.textContent = lf === Infinity ? '👑 프리미엄' : '👑 ' + lf + '일'; pc.classList.toggle('soon', lf <= 3); } }
       // 연출 5: 시즌 끝 3일 전부터 하루 한 번 알림(받을 보상이 남았으면 그 수도)
       var se5 = MO.seasonOf(save, dayNow());
@@ -1233,6 +1241,7 @@
   if (CUI) CUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, fmt: fmt, fmtShort: fmtShort, bonus: function () { return petBonus(save); }, showTab: function (t) { if (MUI) MUI.go(t); } });
   if (MUI) MUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, I: I, Cr: Cr, CUI: CUI, E: E, PT: PT, PUI: PUI, SUI: SUI, AUI: AUI, EUI: EUI, Ev: Ev, Dp: Dp, Df: Df, H: H, OF: OF, M: M,
     deptMult: deptMult, nowMs: nowMs, dayNow: dayNow, fmt: fmt, fmtShort: fmtShort, freeExtra: function () { return M ? M.perks(save, nowMs()).freePulls : 0; } });
+  if ($('h-pass')) $('h-pass').addEventListener('click', function () { if (SUI && SUI.open) SUI.open('pass'); });
   if ($('h-prem')) $('h-prem').addEventListener('click', function () { if (SUI && SUI.open) SUI.open('pass'); });
   if (SUI) SUI.mount({ getSave: function () { return save; }, persist: persist, render: render, UI: UI, grant: grant, freeParty: freeParty, day: dayNow, openInfo: openInfo });
   // 출동 결과의 "수사비 2배 받기"(광고 자리): 한 번만
