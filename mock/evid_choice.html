@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수사 3팀 증거판 고르는 재미 시안</title>
+<style>
+:root{--bg:#12151B;--panel:#1B1F27;--panel2:#232832;--text:#F1F3F7;--muted:#98A1B2;--acc:#FFD23F;--r:#E5484F;--b:#2F6FD6;--y:#E0A100;--g:#2E9E5B}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:14px;line-height:1.45}
+.wrap{max-width:440px;margin:0 auto;padding:14px 12px 28px;display:flex;flex-direction:column;gap:10px}
+h1{font-size:18px;margin:0}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;border-radius:14px;background:#0C0E12}
+.tabs button{border:0;border-radius:10px;padding:10px 4px;background:none;color:var(--muted);font:inherit;font-weight:800}
+.tabs button.on{background:var(--panel2);color:var(--acc);box-shadow:inset 0 -2px 0 var(--acc)}
+.why{padding:12px;border-radius:14px;background:var(--panel)}
+.why b{display:block;font-size:15px;margin-bottom:2px}.why p{margin:0;color:#C9CFDA}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:12.5px}
+.pc span{padding:6px 8px;border-radius:9px;background:rgba(126,224,143,.1);color:#9FEBAD}.pc span+span{background:rgba(255,95,87,.1);color:#FFB3AD}
+.hud{display:flex;align-items:center;gap:8px}
+.hud .clue{padding:6px 12px;border-radius:999px;background:var(--panel2);font-weight:800}.hud .clue b{color:#7FD3FF;font-size:16px;margin-left:4px}
+.hud button{margin-left:auto;border:0;border-radius:999px;padding:7px 12px;background:var(--panel2);color:var(--text);font:inherit;font-weight:700}
+.board{padding:12px 8px;border-radius:18px;background:#7A5632;background-image:radial-gradient(rgba(0,0,0,.18) 1px,transparent 1.4px);background-size:7px 7px;box-shadow:inset 0 0 0 5px #5B3F22}
+.core{margin:0 auto 10px;width:60%;padding:8px;border-radius:6px;background:#EADDBE;color:#3A2A14;text-align:center;font-weight:900;transform:rotate(-1.5deg);box-shadow:0 3px 6px rgba(0,0,0,.4)}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.col{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.col h3{margin:0;font-size:11.5px;text-align:center;color:#fff;padding:3px 0;border-radius:999px}
+.tier{display:flex;flex-direction:column;gap:4px;position:relative}
+.tier+.tier::before{content:'';position:absolute;left:50%;top:-6px;width:2px;height:6px;background:rgba(255,255,255,.45)}
+.card{border:0;border-radius:6px;padding:6px 3px 5px;font:inherit;text-align:center;min-height:54px;display:flex;flex-direction:column;justify-content:center;gap:1px;position:relative}
+.card b{font-size:11.5px;line-height:1.2}.card small{font-size:10px;line-height:1.2}
+.card.open{background:#F4EBD3;color:#2E2414;box-shadow:0 2px 4px rgba(0,0,0,.4)}.card.open small{color:#6A5330}
+.card.can{background:#2A2014;color:#FFE9B0;box-shadow:inset 0 0 0 1.5px var(--acc)}.card.can small{color:#D9C58C}
+.card.lock{background:rgba(0,0,0,.28);color:rgba(255,255,255,.45)}
+.card.gone{background:rgba(0,0,0,.2);color:rgba(255,255,255,.28);text-decoration:line-through}
+.card .cost{font-size:10px;font-weight:800;color:#7FD3FF}.card.open .cost{display:none}
+.card.key{box-shadow:0 0 0 2.5px var(--acc),0 2px 6px rgba(0,0,0,.5)}
+.card.key::after{content:'핵심 ×2';position:absolute;top:-7px;left:50%;transform:translateX(-50%);padding:0 6px;border-radius:999px;background:var(--acc);color:#1B1500;font-size:9.5px;font-weight:900;white-space:nowrap}
+.or{font-size:9.5px;text-align:center;color:rgba(255,255,255,.7);font-weight:800;margin:-2px 0}
+.bonus{margin-top:2px;padding:6px 3px;border-radius:8px;border:1.5px dashed rgba(255,255,255,.4);font-size:10px;line-height:1.25;text-align:center;color:rgba(255,255,255,.6)}
+.bonus.on{border-style:solid;border-color:var(--acc);background:rgba(255,210,63,.18);color:#FFE9B0;font-weight:800}
+.bonus i{display:block;font-style:normal;font-size:9.5px;opacity:.8}
+.sheet{padding:12px;border-radius:14px;background:var(--panel)}
+.sheet h2{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:5px}.chips span{padding:4px 9px;border-radius:999px;background:var(--panel2);font-size:12.5px;font-weight:700}
+.chips span.x{background:rgba(255,210,63,.16);color:#FFE58A}
+.pick{display:flex;align-items:center;gap:8px;margin-top:8px}
+.pick button{border:0;border-radius:10px;padding:9px 14px;background:var(--acc);color:#1B1500;font:inherit;font-weight:900}
+.pick button.ghost{background:var(--panel2);color:var(--text)}
+.hint{color:var(--muted);font-size:12.5px;margin:0}
+</style></head><body><div class="wrap">
+<h1>증거판에 고르는 재미 넣기</h1>
+<div class="tabs" id="tabs"><button data-m="A" class="on">갈림길</button><button data-m="B">핵심 증거</button><button data-m="C">색 완성</button></div>
+<div class="why" id="why"></div>
+<div class="hud"><span class="clue">🔍 단서<b id="clue"></b></span><button id="reset">처음부터</button></div>
+<div class="board"><div class="core">3팀 수사 파일</div><div class="cols" id="cols"></div></div>
+<div class="sheet"><h2>현재 적용 중인 효과</h2><div class="chips" id="sum"></div><div id="pick"></div></div>
+<p class="hint">금색 테두리 증거를 눌러 열어 보세요. 숫자와 효과는 시안용이에요.</p>
+</div>
+<script>
+(function(){
+  var COL=[{k:'r',n:'사람',hex:'#E5484F',a:['목격자 진술','동료 증언','내부 고발'],ae:['팀 수사비',10,15,20,'%'],b:['지문','족적','DNA'],be:['팀 속도',8,12,16,'%'],bonus:'커피 대기 절반'},
+           {k:'b',n:'기록',hex:'#2F6FD6',a:['CCTV 사진','통화 기록','지운 메일'],ae:['출동 수사비',15,20,30,'%'],b:['녹음 테이프','GPS 기록','블랙박스'],be:['출동 시간',5,8,10,'초'],bonus:'출동 연속 2부터 시작'},
+           {k:'y',n:'돈',hex:'#C98F00',a:['영수증','계좌 내역','차명 통장'],ae:['부서 수입',15,25,40,'%'],b:['동전 지갑','현금 다발','금고 열쇠'],be:['시작 수사비',300,1000,5000,''],bonus:'이송 수사비 +50%'},
+           {k:'g',n:'장소',hex:'#2E9E5B',a:['동네 지도','창고 도면','아지트 사진'],ae:['비움 한도',30,60,90,'분'],b:['열쇠 꾸러미','출입 카드','비밀 통로'],be:['비움 속도',5,10,15,'%'],bonus:'잠복 보고 2배 하루 1번 무료'}];
+  var COST=[1,2,4], WHY={
+    A:['갈림길','단계마다 두 증거 중 하나만 열 수 있어요. 재수사하면 다시 고를 수 있어요.','재수사마다 다른 조합을 시험','증거 수가 두 배로 필요'],
+    B:['핵심 증거','증거는 전부 열 수 있어요. 색마다 하나를 핵심으로 정하면 그 증거만 2배예요. 언제든 바꿀 수 있어요.','현재 판을 거의 그대로 사용','고르는 맛은 가벼움'],
+    C:['색 완성','한 색을 끝까지 열면 그 색만의 보너스가 붙어요. 어느 색부터 채울지가 선택이에요.','목표가 분명하고 만들기 쉬움','결국은 다 열게 됨']};
+  var mode='A', clue, open, key, sel;
+  function $(i){return document.getElementById(i)}
+  function reset(){clue=mode==='A'?20:30;open={};key={};sel=null;draw()}
+  function id(c,t,s){return ''+c+t+s}
+  function eff(c,t,s){var e=COL[c][s==='a'?'ae':'be'];return {name:e[0],v:e[t+1],u:e[4]}}
+  function state(c,t,s){
+    if(open[id(c,t,s)])return 'open';
+    if(mode==='A'&&open[id(c,t,s==='a'?'b':'a')])return 'gone';
+    var prev=t===0||open[id(c,t-1,'a')]||open[id(c,t-1,'b')];
+    if(mode!=='A'&&s==='b')return null;
+    return prev?'can':'lock';
+  }
+  function cardHTML(c,t,s){
+    var st=state(c,t,s); if(!st)return '';
+    var e=eff(c,t,s), nm=COL[c][s][t];
+    return '<button class="card '+st+(key[c]===id(c,t,s)?' key':'')+'" data-c="'+c+'" data-t="'+t+'" data-s="'+s+'"><b>'+(st==='lock'?'???':nm)+'</b>'+
+      (st==='lock'?'':'<small>'+e.name+' +'+e.v+e.u+'</small>')+(st==='can'?'<span class="cost">🔍 '+COST[t]+'</span>':'')+'</button>';
+  }
+  function draw(){
+    document.querySelectorAll('#tabs button').forEach(function(b){b.className=b.getAttribute('data-m')===mode?'on':''});
+    var w=WHY[mode]; $('why').innerHTML='<b>'+w[0]+'</b><p>'+w[1]+'</p><div class="pc"><span>좋은 점: '+w[2]+'</span><span>아쉬운 점: '+w[3]+'</span></div>';
+    $('clue').textContent=clue;
+    $('cols').innerHTML=COL.map(function(C,c){
+      var h='<div class="col"><h3 style="background:'+C.hex+'">'+C.n+'</h3>';
+      for(var t=0;t<3;t++) h+='<div class="tier">'+cardHTML(c,t,'a')+(mode==='A'?'<div class="or">또는</div>'+cardHTML(c,t,'b'):'')+'</div>';
+      if(mode==='C'){var full=[0,1,2].every(function(t){return open[id(c,t,'a')]});h+='<div class="bonus'+(full?' on':'')+'"><i>'+(full?'완성 보너스':'3장 모두 열면')+'</i>'+C.bonus+'</div>';}
+      return h+'</div>';
+    }).join('');
+    var tot={},ord=[];
+    Object.keys(open).forEach(function(k){var c=+k[0],t=+k[1],s=k[2],e=eff(c,t,s),m=key[c]===k?2:1,n=e.name+'|'+e.u;if(!(n in tot)){tot[n]=0;ord.push(n)}tot[n]+=e.v*m});
+    var chips=ord.map(function(n){var p=n.split('|');return '<span>'+p[0]+' +'+tot[n].toLocaleString()+p[1]+'</span>'});
+    if(mode==='C')COL.forEach(function(C,c){if([0,1,2].every(function(t){return open[id(c,t,'a')]}))chips.push('<span class="x">'+C.bonus+'</span>')});
+    $('sum').innerHTML=chips.join('')||'<span>아직 없어요</span>';
+    var p='';
+    if(mode==='B'&&sel&&open[sel]){var c=+sel[0];p='<div class="pick"><span>'+COL[c].a[+sel[1]]+'</span>'+(key[c]===sel?'<button class="ghost" id="unkey">핵심 해제</button>':'<button id="setkey">'+COL[c].n+'의 핵심으로 정하기</button>')+'</div>'}
+    else if(mode==='B')p='<p class="hint" style="margin-top:8px">연 증거를 누르면 핵심으로 정할 수 있어요.</p>';
+    $('pick').innerHTML=p;
+  }
+  $('cols').addEventListener('click',function(e){
+    var b=e.target.closest('.card'); if(!b)return;
+    var c=+b.getAttribute('data-c'),t=+b.getAttribute('data-t'),s=b.getAttribute('data-s'),st=state(c,t,s),k=id(c,t,s);
+    if(st==='can'){ if(clue<COST[t]){b.animate([{transform:'translateX(-4px)'},{transform:'translateX(4px)'},{transform:'none'}],{duration:200});return} clue-=COST[t];open[k]=true;sel=k }
+    else if(st==='open') sel=k;
+    draw();
+  });
+  $('pick').addEventListener('click',function(e){ if(e.target.id==='setkey')key[+sel[0]]=sel; else if(e.target.id==='unkey')delete key[+sel[0]]; else return; draw() });
+  $('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(b){mode=b.getAttribute('data-m');reset()}});
+  $('reset').addEventListener('click',reset);
+  reset();
+})();
+</script></body></html>
