@@ -22,7 +22,7 @@
 **A 사무실** → `corgi_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Welsh corgi detective in a beige trench coat and dark tie, wearing a slim radio headset with a boom mic, holding a magnifying glass, sharp focused eyes.
+Character: Welsh corgi field detective in a beige trench coat over a shirt and loosened dark tie, police ID on a lanyard. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting behind the desk, leaning forward on both elbows, seen from the front. Expression: deep concentration with narrowed eyes. Text in the scene: a wall nameplate reading "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -39,7 +39,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `shiba_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Shiba inu bodyguard in a black suit and black shirt, dark sunglasses, coiled earpiece wire, completely expressionless stone face.
+Character: Shiba inu close-protection officer in a black suit and black shirt, coiled earpiece wire behind one ear. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing beside the evidence board, one hand pointing at a photo, seen from the side. Expression: tired half-smile. Text in the scene: a white coffee mug on the desk printed with "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -56,7 +56,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `hamster_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Hamster evidence collector in a shirt and grey vest with red tie, chubby cheeks, holding a small sealed evidence bag, skeptical raised eyebrow.
+Character: Hamster forensic evidence technician with chubby cheeks, dark forensic windbreaker jacket, thin blue nitrile gloves. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: leaning back in the chair with feet up on the desk, seen from a low angle. Expression: surprised wide eyes. Text in the scene: a case folder on the desk stamped "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -73,7 +73,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `rabbit_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: White rabbit wiretap specialist with long upright ears, red eyes, grey trench coat, headphones around the neck, one eyebrow raised.
+Character: White rabbit surveillance specialist with long upright ears and red eyes, dark tactical jacket with the hood down, tactical gloves. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting on the edge of the desk with arms crossed, body turned to the right. Expression: worried frown, biting the lip. Text in the scene: a door glass lettered "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -90,7 +90,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `bear_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Big brown bear field captain in a worn leather jacket, scar over one eye, holding a police radio, stern frown.
+Character: Big brown bear field captain in a worn brown leather jacket over a shirt, old scar over one eye, police badge clipped on the belt. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing at the window, peeking through the blinds with one hand, looking back over the shoulder. Expression: smug confident smirk. Text in the scene: a wall nameplate reading "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -107,7 +107,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `hedgehog_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Hedgehog street enforcer in a dark green hoodie, spiky quills, band-aid on cheek, cocky grin showing one fang.
+Character: Hedgehog undercover street officer with spiky quills, dark green hoodie under a black bomber jacket, small band-aid on one cheek. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: hunched over the desk reading a case file under the lamp, seen from slightly above. Expression: bored yawn. Text in the scene: a white coffee mug on the desk printed with "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -124,7 +124,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `duck_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Duck harbor patrol officer in a navy captain's uniform with gold epaulettes and white peaked cap, fierce glare.
+Character: Duck harbor patrol officer in a navy waterproof patrol uniform coat and a peaked cap. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting behind the desk, leaning forward on both elbows, seen from the front. Expression: deep concentration with narrowed eyes. Text in the scene: a case folder on the desk stamped "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -141,7 +141,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `frog_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Frog jazz club singer in a black tuxedo with red bow tie and a red rose on the lapel, half-closed relaxed eyes, wide calm smile, holding a vintage microphone.
+Character: Frog undercover handler in a dark three-piece suit with an open collar, no tie. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing beside the evidence board, one hand pointing at a photo, seen from the side. Expression: tired half-smile. Text in the scene: a door glass lettered "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -158,7 +158,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `ragdoll_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Ragdoll cat aristocrat detective with blue eyes, gold monocle, burgundy suit and blue tie, one eyebrow raised.
+Character: Ragdoll cat senior profiler with blue eyes, burgundy suit and waistcoat under a long dark overcoat. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: leaning back in the chair with feet up on the desk, seen from a low angle. Expression: surprised wide eyes. Text in the scene: a wall nameplate reading "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -175,7 +175,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `siamese_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Siamese cat spy wearing a gold-trimmed masquerade mask, black tuxedo with red bow tie, calm sly smile.
+Character: Siamese cat intelligence agent in a slim black suit over a black turtleneck, black leather gloves. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting on the edge of the desk with arms crossed, body turned to the right. Expression: worried frown, biting the lip. Text in the scene: a white coffee mug on the desk printed with "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -192,7 +192,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `fox_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Red fox interrogator in a dark red trench coat, sharp amber slit-pupil eyes, one eyebrow raised in suspicion, holding a polygraph printout.
+Character: Red fox interrogator with sharp amber slit-pupil eyes, dark red trench coat with the collar up. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing at the window, peeking through the blinds with one hand, looking back over the shoulder. Expression: smug confident smirk. Text in the scene: a case folder on the desk stamped "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -209,7 +209,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `penguin_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Penguin casino dealer in a tuxedo with red bow tie, flicking an ace of hearts playing card, bored poker face.
+Character: Penguin financial-crimes investigator in a charcoal suit and thin tie, overcoat draped over the shoulders. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: hunched over the desk reading a case file under the lamp, seen from slightly above. Expression: bored yawn. Text in the scene: a door glass lettered "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -226,7 +226,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `monkey_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Monkey rooftop lookout in a green vest over white shirt, binoculars hanging on the chest, cocky grin.
+Character: Monkey rooftop lookout in a black tactical vest over a dark hoodie, tactical gloves. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting behind the desk, leaning forward on both elbows, seen from the front. Expression: deep concentration with narrowed eyes. Text in the scene: a wall nameplate reading "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -243,7 +243,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `squirrel_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Squirrel evidence clerk in a brown trench coat and red beret, big bushy tail, holding an acorn, skeptical look.
+Character: Squirrel evidence-room clerk with a big bushy tail, brown work jacket and flat cap. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing beside the evidence board, one hand pointing at a photo, seen from the side. Expression: tired half-smile. Text in the scene: a white coffee mug on the desk printed with "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -260,7 +260,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `koala_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Koala stakeout detective in a navy hoodie, tired heavy-lidded eyes with dark circles, holding a paper coffee cup.
+Character: Koala stakeout detective with tired heavy-lidded eyes and dark circles, navy hoodie under a dark parka. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: leaning back in the chair with feet up on the desk, seen from a low angle. Expression: surprised wide eyes. Text in the scene: a case folder on the desk stamped "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -277,7 +277,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `raccoon_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Raccoon former thief turned detective in a black hoodie and black beanie, natural bandit mask markings, mischievous fanged grin.
+Character: Raccoon former thief turned detective with natural bandit-mask markings, black hoodie, black beanie, fingerless gloves. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting on the edge of the desk with arms crossed, body turned to the right. Expression: worried frown, biting the lip. Text in the scene: a door glass lettered "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -294,7 +294,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `owl_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Owl CCTV analyst in a dark suit, large intense amber eyes, glow of green monitors on the face.
+Character: Owl CCTV analyst with large intense amber eyes, dark suit jacket over a grey turtleneck. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing at the window, peeking through the blinds with one hand, looking back over the shoulder. Expression: smug confident smirk. Text in the scene: a wall nameplate reading "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -311,7 +311,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `otter_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Otter diving investigator in a black wetsuit with blue stripe, diving goggles pushed up on the forehead, confident smirk.
+Character: Otter harbor dive investigator in a black wetsuit with a blue stripe, dive mask pushed up on the forehead. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: hunched over the desk reading a case file under the lamp, seen from slightly above. Expression: bored yawn. Text in the scene: a white coffee mug on the desk printed with "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -328,7 +328,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `panda_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Panda forensic photographer in a dark trench coat, vintage camera on a strap, grim serious expression.
+Character: Panda crime-scene photographer in a dark trench coat, a camera hanging on a neck strap. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting behind the desk, leaning forward on both elbows, seen from the front. Expression: deep concentration with narrowed eyes. Text in the scene: a case folder on the desk stamped "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -345,7 +345,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `tiger_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Tiger veteran homicide detective in a black leather jacket, scar across one eye, fierce golden slit-pupil eyes, menacing fanged grin.
+Character: Tiger veteran homicide detective with a scar across one eye and golden slit-pupil eyes, black leather jacket, leather shoulder holster. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing beside the evidence board, one hand pointing at a photo, seen from the side. Expression: tired half-smile. Text in the scene: a door glass lettered "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -362,7 +362,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `sheep_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Sheep undercover agent with fluffy white wool hair and dark face, navy pea coat with gold buttons and red scarf, calm composed look.
+Character: Sheep undercover agent with fluffy white wool and a dark face, navy pea coat with a dark red scarf. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: leaning back in the chair with feet up on the desk, seen from a low angle. Expression: surprised wide eyes. Text in the scene: a wall nameplate reading "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -379,7 +379,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `pig_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Pig tracking expert in a tan trench coat and deerstalker cap, holding a magnifying glass, determined glare.
+Character: Pig tracking expert in a tan trench coat and a flat cap. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting on the edge of the desk with arms crossed, body turned to the right. Expression: worried frown, biting the lip. Text in the scene: a white coffee mug on the desk printed with "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -396,7 +396,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `redpanda_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Red panda street informant in a rust trench coat, holding a maple leaf, sly half smile.
+Character: Red panda street informant handler in a rust-colored trench coat with a dark scarf. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing at the window, peeking through the blinds with one hand, looking back over the shoulder. Expression: smug confident smirk. Text in the scene: a case folder on the desk stamped "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -413,7 +413,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `alpaca_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Alpaca supply officer with fluffy head wool, gold monocle, shirt with purple vest and red tie, holding a clipboard checklist.
+Character: Alpaca logistics officer with fluffy head wool, full black tactical uniform with a load-bearing vest. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: hunched over the desk reading a case file under the lamp, seen from slightly above. Expression: bored yawn. Text in the scene: a door glass lettered "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -430,7 +430,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `seal_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Grey seal harbor patrol in a navy pea coat and white sailor cap, whiskers, calm confident smile.
+Character: Grey seal harbor patrol officer with long whiskers, navy pea coat and a dark knit watch cap. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting behind the desk, leaning forward on both elbows, seen from the front. Expression: deep concentration with narrowed eyes. Text in the scene: a wall nameplate reading "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -447,7 +447,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `hippo_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Hippo team morale officer in a dark purple leather jacket, holding a steaming coffee mug, easygoing wide smile with small tusks.
+Character: Hippo riot-squad veteran with small tusks, heavy dark tactical jacket with shoulder pads. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing beside the evidence board, one hand pointing at a photo, seen from the side. Expression: tired half-smile. Text in the scene: a white coffee mug on the desk printed with "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -464,7 +464,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `turtle_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Turtle stakeout soldier in an olive military coat and steel helmet, holding a walkie-talkie, bored patient face.
+Character: Turtle stakeout officer in an olive tactical field jacket and a dark cap. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: leaning back in the chair with feet up on the desk, seen from a low angle. Expression: surprised wide eyes. Text in the scene: a case folder on the desk stamped "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -481,7 +481,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `mouse_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Grey mouse safecracker with big round pink ears, dark hoodie, stethoscope around the neck, focused narrow eyes.
+Character: Grey mouse safe-and-lock specialist with big round pink ears, dark hoodie under a tactical vest, thin work gloves. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: sitting on the edge of the desk with arms crossed, body turned to the right. Expression: worried frown, biting the lip. Text in the scene: a door glass lettered "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -498,7 +498,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `lion_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Lion squad leader with a huge dark mane, black pinstripe suit with gold tie and small gold crown pin, fierce commanding stare, regal and intimidating.
+Character: Lion squad leader with a huge dark mane, black special-unit tactical uniform with a vest, commanding presence. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: standing at the window, peeking through the blinds with one hand, looking back over the shoulder. Expression: smug confident smirk. Text in the scene: a wall nameplate reading "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
@@ -515,7 +515,7 @@ The pose, expression and camera angle must be clearly different from the previou
 **A 사무실** → `deer_a.png`
 ```
 Dark cinematic crime-thriller anime illustration of an anthropomorphic animal detective, like a key visual still from a noir anime film: semi-realistic detailed fur and fabric folds, painterly shading, cold desaturated blue-violet night palette with small warm lamp accents and red-blue police light glow, deep shadows, strong rim light, wet reflective surfaces, shallow depth of field with blurred background lights, the character is caught mid-action and is NOT posing or looking at the camera, serious tense mood, half-body, square 1:1, no border. If an image is attached, copy ONLY its rendering style, color palette, lighting and mood. Do NOT copy its animal, face, pose, outfit, props or composition.
-Character: Deer forest patrol officer with antlers, maroon pea coat, small silver bell on a red ribbon at the collar, calm gentle but alert eyes.
+Character: Deer mountain patrol officer with antlers, maroon winter patrol coat with a fur-lined collar. Draw this animal with its own real face, muzzle, ears and body size. Only the clothing and gear described here: no headset, no magnifying glass, no sunglasses, no extra props.
 Scene: inside a detective team office at night: desk with stacks of case files, green banker's desk lamp, evidence board with photos and red string, window blinds. Pose: hunched over the desk reading a case file under the lamp, seen from slightly above. Expression: bored yawn. Text in the scene: a white coffee mug on the desk printed with "수사3팀".
 Rules: ONE single square image, one character only. The only text anywhere is exactly "수사3팀", once, spelled correctly, no English. No logo, no border.
 ```
