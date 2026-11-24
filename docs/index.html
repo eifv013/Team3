@@ -1712,33 +1712,16 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 #t-pets .pet-card .pet-stage{z-index:3}
 .pet-bgbtn{display:none}
 #t-pets .pet-card .pet-bgbtn{display:block;position:absolute;left:10px;top:10px;z-index:4;border:0;font-family:inherit;padding:6px 12px;border-radius:999px;background:rgba(10,13,20,.72);color:#fff;font-size:12px;font-weight:800;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
-.pet-bg .fx,.pet-bg .fx::before,.pet-bg .fx::after{position:absolute;inset:0;content:'';pointer-events:none}
-.bg-alley .fx::before,.bg-neon .fx::before{inset:-60px 0 0;background:repeating-linear-gradient(100deg,transparent 0 17px,rgba(190,215,255,.16) 17px 18px);animation:bgrain .45s linear infinite}
-@keyframes bgrain{to{transform:translateY(60px)}}
-.bg-neon .fx::after{background:radial-gradient(ellipse at 30% 20%,rgba(255,80,200,.22),transparent 45%);animation:bgflick 3.4s infinite}
-@keyframes bgflick{0%,18%,22%,60%,100%{opacity:1}20%,61%{opacity:.3}}
-.bg-harbor .fx::before{inset:30% -40% 0 -40%;background:radial-gradient(ellipse at 30% 60%,rgba(190,230,230,.28),transparent 45%),radial-gradient(ellipse at 75% 40%,rgba(190,230,230,.2),transparent 40%);filter:blur(6px);animation:bgfog 16s ease-in-out infinite alternate}
-@keyframes bgfog{to{transform:translateX(16%)}}
-.bg-harbor .fx::after{left:auto;right:8%;top:14%;bottom:auto;width:70%;height:16%;transform-origin:100% 50%;background:linear-gradient(270deg,rgba(210,255,250,.3),transparent);clip-path:polygon(100% 45%,100% 55%,0 100%,0 0);animation:bgbeam 7s ease-in-out infinite alternate}
-@keyframes bgbeam{from{transform:rotate(-7deg);opacity:.5}to{transform:rotate(9deg);opacity:1}}
-.bg-room .fx::before{background:linear-gradient(180deg,rgba(200,240,255,.2),transparent 55%);animation:bgtube 5s infinite}
-@keyframes bgtube{0%,44%,48%,90%,100%{opacity:1}46%,92%{opacity:.25}94%{opacity:.8}}
-.bg-snow .fx::before,.bg-snow .fx::after{inset:-120px 0 0;background-image:radial-gradient(circle,#fff 0 1.6px,transparent 2px),radial-gradient(circle,rgba(255,255,255,.8) 0 1.1px,transparent 1.6px);background-size:74px 120px,46px 120px;background-position:10px 0,30px 50px;animation:bgsnow 7s linear infinite;opacity:.85}
-.bg-snow .fx::after{background-size:98px 120px,62px 120px;animation-duration:11s;opacity:.55}
-@keyframes bgsnow{to{transform:translate(12px,120px)}}
-.bg-roof .fx::before{inset:0 0 55% 0;background-image:radial-gradient(circle,#fff 0 1.2px,transparent 1.8px),radial-gradient(circle,#CFE2FF 0 1px,transparent 1.6px);background-size:83px 61px,57px 47px;background-position:12px 9px,40px 30px;animation:bgtw 2.6s ease-in-out infinite alternate}
-@keyframes bgtw{to{opacity:.25}}
-.bg-gold .fx::before{inset:-60% -30% 20% -30%;background:repeating-conic-gradient(from 0deg at 50% 0%,rgba(255,225,130,.2) 0 5deg,transparent 5deg 15deg);animation:bgray 9s ease-in-out infinite alternate;mix-blend-mode:screen}
-@keyframes bgray{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
-.bg-office .fx::before{background:radial-gradient(circle at 68% 37%,rgba(120,255,150,.2),transparent 20%);animation:bgtw 4s ease-in-out infinite alternate}
-@media (prefers-reduced-motion:reduce){.pet-bg .fx::before,.pet-bg .fx::after{animation:none}}
+.pet-bg>canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.pet-bg[hidden]{display:none !important}
+.pet-in{display:contents}
 .bgp-back{position:absolute;inset:0;z-index:49;background:rgba(6,8,12,.78);display:flex;align-items:center;justify-content:center;padding:14px;animation:fadein .15s}
 .bgp-box{width:100%;max-width:420px;max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .bgp-head{display:flex;align-items:center;gap:8px}.bgp-head b{flex:1;font-size:16px}
 .bgp-w{display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--panel2)}
 .bgp-x{width:34px;height:34px;border:0;border-radius:50%;background:var(--panel2);color:var(--text);font-size:20px;font-family:inherit}
 .bgp-view{position:relative;aspect-ratio:3/2;border-radius:14px}
-.bgp-pet{position:absolute;left:50%;bottom:9%;width:30%;aspect-ratio:1;transform:translateX(-50%);z-index:3;border-radius:18%;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.45)}
+.bgp-pet{position:absolute;left:50%;bottom:8%;width:30%;aspect-ratio:1;transform:translateX(-50%);z-index:3;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55))}
 .bgp-pet>*{width:100%;height:100%;display:block}
 .bgp-info b{display:block;font-size:15px}.bgp-info small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}.bgp-info small.warn{color:#FFB0A0}
 .bgp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -1747,6 +1730,8 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 .bgp-cell i{position:absolute;font-style:normal;font-size:10px;font-weight:900;padding:1px 5px;border-radius:999px;display:inline-flex;align-items:center;gap:2px}
 .bgp-cell .use{left:3px;bottom:3px;background:var(--acc);color:#2A1E04}.bgp-cell .lk{left:3px;bottom:3px;background:rgba(6,8,12,.8);color:#fff}.bgp-cell .lg{right:3px;top:3px;background:#FFD23F;color:#2A1E04}
 .bgp-acts{display:flex;gap:8px}.bgp-acts button{flex:1;height:48px;border-radius:12px;font-size:15px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:4px}
+#h-go-sub i.fc{background:rgba(0,0,0,.3);color:#FFF3C4}#h-go-sub i.fc.off{color:rgba(0,0,0,.6);background:rgba(0,0,0,.1)}
+.res-fc{font-style:normal;font-size:12px;font-weight:800;padding:1px 7px;border-radius:999px;background:rgba(255,210,63,.18);color:var(--acc)}.res-fc.off{background:rgba(255,255,255,.08);color:var(--muted)}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -2381,6 +2366,14 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.12.1', date: '2026-11-24', title: '집중 수사, 움직이는 배경',
+      items: [
+        '파트너 배경의 움직임을 새로 만들었어요. 비, 등대 빛과 안개, 형광등, 눈, 별, 금가루가 또렷하게 보여요. 0.12.0에서는 너무 옅어서 멈춘 그림처럼 보였어요.',
+        '집중 수사가 생겼어요. 하루 첫 3번 출동은 사건 검거가 5배예요. 그 뒤 출동은 수사비, 기록, 계급은 그대로 받고 사건 검거는 조금만 올라요. 출동 단추에 남은 횟수가 보여요.',
+        '계급 셋이 더 생겼어요: 치안감, 치안정감, 치안총감.',
+        '시즌 패스 경험치를 집중 수사 출동에서 대부분 받아요. 한 단계에 필요한 경험치는 200이에요.',
+        '임무와 임무 완료 상자의 배지를 절반으로 줄였어요.'
+      ] },
     { ver: '0.12.0', date: '2026-11-24', title: '증거 갈림길, 파트너 배경',
       items: [
         '증거판의 모든 증거에 짝이 생겼어요. 한 자리에서 둘 중 하나만 열 수 있고, 효과가 서로 달라요. 증거가 54장에서 108장이 됐어요.',
@@ -3519,6 +3512,9 @@ body.prem-on #h-station::before{content:'👑 '}
 
   // 수치는 모두 여기. 밸런스를 바꿀 때 이 표만 고친다.
   var TUNE = {
+    // 0.12.1 집중 수사: 하루 첫 focusRuns 번 출동은 사건 검거 ×focusMult, 그 뒤 출동은 ×restMult(수사비 · 기록 · 계급은 그대로).
+    //   하루에 몇 판을 하든 사건 속도가 크게 벌어지지 않게 한다(가볍게 3판 ↔ 열심히 48판이 20배 벌어지던 것).
+    focusRuns: 3, focusMult: 5, restMult: 0.05,
     catchSec: 150,           // 형사 1명이 1명을 잡는 데 걸리는 시간(초), 훈련 전. 0.1.6: 60 → 150(사건 1을 하루~이틀로)
     trainSpeed: 0.25,        // 훈련 1단계당 속도 +25%
     catchPay: 15,            // 팀이 1명 잡을 때 수사비
@@ -3545,7 +3541,11 @@ body.prem-on #h-station::before{content:'👑 '}
     { name: '경감', at: 150, gems: 10 },
     { name: '경정', at: 500, gems: 20 },
     { name: '총경', at: 1500, gems: 30 },
-    { name: '경무관', at: 4000, gems: 50 }
+    { name: '경무관', at: 4000, gems: 50 },
+    // 0.12.1 최고 계급이 열흘쯤에 끝나서 셋을 더했다(보통 성향 약 1달 · 3달 · 7달)
+    { name: '치안감', at: 12000, gems: 80 },
+    { name: '치안정감', at: 30000, gems: 120 },
+    { name: '치안총감', at: 80000, gems: 200 }
   ];
   var RANK_BONUS = 0.05;
 
@@ -3724,6 +3724,7 @@ body.prem-on #h-station::before{content:'👑 '}
       lastSeen: now,
       buffUntil: 0,
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
+      focus: { day: '', used: 0 },
       caseRun: 0, keepBank: 0,   // 0.10.12 현재 사건에서 출동으로 잡은 수 · 재수사 때 남긴 몫(팀 한계에 더해진다)
       closed: false, closedAt: 0,
       tutorialDone: false,
@@ -3783,6 +3784,8 @@ body.prem-on #h-station::before{content:'👑 '}
     s.bestScore = int(data.bestScore, 0, 0);
     s.runCaught = int(data.runCaught, 0, 0);
     s.caseRun = int(data.caseRun, 0, 0); s.keepBank = int(data.keepBank, 0, 0);
+    var fo = data.focus && typeof data.focus === 'object' ? data.focus : {};
+    s.focus = { day: typeof fo.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fo.day) ? fo.day : '', used: int(fo.used, 0, 0) };
     s.teamCaught = int(data.teamCaught, 0, 0);
     // 목표가 늘어난 뒤(0.1.3, 300 → 1000) 예전에 300명으로 종결된 저장은 다시 진행 중으로 돌린다
     s.caseNo = int(data.caseNo, 1, 1, CASES.length);
@@ -3998,6 +4001,10 @@ body.prem-on #h-station::before{content:'👑 '}
    * 출동이 끝났을 때. result = { score, hits } (퍼즐 게임 상태에서 그대로 넘긴다)
    * 점수만큼 수사비, 검거만큼 사건 진척, 그리고 팀 사기 충전.
    */
+  /* 0.12.1 집중 수사 */
+  function dayKey(now) { var d = new Date(now), p = function (n) { return n < 10 ? '0' + n : '' + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+  /** 오늘 남은 집중 수사 횟수 */
+  function focusLeft(save, now) { var f = save.focus, k = dayKey(now); return Math.max(0, TUNE.focusRuns - (f && f.day === k ? f.used : 0)); }
   function applyRun(save, result, now) {
     assertNow(now);
     if (!result || typeof result !== 'object') throw IdleError('BAD_RESULT', '출동 결과가 없다');
@@ -4013,14 +4020,16 @@ body.prem-on #h-station::before{content:'👑 '}
     save.money += pay;
     earned(save, Math.round(base * cm));
     save.recent = save.recent.concat([score]).slice(-5);
-    var got = Math.round(hits * (1 + Math.min(0.3, pctOf(bn, 'runHit'))));   // 0.10.12 증거 "출동 검거 +%": 사건 진척에만(계급은 실제 검거 수)
+    var focus = focusLeft(save, now) > 0, fk = dayKey(now);
+    save.focus = { day: fk, used: (save.focus && save.focus.day === fk ? save.focus.used : 0) + 1 };
+    var got = Math.round(hits * (1 + Math.min(0.3, pctOf(bn, 'runHit'))) * (focus ? TUNE.focusMult : TUNE.restMult));   // 0.10.12 증거 "출동 검거 +%": 사건 진척에만(계급은 실제 검거 수)
     save.caught += got; save.caseRun = (save.caseRun || 0) + got;
     save.runCaught += hits;
     save.runs += 1;
     var best = score > save.bestScore;
     if (best) save.bestScore = score;
     save.buffUntil = now + (TUNE.buffSec + amtOf(bn, 'buff')) * 1000;   // 0.3.0 고슴도치: 사기 충전 +초
-    return { money: pay, caught: got, best: best, closedNow: checkClose(save, now) };
+    return { money: pay, caught: got, focus: focus, best: best, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 프로필 ---------- */
@@ -4134,7 +4143,7 @@ body.prem-on #h-station::before{content:'👑 '}
   function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
 
   return {
-    VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseNums: caseNums, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
+    VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseNums: caseNums, focusLeft: focusLeft, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
     RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
     cleanName: cleanName, setProfile: setProfile, profileCost: profileCost, changeProfile: changeProfile, NAME_TAGS: NAME_TAGS, payName: payName, buyNameTags: buyNameTags,
     newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf, setExtraIncome: setExtraIncome, setEarn: setEarn, resetTeam: resetTeam,
@@ -7601,7 +7610,7 @@ body.prem-on #h-station::before{content:'👑 '}
    *   무료 줄은 누구나, 프리미엄 줄은 패스를 산 사람(산 뒤 지난 단계도 받는다).
    *   마지막 프리미엄 단계: 전설 선택권(전설 동물 하나를 골라 데려오기).
    */
-  var SEASON_DAYS = 30, TIERS = 30, TIER_XP = 100, EPOCH = Date.UTC(2026, 0, 5);
+  var SEASON_DAYS = 30, TIERS = 30, TIER_XP = 200, EPOCH = Date.UTC(2026, 0, 5);
   function dayNum(day) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day || ''); return m ? Math.floor((Date.UTC(+m[1], +m[2] - 1, +m[3]) - EPOCH) / D) : 0; }
   /*
    * 0.6.0 시즌은 플레이어마다: 시즌 패스를 처음 연 날(passStart)부터 30일씩(0.9.0 부터, 그전엔 28일). 누구나 시즌 1 · 30일로 시작한다.
@@ -7630,7 +7639,8 @@ body.prem-on #h-station::before{content:'👑 '}
   }
   function tierOf(xp) { return Math.min(TIERS, Math.floor(xp / TIER_XP)); }
   /** 출동 한 번의 경험치: 10 + 점수/500(최대 30 더). 특별 출동 메달은 +30 */
-  function runXp(score, medal) { return 10 + Math.min(30, Math.floor((score || 0) / 500)) + (medal ? 30 : 0); }
+  // 0.12.1 집중 수사(하루 첫 3번) 출동에서 대부분을 준다: 30단계를 보통 성향 3주쯤, 하루 종일 해도 2주쯤(전에는 열흘 · 나흘)
+  function runXp(score, medal, focus) { return (focus === false ? 5 : 60 + Math.min(30, Math.floor((score || 0) / 500))) + (medal ? 30 : 0); }
   function addXp(save, day, xp) {
     var ps = passOf(save, day), before = tierOf(ps.xp);
     if (ps.premium) xp = xp * (1 + PREM.xp / 100);   // 0.9.0 프리미엄: 패스 경험치 +25%
@@ -7786,30 +7796,30 @@ body.prem-on #h-station::before{content:'👑 '}
   'use strict';
   var LIST = {
     d: [
-      { id: 'd_run', kind: 'run', goal: 3, name: '현장 출동 3번', r: { gems: 5 } },
+      { id: 'd_run', kind: 'run', goal: 3, name: '현장 출동 3번', r: { gems: 3 } },
       { id: 'd_daily', kind: 'daily', goal: 1, name: '오늘의 특별 출동', r: { treats: 10 } },
       { id: 'd_pat', kind: 'pat', goal: 1, name: '파트너 쓰다듬기', r: { treats: 5 } },
-      { id: 'd_ad', kind: 'ad', goal: 2, name: '광고 보상 2번 받기', r: { gems: 5 } },
-      { id: 'd_hire', kind: 'hire', goal: 1, name: '형사 영입하기', r: { gems: 3 } }
+      { id: 'd_ad', kind: 'ad', goal: 2, name: '광고 보상 2번 받기', r: { gems: 3 } },
+      { id: 'd_hire', kind: 'hire', goal: 1, name: '형사 영입하기', r: { gems: 2 } }
     ],
     w: [
       { id: 'w_run', kind: 'run', goal: 20, name: '현장 출동 20번', r: { tickets: 2 } },
-      { id: 'w_caught', kind: 'caught', goal: 300, name: '현장에서 300명 검거', r: { gems: 30 } },
+      { id: 'w_caught', kind: 'caught', goal: 300, name: '현장에서 300명 검거', r: { gems: 15 } },
       { id: 'w_daily', kind: 'daily', goal: 5, name: '특별 출동 5번', r: { tickets: 2 } },
       { id: 'w_pull', kind: 'pull', goal: 10, name: '파트너 뽑기 10번', r: { treats: 40 } },
-      { id: 'w_attend', kind: 'attend', goal: 5, name: '출석 5일', r: { tickets: 1, gems: 20 } }
+      { id: 'w_attend', kind: 'attend', goal: 5, name: '출석 5일', r: { tickets: 1, gems: 10 } }
     ],
     m: [
       { id: 'm_run', kind: 'run', goal: 80, name: '현장 출동 80번', r: { tickets: 5 } },
-      { id: 'm_gold', kind: 'gold', goal: 10, name: '특별 출동 금메달 10번', r: { tickets: 5, gems: 50 } },
-      { id: 'm_evid', kind: 'evid', goal: 5, name: '증거 5개 열기', r: { gems: 60 } },
-      { id: 'm_attend', kind: 'attend', goal: 20, name: '출석 20일', r: { tickets: 5, gems: 100 } },
+      { id: 'm_gold', kind: 'gold', goal: 10, name: '특별 출동 금메달 10번', r: { tickets: 5, gems: 25 } },
+      { id: 'm_evid', kind: 'evid', goal: 5, name: '증거 5개 열기', r: { gems: 30 } },
+      { id: 'm_attend', kind: 'attend', goal: 20, name: '출석 20일', r: { tickets: 5, gems: 50 } },
       { id: 'm_ad', kind: 'ad', goal: 60, name: '광고 보상 60번 받기', r: { tickets: 3, treats: 60 } }
     ]
   };
   var DAILY_BOX = { tickets: 1 };   // 일간 임무를 다 받으면
   // 0.10.9 주간 · 월간에도 완료 상자(다 한 보람이 있게)
-  var BOX = { d: DAILY_BOX, w: { tickets: 3, gems: 30 }, m: { tickets: 10, gems: 100 } };
+  var BOX = { d: DAILY_BOX, w: { tickets: 3, gems: 15 }, m: { tickets: 10, gems: 50 } };   // 0.12.1 임무 배지를 절반으로(무료 배지가 하루 50개쯤이라 뽑기 값이 의미가 없었다)
   var NAME = { d: '일간', w: '주간', m: '월간' };
   var DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -11577,23 +11587,114 @@ body.prem-on #h-station::before{content:'👑 '}
     var dot = free > 0 ? '<span class="pet-dot">' + (free > 99 ? '99+' : free) + '</span>' : '';
     if (!x) {
       box.style.removeProperty('--gc');
-      box.innerHTML = '<div class="pet-art pet-empty" aria-hidden="true">?</div>' +
+      setCard(box, '<div class="pet-art pet-empty" aria-hidden="true">?</div>' +
         '<div class="pet-tx"><b>파트너가 없어요</b><small>뽑기로 3팀과 함께할 파트너를 데려와요' + (free ? ', 뽑기권 ' + free + '장' : '') + '</small></div>' +
-        '<button class="buy" id="h-pet-open">뽑기' + dot + '</button>';
+        '<button class="buy" id="h-pet-open">뽑기' + dot + '</button>', '');
       return;
     }
     var sp = P.BY_ID[x.id], g = P.GRADE[x.g], st = p.own[p.eq], nm = P.nameOf(S(), p.eq);
     box.style.setProperty('--gc', g.color);
     var eff = P.describe(P.eqEffect(x.id, x.g, st)), bd = P.bondOf(S(), p.eq);
     // 0.4.1 무대: 등급 빛(영웅 · 전설은 도는 후광) · 바닥 그림자 · 전설 반짝이. 버튼 안에는 그림만(act 가 갈아 끼운다)
-    box.innerHTML = '<div class="pet-bg bg-' + P.bgNow(S()) + '" aria-hidden="true"><i class="fx"></i></div><button class="pet-bgbtn" id="h-pet-bgbtn">배경</button>' +   // 0.12.0 파트너 배경
+    setCard(box, '<button class="pet-bgbtn" id="h-pet-bgbtn">배경</button>' +   // 0.12.0 파트너 배경
       '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
       '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(', ')) + '</small>' +
         '<small class="pet-bond' + (bd.last === today() ? '' : ' need') + '">♥ ' + bd.lv + '단계' + (bd.last === today() ? ' (함께 ' + bd.days + '일 ✓)' : ', 그림을 눌러 쓰다듬어 줘요') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
-      '<button class="buy" id="h-pet-open">파트너' + dot + '</button>';
+      '<button class="buy" id="h-pet-open">파트너' + dot + '</button>', P.bgNow(S()));
+  }
+  /*
+   * 0.12.1 카드 채우기. 배경(.pet-bg, 움직이는 그림판)은 한 번 만들어 그대로 두고 안쪽(.pet-in)만 갈아 끼운다
+   *   — 카드를 다시 그릴 때마다 배경 움직임이 처음으로 돌아가 멈춘 그림처럼 보이던 것을 막는다.
+   */
+  function setCard(box, html, bg) {
+    var b = box.querySelector(':scope > .pet-bg'), inn = box.querySelector(':scope > .pet-in');
+    if (!b || !inn) { box.innerHTML = '<div class="pet-bg" aria-hidden="true" hidden><canvas></canvas></div><div class="pet-in"></div>'; b = box.firstChild; inn = box.lastChild; }
+    var cls = 'pet-bg' + (bg ? ' bg-' + bg : '');
+    if (b.className !== cls) { b.className = cls; b.firstChild.setAttribute('data-k', bg || ''); b.firstChild._p = null; }
+    b.hidden = !bg;
+    inn.innerHTML = html;
+    if (bg) fxStart();
+  }
+  /*
+   * 0.12.1 배경 움직임(그림판 canvas). 0.12.0 은 CSS 로 옅게 얹어서 휴대폰에서 거의 안 보였다 → 입자를 직접 그린다.
+   *   종류: 비(골목 · 네온) · 안개와 등대 빛(부두) · 형광등 깜빡임(면통실) · 눈 · 별과 별똥별(옥상) · 빛줄기와 금가루(황금 무대) · 지나가는 차 불빛과 먼지(사무실)
+   *   화면에 보이는 .pet-bg canvas 만 그리고, 하나도 없으면 멈춘다. "움직임 줄이기"면 한 장만 그린다.
+   */
+  var fxOn = false, fxT0 = 0;
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function fxInit(k, w, h) {
+    var p = [], i;
+    if (k === 'alley' || k === 'neon') for (i = 0; i < 90; i++) p.push({ x: rnd(-0.2, 1.1), y: rnd(0, 1), v: rnd(1.3, 2.1), l: rnd(0.05, 0.11), a: rnd(0.35, 0.8) });
+    else if (k === 'snow') for (i = 0; i < 80; i++) p.push({ x: rnd(0, 1), y: rnd(0, 1), v: rnd(0.05, 0.16), r: rnd(1.2, 3.6), ph: rnd(0, 6.3), a: rnd(0.6, 1) });
+    else if (k === 'harbor') for (i = 0; i < 7; i++) p.push({ x: rnd(0, 1), y: rnd(0.35, 0.9), v: rnd(0.04, 0.09), r: rnd(0.22, 0.42), a: rnd(0.16, 0.3) });
+    else if (k === 'roof') for (i = 0; i < 60; i++) p.push({ x: rnd(0.02, 0.98), y: rnd(0.02, 0.4), r: rnd(1, 2.4), ph: rnd(0, 6.3), sp: rnd(2, 5) });
+    else if (k === 'gold') for (i = 0; i < 46; i++) p.push({ x: rnd(0, 1), y: rnd(0, 1), v: rnd(0.06, 0.16), r: rnd(2, 5), ph: rnd(0, 6.3), sp: rnd(2, 6) });
+    else for (i = 0; i < 26; i++) p.push({ x: rnd(0, 1), y: rnd(0.1, 0.95), v: rnd(0.004, 0.014), r: rnd(0.8, 1.8), ph: rnd(0, 6.3) });
+    return p;
+  }
+  function glow(c, x, y, r, col, a) { var g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(1, col.replace('A', 0)); c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2); }
+  function fxDraw(cv, t, dt) {
+    var k = cv.getAttribute('data-k') || 'office', w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, root.devicePixelRatio || 1);
+    if (!w || !h) return false;
+    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    if (!cv._p) cv._p = fxInit(k, w, h);
+    var c = cv.getContext('2d'), p = cv._p, i, o, a;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h); c.globalCompositeOperation = 'lighter';
+    if (k === 'alley' || k === 'neon') {
+      c.lineCap = 'round';
+      for (i = 0; i < p.length; i++) {
+        o = p[i]; o.y += o.v * dt; o.x += o.v * dt * 0.16; if (o.y > 1.1) { o.y = -0.12; o.x = rnd(-0.2, 1.1); }
+        c.strokeStyle = k === 'neon' ? (i % 3 ? 'rgba(255,170,240,' + o.a * 0.8 + ')' : 'rgba(150,235,255,' + o.a * 0.8 + ')') : 'rgba(205,225,255,' + o.a * 0.75 + ')';
+        c.lineWidth = o.a > 0.6 ? 1.6 : 1; c.beginPath(); c.moveTo(o.x * w, o.y * h); c.lineTo((o.x + o.l * 0.16) * w, (o.y + o.l) * h); c.stroke();
+      }
+      // 바닥에 튀는 빗방울 고리
+      for (i = 0; i < 9; i++) { a = (t * 1.6 + i * 0.37) % 1; c.strokeStyle = 'rgba(220,235,255,' + (0.5 * (1 - a)) + ')'; c.lineWidth = 1; c.beginPath(); c.ellipse(((i * 0.618 + Math.floor(t * 1.6 + i * 0.37) * 0.271) % 1) * w, (0.72 + (i % 4) * 0.07) * h, 3 + a * 11, 1 + a * 3.2, 0, 0, 6.3); c.stroke(); }
+      if (k === 'alley') glow(c, 0.72 * w, 0.07 * h, 0.3 * w, 'rgba(255,190,100,A)', 0.2 + 0.1 * Math.sin(t * 7) * Math.sin(t * 2.3));
+      else glow(c, 0.22 * w, 0.2 * h, 0.42 * w, 'rgba(255,60,190,A)', (Math.sin(t * 31) > 0.86 || (t % 4.2) < 0.12 ? 0.06 : 0.3) );
+    } else if (k === 'snow') {
+      for (i = 0; i < p.length; i++) { o = p[i]; o.y += o.v * dt; if (o.y > 1.05) { o.y = -0.05; o.x = rnd(0, 1); } c.fillStyle = 'rgba(255,255,255,' + o.a + ')'; c.beginPath(); c.arc((o.x + Math.sin(t * 0.9 + o.ph) * 0.02) * w, o.y * h, o.r, 0, 6.3); c.fill(); }
+      glow(c, 0.265 * w, 0.2 * h, 0.2 * w, 'rgba(255,200,120,A)', 0.2 + 0.07 * Math.sin(t * 2.1));
+    } else if (k === 'harbor') {
+      a = Math.sin(t * 1.1) * 0.3 + 3.32;   // 등대 빛이 좌우로 쓴다
+      var lx = 0.928 * w, ly = 0.185 * h, L = 1.1 * w, g = c.createLinearGradient(lx, ly, lx + Math.cos(a) * L, ly + Math.sin(a) * L);
+      g.addColorStop(0, 'rgba(210,255,248,.55)'); g.addColorStop(1, 'rgba(210,255,248,0)'); c.fillStyle = g;
+      c.beginPath(); c.moveTo(lx, ly); c.lineTo(lx + Math.cos(a - 0.085) * L, ly + Math.sin(a - 0.085) * L); c.lineTo(lx + Math.cos(a + 0.085) * L, ly + Math.sin(a + 0.085) * L); c.closePath(); c.fill();
+      glow(c, lx, ly, 0.07 * w, 'rgba(230,255,250,A)', 0.55 + 0.3 * Math.sin(t * 1.1));
+      for (i = 0; i < p.length; i++) { o = p[i]; o.x += o.v * dt; if (o.x > 1.5) o.x = -0.5; glow(c, o.x * w, o.y * h, o.r * w, 'rgba(170,225,220,A)', o.a); }
+    } else if (k === 'room') {
+      a = (t % 3.4) < 0.45 ? (Math.sin(t * 60) > 0 ? 0.02 : 0.34) : ((t + 1.3) % 5.1) < 0.1 ? 0.03 : 0.24 + 0.06 * Math.sin(t * 11);
+      var gr = c.createLinearGradient(0, 0, 0, h * 0.8); gr.addColorStop(0, 'rgba(190,240,255,' + a + ')'); gr.addColorStop(1, 'rgba(190,240,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+      glow(c, 0.52 * w, 0.045 * h, 0.3 * w, 'rgba(220,250,255,A)', a * 1.6);
+      glow(c, 0.06 * w, 0.62 * h, 0.2 * w, 'rgba(255,180,90,A)', 0.2 + 0.05 * Math.sin(t * 1.7));
+      for (i = 0; i < p.length; i++) { o = p[i]; o.y -= o.v * dt; o.x += Math.sin(t * 0.5 + o.ph) * 0.0006; if (o.y < 0.05) o.y = 0.95; c.fillStyle = 'rgba(220,245,255,' + (0.3 + 0.3 * Math.sin(t * 1.3 + o.ph)) + ')'; c.beginPath(); c.arc(o.x * w, o.y * h, o.r, 0, 6.3); c.fill(); }
+    } else if (k === 'roof') {
+      for (i = 0; i < p.length; i++) { o = p[i]; a = 0.5 + 0.5 * Math.sin(t * o.sp + o.ph); c.fillStyle = 'rgba(235,244,255,' + (0.05 + 0.95 * a) + ')'; c.beginPath(); c.arc(o.x * w, o.y * h, o.r * (0.5 + 0.7 * a), 0, 6.3); c.fill(); if (i % 6 === 0) glow(c, o.x * w, o.y * h, o.r * 5, 'rgba(200,225,255,A)', 0.5 * a); }
+      a = (t % 4.5) / 1.1; if (a < 1) { var sx = (0.15 + 0.5 * ((Math.floor(t / 4.5) * 0.37) % 1) + a * 0.3) * w, sy = (0.04 + a * 0.16) * h, sg = c.createLinearGradient(sx, sy, sx - 0.12 * w, sy - 0.064 * h); sg.addColorStop(0, 'rgba(255,255,255,' + (1 - a) + ')'); sg.addColorStop(1, 'rgba(255,255,255,0)'); c.strokeStyle = sg; c.lineWidth = 1.8; c.beginPath(); c.moveTo(sx, sy); c.lineTo(sx - 0.12 * w, sy - 0.064 * h); c.stroke(); }
+      glow(c, 0.774 * w, 0.275 * h, 0.03 * w, 'rgba(255,70,70,A)', (t % 1.6) < 0.8 ? 0.9 : 0.1);
+      glow(c, 0.955 * w, 0.52 * h, 0.14 * w, 'rgba(255,180,90,A)', 0.25 + 0.12 * Math.sin(t * 5) * Math.sin(t * 1.7));
+    } else if (k === 'gold') {
+      for (i = 0; i < 9; i++) { a = (i - 4) * 0.2 + Math.sin(t * 0.5 + i) * 0.07; var gg = c.createLinearGradient(w / 2, -0.1 * h, w / 2 + Math.sin(a) * h, h); gg.addColorStop(0, 'rgba(255,225,130,' + (0.2 + 0.1 * Math.sin(t * 1.3 + i * 2)) + ')'); gg.addColorStop(1, 'rgba(255,225,130,0)'); c.fillStyle = gg; c.beginPath(); c.moveTo(w / 2, -0.1 * h); c.lineTo(w / 2 + Math.sin(a - 0.045) * h * 1.2, h * 1.1); c.lineTo(w / 2 + Math.sin(a + 0.045) * h * 1.2, h * 1.1); c.closePath(); c.fill(); }
+      for (i = 0; i < p.length; i++) { o = p[i]; o.y += o.v * dt; if (o.y > 1.05) { o.y = -0.05; o.x = rnd(0, 1); } a = Math.abs(Math.sin(t * o.sp + o.ph)); c.fillStyle = 'rgba(255,' + (200 + Math.round(40 * a)) + ',90,' + (0.5 + 0.5 * a) + ')'; c.save(); c.translate((o.x + Math.sin(t + o.ph) * 0.02) * w, o.y * h); c.rotate(t * o.sp * 0.5 + o.ph); c.fillRect(-o.r, -o.r * 0.35 * (0.3 + a), o.r * 2, o.r * 0.7 * (0.3 + a)); c.restore(); }
+    } else {
+      // 사무실: 창밖으로 지나가는 차 불빛이 블라인드 그림자를 쓸고, 책상 등은 숨 쉬듯, 먼지가 뜬다
+      a = (t % 6) / 3; if (a < 1) { var bx = (-0.3 + a * 0.9) * w, bg2 = c.createLinearGradient(bx - 0.18 * w, 0, bx + 0.18 * w, 0); bg2.addColorStop(0, 'rgba(255,215,150,0)'); bg2.addColorStop(0.5, 'rgba(255,215,150,' + 0.16 * Math.sin(a * 3.14) + ')'); bg2.addColorStop(1, 'rgba(255,215,150,0)'); c.fillStyle = bg2; c.save(); c.transform(1, 0, -0.5, 1, 0.25 * h, 0); for (i = 0; i < 16; i++) c.fillRect(bx - 0.2 * w, h * (0.08 + i * 0.055), 0.4 * w, h * 0.026); c.restore(); }
+      glow(c, 0.69 * w, 0.375 * h, 0.17 * w, 'rgba(120,255,150,A)', 0.26 + 0.1 * Math.sin(t * 1.4));
+      glow(c, 0.47 * w, 0.07 * h, 0.3 * w, 'rgba(255,210,150,A)', (t % 11) < 0.15 ? 0.04 : 0.2 + 0.03 * Math.sin(t * 9));
+      for (i = 0; i < p.length; i++) { o = p[i]; o.y -= o.v * dt; if (o.y < 0.05) o.y = 0.95; c.fillStyle = 'rgba(255,225,170,' + (0.25 + 0.3 * Math.sin(t * 1.1 + o.ph)) + ')'; c.beginPath(); c.arc((o.x + Math.sin(t * 0.4 + o.ph) * 0.015) * w, o.y * h, o.r, 0, 6.3); c.fill(); }
+    }
+    return true;
+  }
+  function fxStart() {
+    if (fxOn || typeof requestAnimationFrame !== 'function') return;
+    fxOn = true; var last = 0, calm = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (function loop(ms) {
+      var cvs = document.querySelectorAll('.pet-bg > canvas'), any = false, t = (ms || 0) / 1000, dt = last ? Math.min(0.05, t - last) : 0.016; last = t;
+      for (var i = 0; i < cvs.length; i++) if (cvs[i].offsetParent !== null && !cvs[i].parentNode.hidden) { if (calm && cvs[i]._still) { any = true; continue; } if (fxDraw(cvs[i], calm ? 3 : t, calm ? 0 : dt)) { any = true; cvs[i]._still = true; } }
+      if (any || cvs.length) requestAnimationFrame(loop); else fxOn = false;   // 판이 하나도 없으면 멈춘다(다시 그릴 때 fxStart 가 켠다)
+    })(0);
   }
   /*
    * 파트너 표정 바꾸기(0.3.1): mood 를 ms 동안 보여 주고 원래대로. move 는 칸이 하는 몸짓(CSS 클래스).
@@ -12077,7 +12178,7 @@ body.prem-on #h-station::before{content:'👑 '}
         if (ctx.render) ctx.render(); renderPartner(); drawBg();
       } });
     });
-    $('toast').parentNode.appendChild(bgEl); drawBg();
+    $('toast').parentNode.appendChild(bgEl); drawBg(); fxStart();
   }
   function closeBg() { if (bgEl && bgEl.parentNode) bgEl.parentNode.removeChild(bgEl); bgEl = null; }
   function drawBg() {
@@ -12087,7 +12188,7 @@ body.prem-on #h-station::before{content:'👑 '}
     else btn = (b.treats ? '<button class="ghost" data-bgact="treats">' + ic('treat') + b.treats + '</button>' : '') + '<button class="primary" data-bgact="gems">' + ic('gem') + b.gems + '</button>';
     bgEl.innerHTML = '<div class="bgp-box" role="dialog" aria-modal="true" aria-label="파트너 배경">' +
       '<div class="bgp-head"><b>파트너 배경</b><span class="bgp-w">' + ic('treat') + fmt(p.treats) + '</span><span class="bgp-w">' + ic('gem') + fmt(s.gems) + '</span><button class="bgp-x" data-bgact="x" aria-label="닫기">×</button></div>' +
-      '<div class="bgp-view pet-bg bg-' + b.id + '"><i class="fx"></i>' + (x ? '<div class="bgp-pet">' + portrait(p.eq, x, { grade: x.g, outfit: P.wearing(s, p.eq) }) + '</div>' : '') + '</div>' +
+      '<div class="bgp-view pet-bg bg-' + b.id + '"><canvas data-k="' + b.id + '"></canvas>' + (x ? '<div class="bgp-pet">' + portrait(p.eq, x, { grade: x.g, outfit: P.wearing(s, p.eq) }) + '</div>' : '') + '</div>' +
       '<div class="bgp-info"><b>' + esc(b.name) + '</b><small>' + esc(b.desc) + '</small>' + (b.legend && own && !isL ? '<small class="warn">현재 파트너가 전설이 아니라서 사무실이 보여요.</small>' : '') + '</div>' +
       '<div class="bgp-grid">' + P.BGS.map(function (o) {
         return '<button class="bgp-cell bg-' + o.id + (o.id === b.id ? ' on' : '') + (p.bgs[o.id] ? '' : ' lock') + '" data-bg="' + o.id + '" aria-label="' + esc(o.name) + '">' +
@@ -12427,7 +12528,7 @@ body.prem-on #h-station::before{content:'👑 '}
       '<div class="ph-main"><span class="ph-season">시즌 ' + se.no + (ps.premium ? ', <em>프리미엄</em>' : '') + '</span>' +
       '<span class="ph-left' + (se.left <= 3 ? ' soon' : '') + '">' + leftTxt(se.left) + (se.left <= 3 ? ', 곧 끝나요' : '') + '</span>' +
       '<div class="ph-bar"><i style="width:' + pct + '%"></i><span>' + (tier >= M.TIERS ? '완료' : into + ' / ' + M.TIER_XP + ' XP') + '</span></div></div></div>' +
-      '<p class="ph-how">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '출동마다 10~40XP, 특별 출동 메달 +30XP') + '</p>' +
+      '<p class="ph-how">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '집중 수사 출동 60~90XP, 특별 출동 메달 +30XP') + '</p>' +
       passActs(ps, tier, into, can) + premFx(ps.premium, se.left) +
       '<div class="pass-grid"><span class="pass-h"></span><span class="pass-h">무료</span><span class="pass-h prem">★ 프리미엄</span>';
     for (var t = 1; t <= M.TIERS; t++) {
@@ -14239,7 +14340,8 @@ body.prem-on #h-station::before{content:'👑 '}
     var dur = o.duration + (pc.coffee ? 15 : 0) + (zb && zb.time ? Math.round(zb.time) : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
     if (Df) { var DLn = Df.info(Df.get(save)); dur = Math.max(Math.min(dur, Df.MIN_SEC), dur + DLn.time); fh += DLn.freeHints; }   // 0.7.0 난이도
     diffGoSub();
-    $('h-go-sub').innerHTML = '<i>⏱ ' + dur + '초</i>' + (fh ? '<i>무료 단서 ' + fh + '</i>' : '') + (pc.press ? '<i>수사비 1.5배</i>' : '');
+    var fl = I.focusLeft(save, nowMs());   // 0.12.1 집중 수사
+    $('h-go-sub').innerHTML = '<i>⏱ ' + dur + '초</i>' + (fl > 0 ? '<i class="fc">집중 수사 ' + fl + ' / ' + I.TUNE.focusRuns + '</i>' : '<i class="fc off">오늘 집중 수사 끝</i>') + (fh ? '<i>무료 단서 ' + fh + '</i>' : '') + (pc.press ? '<i>수사비 1.5배</i>' : '');
     if (E) { renderPrep(t); renderDaily(t); renderSupport(t); }
 
     $('h-det').textContent = save.detectives;
@@ -14715,7 +14817,7 @@ body.prem-on #h-station::before{content:'👑 '}
     }
     // 0.4.0 시즌 패스 경험치 · 광고 보고 수사비 2배
     if (M) {
-      var rxp = Math.round(M.runXp(g.score, d && d.medal) * DL.xp);   // 0.7.0 난이도 경험치 배수
+      var rxp = Math.round(M.runXp(g.score, d && d.medal, r.focus) * DL.xp);   // 0.7.0 난이도 경험치 배수
       var xr = M.addXp(save, dayNow(), rxp);
       extra += '<span class="res-pass">시즌 패스 +' + rxp + 'XP' + (xr.up ? ', <b>' + xr.tier + '단계 달성!</b> 매점에서 보상을 받아요' : '') + '</span>';
       lastDouble = null;
@@ -14733,7 +14835,7 @@ body.prem-on #h-station::before{content:'👑 '}
     var partner = PT && save.pets.eq ? PT.nameOf(save, save.pets.eq) : '';
     if (petPay > 0) extra = '<span class="res-pet">파트너 효과 +' + fmt(petPay) + (partner ? ', 파트너 ' + esc(partner) + ' 덕분이에요' : '') + '</span>' + extra;
     var dTag = Df ? '<span class="res-diff" style="--c:' + DL.color + '">' + DL.icon + ' ' + Df.resultLine(dk) + '</span>' : '';
-    return dTag + '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ', 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, CS().goal)) + ' / ' + CS().goal + ')</span>' +
+    return dTag + '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ', 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b>' + (r.focus ? ' <em class="res-fc">집중 수사 ×' + I.TUNE.focusMult + '</em>' : ' <em class="res-fc off">집중 수사 끝</em>') + ' (' + fmt(Math.min(save.caught, CS().goal)) + ' / ' + CS().goal + ')</span>' +
       extra +
       '<span class="muted">팀 사기 충전: ' + (I.TUNE.buffSec / 60) + '분 동안 팀이 2배로 일해요</span>' +
       (rk.next ? '<span class="muted">' + rk.next.name + ' 승진까지 출동 검거 ' + fmt(rk.toNext) + '명</span>' : '') +

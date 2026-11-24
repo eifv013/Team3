@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const I = require('../src/idle.js');
+I.TUNE.focusMult = 1; I.TUNE.restMult = 1;   // 0.12.1 집중 수사 배수는 아래 전용 시험에서만 켠다(예전 시험은 검거 수 그대로를 본다)
 
 const T0 = 1_700_000_000_000;
 const MIN = 60_000, HOUR = 3_600_000;
@@ -423,4 +424,21 @@ test('0.12.0 사건 수치 공식: 번호만으로 목표 · 배수 · 팀 한�
   assert.deepEqual([1, 2, 3, 4, 5, 6, 7].map(n => I.caseNums(n).pay), [1, 3, 6, 10, 15, 21, 28]);
   assert.deepEqual([1, 2, 3, 4, 5, 6, 7].map(n => I.caseNums(n).idleCap), [2500, 4000, 6500, 9000, 12500, 17000, 22500]);
   I.CASES.forEach(c => { const k = I.caseNums(c.no); assert.equal(c.goal, k.goal); assert.equal(c.idleCap, k.idleCap); assert.equal(c.pay, k.pay); });
+});
+
+test('0.12.1 집중 수사: 하루 첫 3번 출동은 사건 검거 ×5, 그 뒤는 ×0.05, 날이 바뀌면 다시', () => {
+  I.TUNE.focusMult = 5; I.TUNE.restMult = 0.05;
+  try {
+    const t = new Date(2026, 10, 24, 10, 0, 0).getTime(), s = I.newSave(t);
+    assert.equal(I.focusLeft(s, t), 3);
+    for (let i = 0; i < 3; i++) { const r = I.applyRun(s, { score: 100, hits: 20 }, t + i * 1000); assert.equal(r.caught, 100); assert.equal(r.focus, true); }
+    assert.equal(I.focusLeft(s, t + 5000), 0);
+    const r4 = I.applyRun(s, { score: 100, hits: 20 }, t + 6000);
+    assert.equal(r4.caught, 1); assert.equal(r4.focus, false);
+    assert.equal(s.runCaught, 80, '계급은 실제 검거 수');
+    const s2 = I.load(I.serialize(s), t + 7000).save;
+    assert.equal(I.focusLeft(s2, t + 7000), 0, '저장 왕복');
+    assert.equal(I.focusLeft(s, t + 864e5), 3, '다음 날 다시');
+    assert.equal(I.RANKS.length, 8);
+  } finally { I.TUNE.focusMult = 1; I.TUNE.restMult = 1; }
 });

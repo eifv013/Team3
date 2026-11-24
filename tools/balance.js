@@ -29,6 +29,8 @@ if (process.env.CASES) process.env.CASES.split(',').forEach((x, i) => {
 });
 // 0.12.0 사건 4~7은 아직 내용이 없어서 공식(I.caseNums) 숫자만으로 채워 7개를 돌린다(ONLY3=1 이면 있는 3개만)
 if (!process.env.CASES && !process.env.ONLY3) for (let n = I.CASES.length + 1; n <= 7; n++) I.CASES.push(Object.assign({}, I.CASES[2], I.caseNums(n), { no: n, story: [{ at: 0, text: '' }] }));
+// 실험: 집중 수사. FOCUS="하루 횟수:배수:그 뒤 비율" 로 규칙 값을 바꿔 본다
+if (process.env.FOCUS) { const v = process.env.FOCUS.split(':').map(Number); I.TUNE.focusRuns = v[0]; I.TUNE.focusMult = v[1]; I.TUNE.restMult = v[2]; }
 const DAYS = +process.argv[2] || 60, WHO = process.argv[3] || 'all', SEED = +process.argv[4] || 1;
 const SNAP = [1, 2, 3, 5, 7, 10, 14, 21, 30, 45, 60, 90];
 const fmt = n => n >= 1e12 ? (n / 1e12).toFixed(1) + '조' : n >= 1e8 ? (n / 1e8).toFixed(1) + '억' : n >= 1e4 ? (n / 1e4).toFixed(1) + '만' : String(Math.round(n));
@@ -155,7 +157,7 @@ function simulate(pf, days, seed) {
       const ms = gemsBy('첫 메달', () => E.claimMedals(s, r.score, base));
       if (ms.length) { P.addTickets(s, 2 * ms.length); add('tickets', '첫 메달', 2 * ms.length); }
     }
-    M.addXp(s, day, M.runXp(r.score, medal));
+    M.addXp(s, day, M.runXp(r.score, medal, pay.focus));
     const pr = gemsBy('승진', () => I.claimPromotions(s)); if (pr.length) { P.addTickets(s, 3 * pr.length); add('tickets', '승진', 3 * pr.length); }
   }
   function tick() { const r = I.advance(s, T); O.addCatches(s, r.catches); if (O.isFull(s)) { const m = s.money; O.transfer(s, I.payPerCatch(s)); Ev.earn(s, s.money - m); } }

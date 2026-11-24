@@ -62,8 +62,9 @@ test('시즌 패스: 경험치 · 단계 · 무료/프리미엄 · 산 뒤 지�
   assert.deepEqual(se, { no: 1, idx: 0, left: 30 });
   assert.deepEqual(M.season('2026-12-21', d), { no: 1, idx: 0, left: 1 });
   assert.deepEqual(M.season('2026-12-22', d), { no: 2, idx: 1, left: 30 });
-  assert.equal(M.runXp(0), 10); assert.equal(M.runXp(20000), 40); assert.equal(M.runXp(3000, '금'), 46);
-  const r = M.addXp(s, d, 350);
+  assert.equal(M.runXp(0), 60); assert.equal(M.runXp(20000), 90); assert.equal(M.runXp(3000, '금'), 96);
+  assert.equal(M.runXp(20000, null, false), 5, '집중 수사가 끝난 출동은 조금만'); assert.equal(M.runXp(0, '금', false), 35);
+  const r = M.addXp(s, d, 3.5 * M.TIER_XP);
   assert.deepEqual(r, { tier: 3, up: 3 });
   let got = M.claimPass(s, d, grantTo(s));
   assert.deepEqual(got.map(x => x.track + x.t), ['free1', 'free2', 'free3']);

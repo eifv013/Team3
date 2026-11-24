@@ -14,30 +14,30 @@
   'use strict';
   var LIST = {
     d: [
-      { id: 'd_run', kind: 'run', goal: 3, name: '현장 출동 3번', r: { gems: 5 } },
+      { id: 'd_run', kind: 'run', goal: 3, name: '현장 출동 3번', r: { gems: 3 } },
       { id: 'd_daily', kind: 'daily', goal: 1, name: '오늘의 특별 출동', r: { treats: 10 } },
       { id: 'd_pat', kind: 'pat', goal: 1, name: '파트너 쓰다듬기', r: { treats: 5 } },
-      { id: 'd_ad', kind: 'ad', goal: 2, name: '광고 보상 2번 받기', r: { gems: 5 } },
-      { id: 'd_hire', kind: 'hire', goal: 1, name: '형사 영입하기', r: { gems: 3 } }
+      { id: 'd_ad', kind: 'ad', goal: 2, name: '광고 보상 2번 받기', r: { gems: 3 } },
+      { id: 'd_hire', kind: 'hire', goal: 1, name: '형사 영입하기', r: { gems: 2 } }
     ],
     w: [
       { id: 'w_run', kind: 'run', goal: 20, name: '현장 출동 20번', r: { tickets: 2 } },
-      { id: 'w_caught', kind: 'caught', goal: 300, name: '현장에서 300명 검거', r: { gems: 30 } },
+      { id: 'w_caught', kind: 'caught', goal: 300, name: '현장에서 300명 검거', r: { gems: 15 } },
       { id: 'w_daily', kind: 'daily', goal: 5, name: '특별 출동 5번', r: { tickets: 2 } },
       { id: 'w_pull', kind: 'pull', goal: 10, name: '파트너 뽑기 10번', r: { treats: 40 } },
-      { id: 'w_attend', kind: 'attend', goal: 5, name: '출석 5일', r: { tickets: 1, gems: 20 } }
+      { id: 'w_attend', kind: 'attend', goal: 5, name: '출석 5일', r: { tickets: 1, gems: 10 } }
     ],
     m: [
       { id: 'm_run', kind: 'run', goal: 80, name: '현장 출동 80번', r: { tickets: 5 } },
-      { id: 'm_gold', kind: 'gold', goal: 10, name: '특별 출동 금메달 10번', r: { tickets: 5, gems: 50 } },
-      { id: 'm_evid', kind: 'evid', goal: 5, name: '증거 5개 열기', r: { gems: 60 } },
-      { id: 'm_attend', kind: 'attend', goal: 20, name: '출석 20일', r: { tickets: 5, gems: 100 } },
+      { id: 'm_gold', kind: 'gold', goal: 10, name: '특별 출동 금메달 10번', r: { tickets: 5, gems: 25 } },
+      { id: 'm_evid', kind: 'evid', goal: 5, name: '증거 5개 열기', r: { gems: 30 } },
+      { id: 'm_attend', kind: 'attend', goal: 20, name: '출석 20일', r: { tickets: 5, gems: 50 } },
       { id: 'm_ad', kind: 'ad', goal: 60, name: '광고 보상 60번 받기', r: { tickets: 3, treats: 60 } }
     ]
   };
   var DAILY_BOX = { tickets: 1 };   // 일간 임무를 다 받으면
   // 0.10.9 주간 · 월간에도 완료 상자(다 한 보람이 있게)
-  var BOX = { d: DAILY_BOX, w: { tickets: 3, gems: 30 }, m: { tickets: 10, gems: 100 } };
+  var BOX = { d: DAILY_BOX, w: { tickets: 3, gems: 15 }, m: { tickets: 10, gems: 50 } };   // 0.12.1 임무 배지를 절반으로(무료 배지가 하루 50개쯤이라 뽑기 값이 의미가 없었다)
   var NAME = { d: '일간', w: '주간', m: '월간' };
   var DAY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 

@@ -1711,33 +1711,16 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 #t-pets .pet-card .pet-stage{z-index:3}
 .pet-bgbtn{display:none}
 #t-pets .pet-card .pet-bgbtn{display:block;position:absolute;left:10px;top:10px;z-index:4;border:0;font-family:inherit;padding:6px 12px;border-radius:999px;background:rgba(10,13,20,.72);color:#fff;font-size:12px;font-weight:800;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
-.pet-bg .fx,.pet-bg .fx::before,.pet-bg .fx::after{position:absolute;inset:0;content:'';pointer-events:none}
-.bg-alley .fx::before,.bg-neon .fx::before{inset:-60px 0 0;background:repeating-linear-gradient(100deg,transparent 0 17px,rgba(190,215,255,.16) 17px 18px);animation:bgrain .45s linear infinite}
-@keyframes bgrain{to{transform:translateY(60px)}}
-.bg-neon .fx::after{background:radial-gradient(ellipse at 30% 20%,rgba(255,80,200,.22),transparent 45%);animation:bgflick 3.4s infinite}
-@keyframes bgflick{0%,18%,22%,60%,100%{opacity:1}20%,61%{opacity:.3}}
-.bg-harbor .fx::before{inset:30% -40% 0 -40%;background:radial-gradient(ellipse at 30% 60%,rgba(190,230,230,.28),transparent 45%),radial-gradient(ellipse at 75% 40%,rgba(190,230,230,.2),transparent 40%);filter:blur(6px);animation:bgfog 16s ease-in-out infinite alternate}
-@keyframes bgfog{to{transform:translateX(16%)}}
-.bg-harbor .fx::after{left:auto;right:8%;top:14%;bottom:auto;width:70%;height:16%;transform-origin:100% 50%;background:linear-gradient(270deg,rgba(210,255,250,.3),transparent);clip-path:polygon(100% 45%,100% 55%,0 100%,0 0);animation:bgbeam 7s ease-in-out infinite alternate}
-@keyframes bgbeam{from{transform:rotate(-7deg);opacity:.5}to{transform:rotate(9deg);opacity:1}}
-.bg-room .fx::before{background:linear-gradient(180deg,rgba(200,240,255,.2),transparent 55%);animation:bgtube 5s infinite}
-@keyframes bgtube{0%,44%,48%,90%,100%{opacity:1}46%,92%{opacity:.25}94%{opacity:.8}}
-.bg-snow .fx::before,.bg-snow .fx::after{inset:-120px 0 0;background-image:radial-gradient(circle,#fff 0 1.6px,transparent 2px),radial-gradient(circle,rgba(255,255,255,.8) 0 1.1px,transparent 1.6px);background-size:74px 120px,46px 120px;background-position:10px 0,30px 50px;animation:bgsnow 7s linear infinite;opacity:.85}
-.bg-snow .fx::after{background-size:98px 120px,62px 120px;animation-duration:11s;opacity:.55}
-@keyframes bgsnow{to{transform:translate(12px,120px)}}
-.bg-roof .fx::before{inset:0 0 55% 0;background-image:radial-gradient(circle,#fff 0 1.2px,transparent 1.8px),radial-gradient(circle,#CFE2FF 0 1px,transparent 1.6px);background-size:83px 61px,57px 47px;background-position:12px 9px,40px 30px;animation:bgtw 2.6s ease-in-out infinite alternate}
-@keyframes bgtw{to{opacity:.25}}
-.bg-gold .fx::before{inset:-60% -30% 20% -30%;background:repeating-conic-gradient(from 0deg at 50% 0%,rgba(255,225,130,.2) 0 5deg,transparent 5deg 15deg);animation:bgray 9s ease-in-out infinite alternate;mix-blend-mode:screen}
-@keyframes bgray{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
-.bg-office .fx::before{background:radial-gradient(circle at 68% 37%,rgba(120,255,150,.2),transparent 20%);animation:bgtw 4s ease-in-out infinite alternate}
-@media (prefers-reduced-motion:reduce){.pet-bg .fx::before,.pet-bg .fx::after{animation:none}}
+.pet-bg>canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.pet-bg[hidden]{display:none !important}
+.pet-in{display:contents}
 .bgp-back{position:absolute;inset:0;z-index:49;background:rgba(6,8,12,.78);display:flex;align-items:center;justify-content:center;padding:14px;animation:fadein .15s}
 .bgp-box{width:100%;max-width:420px;max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .bgp-head{display:flex;align-items:center;gap:8px}.bgp-head b{flex:1;font-size:16px}
 .bgp-w{display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:800;padding:3px 8px;border-radius:999px;background:var(--panel2)}
 .bgp-x{width:34px;height:34px;border:0;border-radius:50%;background:var(--panel2);color:var(--text);font-size:20px;font-family:inherit}
 .bgp-view{position:relative;aspect-ratio:3/2;border-radius:14px}
-.bgp-pet{position:absolute;left:50%;bottom:9%;width:30%;aspect-ratio:1;transform:translateX(-50%);z-index:3;border-radius:18%;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.45)}
+.bgp-pet{position:absolute;left:50%;bottom:8%;width:30%;aspect-ratio:1;transform:translateX(-50%);z-index:3;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55))}
 .bgp-pet>*{width:100%;height:100%;display:block}
 .bgp-info b{display:block;font-size:15px}.bgp-info small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}.bgp-info small.warn{color:#FFB0A0}
 .bgp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -1746,6 +1729,8 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 .bgp-cell i{position:absolute;font-style:normal;font-size:10px;font-weight:900;padding:1px 5px;border-radius:999px;display:inline-flex;align-items:center;gap:2px}
 .bgp-cell .use{left:3px;bottom:3px;background:var(--acc);color:#2A1E04}.bgp-cell .lk{left:3px;bottom:3px;background:rgba(6,8,12,.8);color:#fff}.bgp-cell .lg{right:3px;top:3px;background:#FFD23F;color:#2A1E04}
 .bgp-acts{display:flex;gap:8px}.bgp-acts button{flex:1;height:48px;border-radius:12px;font-size:15px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:4px}
+#h-go-sub i.fc{background:rgba(0,0,0,.3);color:#FFF3C4}#h-go-sub i.fc.off{color:rgba(0,0,0,.6);background:rgba(0,0,0,.1)}
+.res-fc{font-style:normal;font-size:12px;font-weight:800;padding:1px 7px;border-radius:999px;background:rgba(255,210,63,.18);color:var(--acc)}.res-fc.off{background:rgba(255,255,255,.08);color:var(--muted)}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}

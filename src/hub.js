@@ -293,7 +293,8 @@
     var dur = o.duration + (pc.coffee ? 15 : 0) + (zb && zb.time ? Math.round(zb.time) : 0), fh = o.freeHints + (pc.sketch ? 2 : 0);
     if (Df) { var DLn = Df.info(Df.get(save)); dur = Math.max(Math.min(dur, Df.MIN_SEC), dur + DLn.time); fh += DLn.freeHints; }   // 0.7.0 난이도
     diffGoSub();
-    $('h-go-sub').innerHTML = '<i>⏱ ' + dur + '초</i>' + (fh ? '<i>무료 단서 ' + fh + '</i>' : '') + (pc.press ? '<i>수사비 1.5배</i>' : '');
+    var fl = I.focusLeft(save, nowMs());   // 0.12.1 집중 수사
+    $('h-go-sub').innerHTML = '<i>⏱ ' + dur + '초</i>' + (fl > 0 ? '<i class="fc">집중 수사 ' + fl + ' / ' + I.TUNE.focusRuns + '</i>' : '<i class="fc off">오늘 집중 수사 끝</i>') + (fh ? '<i>무료 단서 ' + fh + '</i>' : '') + (pc.press ? '<i>수사비 1.5배</i>' : '');
     if (E) { renderPrep(t); renderDaily(t); renderSupport(t); }
 
     $('h-det').textContent = save.detectives;
@@ -769,7 +770,7 @@
     }
     // 0.4.0 시즌 패스 경험치 · 광고 보고 수사비 2배
     if (M) {
-      var rxp = Math.round(M.runXp(g.score, d && d.medal) * DL.xp);   // 0.7.0 난이도 경험치 배수
+      var rxp = Math.round(M.runXp(g.score, d && d.medal, r.focus) * DL.xp);   // 0.7.0 난이도 경험치 배수
       var xr = M.addXp(save, dayNow(), rxp);
       extra += '<span class="res-pass">시즌 패스 +' + rxp + 'XP' + (xr.up ? ', <b>' + xr.tier + '단계 달성!</b> 매점에서 보상을 받아요' : '') + '</span>';
       lastDouble = null;
@@ -787,7 +788,7 @@
     var partner = PT && save.pets.eq ? PT.nameOf(save, save.pets.eq) : '';
     if (petPay > 0) extra = '<span class="res-pet">파트너 효과 +' + fmt(petPay) + (partner ? ', 파트너 ' + esc(partner) + ' 덕분이에요' : '') + '</span>' + extra;
     var dTag = Df ? '<span class="res-diff" style="--c:' + DL.color + '">' + DL.icon + ' ' + Df.resultLine(dk) + '</span>' : '';
-    return dTag + '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ', 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, CS().goal)) + ' / ' + CS().goal + ')</span>' +
+    return dTag + '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ', 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b>' + (r.focus ? ' <em class="res-fc">집중 수사 ×' + I.TUNE.focusMult + '</em>' : ' <em class="res-fc off">집중 수사 끝</em>') + ' (' + fmt(Math.min(save.caught, CS().goal)) + ' / ' + CS().goal + ')</span>' +
       extra +
       '<span class="muted">팀 사기 충전: ' + (I.TUNE.buffSec / 60) + '분 동안 팀이 2배로 일해요</span>' +
       (rk.next ? '<span class="muted">' + rk.next.name + ' 승진까지 출동 검거 ' + fmt(rk.toNext) + '명</span>' : '') +

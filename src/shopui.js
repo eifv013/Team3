@@ -222,7 +222,7 @@
       '<div class="ph-main"><span class="ph-season">시즌 ' + se.no + (ps.premium ? ', <em>프리미엄</em>' : '') + '</span>' +
       '<span class="ph-left' + (se.left <= 3 ? ' soon' : '') + '">' + leftTxt(se.left) + (se.left <= 3 ? ', 곧 끝나요' : '') + '</span>' +
       '<div class="ph-bar"><i style="width:' + pct + '%"></i><span>' + (tier >= M.TIERS ? '완료' : into + ' / ' + M.TIER_XP + ' XP') + '</span></div></div></div>' +
-      '<p class="ph-how">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '출동마다 10~40XP, 특별 출동 메달 +30XP') + '</p>' +
+      '<p class="ph-how">' + (tier >= M.TIERS ? '모든 단계를 열었어요!' : '집중 수사 출동 60~90XP, 특별 출동 메달 +30XP') + '</p>' +
       passActs(ps, tier, into, can) + premFx(ps.premium, se.left) +
       '<div class="pass-grid"><span class="pass-h"></span><span class="pass-h">무료</span><span class="pass-h prem">★ 프리미엄</span>';
     for (var t = 1; t <= M.TIERS; t++) {

@@ -180,7 +180,7 @@
    *   무료 줄은 누구나, 프리미엄 줄은 패스를 산 사람(산 뒤 지난 단계도 받는다).
    *   마지막 프리미엄 단계: 전설 선택권(전설 동물 하나를 골라 데려오기).
    */
-  var SEASON_DAYS = 30, TIERS = 30, TIER_XP = 100, EPOCH = Date.UTC(2026, 0, 5);
+  var SEASON_DAYS = 30, TIERS = 30, TIER_XP = 200, EPOCH = Date.UTC(2026, 0, 5);
   function dayNum(day) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day || ''); return m ? Math.floor((Date.UTC(+m[1], +m[2] - 1, +m[3]) - EPOCH) / D) : 0; }
   /*
    * 0.6.0 시즌은 플레이어마다: 시즌 패스를 처음 연 날(passStart)부터 30일씩(0.9.0 부터, 그전엔 28일). 누구나 시즌 1 · 30일로 시작한다.
@@ -209,7 +209,8 @@
   }
   function tierOf(xp) { return Math.min(TIERS, Math.floor(xp / TIER_XP)); }
   /** 출동 한 번의 경험치: 10 + 점수/500(최대 30 더). 특별 출동 메달은 +30 */
-  function runXp(score, medal) { return 10 + Math.min(30, Math.floor((score || 0) / 500)) + (medal ? 30 : 0); }
+  // 0.12.1 집중 수사(하루 첫 3번) 출동에서 대부분을 준다: 30단계를 보통 성향 3주쯤, 하루 종일 해도 2주쯤(전에는 열흘 · 나흘)
+  function runXp(score, medal, focus) { return (focus === false ? 5 : 60 + Math.min(30, Math.floor((score || 0) / 500))) + (medal ? 30 : 0); }
   function addXp(save, day, xp) {
     var ps = passOf(save, day), before = tierOf(ps.xp);
     if (ps.premium) xp = xp * (1 + PREM.xp / 100);   // 0.9.0 프리미엄: 패스 경험치 +25%

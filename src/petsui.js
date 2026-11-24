@@ -38,23 +38,114 @@
     var dot = free > 0 ? '<span class="pet-dot">' + (free > 99 ? '99+' : free) + '</span>' : '';
     if (!x) {
       box.style.removeProperty('--gc');
-      box.innerHTML = '<div class="pet-art pet-empty" aria-hidden="true">?</div>' +
+      setCard(box, '<div class="pet-art pet-empty" aria-hidden="true">?</div>' +
         '<div class="pet-tx"><b>파트너가 없어요</b><small>뽑기로 3팀과 함께할 파트너를 데려와요' + (free ? ', 뽑기권 ' + free + '장' : '') + '</small></div>' +
-        '<button class="buy" id="h-pet-open">뽑기' + dot + '</button>';
+        '<button class="buy" id="h-pet-open">뽑기' + dot + '</button>', '');
       return;
     }
     var sp = P.BY_ID[x.id], g = P.GRADE[x.g], st = p.own[p.eq], nm = P.nameOf(S(), p.eq);
     box.style.setProperty('--gc', g.color);
     var eff = P.describe(P.eqEffect(x.id, x.g, st)), bd = P.bondOf(S(), p.eq);
     // 0.4.1 무대: 등급 빛(영웅 · 전설은 도는 후광) · 바닥 그림자 · 전설 반짝이. 버튼 안에는 그림만(act 가 갈아 끼운다)
-    box.innerHTML = '<div class="pet-bg bg-' + P.bgNow(S()) + '" aria-hidden="true"><i class="fx"></i></div><button class="pet-bgbtn" id="h-pet-bgbtn">배경</button>' +   // 0.12.0 파트너 배경
+    setCard(box, '<button class="pet-bgbtn" id="h-pet-bgbtn">배경</button>' +   // 0.12.0 파트너 배경
       '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
       '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(', ')) + '</small>' +
         '<small class="pet-bond' + (bd.last === today() ? '' : ' need') + '">♥ ' + bd.lv + '단계' + (bd.last === today() ? ' (함께 ' + bd.days + '일 ✓)' : ', 그림을 눌러 쓰다듬어 줘요') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
-      '<button class="buy" id="h-pet-open">파트너' + dot + '</button>';
+      '<button class="buy" id="h-pet-open">파트너' + dot + '</button>', P.bgNow(S()));
+  }
+  /*
+   * 0.12.1 카드 채우기. 배경(.pet-bg, 움직이는 그림판)은 한 번 만들어 그대로 두고 안쪽(.pet-in)만 갈아 끼운다
+   *   — 카드를 다시 그릴 때마다 배경 움직임이 처음으로 돌아가 멈춘 그림처럼 보이던 것을 막는다.
+   */
+  function setCard(box, html, bg) {
+    var b = box.querySelector(':scope > .pet-bg'), inn = box.querySelector(':scope > .pet-in');
+    if (!b || !inn) { box.innerHTML = '<div class="pet-bg" aria-hidden="true" hidden><canvas></canvas></div><div class="pet-in"></div>'; b = box.firstChild; inn = box.lastChild; }
+    var cls = 'pet-bg' + (bg ? ' bg-' + bg : '');
+    if (b.className !== cls) { b.className = cls; b.firstChild.setAttribute('data-k', bg || ''); b.firstChild._p = null; }
+    b.hidden = !bg;
+    inn.innerHTML = html;
+    if (bg) fxStart();
+  }
+  /*
+   * 0.12.1 배경 움직임(그림판 canvas). 0.12.0 은 CSS 로 옅게 얹어서 휴대폰에서 거의 안 보였다 → 입자를 직접 그린다.
+   *   종류: 비(골목 · 네온) · 안개와 등대 빛(부두) · 형광등 깜빡임(면통실) · 눈 · 별과 별똥별(옥상) · 빛줄기와 금가루(황금 무대) · 지나가는 차 불빛과 먼지(사무실)
+   *   화면에 보이는 .pet-bg canvas 만 그리고, 하나도 없으면 멈춘다. "움직임 줄이기"면 한 장만 그린다.
+   */
+  var fxOn = false, fxT0 = 0;
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function fxInit(k, w, h) {
+    var p = [], i;
+    if (k === 'alley' || k === 'neon') for (i = 0; i < 90; i++) p.push({ x: rnd(-0.2, 1.1), y: rnd(0, 1), v: rnd(1.3, 2.1), l: rnd(0.05, 0.11), a: rnd(0.35, 0.8) });
+    else if (k === 'snow') for (i = 0; i < 80; i++) p.push({ x: rnd(0, 1), y: rnd(0, 1), v: rnd(0.05, 0.16), r: rnd(1.2, 3.6), ph: rnd(0, 6.3), a: rnd(0.6, 1) });
+    else if (k === 'harbor') for (i = 0; i < 7; i++) p.push({ x: rnd(0, 1), y: rnd(0.35, 0.9), v: rnd(0.04, 0.09), r: rnd(0.22, 0.42), a: rnd(0.16, 0.3) });
+    else if (k === 'roof') for (i = 0; i < 60; i++) p.push({ x: rnd(0.02, 0.98), y: rnd(0.02, 0.4), r: rnd(1, 2.4), ph: rnd(0, 6.3), sp: rnd(2, 5) });
+    else if (k === 'gold') for (i = 0; i < 46; i++) p.push({ x: rnd(0, 1), y: rnd(0, 1), v: rnd(0.06, 0.16), r: rnd(2, 5), ph: rnd(0, 6.3), sp: rnd(2, 6) });
+    else for (i = 0; i < 26; i++) p.push({ x: rnd(0, 1), y: rnd(0.1, 0.95), v: rnd(0.004, 0.014), r: rnd(0.8, 1.8), ph: rnd(0, 6.3) });
+    return p;
+  }
+  function glow(c, x, y, r, col, a) { var g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(1, col.replace('A', 0)); c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2); }
+  function fxDraw(cv, t, dt) {
+    var k = cv.getAttribute('data-k') || 'office', w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, root.devicePixelRatio || 1);
+    if (!w || !h) return false;
+    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    if (!cv._p) cv._p = fxInit(k, w, h);
+    var c = cv.getContext('2d'), p = cv._p, i, o, a;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h); c.globalCompositeOperation = 'lighter';
+    if (k === 'alley' || k === 'neon') {
+      c.lineCap = 'round';
+      for (i = 0; i < p.length; i++) {
+        o = p[i]; o.y += o.v * dt; o.x += o.v * dt * 0.16; if (o.y > 1.1) { o.y = -0.12; o.x = rnd(-0.2, 1.1); }
+        c.strokeStyle = k === 'neon' ? (i % 3 ? 'rgba(255,170,240,' + o.a * 0.8 + ')' : 'rgba(150,235,255,' + o.a * 0.8 + ')') : 'rgba(205,225,255,' + o.a * 0.75 + ')';
+        c.lineWidth = o.a > 0.6 ? 1.6 : 1; c.beginPath(); c.moveTo(o.x * w, o.y * h); c.lineTo((o.x + o.l * 0.16) * w, (o.y + o.l) * h); c.stroke();
+      }
+      // 바닥에 튀는 빗방울 고리
+      for (i = 0; i < 9; i++) { a = (t * 1.6 + i * 0.37) % 1; c.strokeStyle = 'rgba(220,235,255,' + (0.5 * (1 - a)) + ')'; c.lineWidth = 1; c.beginPath(); c.ellipse(((i * 0.618 + Math.floor(t * 1.6 + i * 0.37) * 0.271) % 1) * w, (0.72 + (i % 4) * 0.07) * h, 3 + a * 11, 1 + a * 3.2, 0, 0, 6.3); c.stroke(); }
+      if (k === 'alley') glow(c, 0.72 * w, 0.07 * h, 0.3 * w, 'rgba(255,190,100,A)', 0.2 + 0.1 * Math.sin(t * 7) * Math.sin(t * 2.3));
+      else glow(c, 0.22 * w, 0.2 * h, 0.42 * w, 'rgba(255,60,190,A)', (Math.sin(t * 31) > 0.86 || (t % 4.2) < 0.12 ? 0.06 : 0.3) );
+    } else if (k === 'snow') {
+      for (i = 0; i < p.length; i++) { o = p[i]; o.y += o.v * dt; if (o.y > 1.05) { o.y = -0.05; o.x = rnd(0, 1); } c.fillStyle = 'rgba(255,255,255,' + o.a + ')'; c.beginPath(); c.arc((o.x + Math.sin(t * 0.9 + o.ph) * 0.02) * w, o.y * h, o.r, 0, 6.3); c.fill(); }
+      glow(c, 0.265 * w, 0.2 * h, 0.2 * w, 'rgba(255,200,120,A)', 0.2 + 0.07 * Math.sin(t * 2.1));
+    } else if (k === 'harbor') {
+      a = Math.sin(t * 1.1) * 0.3 + 3.32;   // 등대 빛이 좌우로 쓴다
+      var lx = 0.928 * w, ly = 0.185 * h, L = 1.1 * w, g = c.createLinearGradient(lx, ly, lx + Math.cos(a) * L, ly + Math.sin(a) * L);
+      g.addColorStop(0, 'rgba(210,255,248,.55)'); g.addColorStop(1, 'rgba(210,255,248,0)'); c.fillStyle = g;
+      c.beginPath(); c.moveTo(lx, ly); c.lineTo(lx + Math.cos(a - 0.085) * L, ly + Math.sin(a - 0.085) * L); c.lineTo(lx + Math.cos(a + 0.085) * L, ly + Math.sin(a + 0.085) * L); c.closePath(); c.fill();
+      glow(c, lx, ly, 0.07 * w, 'rgba(230,255,250,A)', 0.55 + 0.3 * Math.sin(t * 1.1));
+      for (i = 0; i < p.length; i++) { o = p[i]; o.x += o.v * dt; if (o.x > 1.5) o.x = -0.5; glow(c, o.x * w, o.y * h, o.r * w, 'rgba(170,225,220,A)', o.a); }
+    } else if (k === 'room') {
+      a = (t % 3.4) < 0.45 ? (Math.sin(t * 60) > 0 ? 0.02 : 0.34) : ((t + 1.3) % 5.1) < 0.1 ? 0.03 : 0.24 + 0.06 * Math.sin(t * 11);
+      var gr = c.createLinearGradient(0, 0, 0, h * 0.8); gr.addColorStop(0, 'rgba(190,240,255,' + a + ')'); gr.addColorStop(1, 'rgba(190,240,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+      glow(c, 0.52 * w, 0.045 * h, 0.3 * w, 'rgba(220,250,255,A)', a * 1.6);
+      glow(c, 0.06 * w, 0.62 * h, 0.2 * w, 'rgba(255,180,90,A)', 0.2 + 0.05 * Math.sin(t * 1.7));
+      for (i = 0; i < p.length; i++) { o = p[i]; o.y -= o.v * dt; o.x += Math.sin(t * 0.5 + o.ph) * 0.0006; if (o.y < 0.05) o.y = 0.95; c.fillStyle = 'rgba(220,245,255,' + (0.3 + 0.3 * Math.sin(t * 1.3 + o.ph)) + ')'; c.beginPath(); c.arc(o.x * w, o.y * h, o.r, 0, 6.3); c.fill(); }
+    } else if (k === 'roof') {
+      for (i = 0; i < p.length; i++) { o = p[i]; a = 0.5 + 0.5 * Math.sin(t * o.sp + o.ph); c.fillStyle = 'rgba(235,244,255,' + (0.05 + 0.95 * a) + ')'; c.beginPath(); c.arc(o.x * w, o.y * h, o.r * (0.5 + 0.7 * a), 0, 6.3); c.fill(); if (i % 6 === 0) glow(c, o.x * w, o.y * h, o.r * 5, 'rgba(200,225,255,A)', 0.5 * a); }
+      a = (t % 4.5) / 1.1; if (a < 1) { var sx = (0.15 + 0.5 * ((Math.floor(t / 4.5) * 0.37) % 1) + a * 0.3) * w, sy = (0.04 + a * 0.16) * h, sg = c.createLinearGradient(sx, sy, sx - 0.12 * w, sy - 0.064 * h); sg.addColorStop(0, 'rgba(255,255,255,' + (1 - a) + ')'); sg.addColorStop(1, 'rgba(255,255,255,0)'); c.strokeStyle = sg; c.lineWidth = 1.8; c.beginPath(); c.moveTo(sx, sy); c.lineTo(sx - 0.12 * w, sy - 0.064 * h); c.stroke(); }
+      glow(c, 0.774 * w, 0.275 * h, 0.03 * w, 'rgba(255,70,70,A)', (t % 1.6) < 0.8 ? 0.9 : 0.1);
+      glow(c, 0.955 * w, 0.52 * h, 0.14 * w, 'rgba(255,180,90,A)', 0.25 + 0.12 * Math.sin(t * 5) * Math.sin(t * 1.7));
+    } else if (k === 'gold') {
+      for (i = 0; i < 9; i++) { a = (i - 4) * 0.2 + Math.sin(t * 0.5 + i) * 0.07; var gg = c.createLinearGradient(w / 2, -0.1 * h, w / 2 + Math.sin(a) * h, h); gg.addColorStop(0, 'rgba(255,225,130,' + (0.2 + 0.1 * Math.sin(t * 1.3 + i * 2)) + ')'); gg.addColorStop(1, 'rgba(255,225,130,0)'); c.fillStyle = gg; c.beginPath(); c.moveTo(w / 2, -0.1 * h); c.lineTo(w / 2 + Math.sin(a - 0.045) * h * 1.2, h * 1.1); c.lineTo(w / 2 + Math.sin(a + 0.045) * h * 1.2, h * 1.1); c.closePath(); c.fill(); }
+      for (i = 0; i < p.length; i++) { o = p[i]; o.y += o.v * dt; if (o.y > 1.05) { o.y = -0.05; o.x = rnd(0, 1); } a = Math.abs(Math.sin(t * o.sp + o.ph)); c.fillStyle = 'rgba(255,' + (200 + Math.round(40 * a)) + ',90,' + (0.5 + 0.5 * a) + ')'; c.save(); c.translate((o.x + Math.sin(t + o.ph) * 0.02) * w, o.y * h); c.rotate(t * o.sp * 0.5 + o.ph); c.fillRect(-o.r, -o.r * 0.35 * (0.3 + a), o.r * 2, o.r * 0.7 * (0.3 + a)); c.restore(); }
+    } else {
+      // 사무실: 창밖으로 지나가는 차 불빛이 블라인드 그림자를 쓸고, 책상 등은 숨 쉬듯, 먼지가 뜬다
+      a = (t % 6) / 3; if (a < 1) { var bx = (-0.3 + a * 0.9) * w, bg2 = c.createLinearGradient(bx - 0.18 * w, 0, bx + 0.18 * w, 0); bg2.addColorStop(0, 'rgba(255,215,150,0)'); bg2.addColorStop(0.5, 'rgba(255,215,150,' + 0.16 * Math.sin(a * 3.14) + ')'); bg2.addColorStop(1, 'rgba(255,215,150,0)'); c.fillStyle = bg2; c.save(); c.transform(1, 0, -0.5, 1, 0.25 * h, 0); for (i = 0; i < 16; i++) c.fillRect(bx - 0.2 * w, h * (0.08 + i * 0.055), 0.4 * w, h * 0.026); c.restore(); }
+      glow(c, 0.69 * w, 0.375 * h, 0.17 * w, 'rgba(120,255,150,A)', 0.26 + 0.1 * Math.sin(t * 1.4));
+      glow(c, 0.47 * w, 0.07 * h, 0.3 * w, 'rgba(255,210,150,A)', (t % 11) < 0.15 ? 0.04 : 0.2 + 0.03 * Math.sin(t * 9));
+      for (i = 0; i < p.length; i++) { o = p[i]; o.y -= o.v * dt; if (o.y < 0.05) o.y = 0.95; c.fillStyle = 'rgba(255,225,170,' + (0.25 + 0.3 * Math.sin(t * 1.1 + o.ph)) + ')'; c.beginPath(); c.arc((o.x + Math.sin(t * 0.4 + o.ph) * 0.015) * w, o.y * h, o.r, 0, 6.3); c.fill(); }
+    }
+    return true;
+  }
+  function fxStart() {
+    if (fxOn || typeof requestAnimationFrame !== 'function') return;
+    fxOn = true; var last = 0, calm = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    (function loop(ms) {
+      var cvs = document.querySelectorAll('.pet-bg > canvas'), any = false, t = (ms || 0) / 1000, dt = last ? Math.min(0.05, t - last) : 0.016; last = t;
+      for (var i = 0; i < cvs.length; i++) if (cvs[i].offsetParent !== null && !cvs[i].parentNode.hidden) { if (calm && cvs[i]._still) { any = true; continue; } if (fxDraw(cvs[i], calm ? 3 : t, calm ? 0 : dt)) { any = true; cvs[i]._still = true; } }
+      if (any || cvs.length) requestAnimationFrame(loop); else fxOn = false;   // 판이 하나도 없으면 멈춘다(다시 그릴 때 fxStart 가 켠다)
+    })(0);
   }
   /*
    * 파트너 표정 바꾸기(0.3.1): mood 를 ms 동안 보여 주고 원래대로. move 는 칸이 하는 몸짓(CSS 클래스).
@@ -538,7 +629,7 @@
         if (ctx.render) ctx.render(); renderPartner(); drawBg();
       } });
     });
-    $('toast').parentNode.appendChild(bgEl); drawBg();
+    $('toast').parentNode.appendChild(bgEl); drawBg(); fxStart();
   }
   function closeBg() { if (bgEl && bgEl.parentNode) bgEl.parentNode.removeChild(bgEl); bgEl = null; }
   function drawBg() {
@@ -548,7 +639,7 @@
     else btn = (b.treats ? '<button class="ghost" data-bgact="treats">' + ic('treat') + b.treats + '</button>' : '') + '<button class="primary" data-bgact="gems">' + ic('gem') + b.gems + '</button>';
     bgEl.innerHTML = '<div class="bgp-box" role="dialog" aria-modal="true" aria-label="파트너 배경">' +
       '<div class="bgp-head"><b>파트너 배경</b><span class="bgp-w">' + ic('treat') + fmt(p.treats) + '</span><span class="bgp-w">' + ic('gem') + fmt(s.gems) + '</span><button class="bgp-x" data-bgact="x" aria-label="닫기">×</button></div>' +
-      '<div class="bgp-view pet-bg bg-' + b.id + '"><i class="fx"></i>' + (x ? '<div class="bgp-pet">' + portrait(p.eq, x, { grade: x.g, outfit: P.wearing(s, p.eq) }) + '</div>' : '') + '</div>' +
+      '<div class="bgp-view pet-bg bg-' + b.id + '"><canvas data-k="' + b.id + '"></canvas>' + (x ? '<div class="bgp-pet">' + portrait(p.eq, x, { grade: x.g, outfit: P.wearing(s, p.eq) }) + '</div>' : '') + '</div>' +
       '<div class="bgp-info"><b>' + esc(b.name) + '</b><small>' + esc(b.desc) + '</small>' + (b.legend && own && !isL ? '<small class="warn">현재 파트너가 전설이 아니라서 사무실이 보여요.</small>' : '') + '</div>' +
       '<div class="bgp-grid">' + P.BGS.map(function (o) {
         return '<button class="bgp-cell bg-' + o.id + (o.id === b.id ? ' on' : '') + (p.bgs[o.id] ? '' : ' lock') + '" data-bg="' + o.id + '" aria-label="' + esc(o.name) + '">' +

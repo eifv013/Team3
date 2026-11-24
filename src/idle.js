@@ -20,6 +20,9 @@
 
   // 수치는 모두 여기. 밸런스를 바꿀 때 이 표만 고친다.
   var TUNE = {
+    // 0.12.1 집중 수사: 하루 첫 focusRuns 번 출동은 사건 검거 ×focusMult, 그 뒤 출동은 ×restMult(수사비 · 기록 · 계급은 그대로).
+    //   하루에 몇 판을 하든 사건 속도가 크게 벌어지지 않게 한다(가볍게 3판 ↔ 열심히 48판이 20배 벌어지던 것).
+    focusRuns: 3, focusMult: 5, restMult: 0.05,
     catchSec: 150,           // 형사 1명이 1명을 잡는 데 걸리는 시간(초), 훈련 전. 0.1.6: 60 → 150(사건 1을 하루~이틀로)
     trainSpeed: 0.25,        // 훈련 1단계당 속도 +25%
     catchPay: 15,            // 팀이 1명 잡을 때 수사비
@@ -46,7 +49,11 @@
     { name: '경감', at: 150, gems: 10 },
     { name: '경정', at: 500, gems: 20 },
     { name: '총경', at: 1500, gems: 30 },
-    { name: '경무관', at: 4000, gems: 50 }
+    { name: '경무관', at: 4000, gems: 50 },
+    // 0.12.1 최고 계급이 열흘쯤에 끝나서 셋을 더했다(보통 성향 약 1달 · 3달 · 7달)
+    { name: '치안감', at: 12000, gems: 80 },
+    { name: '치안정감', at: 30000, gems: 120 },
+    { name: '치안총감', at: 80000, gems: 200 }
   ];
   var RANK_BONUS = 0.05;
 
@@ -225,6 +232,7 @@
       lastSeen: now,
       buffUntil: 0,
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
+      focus: { day: '', used: 0 },
       caseRun: 0, keepBank: 0,   // 0.10.12 현재 사건에서 출동으로 잡은 수 · 재수사 때 남긴 몫(팀 한계에 더해진다)
       closed: false, closedAt: 0,
       tutorialDone: false,
@@ -284,6 +292,8 @@
     s.bestScore = int(data.bestScore, 0, 0);
     s.runCaught = int(data.runCaught, 0, 0);
     s.caseRun = int(data.caseRun, 0, 0); s.keepBank = int(data.keepBank, 0, 0);
+    var fo = data.focus && typeof data.focus === 'object' ? data.focus : {};
+    s.focus = { day: typeof fo.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fo.day) ? fo.day : '', used: int(fo.used, 0, 0) };
     s.teamCaught = int(data.teamCaught, 0, 0);
     // 목표가 늘어난 뒤(0.1.3, 300 → 1000) 예전에 300명으로 종결된 저장은 다시 진행 중으로 돌린다
     s.caseNo = int(data.caseNo, 1, 1, CASES.length);
@@ -499,6 +509,10 @@
    * 출동이 끝났을 때. result = { score, hits } (퍼즐 게임 상태에서 그대로 넘긴다)
    * 점수만큼 수사비, 검거만큼 사건 진척, 그리고 팀 사기 충전.
    */
+  /* 0.12.1 집중 수사 */
+  function dayKey(now) { var d = new Date(now), p = function (n) { return n < 10 ? '0' + n : '' + n; }; return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+  /** 오늘 남은 집중 수사 횟수 */
+  function focusLeft(save, now) { var f = save.focus, k = dayKey(now); return Math.max(0, TUNE.focusRuns - (f && f.day === k ? f.used : 0)); }
   function applyRun(save, result, now) {
     assertNow(now);
     if (!result || typeof result !== 'object') throw IdleError('BAD_RESULT', '출동 결과가 없다');
@@ -514,14 +528,16 @@
     save.money += pay;
     earned(save, Math.round(base * cm));
     save.recent = save.recent.concat([score]).slice(-5);
-    var got = Math.round(hits * (1 + Math.min(0.3, pctOf(bn, 'runHit'))));   // 0.10.12 증거 "출동 검거 +%": 사건 진척에만(계급은 실제 검거 수)
+    var focus = focusLeft(save, now) > 0, fk = dayKey(now);
+    save.focus = { day: fk, used: (save.focus && save.focus.day === fk ? save.focus.used : 0) + 1 };
+    var got = Math.round(hits * (1 + Math.min(0.3, pctOf(bn, 'runHit'))) * (focus ? TUNE.focusMult : TUNE.restMult));   // 0.10.12 증거 "출동 검거 +%": 사건 진척에만(계급은 실제 검거 수)
     save.caught += got; save.caseRun = (save.caseRun || 0) + got;
     save.runCaught += hits;
     save.runs += 1;
     var best = score > save.bestScore;
     if (best) save.bestScore = score;
     save.buffUntil = now + (TUNE.buffSec + amtOf(bn, 'buff')) * 1000;   // 0.3.0 고슴도치: 사기 충전 +초
-    return { money: pay, caught: got, best: best, closedNow: checkClose(save, now) };
+    return { money: pay, caught: got, focus: focus, best: best, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 프로필 ---------- */
@@ -635,7 +651,7 @@
   function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
 
   return {
-    VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseNums: caseNums, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
+    VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseNums: caseNums, focusLeft: focusLeft, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
     RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
     cleanName: cleanName, setProfile: setProfile, profileCost: profileCost, changeProfile: changeProfile, NAME_TAGS: NAME_TAGS, payName: payName, buyNameTags: buyNameTags,
     newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf, setExtraIncome: setExtraIncome, setEarn: setEarn, resetTeam: resetTeam,

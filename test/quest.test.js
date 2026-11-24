@@ -19,7 +19,7 @@ test('세고 · 채우면 받고 · 두 번은 못 받는다 · 날이 바뀌면
   Q.track(s, 'run', 1, d);
   assert.equal(Q.ready(s, d), 1);
   Q.claim(s, 'd_run', d, (k, v) => got.push(k + v));
-  assert.equal(s.gems, 5);
+  assert.equal(s.gems, 3);
   assert.throws(() => Q.claim(s, 'd_run', d), (e) => e.code === 'ALREADY');
   assert.equal(Q.list(s, 'w', d).find((x) => x.id === 'w_run').n, 3);
   const d2 = '2026-11-25';
@@ -46,8 +46,8 @@ test('0.10.9 주간 · 월간 완료 상자', () => {
   Q.LIST.w.forEach((x) => Q.claim(s, x.id, d));
   assert.equal(Q.boxState(s, d, 'w').ready, true);
   const g0 = s.gems || 0, got = [];
-  assert.deepEqual(Q.claim(s, 'box:w', d, (k, v) => got.push(k + v)), { tickets: 3, gems: 30 });
-  assert.equal(s.gems - g0, 30); assert.deepEqual(got, ['tickets3']);
+  assert.deepEqual(Q.claim(s, 'box:w', d, (k, v) => got.push(k + v)), { tickets: 3, gems: 15 });
+  assert.equal(s.gems - g0, 15); assert.deepEqual(got, ['tickets3']);
   assert.throws(() => Q.claim(s, 'box:w', d), { code: 'ALREADY' });
   assert.throws(() => Q.claim(s, 'box:m', d), { code: 'NOT_DONE' });
 });
