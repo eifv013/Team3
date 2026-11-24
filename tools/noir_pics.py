@@ -6,8 +6,11 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'art', 'noir')
 out = {}
-for n in sorted(os.listdir(SRC)):
+names = sorted(os.listdir(SRC))
+for n in names:
     if not n.endswith('.png'):
+        continue
+    if n[:-4] + '_a.png' in names:   # 0.12.3 새 그림(사무실 _a, 현장 _b)이 있는 동물은 예전 한 장을 넣지 않는다
         continue
     im = Image.open(os.path.join(SRC, n)).convert('RGB')
     w, h = im.size; s = min(w, h)

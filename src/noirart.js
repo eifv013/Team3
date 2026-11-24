@@ -532,7 +532,8 @@
   }
   function draw(id, o) {
     o = o || {};
-    var pic = pics()[id]; if (pic) return picDraw(id, o, pic);
+    // 0.12.3 장면 둘: 사무실(_a) · 현장(_b). 고른 장면이 없으면 사무실, 새 그림이 없는 동물은 예전 한 장
+    var PP = pics(), pic = PP[id + '_' + (o.scene === 'b' ? 'b' : 'a')] || PP[id + '_a'] || PP[id]; if (pic) return picDraw(id, o, pic);
     // 0.9.0 그림이 아직 없는 동물은 코드로 그리지 않고 "준비 중" 카드를 보여 준다(모든 그림은 새 그림으로 바뀐다)
     if (o.code !== true) return soonDraw(id, o);
     var s = SP[id], grade = o.grade || 'r', n = 'nz' + (++uid);
@@ -578,5 +579,7 @@
     return '<svg viewBox="0 0 200 200" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg">' + defs + '<g clip-path="url(#' + n + 'cl)">' + bg + body + over + '</g>' + glow + '</svg>';
   }
     var IDS = Object.keys(SP);
-  return { hasPic: function (id) { return !!pics()[id]; }, BG_LIST: BG_LIST, draw: draw, ids: IDS, has: function (id) { return !!SP[id] || !!pics()[id]; } };
+  return { hasPic: function (id) { return !!(pics()[id] || pics()[id + '_a']); }, BG_LIST: BG_LIST, draw: draw, ids: IDS,
+           // has(id) 그릴 수 있는 동물인지, has(id, 'b') 그 장면 그림이 있는지(0.12.3)
+           has: function (id, scene) { return scene ? !!pics()[id + '_' + scene] : !!SP[id] || !!pics()[id] || !!pics()[id + '_a']; } };
 });

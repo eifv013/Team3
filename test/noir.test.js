@@ -54,6 +54,17 @@ test('누아르 그림: 파트너 30종 모두 · 4등급 모두 SVG 가 나오�
 test('0.8.6 그림 도구 초상: 받은 26종은 그림으로, 나머지는 예전 그림으로', () => {
   const Pics = require('../src/noirpics.js');
   assert.ok(Object.keys(Pics).length >= 26);
-  Object.keys(Pics).forEach(id => { assert.ok(N.has(id), id); assert.match(Pics[id], /^data:image\/webp;base64,/); assert.ok(N.draw(id, { grade: 'l' }).includes('<image href="data:image/webp')); });
-  P.SPECIES.filter(sp => !Pics[sp.id]).forEach(sp => assert.ok(!N.draw(sp.id, { grade: 'l' }).includes('<image'), sp.id));
+  // 0.12.3 그림 이름은 동물 id, 또는 id_a(사무실) · id_b(현장)
+  Object.keys(Pics).forEach(k => { const id = k.replace(/_[ab]$/, ''); assert.ok(N.has(id), k); assert.match(Pics[k], /^data:image\/webp;base64,/); });
+  P.SPECIES.forEach(sp => {
+    const has = !!(Pics[sp.id] || Pics[sp.id + '_a']);
+    assert.equal(N.draw(sp.id, { grade: 'l' }).includes('<image href="data:image/webp'), has, sp.id);
+    if (Pics[sp.id + '_a']) {
+      assert.ok(Pics[sp.id + '_b'], sp.id + ' 현장 그림'); assert.ok(!Pics[sp.id], sp.id + ' 예전 그림은 빠져야');
+      assert.ok(N.has(sp.id, 'b')); assert.ok(N.draw(sp.id, { scene: 'b' }).includes(Pics[sp.id + '_b'])); assert.ok(N.draw(sp.id, {}).includes(Pics[sp.id + '_a']));
+    } else assert.ok(!N.has(sp.id, 'b'));
+  });
+  const s = {}; P.clean(s); s.pets.own['tiger:l'] = 1;
+  assert.equal(P.setNoir(s, 'tiger:l', 'b'), true); assert.equal(P.noirScene(s, 'tiger:l'), 'b'); P.clean(s); assert.equal(P.noirScene(s, 'tiger:l'), 'b');
+  P.setNoir(s, 'tiger:l', true); assert.equal(P.noirScene(s, 'tiger:l'), 'a'); assert.equal(P.noirOn(s, 'tiger:l'), true);
 });

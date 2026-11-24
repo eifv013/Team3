@@ -16,7 +16,7 @@
   /* 0.8.4 누아르 각성 그림. 켜진 동물이면 초상(파트너 카드 · 도감 자세히)을 누아르로. 표정·의상은 귀여운 그림에만 있다 */
   function noirArt() { return root.Team3NoirArt; }
   function isNoir(k) { return !!(noirArt() && k && P.noirOn(S(), k)); }
-  function portrait(k, x, o) { return isNoir(k) ? '<span class="noir-pic' + (o && o.anim ? ' noir-anim' : '') + '">' + noirArt().draw(x.id, { grade: x.g }) + '</span>' : A.draw(x.id, o); }
+  function portrait(k, x, o) { return isNoir(k) ? '<span class="noir-pic' + (o && o.anim ? ' noir-anim' : '') + '">' + noirArt().draw(x.id, { grade: x.g, scene: P.noirScene(S(), k) }) + '</span>' : A.draw(x.id, o); }
   if (!P || !A) return;
   var $ = function (id) { return document.getElementById(id); };
   function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
@@ -554,7 +554,9 @@
     if (P.canNoir(S(), detailKey)) {
       var on = isNoir(detailKey);
       return '<div class="pet-noir"><span class="label">코드네임, ' + esc(P.codename(x.id)) + '</span><div class="pn-seg">' +
-        '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on ? 'on' : '') + '" data-noir="1">코드네임</button></div>' +
+        (N.has && N.has(x.id, 'b')
+          ? '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on && P.noirScene(S(), detailKey) === 'a' ? 'on' : '') + '" data-noir="1">사무실</button><button class="' + (on && P.noirScene(S(), detailKey) === 'b' ? 'on' : '') + '" data-noir="b">현장</button></div>'
+          : '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on ? 'on' : '') + '" data-noir="1">코드네임</button></div>') +
         (on ? '<small class="muted">코드네임일 땐 의상이 안 보여요, 상황실 안에서는 본명 모습 그대로예요</small>' : '') + '</div>';
     }
     return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, size: 56 }) + '<i>' + LOCK + '</i></span>' +
@@ -687,7 +689,7 @@
         if (P.setNoir(S(), pets().eq, onC)) { ctx.persist(); renderPartner(); draw(); ctx.render(); if (onC) toast('코드네임 ' + P.codename(P.parse(pets().eq).id) + ', 임무 시작'); }
       }
       else if (t.hasAttribute('data-noir')) {
-        var onN = t.getAttribute('data-noir') === '1';
+        var onN = t.getAttribute('data-noir') === 'b' ? 'b' : t.getAttribute('data-noir') === '1';
         if (P.setNoir(S(), detailKey, onN)) { ctx.persist(); renderPartner(); drawDetail(); ctx.render(); if (onN) { toast('코드네임 ' + P.codename(P.parse(detailKey).id) + ', 임무 시작'); try { ctx.UI.sfx.none(); } catch (e11) { /* 무시 */ } } }
       }
       else if (t.id === 'pets-name') startNaming();

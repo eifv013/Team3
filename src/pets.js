@@ -184,7 +184,7 @@
     Object.keys(wr).forEach(function (k) { if (parse(k) && p.own[k] && p.closet[wr[k]]) p.wear[k] = wr[k]; });
     // 0.8.4 누아르 각성: 켠 동물(noir) · 각성이 열린 걸 이미 알려 준 동물(noirSeen). 조건이 안 되는 키는 버린다
     var nr = d.noir && typeof d.noir === 'object' ? d.noir : {}, ns = d.noirSeen && typeof d.noirSeen === 'object' ? d.noirSeen : {};
-    Object.keys(nr).forEach(function (k) { if (nr[k] === true && canNoirP(p, k)) p.noir[k] = true; });
+    Object.keys(nr).forEach(function (k) { if ((nr[k] === true || nr[k] === 'b') && canNoirP(p, k)) p.noir[k] = nr[k]; });   // 0.12.3 'b' = 현장 장면
     Object.keys(ns).forEach(function (k) { if (ns[k] === true && canNoirP(p, k)) p.noirSeen[k] = true; });
     var fr = d.fresh && typeof d.fresh === 'object' ? d.fresh : {};
     Object.keys(fr).forEach(function (k) { if (fr[k] === true && p.own[k]) p.fresh[k] = true; });
@@ -203,10 +203,12 @@
   function canNoirP(p, k) { var x = parse(k); return !!(x && p.own[k] && (x.g === 'l' || p.own[k] >= STAR_MAX)); }
   function canNoir(save, k) { return canNoirP(P(save), k); }
   function noirOn(save, k) { var p = P(save); return !!(p.noir[k] && canNoirP(p, k)); }
+  /** 코드네임 그림의 장면: 'a' 사무실, 'b' 현장 */
+  function noirScene(save, k) { return P(save).noir[k] === 'b' ? 'b' : 'a'; }
   function setNoir(save, k, on) {
     var p = P(save);
     if (!canNoirP(p, k)) return false;
-    if (on) p.noir[k] = true; else delete p.noir[k];
+    if (on) p.noir[k] = on === 'b' ? 'b' : true; else delete p.noir[k];
     p.noirSeen[k] = true;
     return true;
   }
@@ -619,7 +621,7 @@
     codename: codename, CODENAME: CODENAME,
     BGS: BGS, BG_BY: BG_BY, buyBg: buyBg, useBg: useBg, bgNow: bgNow,
     LIMITED: LIMITED, grantLimited: grantLimited,
-    canNoir: canNoir, noirOn: noirOn, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
+    canNoir: canNoir, noirOn: noirOn, noirScene: noirScene, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,
     STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, MAX_PULL: MAX_PULL, gemCost: gemCost, maxPull: maxPull, WELCOME: WELCOME, CAPS: CAPS,
     key: key, parse: parse, clean: clean, rates: rates, effectiveLegend: effectiveLegend, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,
