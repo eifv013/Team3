@@ -127,7 +127,7 @@
     var missPenalty = opts.missPenalty == null ? RULES.missPenalty : opts.missPenalty;
     var hitBonus = opts.hitBonus == null ? 0 : opts.hitBonus;
     var preOut = opts.preOut ? 1 : 0;
-    if (!(missPenalty >= 0 && missPenalty <= 30) || !(hitBonus >= 0 && hitBonus <= 10)) throw LError('BAD_OPTION', '벌점 · 보너스 범위');
+    if (!(missPenalty >= 0 && missPenalty <= 30) || !(hitBonus >= 0 && hitBonus <= 10)) throw LError('BAD_OPTION', '벌점, 보너스 범위');
     var st = {
       mode: 'lineup', rng: opts.rng, level: 1, startLevel: 1,
       missPenalty: missPenalty, hitBonus: hitBonus, preOut: preOut,

@@ -350,7 +350,7 @@
       c = gemCost(n);
       if (!(save.gems >= c)) throw PetError('NOT_ENOUGH', '배지가 모자란다');
       save.gems -= c;
-    } else throw PetError('BAD_PAY', '뽑기권 · 배지 · 무료');
+    } else throw PetError('BAD_PAY', '뽑기권, 배지, 무료');
     var out = [];
     for (var i = 0; i < n; i++) {
       var g, forced = false;

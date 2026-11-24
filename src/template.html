@@ -420,7 +420,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .t-seg em{font-style:normal;margin-left:4px;font-size:10.5px;padding:1px 6px;border-radius:8px;background:var(--ok);color:var(--ink)}
 .t-sub{display:none;flex-direction:column;gap:10px}.t-sub.on{display:flex}
 .reco-rib{position:relative}
-.reco-rib::after{content:'추천 · 수입이 가장 많이 늘어요';position:absolute;left:10px;top:-9px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--ok);color:var(--ink);pointer-events:none;white-space:nowrap}
+.reco-rib::after{content:'추천, 수입이 가장 많이 늘어요';position:absolute;left:10px;top:-9px;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--ok);color:var(--ink);pointer-events:none;white-space:nowrap}
 .item.reco-rib,.dept.reco-rib{outline:1.5px solid rgba(61,220,132,.55);outline-offset:-1px}
 .spot{animation:spot 1.4s ease-out}
 @keyframes spot{0%,40%{box-shadow:0 0 0 4px var(--acc),0 0 24px rgba(255,210,63,.6)}100%{box-shadow:0 0 0 0 transparent}}
@@ -1537,8 +1537,8 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 /* ===== 0.8.4 단추 전체 새 단장: 납작한 단추 → 입체(아래 두께 · 위 빛 · 누르면 꾹) =====
    primary  = 금빛 입체(구매 단추와 같은 재질)
    ghost    = 짙은 남색 입체(테두리 대신 두께)
-   탭 묶음  = 홈 파인 판 위에 고른 칸만 솟아오름(.pet-tabs · .ach-tabs · .t-seg · 상점 탭)
-   카드 단추 = 위 빛 한 줄 + 누르면 살짝 눌림(.t-quick · .t-plinks · .t-todo) */
+   탭 묶음  = 홈 파인 판 위에 고른 칸만 솟아오름(.pet-tabs, .ach-tabs, .t-seg, 상점 탭)
+   카드 단추 = 위 빛 한 줄 + 누르면 살짝 눌림(.t-quick, .t-plinks, .t-todo) */
 .primary{position:relative;background:linear-gradient(180deg,#FFE58A 0%,#FFD23F 45%,#F2B71E 100%);color:#2A1F04;
   box-shadow:0 4px 0 #A8800F,0 6px 14px rgba(255,190,40,.18),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(150,100,0,.22);transition:transform .07s,box-shadow .07s}
 .primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #A8800F,inset 0 1px 0 rgba(255,255,255,.6)}
@@ -1675,6 +1675,7 @@ button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{mar
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .tx b{font-size:13.5px;color:var(--muted);font-weight:700}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy{width:auto;min-width:0;height:24px;padding:0 9px;border-radius:999px;box-shadow:none;background:rgba(126,224,143,.12);pointer-events:none}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy b{font-size:11px;color:#9FEBAD}
+details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 밑으로 들어가지 않고 … 으로 끊긴다 */
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -1703,9 +1704,9 @@ button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{mar
 .t-plinks.q2 small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .t-quick.t-plinks button.hot small{color:var(--ok)}.t-quick.t-plinks button.glow small{color:#9FD8FF;font-weight:700}
 /* ===== 0.8.5 증거 탭 새 단장 =====
-   판: 나무 액자 + 코르크 결(굵은 알갱이 · 고운 알갱이 · 위에서 비추는 불빛) · 닫힌 칸은 그냥 코르크(격자 없음) · 열린 빈칸은 분필 점선
-   꽂힌 카드: 줄 그은 색인 카드 + 위 색 띠 + 그림자 + 큰 압정 · 실은 털실처럼 굵게
-   카드 목록: 위 색 띠가 있는 서류 카드 + 입체 단추(사기 = 하늘색 · 강화 = 금색) */
+   판: 나무 액자 + 코르크 결(굵은 알갱이, 고운 알갱이, 위에서 비추는 불빛), 닫힌 칸은 그냥 코르크(격자 없음), 열린 빈칸은 분필 점선
+   꽂힌 카드: 줄 그은 색인 카드 + 위 색 띠 + 그림자 + 큰 압정, 실은 털실처럼 굵게
+   카드 목록: 위 색 띠가 있는 서류 카드 + 입체 단추(사기 = 하늘색, 강화 = 금색) */
 .ev-board{gap:10px;padding:16px 12px 14px;border-radius:14px;margin:4px 2px 6px;
   background-color:#A9784A;
   background-image:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,236,200,.22),transparent 70%),
@@ -1824,7 +1825,7 @@ body.prem-on #h-station::before{content:'👑 '}
 .pass-fx.off div em{color:#8F98A8}
 .pass-miss{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 10px;border-radius:12px;background:rgba(255,210,63,.08);border:1px dashed rgba(255,210,63,.45);font-size:12.5px;color:#FFE58A}
 .pass-miss b{font-weight:900}
-.pass-premcard.soon .ppc-tx small:last-child::after{content:' · 곧 사라져요';color:#FF8A7A;font-weight:800}
+.pass-premcard.soon .ppc-tx small:last-child::after{content:', 곧 사라져요';color:#FF8A7A;font-weight:800}
 .pc.shake{animation:pcshake .5s ease-in-out 2}
 @keyframes pcshake{20%{transform:translateX(-4px) rotate(-2deg)}40%{transform:translateX(4px) rotate(2deg)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
 .pc.pick{cursor:pointer}
@@ -1912,13 +1913,13 @@ body.prem-on #h-station::before{content:'👑 '}
          수사비는 한 줄로만(길어지면 글자를 줄인다, hub.js fitMoney) — 칩 때문에 두 줄로 꺾이지 않게 -->
     <div class="hub-head" style="margin-top:6px">
         <button class="nameplate" id="h-profile" aria-label="경찰서와 팀장 이름 바꾸기">
-          <span class="brand" id="h-station">중앙서 · 수사 3팀</span>
-          <span class="leader" id="h-leader">신임 팀장 · 이름 정하기</span>
+          <span class="brand" id="h-station">중앙서, 수사 3팀</span>
+          <span class="leader" id="h-leader">신임 팀장, 이름 정하기</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>
         </button>
         <div class="icon-pair"><button class="icon-btn pass-btn" id="h-pass" aria-label="시즌 패스"></button><button class="icon-btn" id="h-ach" aria-label="업적과 칭호"></button><button class="icon-btn" id="h-help" aria-label="도움말"></button><button class="icon-btn" id="h-sound" aria-label="설정"></button></div>
         <span class="money-wrap"><span class="money" id="h-money">0</span><span class="float-layer" id="h-float" aria-hidden="true"></span></span>
-        <div class="head-chips"><button class="go-diff" id="h-go-diff" aria-label="난이도 바꾸기">🚨 강력</button><button class="gem-chip" id="h-gems" aria-label="배지 · 3팀 매점 열기">◆ 0</button></div>
+        <div class="head-chips"><button class="go-diff" id="h-go-diff" aria-label="난이도 바꾸기">🚨 강력</button><button class="gem-chip" id="h-gems" aria-label="배지, 3팀 매점 열기">◆ 0</button></div>
         <!-- 팀 속도 줄과 검거 소식이 같은 자리에서 번갈아 보인다(높이 고정이라 아래 칸이 움직이지 않는다) -->
         <span class="rate-line">
           <span class="rate" id="h-rate-wrap"><span id="h-rate">팀 1분에 1명</span><span class="buff" id="h-buff" hidden>사기 충전 ×2</span><button class="prem-chip" id="h-prem" hidden aria-label="시즌 패스 프리미엄 남은 날">👑 0일</button></span>
@@ -1930,7 +1931,7 @@ body.prem-on #h-station::before{content:'👑 '}
         <div class="t-sum" id="h-tsum"></div>
         <div class="t-seg" id="h-seg" role="tablist"><button class="on" data-sub="team">3팀<em hidden></em></button><button data-sub="tech">기법<em hidden></em></button><button data-sub="dept">부서<em hidden></em></button><button data-sub="sup">지원<em hidden></em></button></div>
         <div class="t-sub on" data-sub="team">
-          <span class="section-t">형사 · 훈련</span>
+          <span class="section-t">형사, 훈련</span>
     <div class="shop">
       <div class="item">
         <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-4 3-6 6.5-6s6.5 2 6.5 6"/><path d="M18 8v6M15 11h6"/></svg></div>
@@ -1991,7 +1992,7 @@ body.prem-on #h-station::before{content:'👑 '}
       <div class="tab scroll on" id="t-home" data-tab="home" aria-label="상황실">
     <div class="casebox">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
-        <b style="font-size:15px" id="h-case">사건 1 · 골목길 연쇄 절도</b>
+        <b style="font-size:15px" id="h-case">사건 1 골목길 연쇄 절도</b>
         <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums" id="h-caught">0 / 300</span>
       </div>
       <div class="bar"><span class="cap" id="h-cap"></span><i id="h-bar" style="width:0%"></i></div>
@@ -2000,11 +2001,11 @@ body.prem-on #h-station::before{content:'👑 '}
         <button class="linkish" id="h-story-all">수사 일지 보기</button>
         <span class="city-chip" id="h-city">중앙서</span>
       </div>
-      <button class="ghost next-case" id="h-next-case" hidden>사건 2 · 해무항으로 파견</button>
+      <button class="ghost next-case" id="h-next-case" hidden>사건 2 해무항으로 파견</button>
     </div>
     <!-- 0.6.0 살아 있는 사무실: 책상 · 유치장 · 창밖 날씨 · 파트너 동물(officeui.js 가 그린다) -->
     <div class="office" id="h-office" aria-label="3팀 사무실"></div>
-        <button class="go-btn go-home" id="h-go-home"><b>현장 출동</b><small id="h-go-home-sub">90초 · 잡은 만큼 수사비</small></button>
+        <button class="go-btn go-home" id="h-go-home"><b>현장 출동</b><small id="h-go-home-sub">90초, 잡은 만큼 수사비</small></button>
         <div class="t-todo fold" id="h-todo"></div>
         <div class="t-quick t-plinks q2"><button id="h-q-team" style="--pc:#3DDC84"><i>👥</i><b>팀</b><small></small></button><button id="h-q-evid" style="--pc:#9FD8FF"><i>📌</i><b>증거</b><small></small></button></div>
     <button class="linkish" id="h-version" style="align-self:center;color:var(--muted);font-weight:500;font-size:12px;margin-bottom:8px">수사 3팀</button>
@@ -2095,7 +2096,7 @@ body.prem-on #h-station::before{content:'👑 '}
       <button class="none" id="btn-none">검거 불가</button>
     </div>
     <div class="foot">
-      <span id="stat-line">검거 0 · 오인 0</span>
+      <span id="stat-line">검거 0, 오인 0</span>
       <div class="icon-pair"><button class="icon-btn" id="btn-help" aria-label="도움말"></button><button class="icon-btn" id="btn-sound" aria-label="설정"></button></div>
     </div>
   </section>
@@ -2223,7 +2224,7 @@ body.prem-on #h-station::before{content:'👑 '}
         <div class="pet-result" id="pets-result"><p class="muted">뽑은 동물이 여기에 나와요</p></div>
         <span class="pet-pity" id="pets-pity"></span>
         <div class="pet-btns"><button class="primary" id="pets-one"></button><button class="primary" id="pets-ten"></button></div>
-        <details class="pet-rate-box" open><summary>확률 공개 · 규칙</summary><div id="pets-rates"></div></details>
+        <details class="pet-rate-box" open><summary>확률 공개, 규칙</summary><div id="pets-rates"></div></details>
       </div>
       <div id="pets-dex" class="pet-dex" hidden></div>
       <div id="pets-closet" class="pet-closet" hidden></div>
@@ -2233,7 +2234,7 @@ body.prem-on #h-station::before{content:'👑 '}
   <div class="sheet-back" id="shop-sheet" role="dialog" aria-modal="true" aria-labelledby="shop-title" hidden>
     <div class="sheet">
 <button class="x-btn" id="shop-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      <span class="label">상점 · 시즌 패스</span>
+      <span class="label">상점, 시즌 패스</span>
       <h2 id="shop-title" style="font-size:26px">3팀 매점</h2>
       <div class="sheet-pin"><div class="pet-wallet" id="shop-wallet"></div>
       <div class="pet-tabs" id="shop-tabs"><button data-tab="shop">상점</button><button data-tab="pass">시즌 패스</button></div></div>
@@ -2245,7 +2246,7 @@ body.prem-on #h-station::before{content:'👑 '}
   <div class="sheet-back" id="ach-sheet" role="dialog" aria-modal="true" aria-labelledby="ach-title-h" hidden>
     <div class="sheet">
 <button class="x-btn" id="ach-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      <span class="label">업적 · 칭호</span>
+      <span class="label">업적, 칭호</span>
       <h2 id="ach-title-h" style="font-size:26px">3팀 공적 기록</h2>
       <div id="ach-body" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
@@ -2254,7 +2255,7 @@ body.prem-on #h-station::before{content:'👑 '}
   <div class="sheet-back" id="evid-sheet" role="dialog" aria-modal="true" aria-labelledby="evid-title" hidden>
     <div class="sheet">
 <button class="x-btn" id="evid-x" aria-label="닫기"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      <span class="label">재수사 · 단서</span>
+      <span class="label">재수사, 단서</span>
       <h2 id="evid-title" style="font-size:26px">증거판</h2>
     </div>
   </div>

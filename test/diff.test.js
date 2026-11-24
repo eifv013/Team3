@@ -122,7 +122,7 @@ test('특별 출동 보너스 · 미제 기록 · 결과 줄', () => {
   assert.equal(s.diff.hardGold, 1);
   Df.noteClose(s, 1); assert.equal(Df.hardCases(s), 0, '강력 사건으로 닫으면 기록 안 함');
   Df.set(s, 'hard'); Df.noteClose(s, 1); Df.noteClose(s, 1); assert.equal(Df.hardCases(s), 1);
-  assert.equal(Df.resultLine('hard'), '미제 사건 · 수사비 ×1.5');
+  assert.equal(Df.resultLine('hard'), '미제 사건, 수사비 ×1.5');
   assert.equal(Df.resultLine('normal'), '강력 사건');
 });
 

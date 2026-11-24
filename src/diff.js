@@ -24,11 +24,11 @@
    * pay 출동 수사비 · clue 출동으로 모은 단서 · xp 시즌 경험치
    */
   var LIST = {
-    easy:   { k: 'easy',   name: '단순 사건', tag: 'CASE · 단순', short: '단순', icon: '📄', color: '#3DDC84', lv: 1, desc: '가볍게 풀고 싶을 때',
+    easy:   { k: 'easy',   name: '단순 사건', tag: 'CASE 단순', short: '단순', icon: '📄', color: '#3DDC84', lv: 1, desc: '가볍게 풀고 싶을 때',
               time: 30, missMul: 0.5, lvSpeed: 0.67, hintPenalty: null, freeHints: 1, pay: 0.7, clue: 0.8, xp: 0.8 },
-    normal: { k: 'normal', name: '강력 사건', tag: 'CASE · 강력', short: '강력', icon: '🚨', color: '#FFD23F', lv: 2, desc: '처음이라면 여기부터',
+    normal: { k: 'normal', name: '강력 사건', tag: 'CASE 강력', short: '강력', icon: '🚨', color: '#FFD23F', lv: 2, desc: '처음이라면 여기부터',
               time: 0, missMul: 1, lvSpeed: 1, hintPenalty: null, freeHints: 0, pay: 1, clue: 1, xp: 1 },
-    hard:   { k: 'hard',   name: '미제 사건', tag: 'CASE · 미제', short: '미제', icon: '🗄️', color: '#FF6B6B', lv: 3, desc: '아무도 못 푼 사건',
+    hard:   { k: 'hard',   name: '미제 사건', tag: 'CASE 미제', short: '미제', icon: '🗄️', color: '#FF6B6B', lv: 3, desc: '아무도 못 푼 사건',
               time: -15, missMul: 1.5, lvSpeed: 1.5, hintPenalty: 5, freeHints: 0, pay: 1.5, clue: 1.25, xp: 1.25 }
   };
   var MIN_SEC = 30;          // 시간이 줄어도 이보다 짧아지지 않는다(특별 출동 60초 속공 → 45초)
@@ -117,7 +117,7 @@
   function resultLine(k) {
     var L = info(k);
     if (L.pay === 1) return L.name;
-    return L.name + ' · 수사비 ×' + L.pay;
+    return L.name + ', 수사비 ×' + L.pay;
   }
 
   return { ORDER: ORDER, LIST: LIST, MIN_SEC: MIN_SEC, HARD_CARD_RUNS: HARD_CARD_RUNS,

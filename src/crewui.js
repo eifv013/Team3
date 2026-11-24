@@ -29,7 +29,7 @@
       '<div class="tx"><b>' + o.name + '</b><small>' + o.sub + '</small></div><span class="cr-lockb">🔒 ' + o.lock + '</span><span class="cr-eff">' + o.eff + '</span></div>';
   }
   // 0단계면 "+0%" 대신 첫 단계 효과만, 그 뒤로는 지금 → 다음
-  function effLine(x, l, max) { return l <= 0 ? '첫 단계 <em>' + Cr.effText(x, 1) + '</em>' : '<em>' + Cr.effText(x, l) + '</em>' + (l < max ? ' → ' + Cr.effText(x, l + 1) : ' · 최고 단계'); }
+  function effLine(x, l, max) { return l <= 0 ? '첫 단계 <em>' + Cr.effText(x, 1) + '</em>' : '<em>' + Cr.effText(x, l) + '</em>' + (l < max ? ' → ' + Cr.effText(x, l + 1) : ', 최고 단계'); }
 
   function renderCrew() {
     var s = S(), c = s.crew, d = disc();
@@ -65,7 +65,7 @@
     var peek = locked.slice(0, 3).map(function (x) {
       return lockRow({ icon: x.icon, card: COLOR[x.color], name: x.name, sub: '증거 「' + x.card + '」 필요', lock: '증거', eff: Cr.NAME[x.key] + ' 단계마다 +' + x.per + Cr.UNIT[x.key] });
     }).join('');
-    setHTML($('h-tech'), head + body + (locked.length ? '<span class="section-t cr-next">아직 못 연 기법 · ' + locked.length + '개</span>' + peek +
+    setHTML($('h-tech'), head + body + (locked.length ? '<span class="section-t cr-next">아직 못 연 기법, ' + locked.length + '개</span>' + peek +
       '<button class="ghost cr-go-evid" id="h-tech-evid">증거판에서 증거 얻기 ›</button>' : ''));
   }
 
@@ -86,7 +86,7 @@
     ctx.persist(); ctx.render(); render();
     var r = document.querySelector('[data-cr="' + p[0] + ':' + p[1] + '"]');
     if (r) { r.classList.remove('bought'); void r.offsetWidth; r.classList.add('bought'); }
-    if (x && (lv === 1 || p[0] === 'k')) ctx.UI.toast(x.name + (p[0] === 'k' ? ' 장착' : p[0] === 't' ? ' ' + lv + '단계' : ' 영입') + ' · ' + Cr.effText(x, lv));
+    if (x && (lv === 1 || p[0] === 'k')) ctx.UI.toast(x.name + (p[0] === 'k' ? ' 장착' : p[0] === 't' ? ' ' + lv + '단계' : ' 영입') + ' ' + Cr.effText(x, lv));
   }
   // 그 칸을 한 번 보면 "새" 표시를 지운다(탭을 떠날 때)
   function seen(kind) {

@@ -199,7 +199,7 @@
     if (Df) { var hmD = Df.info(Df.get(save)), hmE = $('hm-diff'); hmE.textContent = hmD.icon + ' ' + hmD.short; hmE.style.setProperty('--c', hmD.color); }   // 0.7.0 난이도
     $('hm-rate').textContent = '+' + fmtShort(incPerMin) + '/분' + (petInc > 0 ? ' (파트너 +' + fmtShort(petInc) + ')' : '');
     var cs = I.caseOf(save);
-    $('hm-case').textContent = '사건 ' + cs.no + ' · ' + cs.title + ' · ' + fmt(Math.min(save.caught, cs.goal)) + ' / ' + fmt(cs.goal);
+    $('hm-case').textContent = '사건 ' + cs.no + ' ' + cs.title + ' ' + fmt(Math.min(save.caught, cs.goal)) + ' / ' + fmt(cs.goal);
     $('hm-fill').style.width = (I.progress(save) * 100).toFixed(1) + '%';
     var x = PT && save.pets && save.pets.eq ? PT.parse(save.pets.eq) : null, pe = $('hm-pet'), key = x ? save.pets.eq : '';
     var nzK = key && PT.noirOn && PT.noirOn(save, key) ? key + '|n' : key;   // 0.8.4 각성이면 머리 사진도 누아르
@@ -219,13 +219,13 @@
     if (CUI) CUI.render();
     if (MUI) MUI.render();   // 0.8.0 메뉴 숫자 · 추천 · 오늘 할 일
     // 내 자리: 사용자가 넣은 이름이라 textContent 로만 넣는다
-    $('h-station').textContent = save.profile.station + ' · 수사 3팀';
+    $('h-station').textContent = save.profile.station + ' 수사 3팀';
     var ld = $('h-leader');
     // 이름을 안 정했으면 "신임 팀장"(이번에 3팀을 맡은 사람). 사건 1 이야기와 이어진다.
     var rk = I.rankOf(save).name;   // 계급(0.1.19): 팀장은 경위부터
     // 0.3.0 칭호는 팀장 이름 앞에(글은 모두 textContent 라 꺾쇠 걱정 없음)
     var ttl = H ? H.leaderTitle(save) : '';
-    ld.textContent = rk + ' · ' + (ttl ? '「' + ttl + '」 ' : '') + (save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장 · 이름 정하기');
+    ld.textContent = rk + ' ' + (ttl ? '「' + ttl + '」 ' : '') + (save.profile.leader ? '팀장 ' + save.profile.leader : '신임 팀장, 이름 정하기');
     ld.classList.toggle('empty', !save.profile.leader);
     $('h-money').textContent = '수사비 ' + fmtShort(save.money);
     fitMoney();
@@ -246,7 +246,7 @@
         var pt = MO.tierOf(MO.passOf(save, dayNow()).xp), pn = MO.claimable(save, dayNow()).length, ph = pt + '|' + (pn > 0) + '|' + pOn;
         if (pb0._h !== ph) { pb0._h = ph; pb0.className = 'icon-btn pass-btn' + (pOn ? ' prem' : '');
           pb0.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M12 9.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 11.3l2-.3z" fill="currentColor" stroke="none"/></svg><b>' + pt + '</b>' + (pn > 0 ? '<i></i>' : '');
-          pb0.setAttribute('aria-label', '시즌 패스 ' + pt + '단계' + (pn > 0 ? ' · 받을 보상 ' + pn + '개' : '')); }
+          pb0.setAttribute('aria-label', '시즌 패스 ' + pt + '단계' + (pn > 0 ? ', 받을 보상 ' + pn + '개' : '')); }
       }
       if (pc) { pc.hidden = !pOn; if (pOn) { var lf = MO.seasonOf(save, dayNow()).left; pc.textContent = lf === Infinity ? '👑 프리미엄' : '👑 ' + lf + '일'; pc.classList.toggle('soon', lf <= 3); } }
       // 연출 5: 시즌 끝 3일 전부터 하루 한 번 알림(받을 보상이 남았으면 그 수도)
@@ -254,7 +254,7 @@
       if (se5.left <= 3 && save.shop && save.shop.passWarn !== dayNow()) {
         save.shop.passWarn = dayNow(); persist();
         var left5 = MO.claimable ? MO.claimable(save, dayNow()).length : 0;
-        setTimeout(function () { UI.toast('⏳ 시즌이 ' + se5.left + '일 남았어요' + (left5 ? ' · 받을 보상 ' + left5 + '개' : '') + (pOn ? '' : ' · 프리미엄 보상도 함께 사라져요')); }, 1200);
+        setTimeout(function () { UI.toast('⏳ 시즌이 ' + se5.left + '일 남았어요' + (left5 ? ', 받을 보상 ' + left5 + '개' : '') + (pOn ? '' : ', 프리미엄 보상도 함께 사라져요')); }, 1200);
       }
     }
     var rate = I.teamRate(save) * 60 * (buff ? I.TUNE.buffMult : 1);
@@ -268,15 +268,15 @@
     b.hidden = !buff;
     if (buff) {
       var left = Math.ceil((I.boostUntil(save) - t) / 1000);
-      b.textContent = ((save.partyUntil || 0) > t && save.partyUntil >= save.buffUntil ? '회식 ×2 · ' : '사기 충전 ×2 · ') + (left >= 60 ? Math.ceil(left / 60) + '분' : left + '초');
+      b.textContent = ((save.partyUntil || 0) > t && save.partyUntil >= save.buffUntil ? '회식 ×2, ' : '사기 충전 ×2, ') + (left >= 60 ? Math.ceil(left / 60) + '분' : left + '초');
     }
 
     var goal = CS().goal;
-    $('h-case').textContent = '사건 ' + CS().no + ' · ' + CS().title + (save.closed ? ' (종결)' : '');
+    $('h-case').textContent = '사건 ' + CS().no + ' ' + CS().title + (save.closed ? ' (종결)' : '');
     $('h-city').textContent = CS().city;
     var nx = I.nextCase(save);
     $('h-next-case').hidden = !nx;
-    if (nx) $('h-next-case').textContent = '사건 ' + nx.no + ' · ' + ro(nx.city) + ' 파견';
+    if (nx) $('h-next-case').textContent = '사건 ' + nx.no + ' ' + ro(nx.city) + ' 파견';
     $('h-caught').textContent = fmt(Math.min(save.caught, goal)) + ' / ' + goal;
     $('h-bar').style.width = (I.progress(save) * 100).toFixed(1) + '%';
     // 방치 상한 뒤 구간(800 → 1000)은 빗금 = 현장에서만. 다 차면 빨간 알림 줄과 출동 단추 맥박
@@ -335,7 +335,7 @@
   function prepDesc(id) {
     var mode = I.caseOf(save).mode;
     if (id === 'tip') return mode === 'witness' ? '첫 문제의 거짓 진술을 미리 짚어 줘요' : mode === 'lineup' ? '첫 줄에서 아닌 자리 절반을 미리 지워 줘요' : '출동을 시작할 때 한 패 하나를 미리 표시해 줘요';
-    if (id === 'lawyer') return mode === 'witness' ? '오인 · 함정 체포 벌점을 2번 막아 줘요' : mode === 'lineup' ? '오인 지목 벌점을 2번 막아 줘요' : '오인 체포 벌점을 2번 막아 줘요';
+    if (id === 'lawyer') return mode === 'witness' ? '오인, 함정 체포 벌점을 2번 막아 줘요' : mode === 'lineup' ? '오인 지목 벌점을 2번 막아 줘요' : '오인 체포 벌점을 2번 막아 줘요';
     if (id === 'sketch') return '단서(돋보기)를 2번 무료로 써요';
     if (id === 'coffee') return '출동 시간 +15초';
     if (id === 'press') return '이번 출동으로 버는 수사비 1.5배';
@@ -347,7 +347,7 @@
     openInfo({ label: '다음 현장 출동 한 번에 챙겨 가요', title: '준비물 효과',
       body: '<div class="prep-list">' + E.PREP_IDS.map(function (id) {
         var it = E.ITEMS.filter(function (x) { return x.id === id; })[0], on = E.owned(save, id, t);
-        return '<div><b>' + esc(it.name) + (on ? ' · 챙김 ✓' : '') + '</b><span>' + esc(prepDesc(id)) + '</span><small>' + (on ? '챙긴 걸 다시 누르면 무르고 돌려받아요' : '수사비 ' + fmt(E.price(save, id, 'money')) + ' (모자라면 배지로)') + '</small></div>';
+        return '<div><b>' + esc(it.name) + (on ? ', 챙김 ✓' : '') + '</b><span>' + esc(prepDesc(id)) + '</span><small>' + (on ? '챙긴 걸 다시 누르면 무르고 돌려받아요' : '수사비 ' + fmt(E.price(save, id, 'money')) + ' (모자라면 배지로)') + '</small></div>';
       }).join('') + '</div>' + p('<span class="muted">출동을 한 번 하면 다 써요. 특별 출동에는 준비물을 쓰지 않아요.</span>'),
       readOnly: true });
   }
@@ -432,7 +432,7 @@
   function unprep(id) {
     try {
       var r = E.unprep(save, id);
-      UI.toast(SHORT[id] + ' 무르기 · ' + (r.currency === 'gems' ? '◆' + r.refunded : fmt(r.refunded)) + ' 돌려받음');
+      UI.toast(SHORT[id] + ' 무르기, ' + (r.currency === 'gems' ? '◆' + r.refunded : fmt(r.refunded)) + ' 돌려받음');
       persist(); render();
     } catch (e) { UI.toast('무를 수 없어요: ' + e.message); }
   }
@@ -503,9 +503,9 @@
       title: CS().title,
       body: p(last.text) +
         (gift ? p('<b style="color:var(--acc)">사건 종결 보상: 뽑기권 ' + gift + '장</b>') : '') +
-        p('<span class="muted">팀이 잡은 용의자 ' + fmt(save.teamCaught) + '명 · 내가 출동해 잡은 용의자 ' + fmt(save.runCaught) + '명 · 출동 ' + save.runs + '번 · 최고 점수 ' + fmt(save.bestScore) + '</span>'),
+        p('<span class="muted">팀이 잡은 용의자 ' + fmt(save.teamCaught) + '명, 내가 출동해 잡은 용의자 ' + fmt(save.runCaught) + '명, 출동 ' + save.runs + '번, 최고 점수 ' + fmt(save.bestScore) + '</span>'),
       // 0.7.0 사건을 닫을 때가 재수사하기 가장 좋은 때(잃는 진척이 없다): 단서가 있으면 "재수사하고 파견"
-      ok: I.nextCase(save) ? (Ev && Ev.gainNow(save) >= 1 ? '재수사로 단서 +' + Ev.gainNow(save) + ' · ' + ro(I.nextCase(save).city) + ' 파견' : ro(I.nextCase(save).city) + ' 파견') : (Ev && Ev.gainNow(save) >= 1 ? '재수사하기 · 단서 +' + Ev.gainNow(save) : '계속 수사하기 (다음 사건은 준비 중)'),
+      ok: I.nextCase(save) ? (Ev && Ev.gainNow(save) >= 1 ? '재수사로 단서 +' + Ev.gainNow(save) + ' ' + ro(I.nextCase(save).city) + ' 파견' : ro(I.nextCase(save).city) + ' 파견') : (Ev && Ev.gainNow(save) >= 1 ? '재수사하기, 단서 +' + Ev.gainNow(save) : '계속 수사하기 (다음 사건은 준비 중)'),
       cancel: I.nextCase(save) || (Ev && Ev.gainNow(save) >= 1) ? '나중에' : '',
       onOk: function () {
         var go = function () { if (I.nextCase(save)) goNextCase(); };
@@ -525,7 +525,7 @@
     var after = function () {
       applyTheme(); render();
       I.markStorySeen(save); persist(); renderStoryButton();
-      openInfo({ label: '사건 ' + nx.no + ' · ' + nx.city, title: nx.title,
+      openInfo({ label: '사건 ' + nx.no + ' ' + nx.city, title: nx.title,
         body: '<p style="white-space:pre-line;margin:0">' + esc(nx.story[0].text) + '</p>' +
           p('<span class="muted">이번 현장 출동은 목격자 진술로 범인을 찾아요. 처음이면 도움말(?)의 "목격자 진술"을 먼저 보세요.</span>'),
         readOnly: true });
@@ -559,7 +559,7 @@
       }
       return '<details class="pn log-d"><summary><b>' + at + '</b><span class="log-peek">' + esc(e.text.split('\n')[0]) + '</span></summary><div class="pn-body"><p>' + esc(e.text) + '</p></div></details>';
     }).join('');
-    openInfo({ label: '수사 일지', title: '사건 ' + CS().no + ' · ' + CS().title, body: body, readOnly: true });
+    openInfo({ label: '수사 일지', title: '사건 ' + CS().no + ' ' + CS().title, body: body, readOnly: true });
     I.markStorySeen(save);
     persist();
     renderStoryButton();
@@ -581,7 +581,7 @@
       ? '<b style="color:var(--acc)">첫 이름 바꾸기는 무료예요.</b> 그 뒤로는 한 번에 배지 ◆' + P.renameGems + '개 또는 이름표 1장이에요.'
       : tags ? '이름표 1장을 써요. <span class="muted">(가진 이름표 ' + tags + '장)</span>'
       : '이름 바꾸기는 배지 ◆' + cost + '개예요. <span class="muted">(가진 배지 ◆' + fmt(save.gems) + ')</span>';
-    var tagBtn = cost === 0 ? '' : '<button class="linkish" id="pf-tags"' + (save.gems < NT.gems ? ' disabled' : '') + '>이름표 ' + NT.n + '장 사기 · ◆' + NT.gems + ' (파트너 이름에도 써요)</button>';
+    var tagBtn = cost === 0 ? '' : '<button class="linkish" id="pf-tags"' + (save.gems < NT.gems ? ' disabled' : '') + '>이름표 ' + NT.n + '장 사기, ◆' + NT.gems + ' (파트너 이름에도 써요)</button>';
     openInfo({
       label: '내 프로필', title: '경찰서와 팀장 이름',
       body: '<label class="field">경찰서 이름 (최대 ' + P.stationMax + '자)<input id="pf-station" maxlength="' + (P.stationMax * 2) + '" autocomplete="off" placeholder="' + P.defaultStation + '"></label>' +
@@ -600,7 +600,7 @@
         }
         persist(); render();
         if (r.paid || r.tag) UI.sfx.coin();
-        UI.toast(r.profile.station + ' 수사 3팀' + (r.profile.leader ? ', 팀장 ' + r.profile.leader : '') + (r.paid ? ' · ◆' + r.paid : r.tag ? ' · 이름표 1장' : ''));
+        UI.toast(r.profile.station + ' 수사 3팀' + (r.profile.leader ? ', 팀장 ' + r.profile.leader : '') + (r.paid ? ', ◆' + r.paid : r.tag ? ', 이름표 1장' : ''));
       }
     });
     // 값은 속성이 아니라 .value 로 넣는다(따옴표 등이 HTML 을 깨지 않게)
@@ -677,11 +677,11 @@
       var run = function () { I.advance(save, nowMs()); duringRun = { catches: 0, money: 0 }; runCfg = cfg; UI.startRun(cfg); };
       var T = window.Team3Transit;
       if (!T) { dispatching = false; run(); return; }
-      T.play('normal', run, { caseNo: CS().no, caseTitle: '특별 출동 · ' + st.rule.name })
+      T.play('normal', run, { caseNo: CS().no, caseTitle: '특별 출동, ' + st.rule.name })
         .then(function () { dispatching = false; }, function () { dispatching = false; });
     };
     if (st.left > 0) { begin(); return; }
-    UI.toast('오늘 기회를 다 썼어요 · 내일 새 규칙으로 다시 열려요');
+    UI.toast('오늘 기회를 다 썼어요, 내일 새 규칙으로 다시 열려요');
   }
   function go() {
     if (dispatching) return;
@@ -718,8 +718,8 @@
       // 단순 사건: 특별 출동 메달 보상 대신 그날 한 번 참가 보상(◆1)
       var dday = cfg.day || dayNow(); E.dailyStatus(save, dday);
       if (g.score > save.daily.best) save.daily.best = g.score;
-      if (!save.daily.joined) { save.daily.joined = true; save.gems += 1; extra += '<span class="res-medal">특별 출동 참가 보상 · ◆1</span>'; }
-      extra += '<span class="muted">단순 사건은 특별 출동 메달 대신 참가 보상을 받아요. 메달은 강력 · 미제 사건에서 받을 수 있어요.</span>';
+      if (!save.daily.joined) { save.daily.joined = true; save.gems += 1; extra += '<span class="res-medal">특별 출동 참가 보상, ◆1</span>'; }
+      extra += '<span class="muted">단순 사건은 특별 출동 메달 대신 참가 보상을 받아요. 메달은 강력, 미제 사건에서 받을 수 있어요.</span>';
     } else if (E && cfg.daily) {
       d = E.applyDaily(save, cfg.day || dayNow(), g.score, base);
       if (H && d.isNew) H.noteDaily(save, d.medal);   // 0.3.0 업적용 기록(그날 새로 딴 메달만)
@@ -728,15 +728,15 @@
       var hb = Df ? Df.dailyBonus(save, dk, d.medal) : { gems: 0, tickets: 0 };   // 미제 사건: 배지 +1 · 금이면 뽑기권 +1
       if (hb.gems) save.gems += hb.gems;
       extra += d.medal && d.isNew
-        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달' + (d.upFrom ? '(' + d.upFrom + ' → ' + d.medal + ', 차액)' : '') + ' · 수사비 +' + fmt(d.money) + ' · ◆' + (d.gems + hb.gems) + (PT ? ' · ' + giveTickets(1 + hb.tickets) : '') + (hb.gems ? ' (미제 사건 보너스 포함)' : '') + '</span>'
-        : d.medal ? '<span class="muted">' + d.medal + ' 메달 · 오늘 이미 받은 메달이에요. 더 높은 메달을 따면 그만큼 더 받아요.</span>'
+        ? '<span class="res-medal">특별 출동 ' + d.medal + ' 메달' + (d.upFrom ? '(' + d.upFrom + ' → ' + d.medal + ', 차액)' : '') + ', 수사비 +' + fmt(d.money) + ', ◆' + (d.gems + hb.gems) + (PT ? ' ' + giveTickets(1 + hb.tickets) : '') + (hb.gems ? ' (미제 사건 보너스 포함)' : '') + '</span>'
+        : d.medal ? '<span class="muted">' + d.medal + ' 메달, 오늘 이미 받은 메달이에요. 더 높은 메달을 따면 그만큼 더 받아요.</span>'
         : '<span class="muted">특별 출동: 동 메달(' + fmt(E.dailyRule(cfg.day || dayNow()).medals[0]) + '점)부터 보상이에요.</span>';
       extra += '<span class="muted">오늘 남은 기회 ' + dleft + '번</span>';
     } else if (E) {
       // 0.7.0 첫 메달 보상(실력 기록)은 강력 사건 이상에서만
-      if (Df && !Df.countsSkill(dk)) { if (g.score >= E.MEDALS[0].at) extra += '<span class="muted">점수 업적 · 첫 메달 보상은 강력 사건부터 기록돼요.</span>'; }
+      if (Df && !Df.countsSkill(dk)) { if (g.score >= E.MEDALS[0].at) extra += '<span class="muted">점수 업적, 첫 메달 보상은 강력 사건부터 기록돼요.</span>'; }
       else E.claimMedals(save, g.score, base).forEach(function (m) {
-        extra += '<span class="res-medal">첫 ' + m.name + ' 메달! 수사비 +' + fmt(m.money) + ' · ◆' + m.gems + (PT ? ' · ' + giveTickets(2) : '') + '</span>';
+        extra += '<span class="res-medal">첫 ' + m.name + ' 메달! 수사비 +' + fmt(m.money) + ', ◆' + m.gems + (PT ? ' ' + giveTickets(2) : '') + '</span>';
       });
       if (g.score > best0 && best0 > 0) extra += '<span style="color:var(--acc);font-weight:700">최고 점수 경신! (전 기록 ' + fmt(best0) + ')</span>';
     }
@@ -744,7 +744,7 @@
     if (M) {
       var rxp = Math.round(M.runXp(g.score, d && d.medal) * DL.xp);   // 0.7.0 난이도 경험치 배수
       var xr = M.addXp(save, dayNow(), rxp);
-      extra += '<span class="res-pass">시즌 패스 +' + rxp + 'XP' + (xr.up ? ' · <b>' + xr.tier + '단계 달성!</b> 매점에서 보상을 받아요' : '') + '</span>';
+      extra += '<span class="res-pass">시즌 패스 +' + rxp + 'XP' + (xr.up ? ', <b>' + xr.tier + '단계 달성!</b> 매점에서 보상을 받아요' : '') + '</span>';
       lastDouble = null;
       if (r.money > 0 && M.adLeft(save, 'double', dayNow()) > 0) {
         lastDouble = { amt: r.money };
@@ -758,9 +758,9 @@
     // 0.4.0 이번 출동 수사비 중 동물 효과 몫(파트너 이름과 함께)
     var pb2 = PT ? petBonus(save) : null, petPay = pb2 && pb2.pay ? Math.round(r.money - r.money / (1 + pb2.pay / 100)) : 0;
     var partner = PT && save.pets.eq ? PT.nameOf(save, save.pets.eq) : '';
-    if (petPay > 0) extra = '<span class="res-pet">파트너 효과 +' + fmt(petPay) + (partner ? ' · 파트너 ' + esc(partner) + ' 덕분이에요' : '') + '</span>' + extra;
+    if (petPay > 0) extra = '<span class="res-pet">파트너 효과 +' + fmt(petPay) + (partner ? ', 파트너 ' + esc(partner) + ' 덕분이에요' : '') + '</span>' + extra;
     var dTag = Df ? '<span class="res-diff" style="--c:' + DL.color + '">' + DL.icon + ' ' + Df.resultLine(dk) + '</span>' : '';
-    return dTag + '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ' · 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, CS().goal)) + ' / ' + CS().goal + ')</span>' +
+    return dTag + '<span>수사비 <b style="color:var(--acc)">+' + fmt(r.money) + '</b>' + (cfg.payMult > 1 ? ' (언론 브리핑 ×1.5)' : '') + ', 사건 진척 <b style="color:var(--acc)">+' + r.caught + '명</b> (' + fmt(Math.min(save.caught, CS().goal)) + ' / ' + CS().goal + ')</span>' +
       extra +
       '<span class="muted">팀 사기 충전: ' + (I.TUNE.buffSec / 60) + '분 동안 팀이 2배로 일해요</span>' +
       (rk.next ? '<span class="muted">' + rk.next.name + ' 승진까지 출동 검거 ' + fmt(rk.toNext) + '명</span>' : '') +
@@ -897,7 +897,7 @@
     if (!t || !QS) return;
     if (t.getAttribute('data-qt')) questTab = t.getAttribute('data-qt');
     else {
-      try { var r = QS.claim(save, t.getAttribute('data-qc'), dayNow(), grant); UI.sfx.coin(); UI.toast('임무 보상: ' + [r.tickets ? '뽑기권 ' + r.tickets + '장' : '', r.gems ? '배지 ◆' + r.gems : '', r.treats ? '간식 ' + r.treats : ''].filter(Boolean).join(' · ')); persist(); render(); }
+      try { var r = QS.claim(save, t.getAttribute('data-qc'), dayNow(), grant); UI.sfx.coin(); UI.toast('임무 보상: ' + [r.tickets ? '뽑기권 ' + r.tickets + '장' : '', r.gems ? '배지 ◆' + r.gems : '', r.treats ? '간식 ' + r.treats : ''].filter(Boolean).join(', ')); persist(); render(); }
       catch (x) { UI.toast(x.code === 'NOT_DONE' ? '아직 다 못 했어요' : '이미 받았어요'); }
     }
     $('info-body').innerHTML = questHTML();
@@ -926,9 +926,9 @@
     var c = e.target.closest && e.target.closest('#info-body [data-atd]'), tip = $('at-tip');
     if (!c || !tip || !AT) return;
     var b = AT.board(save, dayNow()), d = +c.getAttribute('data-atd'), x = b.cells[d - 1], r = x.r;
-    var txt = [r.tickets ? '뽑기권 ' + r.tickets + '장' : '', r.gems ? '배지 ◆' + r.gems : '', r.treats ? '간식 ' + r.treats + '개' : ''].filter(Boolean).join(' · ');
-    tip.innerHTML = '<b>' + b.m + '월 ' + d + '일</b> · ' + txt + (r.big ? ' <span style="color:var(--acc)">· 특별한 날</span>' : '') +
-      (x.got ? ' · 받았어요' : x.today ? ' · 현재 받을 수 있어요' : x.past ? ' · 지나간 날' : '');
+    var txt = [r.tickets ? '뽑기권 ' + r.tickets + '장' : '', r.gems ? '배지 ◆' + r.gems : '', r.treats ? '간식 ' + r.treats + '개' : ''].filter(Boolean).join(', ');
+    tip.innerHTML = '<b>' + b.m + '월 ' + d + '일</b>, ' + txt + (r.big ? ' <span style="color:var(--acc)">· 특별한 날</span>' : '') +
+      (x.got ? ', 받았어요' : x.today ? ', 현재 받을 수 있어요' : x.past ? ', 지나간 날' : '');
     document.querySelectorAll('#info-body .at-c.pick').forEach(function (n) { n.classList.remove('pick'); }); c.classList.add('pick');
   });
   // 0.10.4 창 안 작은 탭을 바꾸면 창도 맨 위부터
@@ -989,15 +989,15 @@
     var r = I.rankOf(save);
     openInfo({ label: '계급', title: '승진하면 수사비가 늘어요', readOnly: true,
       body: '<p>현장 출동에서 <b>직접 잡은 수</b>로 승진해요(팀이 방치로 잡은 수는 안 세요). 승진할 때마다 모든 수사비 +' + Math.round(I.RANK_BONUS * 100) + '%와 배지를 받아요.</p>' +
-        '<p>현재 현장 검거 <b>' + fmt(save.runCaught) + '명</b>' + (r.next ? ' · ' + r.next.name + '까지 ' + fmt(r.toNext) + '명' : '') + '</p>' +
+        '<p>현재 현장 검거 <b>' + fmt(save.runCaught) + '명</b>' + (r.next ? ' ' + r.next.name + '까지 ' + fmt(r.toNext) + '명' : '') + '</p>' +
         '<div class="rk-list">' + I.RANKS.map(function (x, i) {
-          return '<div class="' + (i === r.index ? 'now' : i < r.index ? 'done' : '') + '"><span>' + (i < r.index ? '✓ ' : i === r.index ? '▶ ' : '') + x.name + '</span><em>' + (x.at ? '현장 검거 ' + fmt(x.at) + '명' : '처음') + ' · 수사비 +' + Math.round(i * I.RANK_BONUS * 100) + '%' + (x.gems ? ' · ◆' + x.gems : '') + '</em></div>';
+          return '<div class="' + (i === r.index ? 'now' : i < r.index ? 'done' : '') + '"><span>' + (i < r.index ? '✓ ' : i === r.index ? '▶ ' : '') + x.name + '</span><em>' + (x.at ? '현장 검거 ' + fmt(x.at) + '명' : '처음') + ', 수사비 +' + Math.round(i * I.RANK_BONUS * 100) + '%' + (x.gems ? ', ◆' + x.gems : '') + '</em></div>';
         }).join('') + '</div>' });
   }
   function diffGoSub() {
     if (!Df) return;
     var L = Df.info(Df.get(save)), el = $('h-go-diff');
-    if (el) { el.textContent = L.icon + ' ' + L.short; el.style.setProperty('--c', L.color); el.setAttribute('aria-label', '난이도 ' + L.name + ' · 바꾸기'); }
+    if (el) { el.textContent = L.icon + ' ' + L.short; el.style.setProperty('--c', L.color); el.setAttribute('aria-label', '난이도 ' + L.name + ', 바꾸기'); }
   }
   /*
    * 설정 창의 저장 백업·초기화(0.1.18). 코드 형식 검사는 settings.js, 값 검사·범위 맞추기는 SuspectsIdle.load 가 한다.
@@ -1028,8 +1028,8 @@
   $('info-body').addEventListener('click', function (e) {
     if (!e.target.closest('#pf-tags')) return;
     var keep = { station: $('pf-station').value, leader: $('pf-leader').value };
-    if (save.gems < I.NAME_TAGS.gems) { UI.toast('배지가 모자라요 · ◆' + I.NAME_TAGS.gems + ' 필요'); return; }
-    UI.confirmBuy({ title: '이름표 ' + I.NAME_TAGS.n + '장을 살까요?', body: '이름표 1장으로 경찰서 · 팀장 · 파트너 이름을 한 번 바꿔요.',
+    if (save.gems < I.NAME_TAGS.gems) { UI.toast('배지가 모자라요, ◆' + I.NAME_TAGS.gems + ' 필요'); return; }
+    UI.confirmBuy({ title: '이름표 ' + I.NAME_TAGS.n + '장을 살까요?', body: '이름표 1장으로 경찰서, 팀장, 파트너 이름을 한 번 바꿔요.',
       cost: (window.Team3Icons ? window.Team3Icons.icon('gem') : '◆') + I.NAME_TAGS.gems, onOk: function () {
         try { I.buyNameTags(save); persist(); render(); UI.sfx.coin(); UI.toast('이름표 ' + I.NAME_TAGS.n + '장을 샀어요'); } catch (err) { UI.toast('배지가 모자라요'); }
         editProfile(keep);
@@ -1187,7 +1187,7 @@
   // 맨 아래 단추: "수사 3팀 0.1.2 · 패치노트" + 안 읽었으면 NEW
   function renderVersionButton() {
     var unseen = lsGet(NOTES_SEEN_KEY) !== VERSION;
-    $('h-version').innerHTML = '수사 3팀 ' + esc(VERSION) + ' · 패치노트' + (unseen ? ' <span class="new" style="height:18px;font-size:10px;margin-left:4px">NEW</span>' : '');
+    $('h-version').innerHTML = '수사 3팀 ' + esc(VERSION) + ', 패치노트' + (unseen ? ' <span class="new" style="height:18px;font-size:10px;margin-left:4px">NEW</span>' : '');
   }
 
   $('h-version').addEventListener('click', showVersionInfo);
@@ -1316,7 +1316,7 @@
   // 버전 표시 · 업데이트 뒤 첫 실행 알림 · 새 버전 확인
   renderVersionButton();
   var seen = lsGet(SEEN_KEY);
-  if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요 · 맨 아래 패치노트에서 확인'); }, 3200);
+  if (seen && seen !== VERSION && installed) setTimeout(function () { UI.toast(VERSION + '으로 업데이트됐어요, 맨 아래 패치노트에서 확인'); }, 3200);
   lsSet(SEEN_KEY, VERSION);
   registerSW();
   setTimeout(function () { checkUpdate(true); }, 3000);

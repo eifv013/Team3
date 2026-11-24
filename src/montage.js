@@ -23,7 +23,7 @@
     step: { 1: 2400, 2: 2000 },   // 특징 하나가 더 그려지는 간격(ms). 0.8.2: 너무 빨라 고를 틈이 없어서 1.4 · 1.1초 → 2.4 · 2초
     levelAt: { 1: 0, 2: 5 }
   };
-  var LEVEL_NAME = { 1: '9장', 2: '12장 · 닮은 얼굴' };
+  var LEVEL_NAME = { 1: '9장', 2: '12장, 닮은 얼굴' };
 
   function MError(code, message) { var e = new Error(message); e.name = 'MontageError'; e.code = code; return e; }
   function pick(rng, n) { var i = Math.floor(rng() * n); return i >= n ? n - 1 : i; }

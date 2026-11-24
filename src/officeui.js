@@ -185,7 +185,7 @@
       }).join('') +
       '</svg>';
     // 정면 곡면 상황판: 왼쪽(CCTV · 날씨 시계) / 가운데(사건 지도) / 오른쪽(검거 현황 · 유치장 + 이송) / 아래 글줄
-    html += '<div class="cr-wall" id="of-wall"><span class="cr-title">3팀 종합 상황실 · ' + esc(ctx.idle.caseOf(s).city) + '</span><div class="cr-scr">' +
+    html += '<div class="cr-wall" id="of-wall"><span class="cr-title">3팀 종합 상황실 ' + esc(ctx.idle.caseOf(s).city) + '</span><div class="cr-scr">' +
       '<div class="cr-col"><div class="cr-cctv" aria-hidden="true"><b>CCTV</b><i class="rec"></i><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></div>' +
         '<div class="cr-wx" id="of-wx"><span class="cr-wxwin"><i class="of-sky"></i><i class="of-fx" id="of-fx"></i></span><span class="cr-wxtx"><b id="of-clock">--:--</b><small id="of-season"></small></span></div></div>' +
       '<div class="cr-map"><svg viewBox="0 0 200 90" preserveAspectRatio="none" aria-hidden="true">' + (MAPS[no] || MAPS[1]) + '</svg><span class="cr-sweep"></span><span class="cr-dots" id="of-dots"></span>' +
@@ -193,18 +193,18 @@
       '<div class="cr-col"><div class="cr-stat"><small>검거 현황</small><b id="of-pct">0%</b><i class="bar"><i id="of-pbar"></i></i><span class="cr-spark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>' +
         '<div class="of-cell" id="of-cell"><span class="of-tag" id="of-tag">유치장</span><div class="of-in" id="of-in"></div>' +
         '<button class="of-send" id="of-send"><b id="of-send-t">이송</b><small id="of-send-s"></small></button></div></div>' +
-      '<div class="cr-tick"><span id="of-tick">3팀 상황판 · 대기 중</span></div></div></div>';
+      '<div class="cr-tick"><span id="of-tick">3팀 상황판, 대기 중</span></div></div></div>';
     // 자리(의자 · 형사 뒷모습 · 모니터): 뒷줄부터 그려야 앞줄이 위에 겹친다
     var order = [5, 6, 7, 2, 3, 4, 0, 1];
     html += '<div class="of-desks" id="of-desks">';
     order.forEach(function (i) {
       var p = SEATS[i], on = i < n;
-      html += '<button class="of-desk' + (on ? '' : ' empty') + (p.s < 0.7 ? ' far' : p.s < 0.9 ? ' mid' : '') + '" data-i="' + i + '" style="left:' + p.x + '%;top:' + p.y + '%;--s:' + p.s + '" ' + (on ? 'aria-label="' + esc(OF.copName(s, i)) + ' · 이름과 커피"' : 'tabindex="-1" aria-hidden="true"') + '>' +
+      html += '<button class="of-desk' + (on ? '' : ' empty') + (p.s < 0.7 ? ' far' : p.s < 0.9 ? ' mid' : '') + '" data-i="' + i + '" style="left:' + p.x + '%;top:' + p.y + '%;--s:' + p.s + '" ' + (on ? 'aria-label="' + esc(OF.copName(s, i)) + ', 이름과 커피"' : 'tabindex="-1" aria-hidden="true"') + '>' +
         '<span class="of-pool" aria-hidden="true"></span><span class="of-mons">' + monitors(i) + '</span>' +
         (on ? '<span class="of-cop">' + opBack(i) + '</span><svg class="of-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle class="f" cx="12" cy="12" r="9" id="of-r' + i + '"/></svg><span class="of-cup" id="of-cup' + i + '" aria-hidden="true"></span>' : '<span class="of-chair"></span>') +
         '</button>';
     });
-    html += '</div>' + (s.detectives > 8 ? '<span class="of-more">형사 ' + s.detectives + '명 · 화면엔 8자리</span>' : '') +
+    html += '</div>' + (s.detectives > 8 ? '<span class="of-more">형사 ' + s.detectives + '명, 화면엔 8자리</span>' : '') +
       '<div class="of-pet" id="of-pet" role="button" tabindex="0" aria-label="파트너 동물 쓰다듬기" hidden><span class="of-pet-in" id="of-pet-in"></span><i class="of-shadow"></i></div>' +
       '<div class="of-bubble" id="of-bubble" hidden></div>';
     box.innerHTML = html;
@@ -224,7 +224,7 @@
     lastWeather = k;
     box.setAttribute('data-time', w.time); box.setAttribute('data-season', w.season); box.setAttribute('data-kind', w.kind);
     box.classList.toggle('fog', !!w.fog);
-    $('of-season').textContent = SEASON_NAME[w.season] + ' · ' + KIND_NAME[w.kind];
+    $('of-season').textContent = SEASON_NAME[w.season] + ' ' + KIND_NAME[w.kind];
     var fx = $('of-fx'), n = reduce() || w.kind === 'clear' ? 0 : Math.round((w.kind === 'rain' ? 12 : 7) * w.amount), html = '';
     for (var i = 0; i < n; i++) {
       var x = Math.round((i * 37) % 100), d = (i * 0.37) % 3, dur = w.kind === 'rain' ? 0.5 + (i % 3) * 0.12 : w.kind === 'snow' ? 3 + (i % 4) * 0.6 : 2.4 + (i % 4) * 0.5;
@@ -239,12 +239,12 @@
     var pe = $('of-pct'); if (!pe) return;
     pe.textContent = Math.floor(p * 100) + '%';
     $('of-pbar').style.width = (p * 100).toFixed(1) + '%';
-    $('of-case').textContent = '사건 ' + cs.no + ' · ' + cs.title;
+    $('of-case').textContent = '사건 ' + cs.no + ' ' + cs.title;
     var left = Math.max(1, Math.round((1 - p) * 9)), dots = '';
     for (var i = 0; i < left; i++) dots += '<i style="left:' + ((i * 37 + 11) % 88 + 4) + '%;top:' + ((i * 53 + 17) % 70 + 10) + '%;animation-delay:-' + (i * 0.4).toFixed(1) + 's"></i>';
     $('of-dots').innerHTML = dots;
     $('of-wall').classList.toggle('alert', ctx.capped());
-    if (ctx.capped()) $('of-tick').textContent = '경고 · 주범 조는 현장 출동으로만 검거 가능';
+    if (ctx.capped()) $('of-tick').textContent = '경고, 주범 조는 현장 출동으로만 검거 가능';
   }
 
   /* ---------- 유치장(상황판 오른쪽 아래) · 이송 ---------- */
@@ -272,7 +272,7 @@
     if (root.Team3Evidence) root.Team3Evidence.earn(s, r.bonus);   // 0.7.0 번 수사비(재수사 단서)
     ctx.persist();
     var v = $('of-van'); v.classList.remove('go'); void v.offsetWidth; v.classList.add('go');
-    $('of-tick').textContent = (auto ? '자동 이송 · ' : '호송차 출발 · ') + r.n + '명 이송';
+    $('of-tick').textContent = (auto ? '자동 이송, ' : '호송차 출발, ') + r.n + '명 이송';
     try { ctx.UI.sfx.coin(); } catch (e) { /* 무시 */ }
     ctx.UI.buzz([10, 30, 10]);
     later(function () { cell(); burst(rel($('of-send')), '+' + fmt(r.bonus), true); ctx.render(); }, 700);
@@ -292,7 +292,7 @@
     var w = document.createElement('span'); w.className = 'of-walker'; w.innerHTML = suspect(k);
     w.style.left = (a.x + a.w / 2 - 12) + 'px'; w.style.top = (a.y - 10) + 'px';
     box.appendChild(w);
-    $('of-tick').textContent = '검거 · ' + (fromDesk + 1) + '번 자리 · ' + new Date().toTimeString().slice(0, 5);
+    $('of-tick').textContent = '검거, ' + (fromDesk + 1) + '번 자리, ' + new Date().toTimeString().slice(0, 5);
     if (reduce()) { w.remove(); cell(); return; }
     requestAnimationFrame(function () { requestAnimationFrame(function () { w.classList.add('go'); w.style.left = (b.x + b.w / 2 - 12) + 'px'; w.style.top = (b.y + 4) + 'px'; }); });
     later(function () { w.remove(); cell(); var cc = $('of-cell'); cc.classList.remove('ping'); void cc.offsetWidth; cc.classList.add('ping'); }, 950);
@@ -319,8 +319,8 @@
     var s = S(), left = Math.ceil(OF.coffeeLeft(s, i, Date.now()));
     if (!ctx.openInfo) { coffee(i); return; }
     var nm = OF.copName(s, i);
-    ctx.openInfo({ label: (i + 1) + '번 자리 · 3팀 형사', title: nm,
-      body: '<div class="of-pop"><label class="of-pop-l">이름 바꾸기 <small>(무료 · ' + OF.NAME_MAX + '자까지)</small></label>' +
+    ctx.openInfo({ label: (i + 1) + '번 자리, 3팀 형사', title: nm,
+      body: '<div class="of-pop"><label class="of-pop-l">이름 바꾸기 <small>(무료, ' + OF.NAME_MAX + '자까지)</small></label>' +
         '<div class="of-pop-r"><input id="of-nm" maxlength="' + (OF.NAME_MAX * 2) + '" autocomplete="off"><button class="ghost" id="of-nm-ok" data-i="' + i + '">저장</button></div>' +
         '<p class="muted" style="font-size:13px">' + (left > 0 ? '☕ 커피는 ' + (left >= 60 ? Math.ceil(left / 60) + '분' : left + '초') + ' 뒤에 줄 수 있어요' : '☕ 커피를 주면 바로 1명을 더 잡아 유치장에 넣어요') + '</p></div>',
       ok: left > 0 ? '확인' : '☕ 커피 주기', cancel: left > 0 ? null : '닫기',

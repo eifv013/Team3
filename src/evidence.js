@@ -28,7 +28,7 @@
   'use strict';
 
   var CLUE_UNIT = 20000;
-  var COLOR = { r: { name: '사람 · 증언', hex: '#E5484F' }, b: { name: '기록 · 영상', hex: '#2F6FD6' }, y: { name: '돈 · 거래', hex: '#E0A100' }, g: { name: '장소 · 물건', hex: '#2E9E5B' } };
+  var COLOR = { r: { name: '사람, 증언', hex: '#E5484F' }, b: { name: '기록, 영상', hex: '#2F6FD6' }, y: { name: '돈, 거래', hex: '#E0A100' }, g: { name: '장소, 물건', hex: '#2E9E5B' } };
   var KEY_NAME = { speed: '팀 속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서 수입', cap: '자리 비움 한도', off: '자리 비움 속도', gear: '장비 할인',
                    buff: '사기 충전', time: '출동 시간', combo: '연속 배수 상한', shield: '오인 면제', miss: '오인 벌점', startDet: '재수사 뒤 형사', startMoney: '재수사 뒤 수사비', clue: '단서' };
   var UNIT = { speed: '%', idle: '%', pay: '%', dept: '%', cap: '분', off: '%p', gear: '%', buff: '초', time: '초', combo: '', shield: '번', miss: '초', startDet: '명', startMoney: '', clue: '%' };

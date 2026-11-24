@@ -422,7 +422,7 @@
       $('board').classList.add('dim');
       sfx.hit(r.combo); buzz([12, 40, 20]);
       if (FX) FX.hit(sp ? [sp] : [], q0.line[i]);
-      popStamp('검거!', '+' + r.gain + (r.combo > 1 ? '  ·  연속 ' + r.combo : ''));
+      popStamp('검거!', '+' + r.gain + (r.combo > 1 ? ' ,  연속 ' + r.combo : ''));
       var ht = (game.mods && game.mods.hitTime != null ? game.mods.hitTime : LU.RULES.hitTime) + (game.hitBonus || 0);
       setHint(['맞아요, 저 사람이에요!', '틀림없어요!', '바로 저 사람!'][Math.floor(Math.random() * 3)] + (ht ? '  +' + ht + '초' : ''), 'good', 1100);
     } else {
@@ -431,8 +431,8 @@
       shakeFx();
       if (FX) FX.miss(sp ? [sp] : []);
       renderLineupSays(false, r.broke);
-      var pen = r.shielded ? ' (변호사가 막았어요 · 벌점 없음)' : ' (−' + r.penalty + '초)';
-      setHint('아니에요, ' + (i + 1) + '번은 진술 ' + r.broke.map(function (k) { return k + 1; }).join(' · ') + '번과 안 맞아요' + pen, 'bad', 2600);
+      var pen = r.shielded ? ' (변호사가 막았어요, 벌점 없음)' : ' (−' + r.penalty + '초)';
+      setHint('아니에요, ' + (i + 1) + '번은 진술 ' + r.broke.map(function (k) { return k + 1; }).join(', ') + '번과 안 맞아요' + pen, 'bad', 2600);
       flashTimer();
     }
     updateHud(); bumpCombo();
@@ -445,7 +445,7 @@
       }
       renderBoard(game.q.line.map(function (_, k) { return k; }));
       if (r.levelUp) {
-        var names = { 2: ['세 특징', '시간대도 봐요 · "아니었어요" 진술'], 3: ['여섯 명', '흔적까지 네 특징 · "옆에" 진술'], 4: ['진술 셋', '자리 관계가 둘 이상 섞여요'] }[r.levelUp];
+        var names = { 2: ['세 특징', '시간대도 봐요, "아니었어요" 진술'], 3: ['여섯 명', '흔적까지 네 특징, "옆에" 진술'], 4: ['진술 셋', '자리 관계가 둘 이상 섞여요'] }[r.levelUp];
         sfx.none(); buzz([30, 60, 30]);
         if (FX) FX.levelUp(r.levelUp);
         popStamp(names[0], names[1]);
@@ -472,7 +472,7 @@
       '<div class="mtg-side"><b class="mtg-mult' + (newOne ? ' drop' : '') + '">×' + m + '</b><ul>' + list + '</ul>' +
       (nx > 0 ? '<div class="mtg-next"><i style="animation-duration:' + nx + 'ms"></i></div>' : '<small class="mtg-all">다 그렸어요</small>') + '</div>' +
       (newOne || fresh ? '<span class="mtg-pencil" aria-hidden="true"></span>' : '') + '</div>';
-    box.setAttribute('aria-label', '몽타주: ' + q.order.slice(0, sh).map(function (a) { return MT.word(a, v[a]); }).join(', ') + ' · 현재 고르면 ×' + m);
+    box.setAttribute('aria-label', '몽타주: ' + q.order.slice(0, sh).map(function (a) { return MT.word(a, v[a]); }).join(', ') + ', 현재 고르면 ×' + m);
     if (newOne || fresh) try { sfx.type(); } catch (e) { /* 무시 */ }
   }
   function judgeMontage(i) {
@@ -527,7 +527,7 @@
     }
     var n = C.needs(game.board[sel[0]], game.board[sel[1]], C.active(game));
     box.innerHTML = n.map(function (x) {
-      return '<div class="need"><b>' + x.value + '</b><small>' + x.name + ' · ' + (x.same ? '같게' : '남은 하나') + '</small></div>';
+      return '<div class="need"><b>' + x.value + '</b><small>' + x.name + ' ' + (x.same ? '같게' : '남은 하나') + '</small></div>';
     }).join('');
     box.setAttribute('aria-label', '셋째 조건: ' + n.map(function (x) { return x.name + ' ' + x.value; }).join(', '));
     box.hidden = false;
@@ -542,7 +542,7 @@
     h.className = 'hint' + (kind ? ' ' + kind : '');
     clearTimeout(hintTimer);
     if (ms) hintTimer = setTimeout(function () {
-      h.textContent = LM() ? '진술에 모두 맞는 자리를 지목하세요' : MM() ? '몽타주와 같은 사람을 고르세요 · 일찍 고를수록 배수 ↑' : FM() ? '가짜 줄을 찾으세요' : WM() ? '진술 넷 중 딱 셋과 맞는 사람이 범인' : '한 패인 세 명을 고르세요'; h.className = 'hint';
+      h.textContent = LM() ? '진술에 모두 맞는 자리를 지목하세요' : MM() ? '몽타주와 같은 사람을 고르세요, 일찍 고를수록 배수 ↑' : FM() ? '가짜 줄을 찾으세요' : WM() ? '진술 넷 중 딱 셋과 맞는 사람이 범인' : '한 패인 세 명을 고르세요'; h.className = 'hint';
       renderNeeds();
     }, ms);
   }
@@ -570,41 +570,41 @@
   function updateHud() {
     $('score').textContent = game.score.toLocaleString('ko-KR');
     var combo = $('combo');
-    combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ' · ×' + C.multiplierFor(game.combo, game.mods && game.mods.comboMax) : '연속 ' + game.combo;
+    combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ', ×' + C.multiplierFor(game.combo, game.mods && game.mods.comboMax) : '연속 ' + game.combo;
     combo.classList.toggle('live', game.combo > 1);
     var lv = $('level');
     if (LM()) {
       var ln = LU.RULES.levelAt[game.level + 1];
-      lv.textContent = '면통 ' + game.level + '단계 · ' + LU.LEVEL_NAME[game.level] + (ln != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, ln) - game.hits) + '명' : '');
+      lv.textContent = '면통 ' + game.level + '단계, ' + LU.LEVEL_NAME[game.level] + (ln != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, ln) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 4);
     } else if (MM()) {
       var mn = MT.RULES.levelAt[game.level + 1];
-      lv.textContent = '몽타주 · ' + MT.LEVEL_NAME[game.level] + (mn != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, mn) - game.hits) + '명' : '');
+      lv.textContent = '몽타주, ' + MT.LEVEL_NAME[game.level] + (mn != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, mn) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 2);
     } else if (FM()) {
       var fn = F.RULES.levelAt[game.level + 1];
-      lv.textContent = '위조 감별 · ' + F.LEVEL_NAME[game.level] + (fn != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, fn) - game.hits) + '명' : '');
+      lv.textContent = '위조 감별, ' + F.LEVEL_NAME[game.level] + (fn != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, fn) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 3);
     } else if (WM()) {
       var wn = W.RULES.levelAt[game.level + 1];
-      lv.textContent = '목격자 ' + W.LEVEL_NAME[game.level] + (wn != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, wn) - game.hits) + '명' : '');
+      lv.textContent = '목격자 ' + W.LEVEL_NAME[game.level] + (wn != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, wn) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 3);
     } else {
       var next = C.RULES.levelAt[game.level + 1];
-      lv.textContent = LEVEL_NAME[game.level] + (game.level < 4 && next != null ? ' · 다음까지 ' + Math.max(0, C.hitsFor(game, next) - game.hits) + '명' : '');
+      lv.textContent = LEVEL_NAME[game.level] + (game.level < 4 && next != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, next) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 4);
     }
     var f = $('free-n');
     f.hidden = !(game.freeHints > 0);
     f.textContent = String(game.freeHints);
     $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (무료 ' + game.freeHints + '번)' : '단서 보기 (' + (game.mods && game.mods.hintPenalty != null ? game.mods.hintPenalty : 3) + '초 줄어듦)');
-    $('stat-line').textContent = LM() ? '지목 ' + game.hits + ' · 오인 ' + game.misses
-      : MM() ? '검거 ' + game.hits + ' · 빠른 검거(×3 이상) ' + game.early + ' · 틀림 ' + game.misses
+    $('stat-line').textContent = LM() ? '지목 ' + game.hits + ', 오인 ' + game.misses
+      : MM() ? '검거 ' + game.hits + ', 빠른 검거(×3 이상) ' + game.early + ', 틀림 ' + game.misses
       : FM()
-      ? '찾음 ' + game.hits + ' · 위조 없음 적중 ' + game.noneHits + ' · 틀림 ' + (game.misses + game.noneMisses)
+      ? '찾음 ' + game.hits + ', 위조 없음 적중 ' + game.noneHits + ', 틀림 ' + (game.misses + game.noneMisses)
       : WM()
-      ? '검거 ' + game.hits + ' · 함정 ' + game.traps + ' · 오인 ' + game.misses
-      : '검거 ' + game.hits + ' · 불가 적중 ' + game.noneHits + ' · 실수 ' + (game.misses + game.noneMisses);
+      ? '검거 ' + game.hits + ', 함정 ' + game.traps + ', 오인 ' + game.misses
+      : '검거 ' + game.hits + ', 불가 적중 ' + game.noneHits + ', 실수 ' + (game.misses + game.noneMisses);
   }
 
   var quietUntil = 0;   // 판정 소리가 나는 동안은 초침을 쉰다
@@ -664,7 +664,7 @@
     if (LM()) setHint('목격자 진술에 모두 맞는 자리를 지목하세요', 'good', 4000);
     else if (MM()) setHint('특징이 하나씩 그려져요. 일찍 찾을수록 점수 ×4', 'good', 4000);
     else if (FM()) setHint('세 명씩 지은 줄 중 하나는 가짜예요. 한 특징만 둘이 같은 줄을 찾으세요', 'good', 4500);
-    else if (WM()) setHint('진술 넷 중 딱 셋과 맞는 사람이 범인 · 넷 다 맞으면 함정', 'good', 4000);
+    else if (WM()) setHint('진술 넷 중 딱 셋과 맞는 사람이 범인, 넷 다 맞으면 함정', 'good', 4000);
     else setHint(game.level < 4 ? '먼저 모자만 보세요. 셋 다 같거나, 셋 다 다르면 한 패' : '한 패인 세 명을 고르세요', game.level < 4 ? 'good' : '', game.level < 4 ? 4000 : 0);
     // 목격자 모드 화면: 진술서 보이기, 검거 불가 숨기기, 안개·등대 빛(사건 2 연출) 붙이기
     var wm = WM();
@@ -695,9 +695,9 @@
     markPicks();
     updateHud();
     // 0.7.0 난이도: 단순 · 미제 사건이면 도장 아래 글 앞에 붙인다(강력 사건은 기본이라 생략)
-    var DfI = window.Team3Diff && cfg.diff && cfg.diff !== 'normal' ? window.Team3Diff.info(cfg.diff).name + ' · ' : '';
-    popStamp(cfg.daily ? '특별 출동!' : '출동!', DfI + (cfg.daily && cfg.ruleName ? cfg.ruleName + ' · ' + cfg.duration + '초' : cfg.duration + '초 · ' + (LM() ? '범인을 지목하라' : '한 패를 찾아라')));
-    if (cfg.used && cfg.used.length) setHint('준비물: ' + cfg.used.join(' · '), 'good', 3000);
+    var DfI = window.Team3Diff && cfg.diff && cfg.diff !== 'normal' ? window.Team3Diff.info(cfg.diff).name + ' ' : '';
+    popStamp(cfg.daily ? '특별 출동!' : '출동!', DfI + (cfg.daily && cfg.ruleName ? cfg.ruleName + ' ' + cfg.duration + '초' : cfg.duration + '초, ' + (LM() ? '범인을 지목하라' : '한 패를 찾아라')));
+    if (cfg.used && cfg.used.length) setHint('준비물: ' + cfg.used.join(', '), 'good', 3000);
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
   }
@@ -762,8 +762,8 @@
     if (res.ok) {
       sfx.hit(res.combo); buzz([12, 40, 20]);
       if (FX) FX.hit(q0.fake >= 0 ? [rows[q0.fake]] : []);
-      popStamp(q0.fake >= 0 ? '위조 적발!' : '위조 없음!', '+' + res.gain + (res.combo > 1 ? '  ·  연속 ' + res.combo : ''));
-      setHint(q0.fake >= 0 ? (q0.fake + 1) + '번 줄 · ' + fakeName + '이(가) 둘만 같아요' : '이 판엔 가짜가 없었어요', 'good', 1400);
+      popStamp(q0.fake >= 0 ? '위조 적발!' : '위조 없음!', '+' + res.gain + (res.combo > 1 ? ' ,  연속 ' + res.combo : ''));
+      setHint(q0.fake >= 0 ? (q0.fake + 1) + '번 줄, ' + fakeName + '이(가) 둘만 같아요' : '이 판엔 가짜가 없었어요', 'good', 1400);
     } else {
       sfx.miss(); buzz(120);
       if (FX) FX.miss([]);
@@ -779,7 +779,7 @@
       if (!game || game.over) { if (game) finish(); return; }
       renderBoard();
       if (res.levelUp) {
-        var nm = { 2: ['네 가지 다 봐요', '시간대·흔적도 맞아야 진짜'], 3: ['여섯 줄', '가짜는 시간대·흔적에서만 · 없을 수도 있어요'] }[res.levelUp];
+        var nm = { 2: ['네 가지 다 봐요', '시간대·흔적도 맞아야 진짜'], 3: ['여섯 줄', '가짜는 시간대·흔적에서만, 없을 수도 있어요'] }[res.levelUp];
         sfx.none(); buzz([30, 60, 30]); if (FX) FX.levelUp(res.levelUp);
         popStamp(nm[0], nm[1]);
         setHint(res.levelUp === 3 ? '가짜가 없으면 "위조 없음"을 누르세요' : '이제 네 가지 특징을 다 봐요', 'good', 4000);
@@ -799,15 +799,15 @@
       cards[i].classList.add('right');
       sfx.hit(r.combo); buzz([12, 40, 20]);
       if (FX) FX.hit([cards[i]], q0.board[i], cardInner(q0.board[i]));
-      popStamp('검거!', '+' + r.gain + (r.combo > 1 ? '  ·  연속 ' + r.combo : ''));
+      popStamp('검거!', '+' + r.gain + (r.combo > 1 ? ' ,  연속 ' + r.combo : ''));
       var ht = (game.mods && game.mods.hitTime != null ? game.mods.hitTime : W.RULES.hitTime) + (game.hitBonus || 0);
       setHint(ht ? '+' + ht + '초' : '시간은 그대로', 'good', 900);
     } else {
       cards[i].classList.add('wrong');
       if (r.target >= 0 && cards[r.target]) cards[r.target].classList.add('right');
       sfx.miss(); buzz(r.trap ? [40, 60, 120] : 120);
-      var pen = r.shielded ? ' (변호사가 막았어요 · 벌점 없음)' : ' (−' + r.penalty + '초)';
-      if (r.trap) { flashFx(); shakeFx(); if (FX) FX.trap(); popStamp('함정!', '진술 넷이 다 맞으면 범인이 아니에요', true); setHint('하나는 거짓 진술 · 넷 다 맞는 사람은 함정' + pen, 'bad', 2600); }
+      var pen = r.shielded ? ' (변호사가 막았어요, 벌점 없음)' : ' (−' + r.penalty + '초)';
+      if (r.trap) { flashFx(); shakeFx(); if (FX) FX.trap(); popStamp('함정!', '진술 넷이 다 맞으면 범인이 아니에요', true); setHint('하나는 거짓 진술, 넷 다 맞는 사람은 함정' + pen, 'bad', 2600); }
       else { shakeFx(); if (FX) FX.miss([cards[i]]); popStamp('오인 체포', '진술과 ' + r.matched + '개만 맞아요', true); setHint('범인은 진술 넷 중 딱 셋과 맞아요' + pen, 'bad', 2600); }
       flashTimer();
     }
@@ -818,7 +818,7 @@
       if (!game || game.over) { if (game) finish(); return; }
       renderBoard(game.q.board.map(function (_, k) { return k; }));
       if (r.levelUp) {
-        var names = { 2: ['목격자 보통', '함정이 늘 하나, 걸러 내기 어려워요'], 3: ['목격자 어려움', '12명 · 흐린 진술이 섞여요'] }[r.levelUp];
+        var names = { 2: ['목격자 보통', '함정이 늘 하나, 걸러 내기 어려워요'], 3: ['목격자 어려움', '12명, 흐린 진술이 섞여요'] }[r.levelUp];
         sfx.none(); buzz([30, 60, 30]);
         if (FX) FX.levelUp(r.levelUp);
         popStamp(names[0], names[1]);
@@ -843,7 +843,7 @@
       picked.forEach(function (i) { cards[i].classList.add('hit'); });
       if (FX) FX.hit(picked.map(function (i) { return cards[i]; }));
       sfx.hit(r.combo); buzz([12, 40, 20]);
-      popStamp('검거!', '+' + r.gain + (r.combo > 1 ? '  ·  연속 ' + r.combo : ''));
+      popStamp('검거!', '+' + r.gain + (r.combo > 1 ? ' ,  연속 ' + r.combo : ''));
       var ht = game.mods && game.mods.hitTime != null ? game.mods.hitTime : C.RULES.hitTime;
       setHint(ht ? '+' + ht + '초' : '시간은 그대로', 'good', 900);
       updateHud(); bumpCombo();
@@ -864,8 +864,8 @@
       picked.forEach(function (i) { cards[i].classList.add('miss'); });
       if (FX) FX.miss(picked.map(function (i) { return cards[i]; }));
       sfx.miss(); buzz(120);
-      var why = r.reasons.map(function (x) { return x.name + ': ' + x.value + ' 두 명만 같아요'; }).join(' · ');
-      setHint(r.shielded ? why + '  (변호사가 막았어요 · 벌점 없음, 남은 면제 ' + game.shield + '번)' : why + '  (−' + r.penalty + '초)', 'bad', 2600);
+      var why = r.reasons.map(function (x) { return x.name + ': ' + x.value + ' 두 명만 같아요'; }).join(', ');
+      setHint(r.shielded ? why + '  (변호사가 막았어요, 벌점 없음, 남은 면제 ' + game.shield + '번)' : why + '  (−' + r.penalty + '초)', 'bad', 2600);
       flashTimer(); updateHud();
       setTimeout(function () {
         sel = []; lock = false;
@@ -888,7 +888,7 @@
     sel = [];
     if (r.ok) {
       sfx.none(); buzz([20, 50, 20, 50, 40]);
-      popStamp('검거 불가 적중', '+' + r.gain + '  ·  +' + C.RULES.noneTime + '초');
+      popStamp('검거 불가 적중', '+' + r.gain + ' ,  +' + C.RULES.noneTime + '초');
       updateHud(); bumpCombo();
       renderBoard(game.board.map(function (_, i) { return i; }));
     } else {
@@ -914,10 +914,10 @@
       if (LM()) {
         if (!lr.out.length) { setHint('목격자가 이미 다시 봤어요', '', 1600); return; }
         renderBoard();
-        setHint('목격자가 다시 봤어요: ' + lr.out.map(function (k) { return k + 1; }).join(' · ') + '번은 아니에요' + (lr.penalty ? ' (−' + lr.penalty + '초)' : ''), 'good', 3000);
+        setHint('목격자가 다시 봤어요: ' + lr.out.map(function (k) { return k + 1; }).join(', ') + '번은 아니에요' + (lr.penalty ? ' (−' + lr.penalty + '초)' : ''), 'good', 3000);
       } else {
         renderPaper(false);
-        setHint(lr.shown >= 4 ? '특징을 다 그렸어요' : '특징 하나를 먼저 그렸어요 · 현재 ×' + MT.multNow(game, now()), 'good', 2000);
+        setHint(lr.shown >= 4 ? '특징을 다 그렸어요' : '특징 하나를 먼저 그렸어요, 현재 ×' + MT.multNow(game, now()), 'good', 2000);
       }
       return;
     }
@@ -982,7 +982,7 @@
     $('r-hits').textContent = g.hits;
     $('r-combo').textContent = g.bestCombo;
     $('r-none').textContent = g.noneHits;
-    $('r-miss').textContent = g.misses + ' · ' + g.noneMisses;
+    $('r-miss').textContent = g.misses + ' ' + g.noneMisses;
     if (FX) FX.unmount();
     // 결과 칸 이름: 목격자 모드는 "함정 체포 · 오인 체포"
     var wmode = g.mode === 'witness', fmode = g.mode === 'forgery', lmode = g.mode === 'lineup', mmode = g.mode === 'montage';
@@ -997,7 +997,7 @@
       $('r-miss').textContent = String(g.misses);
     }
     var tip = lmode ? (g.misses > g.hits ? '진술 하나씩 대 보며 아닌 자리를 먼저 지우세요. "바로 왼쪽"은 그 자리의 왼쪽 사람을 보는 거예요.' : '면통 4단계는 진술이 셋이에요. 자리 관계 진술부터 보면 빨라요.')
-      : mmode ? (g.misses > g.hits ? '특징이 둘만 보일 땐 맞는 사람이 여럿일 수 있어요. 셋째가 그려질 때까지 기다려도 ×2예요.' : '처음 두 특징에 맞는 사람이 하나뿐이면 바로 고르세요. ×3 · ×4 가 크게 남아요.')
+      : mmode ? (g.misses > g.hits ? '특징이 둘만 보일 땐 맞는 사람이 여럿일 수 있어요. 셋째가 그려질 때까지 기다려도 ×2예요.' : '처음 두 특징에 맞는 사람이 하나뿐이면 바로 고르세요. ×3, ×4 가 크게 남아요.')
       : fmode ? '진짜 줄은 특징마다 셋 다 같거나 셋 다 달라요. 한 특징씩 줄을 훑어 "둘만 같은" 곳을 찾으세요.'
       : g.mode === 'witness'
       ? (g.traps > 1 ? '진술 넷이 다 맞는 사람은 함정이에요. 하나는 늘 거짓이니까, 딱 셋 맞는 사람을 찾으세요.'
@@ -1252,7 +1252,7 @@
     }
     var lv = R.levelAt;
     var out = item('한 패 찾기',
-      '<p>용의자에게는 <b>모자 · 얼굴 · 시간대 · 흔적</b> 네 가지 특징이 있어요.</p>' +
+      '<p>용의자에게는 <b>모자, 얼굴, 시간대, 흔적</b> 네 가지 특징이 있어요.</p>' +
       '<p>세 명을 골랐을 때 특징마다 <b>셋 다 같거나, 셋 다 다르면</b> 한 패예요. 둘만 같은 특징이 하나라도 있으면 한 패가 아니에요.</p>' +
       '<div class="help-cards">' + cards + '</div>' +
       '<p class="muted">두 명을 고르면 셋째는 하나로 정해져요. 그 한 명이 판에 있는지만 찾으면 돼요.</p>', true);
@@ -1281,10 +1281,10 @@
     }
     var EC = window.Team3Economy;
     if (EC && I) {
-      out += item('준비물 · 특별 출동 · 계급',
+      out += item('준비물, 특별 출동, 계급',
         '<p><b>출동 준비물</b>은 다음 출동 한 번에 챙겨 가는 소모품이에요. 출동 전이면 다시 눌러 무를 수 있어요. 값은 최근 출동 점수와 팀 수입에 맞춰 바뀌어요.</p>' +
         '<p><b>지원</b>: 팀 회식은 30분 동안 팀이 2배로 일하고, 야간 잠복조는 다음 자리 비움을 8시간까지 세요.</p>' +
-        '<p><b>메달</b>: 출동 점수 ' + EC.MEDALS.map(function (m) { return m.name + ' ' + m.at.toLocaleString('ko-KR'); }).join(' · ') + '을 처음 넘으면 보상을 받아요.</p>' +
+        '<p><b>메달</b>: 출동 점수 ' + EC.MEDALS.map(function (m) { return m.name + ' ' + m.at.toLocaleString('ko-KR'); }).join(', ') + '을 처음 넘으면 보상을 받아요.</p>' +
         '<p><b>오늘의 특별 출동</b>은 날마다 규칙이 바뀌어요. 준비물·장비 없이 실력으로 해요. 메달을 따면 하루 한 번 보상, 배지로 한 번 더 도전할 수 있어요.</p>' +
         '<p><b>계급</b>은 현장에서 직접 잡은 수로 올라요(' + I.RANKS.map(function (r) { return r.name; }).join(' → ') + '). 한 계급마다 수사비 +' + Math.round(I.RANK_BONUS * 100) + '%.</p>' +
         '<p><b>배지 ◆</b>는 승진·메달·특별 출동으로 모아요. 수사비가 모자랄 때 상품을 사거나 특별 출동에 다시 도전할 때 써요.</p>');
@@ -1292,25 +1292,25 @@
     var PT = window.Team3Pets;   // 0.3.0 동물 뽑기
     if (PT) {
       out += item('파트너 뽑기',
-        '<p>사무실 위쪽 <b>파트너</b> 단추에서 뽑기와 도감을 봐요. 파트너는 ' + PT.SPECIES.length + '종, 종류마다 <b>일반 · 희귀 · 영웅 · 전설</b> 네 등급이 있어요(모두 ' + (PT.SPECIES.length * 4) + '마리).</p>' +
-        '<p><b>보유 효과</b>: 모은 파트너 모두가 늘 조금씩(수사비 · 팀 수입 · 자리 비움 한도 · 할인). <b>장착 효과</b>: 파트너로 고른 한 마리만 크게.</p>' +
+        '<p>사무실 위쪽 <b>파트너</b> 단추에서 뽑기와 도감을 봐요. 파트너는 ' + PT.SPECIES.length + '종, 종류마다 <b>일반, 희귀, 영웅, 전설</b> 네 등급이 있어요(모두 ' + (PT.SPECIES.length * 4) + '마리).</p>' +
+        '<p><b>보유 효과</b>: 모은 파트너 모두가 늘 조금씩(수사비, 팀 수입, 자리 비움 한도, 할인). <b>장착 효과</b>: 파트너로 고른 한 마리만 크게.</p>' +
         '<p>같은 파트너가 또 나오면 ★가 올라 효과가 세져요(★5까지). 그 뒤로는 <b>간식</b>이 되고, 간식으로 원하는 파트너를 데려와요.</p>' +
         '<p>확률은 뽑기 창에 늘 공개돼요. ' + PT.PITY + '번 안에 전설이 안 나오면 전설 확정. ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>' +
-        '<p>뽑기권은 처음 선물 ' + PT.WELCOME + '장 · 사건 종결 10장 · 승진 3장 · 첫 메달 2장 · 특별 출동 메달 1장. 배지로도 뽑을 수 있어요(1회 ◆' + PT.COST.one + ' · 10회 ◆' + PT.COST.ten + ').</p>');
+        '<p>뽑기권은 처음 선물 ' + PT.WELCOME + '장, 사건 종결 10장, 승진 3장, 첫 메달 2장, 특별 출동 메달 1장. 배지로도 뽑을 수 있어요(1회 ◆' + PT.COST.one + ', 10회 ◆' + PT.COST.ten + ').</p>');
     }
     if (window.Team3Monet) {
-      out += item('3팀 매점 · 시즌 패스',
-        '<p>사무실의 <b>배지(◆) 칸</b>을 누르면 매점이 열려요. 짧은 광고를 보면 뽑기권 · 팀 회식을 받을 수 있어요(하루 한도). 출동 결과에서는 수사비 2배도 받아요.</p>' +
+      out += item('3팀 매점, 시즌 패스',
+        '<p>사무실의 <b>배지(◆) 칸</b>을 누르면 매점이 열려요. 짧은 광고를 보면 뽑기권, 팀 회식을 받을 수 있어요(하루 한도). 출동 결과에서는 수사비 2배도 받아요.</p>' +
         '<p><b>시즌 패스</b>는 정식 출시 전까지 끝나지 않고, 출시 뒤에는 30일마다 새로 시작해요. 출동할 때마다 경험치가 쌓여 단계가 열리고, 무료 줄 보상은 누구나 받아요.</p>' +
-        '<p>새내기 꾸러미 · 월정액 · 배지 묶음 · 패스 프리미엄은 출시 때 결제가 열려요. 돈으로 퍼즐 실력은 팔지 않아요.</p>');
+        '<p>새내기 꾸러미, 월정액, 배지 묶음, 패스 프리미엄은 출시 때 결제가 열려요. 돈으로 퍼즐 실력은 팔지 않아요.</p>');
     }
     if (window.Team3Ach) {
-      out += item('업적 · 칭호 · 이름',
-        '<p>사무실 오른쪽 위 <b>트로피</b>에서 업적을 봐요. 달성하면 바로 칭호와 보상(뽑기권 · 배지)을 받아요.</p>' +
+      out += item('업적, 칭호, 이름',
+        '<p>사무실 오른쪽 위 <b>트로피</b>에서 업적을 봐요. 달성하면 바로 칭호와 보상(뽑기권, 배지)을 받아요.</p>' +
         '<p>칭호는 <b>팀장 이름 앞</b>(트로피 창)과 <b>파트너 이름 앞</b>(파트너 창 자세히)에 달 수 있어요. 배지로 사는 칭호도 있어요.</p>' +
-        '<p>경찰서·팀장 이름과 파트너 이름 바꾸기는 <b>첫 한 번 무료</b>, 그 뒤로는 배지(팀장 ◆' + I.PROFILE.renameGems + ' · 파트너 ◆' + (window.Team3Pets ? window.Team3Pets.RENAME_GEMS : 5) + ') 또는 <b>이름표</b> 1장이에요.</p>');
+        '<p>경찰서·팀장 이름과 파트너 이름 바꾸기는 <b>첫 한 번 무료</b>, 그 뒤로는 배지(팀장 ◆' + I.PROFILE.renameGems + ', 파트너 ◆' + (window.Team3Pets ? window.Team3Pets.RENAME_GEMS : 5) + ') 또는 <b>이름표</b> 1장이에요.</p>');
     }
-    out += item('수사 일지 · 설정 · 백업',
+    out += item('수사 일지, 설정, 백업',
       '<p>사건이 고비를 넘을 때마다 <b>수사 일지</b>가 열려요. 사무실의 수사 일지 보기에서 다시 읽을 수 있어요.</p>' +
       '<p>톱니바퀴(<b>설정</b>)에서 음악·효과음 크기와 진동을 바꿔요. 사무실에서 열면 튜토리얼 다시 하기, 백업, 초기화도 있어요.</p>' +
       '<p>진행은 이 기기에만 저장돼요. 앱을 지우거나 기기를 바꾸기 전에 <b>백업 코드</b>를 복사해 두세요.</p>');
@@ -1333,19 +1333,19 @@
     return '<a href="' + escHtml(href) + '" target="_blank" rel="noopener noreferrer">' + escHtml(u.replace(/^https?:\/\//, '')) + '</a>';
   }
   function creditsHtml() {
-    var out = '<div><h3>제작</h3><div class="cr"><b>Loop &amp; Lamp Studio</b><span>제작사</span></div><div class="cr"><b>Guar</b><span>기획 · 개발</span></div></div>';
+    var out = '<div><h3>제작</h3><div class="cr"><b>Loop &amp; Lamp Studio</b><span>제작사</span></div><div class="cr"><b>Guar</b><span>기획, 개발</span></div></div>';
     var M = window.Team3Music || {}, rows = [];
     Object.keys(M).forEach(function (k) {
       var c = M[k] && M[k].credit; if (!c || !c.title) return;
       // url 칸에 "주소 · 주소" 로 여러 개를 적어 둘 수 있다
       var links = String(c.url || '').split(' · ').filter(Boolean).map(crLink).join(' ');
-      rows.push('<div class="cr"><b>"' + escHtml(c.title) + '"</b><span>' + escHtml((MUSIC_PLACE[k] ? MUSIC_PLACE[k] + ' · ' : '') + [c.artist, c.license].filter(Boolean).join(' · ')) + '</span>' + links + '</div>');
+      rows.push('<div class="cr"><b>"' + escHtml(c.title) + '"</b><span>' + escHtml((MUSIC_PLACE[k] ? MUSIC_PLACE[k] + ' ' : '') + [c.artist, c.license].filter(Boolean).join(', ')) + '</span>' + links + '</div>');
     });
     if (rows.length) out += '<div><h3>음악</h3><div style="display:flex;flex-direction:column;gap:8px">' + rows.join('') + '</div></div>';
     ['효과음', '글꼴'].forEach(function (g) {
       var list = OTHER_CREDITS.filter(function (c) { return c.group === g; });
       out += '<div><h3>' + g + '</h3><div style="display:flex;flex-direction:column;gap:8px">' + list.map(function (c) {
-        return '<div class="cr"><b>' + escHtml(c.title) + '</b><span>' + escHtml(c.who + ' · ' + c.license) + '</span>' + crLink(c.url) + '</div>';
+        return '<div class="cr"><b>' + escHtml(c.title) + '</b><span>' + escHtml(c.who + ' ' + c.license) + '</span>' + crLink(c.url) + '</div>';
       }).join('') + '</div></div>';
     });
     return out;
@@ -1415,7 +1415,7 @@
     };
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code).then(function () { toast('백업 코드를 복사했어요 · 메모장 등에 붙여 넣어 두세요'); }, fallback);
+        navigator.clipboard.writeText(code).then(function () { toast('백업 코드를 복사했어요, 메모장 등에 붙여 넣어 두세요'); }, fallback);
       } else fallback();
     } catch (e) { fallback(); }
   }
@@ -1430,16 +1430,16 @@
     var code = $('set-code').value;
     var check = ST ? ST.importCode(code, hooks.saveVersion) : { ok: false, reason: 'broken' };
     if (!check.ok) { toast(ST ? ST.REASONS[check.reason] : '불러오지 못했어요'); return; }
-    armOrRun('set-import-go', IMPORT_LABEL, '현재 진행이 이 코드로 바뀌어요 · 한 번 더 누르기', function () {
+    armOrRun('set-import-go', IMPORT_LABEL, '현재 진행이 이 코드로 바뀌어요, 한 번 더 누르기', function () {
       var r;
       try { r = hooks.importSave(check.json); } catch (e) { r = { ok: false, message: e.message }; }
       if (!r || !r.ok) { toast('불러오지 못했어요' + (r && r.message ? ': ' + r.message : '')); return; }
-      toast('불러왔어요 · 다시 여는 중');
+      toast('불러왔어요, 다시 여는 중');
       setTimeout(function () { try { location.reload(); } catch (e) { /* 무시 */ } }, 700);
     });
   }
   function resetSave() {
-    armOrRun('set-reset', RESET_LABEL, '모든 진행이 지워져요 · 한 번 더 누르기', function () {
+    armOrRun('set-reset', RESET_LABEL, '모든 진행이 지워져요, 한 번 더 누르기', function () {
       try { hooks.resetSave(); } catch (e) { toast('초기화하지 못했어요: ' + e.message); return; }
       toast('처음부터 다시 시작해요');
       setTimeout(function () { try { location.reload(); } catch (e) { /* 무시 */ } }, 700);

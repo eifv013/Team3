@@ -19,9 +19,9 @@
   //   (형사 1명은 초당 0.1 정도 ÷ 300 ≈ 1/3000 이지만 사건 진척도 준다)
   // 0.10.8 균형(tools/balance.js): 부서 수입을 1/10 로. 전에는 부서가 팀의 100~400배를 벌어 출동 · 이송 · 광고 2배 수사비가 의미 없었다 → 이제 팀의 1~14배
   var LIST = [
-    { id: 'patrol',  name: '순찰조',     what: '골목 순찰 · 제보 수집', cost: 150,      growth: 1.13, sec: 2,   pay: 0.02 },
-    { id: 'analyst', name: '분석관',     what: 'CCTV · 통화 기록 분석', cost: 2500,     growth: 1.14, sec: 8,   pay: 1 },
-    { id: 'csi',     name: '과학수사대', what: '지문 · 흔적 감식',      cost: 40000,    growth: 1.15, sec: 24,  pay: 38.4 },
+    { id: 'patrol',  name: '순찰조',     what: '골목 순찰, 제보 수집', cost: 150,      growth: 1.13, sec: 2,   pay: 0.02 },
+    { id: 'analyst', name: '분석관',     what: 'CCTV, 통화 기록 분석', cost: 2500,     growth: 1.14, sec: 8,   pay: 1 },
+    { id: 'csi',     name: '과학수사대', what: '지문, 흔적 감식',      cost: 40000,    growth: 1.15, sec: 24,  pay: 38.4 },
     { id: 'swat',    name: '특수수사대', what: '조직 소탕 작전',        cost: 600000,   growth: 1.15, sec: 60,  pay: 1240 },
     { id: 'intl',    name: '국제 공조',  what: '해외 도피범 수배',      cost: 9000000,  growth: 1.16, sec: 150, pay: 40900 }
   ];

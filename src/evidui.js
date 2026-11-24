@@ -83,17 +83,17 @@
     var cmp = can && last ? (g > last ? '지난번 재수사보다 ' + (g - last) + '개 많아요' : g < last ? '지난번(+' + last + ')보다 ' + (last - g) + '개 적어요' : '지난번 재수사와 같아요') : '';
     // 0.10.8 증거 탭은 판이 화면을 채운다 → 재수사는 위쪽 얇은 막대 한 줄로
     box.innerHTML = '<div class="rt-bar"><div class="rt-b1"><span class="label">재수사 단서</span><b class="rt-gain' + (can ? '' : ' off') + '">' + (can ? '+' + g : '0') + '</b></div>' +
-      '<div class="rt-b2"><small>' + (can ? '다음 +1까지' : '첫 단서까지') + ' 수사비 <b>' + fmtShort(need) + '</b>' + (dur(eta) ? ' · ' + dur(eta) : '') + '</small><div class="ach-bar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
-      '<button class="rt-help" id="h-career-help">재수사 ' + e.retreats + '번 · 경력 +' + Ev.careerPct(s) + '% <i>?</i></button></div>' +
+      '<div class="rt-b2"><small>' + (can ? '다음 +1까지' : '첫 단서까지') + ' 수사비 <b>' + fmtShort(need) + '</b>' + (dur(eta) ? ' ' + dur(eta) : '') + '</small><div class="ach-bar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
+      '<button class="rt-help" id="h-career-help">재수사 ' + e.retreats + '번, 경력 +' + Ev.careerPct(s) + '% <i>?</i></button></div>' +
       '<button class="primary" id="h-retreat-go"' + (can ? '' : ' disabled') + '>재수사</button></div>';
   }
   /* 0.10.6 재수사 경력 · 단서 설명(설명이 없어 무슨 숫자인지 몰랐다) */
   function careerHelp() {
     var s = S(), e = s.evid, P = function (t) { return '<p>' + t + '</p>'; };
     ctx.openInfo({ label: '재수사', title: '단서와 재수사 경력', readOnly: true, body:
-      P('<b>단서</b>는 시간이 아니라 <b>이번 재수사 뒤로 번 수사비</b>로 정해져요. 팀 · 부서 · 출동 · 이송 · 커피로 번 돈이 모두 들어가요. 많이 벌수록 늘지만 갈수록 더 많이 벌어야 해요.') +
+      P('<b>단서</b>는 시간이 아니라 <b>이번 재수사 뒤로 번 수사비</b>로 정해져요. 팀, 부서, 출동, 이송, 커피로 번 돈이 모두 들어가요. 많이 벌수록 늘지만 갈수록 더 많이 벌어야 해요.') +
       P('단서로 증거판의 증거를 열면 효과가 생겨요. 단서를 더 받는 증거(최대 +100%)와 매점 광고 보상으로도 얻어요.') +
-      P('<b>재수사 경력</b>은 재수사할 때마다 <b>+' + Ev.RANK_PCT + '%</b>씩 쌓여 영구로 붙어요. 팀 속도 · 팀 수사비 · 출동 수사비 · 부서 수입에 곱해져요.') +
+      P('<b>재수사 경력</b>은 재수사할 때마다 <b>+' + Ev.RANK_PCT + '%</b>씩 쌓여 영구로 붙어요. 팀 속도, 팀 수사비, 출동 수사비, 부서 수입에 곱해져요.') +
       P('현재 재수사 ' + e.retreats + '번 → 경력 <b>+' + Ev.careerPct(s) + '%</b>') });
   }
   function cheapest(s) { return Ev.CARDS.some(function (c) { return Ev.state(s, c.id) === 'can' && c.cost <= Ev.left(s); }) || Object.keys(s.evid.own).some(function (id) { var k = Ev.upCost(s, id); return k != null && k <= Ev.left(s); }); }
@@ -105,12 +105,12 @@
     var s = S(), g = Ev.gainNow(s), cs = ctx.idle.caseOf(s), f = Ev.effects(s);
     if (g < 1) { toast('아직 단서를 받을 수 없어요'); return; }
     var lose = !s.closed && s.caught > 0 && !atClose;
-    ctx.openInfo({ label: '재수사 · 처음부터 다시 파고들어요', title: '단서 +' + g,
+    ctx.openInfo({ label: '재수사, 처음부터 다시 파고들어요', title: '단서 +' + g,
       body: '<p class="rt-why">현재 수사를 접고 <b>처음부터 다시 파고들어요.</b> 그동안 모은 자료에서 놓쳤던 단서를 건져 증거판에 써요.</p>' +
         '<div class="rt-list"><div class="keep"><b>남는 것</b><span>' + chips(['사건 번호', '닫은 사건', '연 수사 일지', '계급', '동물', '배지', '업적', '단서', '증거판']) + '</span></div>' +
         '<div class="reset"><b>처음으로</b><span>' + chips(['수사비' + (f.startMoney ? '(→ ' + fmt(f.startMoney) + ')' : ''), '형사(→ ' + (1 + f.startDet) + '명)', '훈련', '출동 장비', '부서', '유치장'].concat(s.closed ? [] : ['사건 ' + cs.no + ' 진척'])) + '</span></div>' +
         (lose ? '<div class="warn"><b>현재 사건 진척 ' + fmt(s.caught) + '명이 0으로 돌아가요</b><span>사건을 닫을 때 재수사하면 잃는 진척이 없어요.</span></div>' : '') +
-        '<div class="gain"><b>얻는 것</b><span>' + chips(['단서 +' + g, '재수사 경력 +' + Ev.RANK_PCT + '%']) + '</span><small class="rt-note">재수사 경력은 팀 속도 · 수사비 · 부서 수입에 계속 붙어요</small></div></div>',
+        '<div class="gain"><b>얻는 것</b><span>' + chips(['단서 +' + g, '재수사 경력 +' + Ev.RANK_PCT + '%']) + '</span><small class="rt-note">재수사 경력은 팀 속도, 수사비, 부서 수입에 계속 붙어요</small></div></div>',
       ok: '재수사하고 단서 +' + g, cancel: '그만두기',
       onOk: function () { doRetreat(then); } });
   }
@@ -125,7 +125,7 @@
     try { ctx.UI.sfx.none(); } catch (e) { /* 무시 */ }
     ctx.UI.buzz([30, 60, 30, 60, 80]);
     ctx.render();
-    toast('재수사! 놓쳤던 단서 +' + r.gain + ' · 팀을 새로 꾸렸어요');
+    toast('재수사! 놓쳤던 단서 +' + r.gain + ', 팀을 새로 꾸렸어요');
     if (ctx.onRetreat) ctx.onRetreat(r);
     setTimeout(function () { open(); if (typeof then === 'function') then(); }, 900);
   }
@@ -164,7 +164,7 @@
   }
   function nodeHTML(k, st) {
     var s = S();
-    if (k === 'core') return st === 'open' ? '<span class="ev-stamp">미제 · 재수사</span><b>' + CASE_TITLE + '</b><small>' + CASE_LINE + '</small>' : '<b class="q">???</b><small>첫 재수사를 하면 열려요</small>';
+    if (k === 'core') return st === 'open' ? '<span class="ev-stamp">미제, 재수사</span><b>' + CASE_TITLE + '</b><small>' + CASE_LINE + '</small>' : '<b class="q">???</b><small>첫 재수사를 하면 열려요</small>';
     var c = Ev.BY_ID[k], lv = s.evid.lv[k] || 1;
     if (st === 'open') return '<b>' + esc(c.name) + '</b><small>' + esc(Ev.shortText(c, lv)) + '</small>' + (lv >= Ev.MAX_LV ? '<em class="ev-max">MAX</em>' : lv > 1 ? '<em class="ev-lv">' + '★'.repeat(lv) + '</em>' : '') + (groupOf(k) > 1 ? '<span class="ev-x">×' + groupOf(k) + '</span>' : '');
     // 0.9.2 실로 이어진(열 수 있거나 묶음 대기) 증거는 이름 · 효과를 보여 준다 — 무엇을 열지 보고 고르게. 안 이어진 것만 ???
@@ -201,7 +201,7 @@
     info();
     var f = Ev.effects(s);
     var eff = Object.keys(Ev.KEY_NAME).filter(function (k) { return f[k]; }).map(function (k) { return '<span class="ev-chip">' + Ev.KEY_NAME[k] + ' <b>' + (k === 'miss' ? '−' : '+') + (k === 'startMoney' ? fmtShort(f[k]) : f[k]) + '</b></span>'; }).join('');
-    effSum = '<button class="ev-chip career" data-career>재수사 경력 <b>+' + Ev.careerPct(s) + '%</b> ⓘ</button>' + (eff || '<span class="muted" style="font-size:12px">증거를 열면 효과가 생겨요. 같은 색 증거가 실로 이어지면 효과가 커져요(2장 ×1.5 · 3장 ×2 · 5장 ×2.5).</span>');
+    effSum = '<button class="ev-chip career" data-career>재수사 경력 <b>+' + Ev.careerPct(s) + '%</b> ⓘ</button>' + (eff || '<span class="muted" style="font-size:12px">증거를 열면 효과가 생겨요. 같은 색 증거가 실로 이어지면 효과가 커져요(2장 ×1.5, 3장 ×2, 5장 ×2.5).</span>');
     var locked = Ev.CARDS.filter(function (c) { return !Ev.tierOpen(s, c.tier); }), byT = {};
     locked.forEach(function (c) { (byT[c.tier] = byT[c.tier] || []).push(c); });
     $('ev-locks').innerHTML = locked.length ? Object.keys(byT).map(function (t) { return '<span class="ev-lock">' + lockText(+t) + '에 ' + byT[t].length + '장</span>'; }).join('') : '';
@@ -220,7 +220,7 @@
       box.innerHTML = '<div class="tx"><b>같은 색 증거를 실로 이으면 효과가 커져요</b>' +
         '<div class="ev-lg-rule"><span>2장 <b>×1.5</b></span><span>3장 <b>×2</b></span><span>5장 <b>×2.5</b></span></div>' +
         '<div class="ev-lg-cols">' + ['r', 'b', 'y', 'g'].map(function (c) { return '<span><i class="dot" style="background:' + Ev.COLOR[c].hex + '"></i>' + Ev.COLOR[c].name + '</span>'; }).join('') + '</div>' +
-        '<small>' + (gs.length ? '현재 묶음: ' + gs.map(function (g) { return Ev.COLOR[g.color].name.split(' ')[0] + ' ' + g.ids.length + '장 ×' + g.mult; }).join(', ') : '색은 증거의 종류예요. 효과는 증거마다 따로 적혀 있어요.') + '</small></div>';
+        '<small>' + (gs.length ? '현재 묶음: ' + gs.map(function (g) { return Ev.COLOR[g.color].name.split(',')[0] + ' ' + g.ids.length + '장 ×' + g.mult; }).join(', ') : '색은 증거의 종류예요. 효과는 증거마다 따로 적혀 있어요.') + '</small></div>';
       return;
     }
     var st = Ev.state(s, sel);
@@ -228,16 +228,16 @@
     var c = Ev.BY_ID[sel], col = Ev.COLOR[c.color];
     if (st === 'open') {
       var lv = s.evid.lv[sel] || 1, up = Ev.upCost(s, sel);
-      box.innerHTML = '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + (lv > 1 ? ' <em class="ev-lv">' + '★'.repeat(lv) + '</em>' : '') + '</b><small>' + esc(Ev.describe(c, lv)) + (groupOf(sel) > 1 ? ' · 묶음 ×' + groupOf(sel) : '') + ' · ' + col.name + '</small></div>' +
+      box.innerHTML = '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + (lv > 1 ? ' <em class="ev-lv">' + '★'.repeat(lv) + '</em>' : '') + '</b><small>' + esc(Ev.describe(c, lv)) + (groupOf(sel) > 1 ? ', 묶음 ×' + groupOf(sel) : '') + ' ' + col.name + '</small></div>' +
         '<button class="ev-act up" data-up="' + sel + '"' + (up != null && up <= Ev.left(s) ? '' : ' disabled') + '>' + (up == null ? '<span>최고 단계</span>' : '<span>강화</span><b>🔍 ' + up + '</b>') + '</button>';
       return;
     }
     if (st === 'can') {
-      box.innerHTML = '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + ' · 이어진 증거</b><small>' + esc(Ev.describe(c, 1)) + ' · 단서로 열면 붉은 실로 이어지고 바로 효과가 나요.</small></div>' +
+      box.innerHTML = '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + ', 이어진 증거</b><small>' + esc(Ev.describe(c, 1)) + ', 단서로 열면 붉은 실로 이어지고 바로 효과가 나요.</small></div>' +
         '<button class="ev-act" data-buyc="' + sel + '"' + (Ev.left(s) >= c.cost ? '' : ' disabled') + '><span>열기</span><b>🔍 ' + c.cost + '</b></button>';
       return;
     }
-    box.innerHTML = st === 'lock' ? '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + '</b><small>' + esc(Ev.describe(c, 1)) + ' · ' + lockText(c.tier) + '부터 열 수 있어요.</small></div>'
+    box.innerHTML = st === 'lock' ? '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + '</b><small>' + esc(Ev.describe(c, 1)) + ' ' + lockText(c.tier) + '부터 열 수 있어요.</small></div>'
       : '<div class="tx"><b>???</b><small>아직 이어진 증거가 없어요. 실로 이어진 옆 증거를 먼저 열어요.</small></div>';
   }
   /* 끌기 · 확대 */

@@ -39,7 +39,7 @@
     if (!x) {
       box.style.removeProperty('--gc');
       box.innerHTML = '<div class="pet-art pet-empty" aria-hidden="true">?</div>' +
-        '<div class="pet-tx"><b>파트너가 없어요</b><small>뽑기로 3팀과 함께할 파트너를 데려와요' + (free ? ' · 뽑기권 ' + free + '장' : '') + '</small></div>' +
+        '<div class="pet-tx"><b>파트너가 없어요</b><small>뽑기로 3팀과 함께할 파트너를 데려와요' + (free ? ', 뽑기권 ' + free + '장' : '') + '</small></div>' +
         '<button class="buy" id="h-pet-open">뽑기' + dot + '</button>';
       return;
     }
@@ -50,7 +50,7 @@
     box.innerHTML = '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
-      '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(' · ')) + '</small>' +
+      '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(', ')) + '</small>' +
         '<small class="pet-bond' + (bd.last === today() ? '' : ' need') + '">♥ ' + bd.lv + '단계' + (bd.last === today() ? ' (함께 ' + bd.days + '일 ✓)' : ', 그림을 눌러 쓰다듬어 줘요') + '</small></div>' +
       '<span class="pet-bubble" id="h-pet-bubble" hidden></span>' +
       '<button class="buy" id="h-pet-open">파트너' + dot + '</button>';
@@ -185,11 +185,11 @@
     if (P.freeLeft(s, today(), freeExtra()) > 0) out.one = { ok: true, pay: 'free', n: 1, text: '오늘 무료' };
     else if (p.tickets >= 1) out.one = { ok: true, pay: 'ticket', n: 1, text: ic('ticket') + '1장' };
     else if (s.gems >= P.COST.one) out.one = { ok: true, pay: 'gems', n: 1, text: ic('gem') + P.COST.one };
-    else out.one = { ok: false, n: 1, text: '부족 · ' + ic('ticket') + p.tickets + '/1 · ' + ic('gem') + fmt(s.gems) + '/' + P.COST.one };
+    else out.one = { ok: false, n: 1, text: '부족, ' + ic('ticket') + p.tickets + '/1, ' + ic('gem') + fmt(s.gems) + '/' + P.COST.one };
     var mt = P.maxPull(s, 'ticket'), mg = P.maxPull(s, 'gems');
     if (mt >= 2) out.multi = { ok: true, pay: 'ticket', n: mt, text: ic('ticket') + mt + '장' + (p.tickets > mt ? ' (한 번에 최대 ' + P.MAX_PULL + ')' : '') };
-    else if (mg >= 2) out.multi = { ok: true, pay: 'gems', n: mg, text: ic('gem') + fmt(P.gemCost(mg)) + (mg >= 10 ? ' · 10회마다 10% 덜' : '') };
-    else out.multi = { ok: false, n: 2, text: '부족 · ' + ic('ticket') + p.tickets + '/2 또는 ' + ic('gem') + fmt(s.gems) + '/' + P.gemCost(2) };
+    else if (mg >= 2) out.multi = { ok: true, pay: 'gems', n: mg, text: ic('gem') + fmt(P.gemCost(mg)) + (mg >= 10 ? ', 10회마다 10% 덜' : '') };
+    else out.multi = { ok: false, n: 2, text: '부족, ' + ic('ticket') + p.tickets + '/2 또는 ' + ic('gem') + fmt(s.gems) + '/' + P.gemCost(2) };
     return out;
   }
   function walletHtml() {
@@ -200,10 +200,10 @@
     var p = pets(), pl = plan(), one = pl.one, multi = pl.multi, pk = P.pickup(today()), sp = P.BY_ID[pk.id];
     // 이번 주 픽업
     $('pets-pickup').innerHTML = '<div class="pet-pk-art">' + A.draw(pk.id, { grade: 'l', anim: true }) + '</div>' +
-      '<div class="pet-pk-tx"><span class="label">이번 주 출동 파트너 · ' + pk.left + '일 남음</span><b>' + esc(sp.kind) + ' ' + esc(sp.name) + '</b>' +
+      '<div class="pet-pk-tx"><span class="label">이번 주 출동 파트너, ' + pk.left + '일 남음</span><b>' + esc(sp.kind) + ' ' + esc(sp.name) + '</b>' +
       '<small>영웅·전설이 나오면 절반은 ' + esc(sp.name) + '! 천장(' + P.PITY + '번째) 전설은 ' + esc(sp.name) + ' 확정</small></div>';
     $('pets-one').classList.toggle('free', one.pay === 'free');
-    $('pets-pity').innerHTML = '전설 확정까지 <b>' + (P.PITY - p.pity) + '번</b> · 현재까지 ' + fmt(p.pulls) + '번 뽑음';
+    $('pets-pity').innerHTML = '전설 확정까지 <b>' + (P.PITY - p.pity) + '번</b>, 현재까지 ' + fmt(p.pulls) + '번 뽑음';
     // 0.10.3 오늘 무료 뽑기를 썼으면 다음 무료(자정)까지 남은 시간을 함께
     var nd = new Date(); nd.setHours(24, 0, 0, 0); var ms = nd - Date.now(), hh = Math.floor(ms / 36e5), mm = Math.floor(ms % 36e5 / 6e4);
     var freeTxt = one.pay === 'free' ? '' : '<em class="pet-free-t">무료 뽑기까지 ' + (hh ? hh + '시간 ' : '') + mm + '분</em>';
@@ -220,8 +220,8 @@
       '<p class="muted">하루 한 번 무료 뽑기가 있어요(자정에 다시 생겨요).</p>' +
       '<p class="muted">천장: ' + P.PITY + '번째까지 전설이 한 번도 안 나오면 그 번째는 전설 확정(전설이 나오면 다시 0부터). 천장을 포함하면 전설은 실제로 약 ' + P.effectiveLegend() + '%예요.</p>' +
       '<p class="muted">여러 번 뽑기: 2번 이상 뽑을 수 있으면 가진 만큼 한 번에(최대 ' + P.MAX_PULL + '번). 10마리마다 희귀 이상 1마리 보장. 배지는 1번 ◆' + P.COST.one + ', 10번 묶음마다 ◆' + P.COST.ten + '.</p>' +
-      '<p class="muted">같은 파트너가 또 나오면 ★가 올라요(★5까지, ★마다 효과 +25%). ★5 뒤에는 간식(' + P.GRADES.map(function (g) { return P.GRADE[g].name + ' ' + P.GRADE[g].treat; }).join(' · ') + ')으로 바뀌어요.</p>' +
-      '<p class="muted">뽑기권은 처음 선물 · 사건 종결 · 승진 · 메달 · 특별 출동으로 받아요. 파트너는 퍼즐 실력을 대신하지 않아요: ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>';
+      '<p class="muted">같은 파트너가 또 나오면 ★가 올라요(★5까지, ★마다 효과 +25%). ★5 뒤에는 간식(' + P.GRADES.map(function (g) { return P.GRADE[g].name + ' ' + P.GRADE[g].treat; }).join(', ') + ')으로 바뀌어요.</p>' +
+      '<p class="muted">뽑기권은 처음 선물, 사건 종결, 승진, 메달, 특별 출동으로 받아요. 파트너는 퍼즐 실력을 대신하지 않아요: ⚡ 퍼즐 도움은 영웅·전설의 일부만, 특별 출동에서는 꺼져요.</p>';
   }
 
   /*
@@ -279,7 +279,7 @@
     '<linearGradient id="gxLid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DDA96E"/><stop offset="1" stop-color="#A9743E"/></linearGradient></defs>' +
     '<g class="gx-body"><rect x="22" y="62" width="156" height="100" rx="8" fill="url(#gxBox)" stroke="#5E3C1C" stroke-width="4"/>' +
     '<rect x="22" y="96" width="156" height="20" fill="#FFD23F" stroke="#5E3C1C" stroke-width="3"/>' +
-    '<text x="100" y="111" font-size="13" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="IBM Plex Sans KR" letter-spacing="2">증거 · EVIDENCE</text>' +
+    '<text x="100" y="111" font-size="13" font-weight="700" text-anchor="middle" fill="#1B1E24" font-family="IBM Plex Sans KR" letter-spacing="2">증거, EVIDENCE</text>' +
     '<g transform="rotate(-10 140 140)"><rect x="112" y="124" width="54" height="26" rx="5" fill="none" stroke="#C0392B" stroke-width="3"/><text x="139" y="143" font-size="15" font-weight="700" text-anchor="middle" fill="#C0392B" font-family="IBM Plex Sans KR">3팀</text></g></g>' +
     '<rect class="gx-seam" x="26" y="58" width="148" height="8" rx="4"/>' +
     '<g class="gx-lid"><rect x="14" y="40" width="172" height="26" rx="7" fill="url(#gxLid)" stroke="#5E3C1C" stroke-width="4"/><rect x="88" y="40" width="24" height="26" fill="#FFD23F" stroke="#5E3C1C" stroke-width="3"/></g></svg>';
@@ -371,7 +371,7 @@
     if (!N || !p.eq) return '';
     var can = P.canNoir(S(), p.eq), on = isNoir(p.eq), st = p.own[p.eq] || 1;
     return '<div class="pet-noircard' + (can ? '' : ' locked') + (on ? ' on' : '') + '"><span class="pnc-art' + (can ? ' noir-anim' : '') + '">' + N.draw(x.id, { grade: x.g, size: 84 }) + (can ? '' : '<i>' + LOCK + '</i>') + '</span>' +
-      '<span class="pnc-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (can ? '비밀 요원 모습의 반신 초상 · 파트너 카드와 도감에서 보여요' : (x.g === 'l' ? '전설은 데려오면 바로 받아요' : '이 파트너가 ★5가 되면 받아요 · 현재 ★' + st)) + '</small>' +
+      '<span class="pnc-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (can ? '비밀 요원 모습의 반신 초상, 파트너 카드와 도감에서 보여요' : (x.g === 'l' ? '전설은 데려오면 바로 받아요' : '이 파트너가 ★5가 되면 받아요, 현재 ★' + st)) + '</small>' +
       (can ? '<button class="' + (on ? 'ghost' : 'primary') + '" data-noircl="' + (on ? 0 : 1) + '">' + (on ? '본명으로' : '코드네임으로') + '</button>' : '') + '</span></div>';
   }
   function drawCloset() {
@@ -401,15 +401,15 @@
     var p = pets();
     var st = P.sets(S()), gs = P.GRADES.map(function (g) {
       var have = P.SPECIES.filter(function (x) { return p.own[P.key(x.id, g)]; }).length;
-      return '<span class="' + (st.grades[g] ? 'on' : '') + '" style="--gc:' + P.GRADE[g].color + '">' + P.GRADE[g].name + ' ' + have + '/' + P.SPECIES.length + '<i>' + esc(P.describe(P.GRADE_SET[g]).join(' · ')) + '</i></span>';
+      return '<span class="' + (st.grades[g] ? 'on' : '') + '" style="--gc:' + P.GRADE[g].color + '">' + P.GRADE[g].name + ' ' + have + '/' + P.SPECIES.length + '<i>' + esc(P.describe(P.GRADE_SET[g]).join(', ')) + '</i></span>';
     }).join('');
     var html = '<div class="pet-sum"><span class="label">보유 효과 합계<small>모은 파트너 모두, 늘 켜져 있어요</small></span><b>' + ownSummary() + '</b></div>' +
-      '<div class="pet-sets"><span class="label">세트 보너스 · 한 종류 네 등급 = 그 종류 보유 효과 두 배 · 한 등급 ' + P.SPECIES.length + '종 = 아래 보너스</span><div>' + gs + '</div></div>' +
+      '<div class="pet-sets"><span class="label">세트 보너스, 한 종류 네 등급 = 그 종류 보유 효과 두 배, 한 등급 ' + P.SPECIES.length + '종 = 아래 보너스</span><div>' + gs + '</div></div>' +
       '<div class="pet-dex-head"><span></span>' + P.GRADES.map(function (g) { return '<span style="color:' + P.GRADE[g].color + '">' + P.GRADE[g].name + '</span>'; }).join('') + '</div>';
     // 0.9.2 한정 파트너 줄은 맨 위(전설 칸 하나만 · 나머지 등급 칸은 "없음" 자리)
     (P.LIMITED || []).forEach(function (sp) {
       var k = P.key(sp.id, 'l'), st = p.own[k];
-      html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + ' · 한정</small></span>' +
+      html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + ', 한정</small></span>' +
         '<span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span>' +
         '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE.l.color + '" aria-label="한정 전설 ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
         A.draw(sp.id, { grade: 'l' }) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button></div>';
@@ -417,7 +417,7 @@
     // 0.9.2 새로 들어온 동물(since 가 큰 것)이 한정 줄 바로 아래 맨 위로
     P.SPECIES.map(function (sp, i) { return { sp: sp, i: i }; }).sort(function (a, b) { return (b.sp.since || 0) - (a.sp.since || 0) || a.i - b.i; }).forEach(function (o) {
       var sp = o.sp;
-      html += '<div class="pet-dex-row"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + (st.species[sp.id] ? ' · <em class="set">세트×2</em>' : '') + '</small></span>' +
+      html += '<div class="pet-dex-row"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + (st.species[sp.id] ? ', <em class="set">세트×2</em>' : '') + '</small></span>' +
         P.GRADES.map(function (g) {
           var k = P.key(sp.id, g), st = p.own[k];
           return '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE[g].color + '" aria-label="' + P.GRADE[g].name + ' ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
@@ -434,16 +434,16 @@
     if (!x) { box.innerHTML = ''; return; }
     var p = pets(), sp = P.BY_ID[x.id], g = P.GRADE[x.g], st = p.own[detailKey] || 0, shown = st || 1;
     var own = P.describe(P.ownEffect(x.id, x.g, shown)), eq = P.describe(P.eqEffect(x.id, x.g, shown));
-    var zapLocked = sp.zap && x.g !== 'h' && x.g !== 'l' ? '<small class="muted">⚡ ' + esc(P.describe(sp.zap).join(' · ').replace(/⚡ /g, '')) + ' — 영웅 · 전설 등급에서 열려요</small>' : '';
+    var zapLocked = sp.zap && x.g !== 'h' && x.g !== 'l' ? '<small class="muted">⚡ ' + esc(P.describe(sp.zap).join(', ').replace(/⚡ /g, '')) + ' — 영웅, 전설 등급에서 열려요</small>' : '';
     var swapCost = g.swap, canSwap = st < P.STAR_MAX && !sp.limited;   // 한정 파트너는 간식·선택권으로 못 데려와요
     box.style.setProperty('--gc', g.color);
     box.innerHTML = '<button class="pet-x" id="pets-detail-x" aria-label="자세히 닫기">×</button>' +
       '<div class="pet-big' + (st ? '' : ' locked') + (st && isNoir(detailKey) ? ' noir' : '') + '">' + (st ? portrait(detailKey, x, { grade: x.g, anim: true, outfit: P.wearing(S(), detailKey) }) : A.draw(x.id, { grade: x.g })) + '</div>' +
-      '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' · ' + esc(sp.kind) + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
+      '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' ' + esc(sp.kind) + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
         (st && isNoir(detailKey) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') +
         '<small class="muted">' + esc(sp.line) + '</small></div>' +
-      '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(' · ')) + '</b><small>갖고만 있어도 늘 켜짐</small></div>' +
-        '<div><em>장착 효과</em><b class="eq">' + esc(eq.join(' · ')) + '</b><small>파트너 1마리만' + (eq.join('').indexOf('⚡') >= 0 ? ' · ⚡는 특별 출동에서 꺼짐' : '') + '</small>' + zapLocked + '</div></div>' +
+      '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(', ')) + '</b><small>갖고만 있어도 늘 켜짐</small></div>' +
+        '<div><em>장착 효과</em><b class="eq">' + esc(eq.join(', ')) + '</b><small>파트너 1마리만' + (eq.join('').indexOf('⚡') >= 0 ? ', ⚡는 특별 출동에서 꺼짐' : '') + '</small>' + zapLocked + '</div></div>' +
       (st ? '' : '<p class="muted" style="font-size:12px">아직 없어서 ★1 기준으로 보여 줘요.</p>') +
       (st ? nameRow() : '') +
       (st ? noirRow(x, st) : '') +
@@ -462,12 +462,12 @@
     if (!N) return '';
     if (P.canNoir(S(), detailKey)) {
       var on = isNoir(detailKey);
-      return '<div class="pet-noir"><span class="label">코드네임 · ' + esc(P.codename(x.id)) + '</span><div class="pn-seg">' +
+      return '<div class="pet-noir"><span class="label">코드네임, ' + esc(P.codename(x.id)) + '</span><div class="pn-seg">' +
         '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on ? 'on' : '') + '" data-noir="1">코드네임</button></div>' +
-        (on ? '<small class="muted">코드네임일 땐 의상이 안 보여요 · 상황실 안에서는 본명 모습 그대로예요</small>' : '') + '</div>';
+        (on ? '<small class="muted">코드네임일 땐 의상이 안 보여요, 상황실 안에서는 본명 모습 그대로예요</small>' : '') + '</div>';
     }
     return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, size: 56 }) + '<i>' + LOCK + '</i></span>' +
-      '<span class="pn-tx"><b>코드네임 <em>???</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : '★5가 되면 받아요 · 현재 ★' + st) + '</small></span></div>';
+      '<span class="pn-tx"><b>코드네임 <em>???</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : '★5가 되면 받아요, 현재 ★' + st) + '</small></span></div>';
   }
   function outfitSelect() {
     var p = pets(), have = P.OUTFITS.filter(function (o) { return p.closet[o.id]; }), cur = P.wearing(S(), detailKey);
@@ -480,9 +480,9 @@
   function nameRow() {
     var c = P.renameCost(S()), custom = !!(pets().names[detailKey]), tags = S().nameTags || 0, I = root.SuspectsIdle;
     var price = !c ? '첫 한 번 무료' : tags ? ic('tag') + '이름표 1장 (' + tags + '장)' : ic('gem') + c;
-    if (!naming) return '<div class="pet-name"><button class="linkish" id="pets-name">이름 짓기 · ' + price + '</button>' +
+    if (!naming) return '<div class="pet-name"><button class="linkish" id="pets-name">이름 짓기, ' + price + '</button>' +
       (custom ? '<button class="linkish muted" id="pets-name-reset">기본 이름으로</button>' : '') + '</div>' +
-      (c && !tags && I && I.NAME_TAGS ? '<div class="pet-name"><button class="linkish muted" id="pets-tags"' + (S().gems < I.NAME_TAGS.gems ? ' disabled' : '') + '>' + ic('tag') + '이름표 ' + I.NAME_TAGS.n + '장 · ' + ic('gem') + I.NAME_TAGS.gems + ' (팀장 이름에도 써요)</button></div>' : '');
+      (c && !tags && I && I.NAME_TAGS ? '<div class="pet-name"><button class="linkish muted" id="pets-tags"' + (S().gems < I.NAME_TAGS.gems ? ' disabled' : '') + '>' + ic('tag') + '이름표 ' + I.NAME_TAGS.n + '장, ' + ic('gem') + I.NAME_TAGS.gems + ' (팀장 이름에도 써요)</button></div>' : '');
     return '<div class="pet-name on"><input id="pets-name-in" maxlength="' + (P.NAME_MAX * 2) + '" autocomplete="off" placeholder="' + P.NAME_MAX + '자까지">' +
       '<button class="primary" id="pets-name-ok">' + (!c ? '무료' : tags ? ic('tag') + '이름표' : ic('gem') + c) + '</button><button class="ghost" id="pets-name-no">취소</button></div>';
   }
@@ -498,7 +498,7 @@
     catch (e) { toast({ EMPTY: '이름을 적어 주세요', SAME: '같은 이름이에요', NOT_ENOUGH: '배지가 모자라요' }[e.code] || '바꿀 수 없어요'); return; }
     ctx.persist(); naming = false;
     try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ }
-    toast('이제 이름은 "' + r.name + '"' + (r.paid ? ' · ◆' + r.paid : r.tag ? ' · 이름표 1장' : ''));
+    toast('이제 이름은 "' + r.name + '"' + (r.paid ? ', ◆' + r.paid : r.tag ? ', 이름표 1장' : ''));
     renderPartner(); draw(); ctx.render();
   }
   function showDetail(k) {
@@ -529,7 +529,7 @@
         // 0.10.5 의상도 사기 전에 묻는다
         var oid = t.getAttribute('data-outfit'), opay = t.getAttribute('data-pay'), od = P.OUTFIT_BY ? P.OUTFIT_BY[oid] : P.OUTFITS.filter(function (z) { return z.id === oid; })[0];
         var have = opay === 'gems' ? S().gems : pets().treats, need = od ? od[opay === 'gems' ? 'gems' : 'treats'] : 0;
-        if (have < need) { toast((opay === 'gems' ? '배지' : '간식') + '가 모자라요 · ' + need + '개 필요'); return; }
+        if (have < need) { toast((opay === 'gems' ? '배지' : '간식') + '가 모자라요, ' + need + '개 필요'); return; }
         ctx.UI.confirmBuy({ title: (od ? od.name : '의상') + '을(를) 살까요?', body: '한 번 사면 모든 파트너가 함께 입을 수 있어요.', cost: ic(opay === 'gems' ? 'gem' : 'treat') + need, onOk: function () {
           try { var o = P.buyOutfit(S(), oid, opay); ctx.persist(); toast(o.name + '을(를) 옷장에 넣었어요'); try { ctx.UI.sfx.coin(); } catch (e6) { /* 무시 */ } }
           catch (e7) { toast(e7.code === 'NOT_ENOUGH' ? (opay === 'gems' ? '배지가 모자라요' : '간식이 모자라요') : '살 수 없어요'); }
@@ -556,7 +556,7 @@
       else if (t.id === 'pets-name') startNaming();
       else if (t.id === 'pets-tags') {
         var NT = root.SuspectsIdle.NAME_TAGS;
-        ctx.UI.confirmBuy({ title: '이름표 ' + NT.n + '장을 살까요?', body: '이름표 1장으로 파트너 · 경찰서 · 팀장 이름을 한 번 바꿔요.', cost: ic('gem') + NT.gems, onOk: function () {
+        ctx.UI.confirmBuy({ title: '이름표 ' + NT.n + '장을 살까요?', body: '이름표 1장으로 파트너, 경찰서, 팀장 이름을 한 번 바꿔요.', cost: ic('gem') + NT.gems, onOk: function () {
           try { root.SuspectsIdle.buyNameTags(S()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } toast('이름표 ' + NT.n + '장을 샀어요'); } catch (e5) { toast('배지가 모자라요'); }
           draw(); ctx.render();
         } });
@@ -606,7 +606,7 @@
     ctx.persist();
     openInfo({ label: '코드네임', title: P.nameOf(S(), k) + '에게 코드네임이 생겼어요',
       body: '<div class="noir-reveal noir-anim">' + N.draw(x.id, { grade: x.g, size: 220 }) + '</div><p class="cn-big">코드네임 <b>' + esc(P.codename(x.id)) + '</b></p><p style="text-align:center;margin:6px 0 0">' + (x.g === 'l' ? '전설 등급' : '★5') + '에 닿아 비밀 요원 모습이 열렸어요.<br>파트너 카드와 도감에서 이 모습으로 보여 줄 수 있어요.</p>' +
-        (ks.length > 1 ? '<p class="muted" style="text-align:center;font-size:12px">그 밖에 ' + (ks.length - 1) + '마리도 받았어요 · 도감 자세히에서 골라요</p>' : ''),
+        (ks.length > 1 ? '<p class="muted" style="text-align:center;font-size:12px">그 밖에 ' + (ks.length - 1) + '마리도 받았어요, 도감 자세히에서 골라요</p>' : ''),
       ok: '코드네임으로', cancel: '나중에',
       onOk: function () { P.setNoir(S(), k, true); ctx.persist(); renderPartner(); ctx.render(); toast('코드네임 ' + P.codename(x.id) + ', 임무 시작'); } });
     return true;

@@ -31,7 +31,7 @@
     var r = [];
     if (a.tickets) r.push(plain ? '뽑기권 ' + a.tickets : ic('ticket') + a.tickets);
     if (a.gems) r.push(plain ? '배지 ' + a.gems : ic('gem') + a.gems);
-    return r.join(' · ');
+    return r.join(', ');
   }
   /*
    * 0.6.0 창: 탭 둘 — 업적(달성 · 보상 받기, 빨간 점) / 칭호(팀장 칭호 고르기 · 가진 칭호 · 배지로 사는 칭호를 한 줄 칩으로)
@@ -45,7 +45,7 @@
     if (tab === 'ach') {
       if (left) {
         var sum = rows.filter(function (r) { return r.claim; }).reduce(function (o, r) { o.t += r.a.tickets || 0; o.g += r.a.gems || 0; return o; }, { t: 0, g: 0 });
-        html += '<button class="primary ach-all" data-claim="*">보상 모두 받기 · ' + left + '개' + (sum.t ? ' · ' + ic('ticket') + sum.t : '') + (sum.g ? ' · ' + ic('gem') + sum.g : '') + '</button>';
+        html += '<button class="primary ach-all" data-claim="*">보상 모두 받기, ' + left + '개' + (sum.t ? ' ' + ic('ticket') + sum.t : '') + (sum.g ? ' ' + ic('gem') + sum.g : '') + '</button>';
       }
       var groups = {}, order = [];
       // 받을 게 남은 업적 → 진행 중 → 받은 업적 순
@@ -58,7 +58,7 @@
           var pct = Math.min(100, Math.round(r.value / r.a.goal * 100));
           html += '<div class="ach-row' + (r.done ? ' done' : '') + (r.claim ? ' claim' : '') + '">' + (r.claim ? '<i class="dot"></i>' : '') +
             '<div class="ach-tx"><b>' + esc(r.a.name) + (r.done && !r.claim ? ' ✓' : '') + '</b>' +
-            '<small>' + esc(r.a.desc) + ' · 칭호 「' + esc(r.a.title) + '」</small>' +
+            '<small>' + esc(r.a.desc) + ', 칭호 「' + esc(r.a.title) + '」</small>' +
             (r.done ? '' : '<div class="ach-bar"><i style="width:' + pct + '%"></i></div>') + '</div>' +
             (r.claim ? '<button class="buy ach-get" data-claim="' + r.a.id + '">받기<small>' + reward(r.a) + '</small></button>'
               : '<span class="ach-n">' + (r.done ? reward(r.a) : fmt(r.value) + '/' + fmt(r.a.goal) + '<small>' + reward(r.a) + '</small>') + '</span>') + '</div>';
@@ -67,7 +67,7 @@
     } else {
       html += titleSelect('ach-title', s.ach.title, '팀장 칭호') +
         '<p class="muted" style="font-size:12px;margin:4px 0 0">칭호는 사무실 팀장 이름 앞에 붙어요. 동물 칭호는 동물 창의 자세히에서 달아요.</p>' +
-        '<span class="label ach-g">배지로 사는 칭호 · 꾸미기 전용</span><div class="ach-shop">' + H.SHOP.map(function (t) {
+        '<span class="label ach-g">배지로 사는 칭호, 꾸미기 전용</span><div class="ach-shop">' + H.SHOP.map(function (t) {
           var have = H.has(s, t.id);
           return '<button class="ach-chip' + (have ? ' have' : '') + '" data-buy="' + t.id + '"' + (have || s.gems < t.gems ? ' disabled' : '') + '>「' + esc(t.title) + '」<small>' + (have ? '보유' : ic('gem') + t.gems) + '</small></button>';
         }).join('') + '</div>' +
@@ -88,13 +88,13 @@
     if (dot0 && list.length) dot0.hidden = false;
     if (list.length > 3) {   // 업데이트 직후처럼 한꺼번에 많이 달성하면 한 줄로
       var t = list.reduce(function (n, a) { return n + (a.tickets || 0); }, 0), g = list.reduce(function (n, a) { return n + (a.gems || 0); }, 0);
-      toast('업적 ' + list.length + '개 달성! 칭호 ' + list.length + '개 · 트로피에서 보상 받기');
+      toast('업적 ' + list.length + '개 달성! 칭호 ' + list.length + '개, 트로피에서 보상 받기');
       try { ctx.UI.sfx.none(); } catch (e) { /* 무시 */ }
       return;
     }
     list.forEach(function (a, i) {
       setTimeout(function () {
-        toast('업적 달성: ' + a.name + ' · 칭호 「' + a.title + '」 · 트로피에서 보상 받기');
+        toast('업적 달성: ' + a.name + ', 칭호 「' + a.title + '」, 트로피에서 보상 받기');
         try { if (i === 0) ctx.UI.sfx.none(); } catch (e) { /* 무시 */ }
       }, i * 2600);
     });
@@ -117,7 +117,7 @@
         try {
           var r = H.claim(S(), id === '*' ? null : id, P ? P.addTickets : null);
           ctx.persist(); ctx.render();
-          toast('보상 받음' + (r.tickets ? ' · 뽑기권 +' + r.tickets : '') + (r.gems ? ' · 배지 +' + r.gems : ''));
+          toast('보상 받음' + (r.tickets ? ', 뽑기권 +' + r.tickets : '') + (r.gems ? ', 배지 +' + r.gems : ''));
           try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ }
         } catch (e5) { toast('받을 수 없어요'); }
         draw(); return;
@@ -131,7 +131,7 @@
         draw();
       };
       if (!td || !ctx.UI.confirmBuy) { doIt(); return; }
-      if (S().gems < td.gems) { toast('배지가 모자라요 · ◆' + td.gems + ' 필요'); return; }
+      if (S().gems < td.gems) { toast('배지가 모자라요, ◆' + td.gems + ' 필요'); return; }
       ctx.UI.confirmBuy({ title: '칭호 「' + td.title + '」를 살까요?', cost: ic('gem') + td.gems, onOk: doIt });
     });
     $('ach-sheet').addEventListener('change', function (e) {

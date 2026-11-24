@@ -179,8 +179,8 @@ with sync_playwright() as p:
         if 'GUAR' in pg.text_content('#s-hub').upper(): problems.append('사무실에 GUAR 가 남아 있음')
         pg.click('#h-profile'); pg.clock.run_for(100)
         pg.fill('#pf-station', '강남서'); pg.fill('#pf-leader', '<i>김형사</i>'); pg.press('#pf-leader', 'Enter'); pg.clock.run_for(100)
-        if pg.text_content('#h-station') != '강남서 · 수사 3팀': problems.append('경찰서 이름이 안 바뀜: ' + pg.text_content('#h-station'))
-        if pg.text_content('#h-leader') != '경위 · 팀장 i김형사/i': problems.append('팀장 이름이 이상함: ' + pg.text_content('#h-leader'))   # 0.1.19: 계급이 앞에 붙는다
+        if pg.text_content('#h-station') != '강남서 수사 3팀': problems.append('경찰서 이름이 안 바뀜: ' + pg.text_content('#h-station'))
+        if pg.text_content('#h-leader') != '경위 팀장 i김형사/i': problems.append('팀장 이름이 이상함: ' + pg.text_content('#h-leader'))   # 0.1.19: 계급이 앞에 붙는다
         if pg.locator('#h-leader i').count(): problems.append('이름 속 HTML 이 그대로 그려짐')
         pg.screenshot(path=SHOT + 'profile.png')
         # 출동 → 결과
@@ -273,7 +273,7 @@ with sync_playwright() as p:
         pg.goto(URL); pg.clock.run_for(4500)
         if pg.text_content('#info-label') != '잠복 보고' or pg.locator('#info-sheet').is_hidden(): problems.append('다시 켰는데 잠복 보고가 없음')
         pg.screenshot(path=SHOT + 'away.png')
-        if pg.text_content('#h-station') != '강남서 · 수사 3팀': problems.append('다시 켰더니 경찰서 이름이 사라짐')
+        if pg.text_content('#h-station') != '강남서 수사 3팀': problems.append('다시 켰더니 경찰서 이름이 사라짐')
         close_info(pg); pg.clock.run_for(100)
         # 사건 종결: 창을 닫고, 다음 창이 뜨기 직전에 저장을 2999명으로 바꿔 팀이 마지막 한 명을 잡게 한다.
         # (열린 창의 저장을 바꾸면 떠날 때 게임이 덮어쓰므로 창 사이에서 바꾼다)

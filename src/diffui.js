@@ -33,7 +33,7 @@
     ];
   }
   function rewardChips(L) {
-    if (L.k === 'normal') return [['eq', '💰 모든 보상', '기본 100%'], ['eq', '🏅 특별 출동', '메달 · 배지']];
+    if (L.k === 'normal') return [['eq', '💰 모든 보상', '기본 100%'], ['eq', '🏅 특별 출동', '메달, 배지']];
     var good = L.pay > 1 ? 'up' : 'dn';
     var out = [[good, '💰 수사비', '×' + L.pay], [good, '🧩 재수사 단서', '×' + L.clue], [good, '⭐ 경험치', '×' + L.xp]];
     if (L.k === 'easy') out.push(['dn', '🏅 특별 출동', '참가 보상만']);
@@ -66,7 +66,7 @@
     $('df-sheet-in').innerHTML = x +
       '<span class="df-kick"><i></i>' + (mode === 'first' ? '사건 배정' : '난이도') + '</span>' +
       '<h2 id="df-title">어떤 사건을 맡을까요?</h2>' +
-      '<p class="df-sub">현장 출동(퍼즐)만 달라져요. <b>팀 · 부서 수입은 똑같아요.</b><br>설정에서 언제든지 바꿀 수 있어요.</p>' +
+      '<p class="df-sub">현장 출동(퍼즐)만 달라져요. <b>팀, 부서 수입은 똑같아요.</b><br>설정에서 언제든지 바꿀 수 있어요.</p>' +
       Df.ORDER.map(function (k) { return card(k, cur); }).join('') +
       '<button class="df-go" id="df-go"' + (mode !== 'first' && sel === cur ? ' disabled' : '') + '>' + btn + '</button>' +
       '<div class="df-note"><span>💡</span><span>카드를 두 번 톡톡 눌러도 바로 정해져요. 보상은 그 판을 출동한 난이도로 매기고, 출동 결과에 함께 표시돼요.</span></div>';
@@ -125,7 +125,7 @@
       ctx.UI.buzz([12, 30, 12]);
       if (mode === 'first') { drawDone(); return; }
       close();
-      if (was !== sel) ctx.UI.toast(ga(Df.info(sel).name) + ' 배정됐어요 · 다음 출동부터 적용돼요');
+      if (was !== sel) ctx.UI.toast(ga(Df.info(sel).name) + ' 배정됐어요, 다음 출동부터 적용돼요');
     }
   }
 
@@ -134,7 +134,7 @@
     var b = $('set-diff'); if (!b || !ctx) return;
     var L = Df.info(Df.get(S()));
     b.style.setProperty('--c', L.color);
-    b.innerHTML = '<i aria-hidden="true">' + L.icon + '</i><span><b>' + L.name + '</b><small>출동 보상 ×' + L.pay + ' · ' + L.desc + '</small></span><em>바꾸기 ›</em>';
+    b.innerHTML = '<i aria-hidden="true">' + L.icon + '</i><span><b>' + L.name + '</b><small>출동 보상 ×' + L.pay + ' ' + L.desc + '</small></span><em>바꾸기 ›</em>';
   }
 
   function mount(c) {

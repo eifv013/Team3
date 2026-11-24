@@ -183,7 +183,7 @@
 
   // B 폴리스 라인: 남색 판이 사선으로 휙 덮고(노란 테이프 한 줄), 머무는 동안 테이프 글씨가 흐르고, 반대편으로 빠진다
   FX.B = function (layer) {
-    var unit = 'POLICE LINE · 수사 3팀 · 출입 금지 · ';
+    var unit = 'POLICE LINE, 수사 3팀, 출입 금지, ';
     var p = h('div', 'tr-b-panel', '<div class="tr-b-tape"><b class="tr-bh tr-b-text">' + unit + unit + unit + '</b></div>', layer);
     var txt = p.querySelector('.tr-b-text');
     var R = 'rotate(-18deg) ';
@@ -201,7 +201,7 @@
   FX.C = function (layer, opt) {
     var no = String((opt && opt.caseNo) || 1);
     var f = h('div', 'tr-c-file',
-      '<i class="tr-c-tab"></i><div class="tr-c-k">CASE FILE · 수사 3팀</div>' +
+      '<i class="tr-c-tab"></i><div class="tr-c-k">CASE FILE, 수사 3팀</div>' +
       '<div class="tr-c-no">No. ' + ('00' + no).slice(-3) + '</div>' +
       '<div class="tr-bh tr-c-t">사건 ' + no + (opt && opt.caseTitle ? '<br>' + opt.caseTitle : '') + '</div><div class="tr-c-line"></div>' +
       '<div class="tr-c-row"><span>담당</span><b>수사 3팀</b></div>' +
@@ -234,7 +234,7 @@
   // E 긴급 무전: 빨간 경보가 두 번 조여 오고 → 주사선 화면에 무전 글자가 한 자씩 → 지직 끊기며 열린다
   FX.E = function (layer) {
     var al = h('div', 'tr-e-alarm', null, layer); al.style.opacity = '0';
-    var scr = h('div', 'tr-e-scr', '<div class="tr-e-hd"><i class="tr-e-dot"></i>긴급 무전 · CH 3</div><div class="tr-e-txt"></div>', layer);
+    var scr = h('div', 'tr-e-scr', '<div class="tr-e-hd"><i class="tr-e-dot"></i>긴급 무전, CH 3</div><div class="tr-e-txt"></div>', layer);
     scr.style.opacity = '0';
     var txt = scr.querySelector('.tr-e-txt'), dot = scr.querySelector('.tr-e-dot');
     var msg = '주범 조 위치 확인.\n3팀 전원 출동.';
@@ -285,7 +285,7 @@
       '<div class="tr-f-band"><b class="tr-bh">현상수배</b><span>WANTED</span></div>' +
       '<div class="tr-f-body">' +
         '<div class="tr-f-row">' + mug(0) + mug(1) + mug(2) + '</div>' +
-        '<div><b class="tr-bh tr-f-big" style="display:block">주범 조 · 생포</b>' +
+        '<div><b class="tr-bh tr-f-big" style="display:block">주범 조, 생포</b>' +
         '<div class="tr-f-desc">세 명이 한 조로 움직인다.<br>셋 중 하나도 놓치지 말 것.</div></div>' +
         '<div class="tr-f-foot"><span>사건 1<br>골목길 연쇄 절도</span><span style="text-align:right">제보<br><b class="tr-bh">수사 3팀</b></span></div>' +
       '</div>';
