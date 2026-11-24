@@ -942,6 +942,26 @@
     var it = e.target.closest && e.target.closest('.shop:not(#h-support) .item');
     if (it && it.querySelector(':scope > .buy.max')) it.classList.toggle('open');
   });
+  /* 0.10.11 글 속의 ◆ 는 어디에 나오든 배지 그림으로 바꾼다(창 · 알림 · 단추 모두). 글 넣는 칸은 건드리지 않는다 */
+  (function () {
+    var IC = window.Team3Icons; if (!IC || !window.MutationObserver) return;
+    function fix(node) {
+      if (node.nodeType === 3) {
+        var v = node.nodeValue; if (v.indexOf('◆') < 0) return;
+        var par = node.parentNode; if (!par || /^(SCRIPT|STYLE|TEXTAREA|INPUT|TITLE)$/.test(par.nodeName)) return;
+        var parts = v.split(/◆\s?/), frag = document.createDocumentFragment();
+        parts.forEach(function (t, i) { if (i) { var sp = document.createElement('span'); sp.className = 'gem-in'; sp.innerHTML = IC.icon('gem'); frag.appendChild(sp); } if (t) frag.appendChild(document.createTextNode(t)); });
+        par.replaceChild(frag, node);
+      } else if (node.nodeType === 1 && !/^(SCRIPT|STYLE|TEXTAREA|svg)$/.test(node.nodeName)) {
+        var w = document.createTreeWalker(node, 4, null), list = [], n;
+        while ((n = w.nextNode())) if (n.nodeValue.indexOf('◆') >= 0) list.push(n);
+        list.forEach(fix);
+      }
+    }
+    fix(document.body);
+    new MutationObserver(function (ms) { ms.forEach(function (m) { if (m.type === 'characterData') fix(m.target); else for (var i = 0; i < m.addedNodes.length; i++) fix(m.addedNodes[i]); }); })
+      .observe(document.body, { childList: true, subtree: true, characterData: true });
+  })();
   window.Team3AttendUI = { open: openAttend, can: function () { return !!AT && AT.canCheck(save, dayNow()); } };
   // 하루 한 번, 상황실에 있을 때(창 · 출동 없음) 자동으로 띄운다
   function attendAuto() {

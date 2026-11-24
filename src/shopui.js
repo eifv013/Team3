@@ -126,14 +126,14 @@
         payBtn('wolf', '데려오기 ' + priceLabel('wolf')) + '<small class="lim-note">한 사람당 한 번</small></div></div>';
     } else if (s.shop.bought.wolf) html += '<div class="lim-done">🐺 백랑이 3팀에 있어요, 파트너 탭에서 장착해요</div>';
     var adf = M.perks(s, t).adFree;
-    html += '<span class="label">무료로 받기' + (adf ? ', 광고 없이 바로' : ', 짧은 광고를 보면') + '</span>';
-    // 0.10.5 매점 광고 보상은 하루 한도(오늘 n / 한도)
-    [['ticket', '뽑기권 1장', '파트너 뽑기에 써요'], ['party', '팀 회식 무료', '30분 동안 팀이 2배로 일해요'], ['treats', '간식 15개', '★ 올리기, 의상에 써요'],
-     ['gems', '배지 ◆3', '뭐든 살 수 있어요'], ['clue', '단서 1개', '증거판에서 증거를 열어요']].forEach(function (a) {
+    // 0.10.11 광고 보상: 긴 줄 다섯 개 → 한 화면에 들어오는 작은 칸(그림 · 받는 것 · 오늘 n/한도). 칸을 누르면 받는다
+    html += '<span class="label">' + (adf ? '무료 보상 (광고 없이 바로)' : '광고 보고 무료로 받기') + '</span><div class="ad-grid">';
+    [['ticket', ic('ticket'), '뽑기권 1장'], ['treats', ic('treat'), '간식 15개'], ['gems', ic('gem'), '배지 3개'], ['clue', '<i class="em">🔍</i>', '단서 1개'], ['party', '<i class="em">🍻</i>', '팀 회식 30분']].forEach(function (a) {
       var seen = M.adSeen(s, a[0], day), lim = M.adLimit(s, a[0]), done = seen >= lim;
-      html += '<div class="shop-row' + (done ? ' off' : '') + '"><div class="shop-tx"><b>' + a[1] + '</b><small>' + a[2] + '</small><em class="ad-cnt">오늘 ' + seen + ' / ' + lim + '</em></div>' +
-        '<button class="ghost" data-ad="' + a[0] + '"' + (done ? ' disabled' : '') + '>' + (done ? '내일 다시' : adf ? '받기' : '▶ 광고 보고 받기') + '</button></div>';
+      html += '<button class="ad-tile' + (done ? ' off' : '') + '" data-ad="' + a[0] + '"' + (done ? ' disabled' : '') + ' aria-label="' + a[2] + ', 오늘 ' + seen + ' / ' + lim + '">' +
+        '<span class="ad-ic">' + a[1] + '</span><b>' + a[2] + '</b><small>' + seen + ' / ' + lim + '</small><em>' + (done ? '내일 다시' : adf ? '받기' : '▶ 받기') + '</em></button>';
     });
+    html += '</div>';
     // 0.10.4 유료 상품: 제목 · 받는 것(아이콘 칸) · 조건 한 줄 · 아래 전체 폭 단추 — 글을 점으로 이어 붙이지 않는다
     function chip(icn, txt) { return '<span class="pk-chip">' + (icn ? ic(icn) : '') + '<b>' + txt + '</b></span>'; }
     function card(o) {
@@ -152,7 +152,7 @@
       note: on ? (s.shop.subDay === day ? '오늘 배지 ' + M.SUB.dailyGems + '개를 받았어요' : '오늘 보상은 상황실에 오면 들어와요') : '', btn: payBtn('sub30', on ? '연장 ' + priceLabel('sub30') : null) });
     var afd = M.perks(s, t).adFreeDays;
     if (!s.shop.adFree) html += card({ cls: afd ? 'on' : '', tag: afd ? afd + '일 남음' : '30일', name: '광고 없이 받기',
-      line: '30일 동안 광고 보상을 광고 없이 바로', chips: [chip('', '▶ 광고 건너뛰기'), chip('', '무료 보상, 2배 받기 전부')], btn: payBtn('adfree', afd ? '연장 ' + priceLabel('adfree') : null) });
+      line: '30일 동안 광고를 보지 않고 보상을 바로 받아요', chips: [chip('', '매점 무료 보상'), chip('', '출동 끝 수사비 2배'), chip('', '자리 비움 수사비 2배')], btn: payBtn('adfree', afd ? '연장 ' + priceLabel('adfree') : null) });
     // 배지
     if (!Pay.gems) html += '<span class="label">배지</span><div class="shop-gems">' + M.PRODUCTS.filter(function (p) { return p.kind === 'gems'; }).map(function (p) {
       return '<div class="shop-gem"><b>' + esc(p.desc) + '</b><small>' + esc(p.name) + '</small>' + payBtn(p.id) + '</div>';
@@ -212,7 +212,7 @@
   function leftTxt(n) { return n === Infinity ? '정식 출시 전까지' : n + '일 남음'; }
   function premFx(on, left) {
     var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '하루 기회 +1번'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장, 왕관 팀 이름'], ['30단계 뒤', M.EXTRA_XP + 'XP마다 간식 ' + M.EXTRA.treats + ' (' + M.EXTRA_MAX + '번까지)'], ['유치장', '꽉 차면 자동 이송']];
-    return '<div class="pass-fx' + (on ? '' : ' off') + '"><b>👑 프리미엄 효과, ' + (on ? '켜짐, ' + leftTxt(left) : left === Infinity ? '사면 정식 출시 전까지 켜져요' : '사면 이번 시즌 동안 켜져요') + '</b>' + rows.map(function (r) { return '<div><span>' + r[0] + '</span><em>' + (on ? '' : '🔒 ') + r[1] + '</em></div>'; }).join('') + '</div>';
+    return '<div class="pass-fx' + (on ? '' : ' off') + '"><b>👑 프리미엄 효과, ' + (on ? '적용 중, ' + leftTxt(left) : left === Infinity ? '사면 정식 출시 전까지 적용돼요' : '사면 이번 시즌 동안 적용돼요') + '</b>' + rows.map(function (r) { return '<div><span>' + r[0] + '</span><em>' + (on ? '' : '🔒 ') + r[1] + '</em></div>'; }).join('') + '</div>';
   }
   function drawPass() {
     var s = S(), day = ctx.day(), ps = M.passOf(s, day), se = M.seasonOf(s, day), tier = M.tierOf(ps.xp), can = M.claimable(s, day).length;

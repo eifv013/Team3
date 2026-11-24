@@ -1644,7 +1644,7 @@ button.ev-chip{border:0;font:inherit;color:inherit;cursor:pointer}
 button.ev-legend{flex-direction:row;align-items:center;gap:3px;border:0;font-family:inherit;pointer-events:auto;padding:7px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
 button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{margin-left:4px;white-space:nowrap}button.ev-legend b{display:inline-flex;width:15px;height:15px;border-radius:50%;align-items:center;justify-content:center;background:#FFD23F;color:#1B1500;font-size:10px;font-weight:900;margin-left:2px}
 .ev-effbtn{position:absolute;left:8px;top:42px;z-index:3;border:0;font-family:inherit;padding:5px 10px;border-radius:999px;background:rgba(20,14,8,.78);color:#FFE58A;font-size:11.5px;font-weight:800}
-.ev-vp .ev-info.evp{left:8px;right:auto;transform:none;max-width:none;bottom:44px;white-space:nowrap}
+.ev-vp .ev-info.evp{left:8px;right:auto;transform:none;max-width:none;bottom:10px;white-space:nowrap}
 .ev-vp:has(.ev-info.evc) .ev-legend{display:none}
 .ev-lg-rule{display:flex;gap:6px;margin:4px 0}.ev-lg-rule span{padding:4px 10px;border-radius:9px;background:rgba(255,255,255,.07);font-size:12.5px}.ev-lg-rule b{color:#FFD23F;font-size:14px;margin-left:2px}
 .ev-lg-cols{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:12.5px;color:#C9CFDA;margin-bottom:2px}
@@ -1668,7 +1668,7 @@ button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{mar
 .pet-sum .label small{margin-left:8px;font-weight:600;letter-spacing:0;text-transform:none;opacity:.8}
 .d-miles{gap:3px;overflow:hidden}.d-miles i{flex:none;min-width:0;padding:0 5px}.d-miles span{font-size:11px}.d-miles span{flex:none;margin-left:0;margin-right:4px}
 /* 0.10.9 다 올린(MAX) 칸: 한 줄로 접고 아래로 */
-.shop:not(#h-support) .item:has(>.buy.max):not(.open){order:9;padding:6px 12px;gap:10px;background:transparent;box-shadow:inset 0 0 0 1px #262C37;cursor:pointer}
+.shop:not(#h-support) .item:has(>.buy.max):not(.open){padding:6px 12px;gap:10px;background:transparent;box-shadow:inset 0 0 0 1px #262C37;cursor:pointer}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .ic{width:26px;height:26px;font-size:15px;background:none;opacity:.7}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .ic svg{width:17px;height:17px}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .tx small,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .cr-pips,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .cr-eff,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy em{display:none}
@@ -1676,6 +1676,14 @@ button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{mar
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy{width:auto;min-width:0;height:24px;padding:0 9px;border-radius:999px;box-shadow:none;background:rgba(126,224,143,.12);pointer-events:none}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy b{font-size:11px;color:#9FEBAD}
 details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 밑으로 들어가지 않고 … 으로 끊긴다 */
+.ad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ad-tile{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 8px;border:0;border-radius:14px;background:var(--panel2);color:var(--text);font-family:inherit;box-shadow:0 3px 0 #0E1116}
+.ad-tile .ad-ic{height:30px;display:flex;align-items:center}.ad-tile .ad-ic .ic{width:28px;height:28px}.ad-tile .em{font-style:normal;font-size:24px;line-height:1}
+.ad-tile b{font-size:13px;white-space:nowrap}.ad-tile small{font-size:11.5px;color:#9FD8FF;font-weight:800}
+.ad-tile em{font-style:normal;margin-top:3px;padding:3px 10px;border-radius:999px;background:rgba(255,210,63,.16);color:#FFE58A;font-size:12px;font-weight:800}
+.ad-tile.off{opacity:.5;box-shadow:none}.ad-tile.off em{background:none;color:var(--muted)}
+.ad-tile:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #0E1116}
+.gem-in{display:inline-block;vertical-align:-.16em;margin-right:.12em;line-height:0}.gem-in .ic,.gem-in svg{width:1.05em;height:1.05em}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}

@@ -77,7 +77,7 @@ def main():
         need(pg.locator('.ad-stub').count() == 1, '매점: 광고 자리(시험판)가 안 뜸')
         pg.clock.run_for(3500)
         need(pg.locator('.ad-stub').count() == 0, '매점: 광고 자리가 안 닫힘')
-        need('오늘 1 / 5' in pg.text_content('#shop-body'), '매점: 광고 받은 횟수가 안 보임')
+        need('1 / 5' in pg.text_content('#shop-body'), '매점: 광고 받은 횟수가 안 보임')
         need(t0 != pg.text_content('#shop-wallet'), '매점: 뽑기권이 늘지 않음')
         # 0.9.0 정식 출시 전: 결제 상품은 배지로 산다 → 한정 늑대를 배지로 데려오기
         g0 = pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}')).gems")

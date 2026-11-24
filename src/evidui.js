@@ -150,9 +150,7 @@
       '<div class="ev-vp" id="ev-vp"><div class="ev-world" id="ev-world"><svg class="ev-str2" id="ev-str" viewBox="0 0 2000 2000"></svg></div>' +
         '<div class="ev-hud"><span>🔍 단서 <b id="ev-left"></b></span><span id="ev-count"></span></div>' +
         '<div class="ev-info" id="ev-info"></div>' +
-        // 0.10.9 색 이름만 있던 범례 → "같은 색끼리 이으면 효과가 커진다"는 뜻을 적은 단추(누르면 설명)
-        '<button class="ev-legend" id="ev-legend" aria-label="색 묶음 설명">' + ['r', 'b', 'y', 'g'].map(function (c) { return '<i style="background:' + Ev.COLOR[c].hex + '"></i>'; }).join('') + '<span>같은 색 묶음 <b>?</b></span></button>' +
-        '<button class="ev-effbtn" id="ev-effbtn">켜진 효과 보기</button>' +
+        '<button class="ev-effbtn" id="ev-effbtn">적용 중인 효과</button>' +
         '<div class="ev-zoom"><button id="ev-zi" aria-label="확대">+</button><button id="ev-zo" aria-label="축소">−</button><button id="ev-zc" aria-label="가운데로">◎</button></div></div>' +
       '<div class="ev-locks" id="ev-locks" hidden></div>';   // 0.10.8 효과 합계는 가운데 사건 파일을 누르면 나온다   // 0.10.2 아래 묶음 안내 칩은 뺐다(잠긴 칸 자체에 조건이 보인다)
     var w = $('ev-world'), h = '';
@@ -201,7 +199,7 @@
     info();
     var f = Ev.effects(s);
     var eff = Object.keys(Ev.KEY_NAME).filter(function (k) { return f[k]; }).map(function (k) { return '<span class="ev-chip">' + Ev.KEY_NAME[k] + ' <b>' + (k === 'miss' ? '−' : '+') + (k === 'startMoney' ? fmtShort(f[k]) : f[k]) + '</b></span>'; }).join('');
-    effSum = '<button class="ev-chip career" data-career>재수사 경력 <b>+' + Ev.careerPct(s) + '%</b> ⓘ</button>' + (eff || '<span class="muted" style="font-size:12px">증거를 열면 효과가 생겨요. 같은 색 증거가 실로 이어지면 효과가 커져요(2장 ×1.5, 3장 ×2, 5장 ×2.5).</span>');
+    effSum = '<button class="ev-chip career" data-career>재수사 경력 <b>+' + Ev.careerPct(s) + '%</b> ⓘ</button>' + (eff || '<span class="muted" style="font-size:12px">증거를 열면 효과가 생겨요. 강화하면 효과가 더 커져요.</span>');
     var locked = Ev.CARDS.filter(function (c) { return !Ev.tierOpen(s, c.tier); }), byT = {};
     locked.forEach(function (c) { (byT[c.tier] = byT[c.tier] || []).push(c); });
     $('ev-locks').innerHTML = locked.length ? Object.keys(byT).map(function (t) { return '<span class="ev-lock">' + lockText(+t) + '에 ' + byT[t].length + '장</span>'; }).join('') : '';
@@ -224,7 +222,7 @@
       return;
     }
     var st = Ev.state(s, sel);
-    if (sel === 'core') { box.innerHTML = '<div class="tx"><b>' + (st === 'open' ? '현재 켜진 효과' : '???') + '</b>' + (st === 'open' ? '<div class="ev-eff-sum">' + effSum + '</div>' : '<small>첫 재수사를 하면 열려요.</small>') + '</div>'; return; }
+    if (sel === 'core') { box.innerHTML = '<div class="tx"><b>' + (st === 'open' ? '현재 적용 중인 효과' : '???') + '</b>' + (st === 'open' ? '<div class="ev-eff-sum">' + effSum + '</div>' : '<small>첫 재수사를 하면 열려요.</small>') + '</div>'; return; }
     var c = Ev.BY_ID[sel], col = Ev.COLOR[c.color];
     if (st === 'open') {
       var lv = s.evid.lv[sel] || 1, up = Ev.upCost(s, sel);
@@ -300,7 +298,6 @@
     $('ev-zi').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); });
     $('ev-zo').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(0.8, r.width / 2, r.height / 2); });
     $('ev-zc').addEventListener('click', function () { center(0.95); });
-    $('ev-legend').addEventListener('click', function () { sel = 'legend'; draw(); });
     $('ev-effbtn').addEventListener('click', function () { if (!Ev.coreOpen(S())) { toast('재수사하면 열려요'); return; } sel = 'core'; draw(); });
   }
   // 0.8.0 증거판은 아래 메뉴 '증거' 탭 안에 있다(창이 아니다). open = 그 탭으로 옮기고 다시 그리기

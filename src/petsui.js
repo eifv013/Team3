@@ -403,7 +403,7 @@
       var have = P.SPECIES.filter(function (x) { return p.own[P.key(x.id, g)]; }).length;
       return '<span class="' + (st.grades[g] ? 'on' : '') + '" style="--gc:' + P.GRADE[g].color + '">' + P.GRADE[g].name + ' ' + have + '/' + P.SPECIES.length + '<i>' + esc(P.describe(P.GRADE_SET[g]).join(', ')) + '</i></span>';
     }).join('');
-    var html = '<div class="pet-sum"><span class="label">보유 효과 합계<small>모은 파트너 모두, 늘 켜져 있어요</small></span><b>' + ownSummary() + '</b></div>' +
+    var html = '<div class="pet-sum"><span class="label">보유 효과 합계<small>모은 파트너 모두, 항상 적용돼요</small></span><b>' + ownSummary() + '</b></div>' +
       '<div class="pet-sets"><span class="label">세트 보너스, 한 종류 네 등급 = 그 종류 보유 효과 두 배, 한 등급 ' + P.SPECIES.length + '종 = 아래 보너스</span><div>' + gs + '</div></div>' +
       '<div class="pet-dex-head"><span></span>' + P.GRADES.map(function (g) { return '<span style="color:' + P.GRADE[g].color + '">' + P.GRADE[g].name + '</span>'; }).join('') + '</div>';
     // 0.9.2 한정 파트너 줄은 맨 위(전설 칸 하나만 · 나머지 등급 칸은 "없음" 자리)
@@ -442,7 +442,7 @@
       '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' ' + esc(sp.kind) + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
         (st && isNoir(detailKey) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') +
         '<small class="muted">' + esc(sp.line) + '</small></div>' +
-      '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(', ')) + '</b><small>갖고만 있어도 늘 켜짐</small></div>' +
+      '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(', ')) + '</b><small>갖고만 있어도 항상 적용</small></div>' +
         '<div><em>장착 효과</em><b class="eq">' + esc(eq.join(', ')) + '</b><small>파트너 1마리만' + (eq.join('').indexOf('⚡') >= 0 ? ', ⚡는 특별 출동에서 꺼짐' : '') + '</small>' + zapLocked + '</div></div>' +
       (st ? '' : '<p class="muted" style="font-size:12px">아직 없어서 ★1 기준으로 보여 줘요.</p>') +
       (st ? nameRow() : '') +

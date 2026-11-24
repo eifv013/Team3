@@ -148,7 +148,8 @@
     });
     return out;
   }
-  function groupMult(n) { return n >= 5 ? 2.5 : n >= 3 ? 2 : n === 2 ? 1.5 : 1; }
+  // 0.10.11 묶음 배수는 없앴다: 실이 같은 색끼리 이어져 있어 열기만 하면 저절로 다 묶였다(고를 것이 없고 효과만 2.5배로 불었다)
+  function groupMult(n) { return 1; }
   /** 붉은 실: 양 끝이 모두 열린 실 [[a, b]…](사건 파일 포함) */
   function links(save) { return EDGES.filter(function (e) { return opened(save, e[0]) && opened(save, e[1]); }); }
   /** 열린 증거 효과 합(묶음 배수 반영). 반환 { speed: …, … } */

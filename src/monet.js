@@ -33,7 +33,7 @@
     { id: 'sub30', kind: 'sub', name: '3팀 월정액', krw: 4900, days: 30,
       desc: '바로 ◆100, 30일 동안 매일 ◆20, 매일 무료 뽑기 +1, 자리 비움 한도 +2시간', gives: { gems: 100 } },
     // 0.10.4 광고 없이 받기는 30일 월정액(남은 기간에 이어 붙는다)
-    { id: 'adfree', kind: 'adsub', name: '광고 없이 받기, 30일', krw: 3300, days: 30,
+    { id: 'adfree', kind: 'adsub', name: '광고 없이 받기', krw: 3300, days: 30,
       desc: '30일 동안 광고 보상을 광고 없이 바로 받아요', gives: {} },
     { id: 'gems60', kind: 'gems', name: '배지 한 줌', krw: 1200, desc: '◆60', gives: { gems: 60 } },
     { id: 'gems330', kind: 'gems', name: '배지 주머니', krw: 5900, desc: '◆330 (10% 더)', gives: { gems: 330 } },

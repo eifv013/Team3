@@ -56,10 +56,10 @@ test('0.9.0 연결판: 첫 재수사 전엔 모두 ??? · 사건 파일과 이�
   const t0 = Ev.BY_ID[pair[0]].tier === 0 ? pair[0] : pair[1], t1 = t0 === pair[0] ? pair[1] : pair[0];
   Ev.buyCard(s2, t0); Ev.buyCard(s2, t1);
   const g = Ev.groups(s2).find(x => x.ids.includes(t0));
-  assert.equal(g.mult, 1.5);
-  assert.equal(Ev.effects(s2).speed, (Ev.BY_ID[t0].value + Ev.BY_ID[t1].value) * 1.5);
+  assert.equal(g.mult, 1);
+  assert.equal(Ev.effects(s2).speed, Ev.BY_ID[t0].value + Ev.BY_ID[t1].value);
   Ev.upgrade(s2, t0);
-  assert.equal(Ev.effects(s2).speed, (Ev.BY_ID[t0].value * 2 + Ev.BY_ID[t1].value) * 1.5);
+  assert.equal(Ev.effects(s2).speed, (Ev.BY_ID[t0].value * 2 + Ev.BY_ID[t1].value));
   assert.equal(Ev.links(s2).length, Ev.EDGES.filter(e => Ev.opened(s2, e[0]) && Ev.opened(s2, e[1])).length);
 });
 
@@ -77,7 +77,7 @@ test('연결판 자리: 51장 + 사건 파일, 모든 증거가 사건 파일까
 });
 
 test('증거판: 묶음 배수 3장 ×2 · 5장 ×2.5, 카드 51장 · 효과 글', () => {
-  assert.equal(Ev.groupMult(1), 1); assert.equal(Ev.groupMult(3), 2); assert.equal(Ev.groupMult(5), 2.5);
+  assert.equal(Ev.groupMult(1), 1); assert.equal(Ev.groupMult(5), 1);   // 0.10.11 묶음 배수 없음
   assert.equal(Ev.CARDS.length, 51);
   assert.equal(new Set(Ev.CARDS.map(c => c.id)).size, 51);
   Ev.CARDS.forEach(c => { assert.ok(Ev.KEY_NAME[c.key], c.id); assert.ok(Ev.describe(c, 1).length > 3); assert.ok(Ev.shortText(c, 2).length > 2); });

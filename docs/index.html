@@ -1645,7 +1645,7 @@ button.ev-chip{border:0;font:inherit;color:inherit;cursor:pointer}
 button.ev-legend{flex-direction:row;align-items:center;gap:3px;border:0;font-family:inherit;pointer-events:auto;padding:7px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
 button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{margin-left:4px;white-space:nowrap}button.ev-legend b{display:inline-flex;width:15px;height:15px;border-radius:50%;align-items:center;justify-content:center;background:#FFD23F;color:#1B1500;font-size:10px;font-weight:900;margin-left:2px}
 .ev-effbtn{position:absolute;left:8px;top:42px;z-index:3;border:0;font-family:inherit;padding:5px 10px;border-radius:999px;background:rgba(20,14,8,.78);color:#FFE58A;font-size:11.5px;font-weight:800}
-.ev-vp .ev-info.evp{left:8px;right:auto;transform:none;max-width:none;bottom:44px;white-space:nowrap}
+.ev-vp .ev-info.evp{left:8px;right:auto;transform:none;max-width:none;bottom:10px;white-space:nowrap}
 .ev-vp:has(.ev-info.evc) .ev-legend{display:none}
 .ev-lg-rule{display:flex;gap:6px;margin:4px 0}.ev-lg-rule span{padding:4px 10px;border-radius:9px;background:rgba(255,255,255,.07);font-size:12.5px}.ev-lg-rule b{color:#FFD23F;font-size:14px;margin-left:2px}
 .ev-lg-cols{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;font-size:12.5px;color:#C9CFDA;margin-bottom:2px}
@@ -1669,7 +1669,7 @@ button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{mar
 .pet-sum .label small{margin-left:8px;font-weight:600;letter-spacing:0;text-transform:none;opacity:.8}
 .d-miles{gap:3px;overflow:hidden}.d-miles i{flex:none;min-width:0;padding:0 5px}.d-miles span{font-size:11px}.d-miles span{flex:none;margin-left:0;margin-right:4px}
 /* 0.10.9 다 올린(MAX) 칸: 한 줄로 접고 아래로 */
-.shop:not(#h-support) .item:has(>.buy.max):not(.open){order:9;padding:6px 12px;gap:10px;background:transparent;box-shadow:inset 0 0 0 1px #262C37;cursor:pointer}
+.shop:not(#h-support) .item:has(>.buy.max):not(.open){padding:6px 12px;gap:10px;background:transparent;box-shadow:inset 0 0 0 1px #262C37;cursor:pointer}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .ic{width:26px;height:26px;font-size:15px;background:none;opacity:.7}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .ic svg{width:17px;height:17px}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .tx small,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .cr-pips,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .cr-eff,.shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy em{display:none}
@@ -1677,6 +1677,14 @@ button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{mar
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy{width:auto;min-width:0;height:24px;padding:0 9px;border-radius:999px;box-shadow:none;background:rgba(126,224,143,.12);pointer-events:none}
 .shop:not(#h-support) .item:has(>.buy.max):not(.open) .buy b{font-size:11px;color:#9FEBAD}
 details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 밑으로 들어가지 않고 … 으로 끊긴다 */
+.ad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ad-tile{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 8px;border:0;border-radius:14px;background:var(--panel2);color:var(--text);font-family:inherit;box-shadow:0 3px 0 #0E1116}
+.ad-tile .ad-ic{height:30px;display:flex;align-items:center}.ad-tile .ad-ic .ic{width:28px;height:28px}.ad-tile .em{font-style:normal;font-size:24px;line-height:1}
+.ad-tile b{font-size:13px;white-space:nowrap}.ad-tile small{font-size:11.5px;color:#9FD8FF;font-weight:800}
+.ad-tile em{font-style:normal;margin-top:3px;padding:3px 10px;border-radius:999px;background:rgba(255,210,63,.16);color:#FFE58A;font-size:12px;font-weight:800}
+.ad-tile.off{opacity:.5;box-shadow:none}.ad-tile.off em{background:none;color:var(--muted)}
+.ad-tile:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #0E1116}
+.gem-in{display:inline-block;vertical-align:-.16em;margin-right:.12em;line-height:0}.gem-in .ic,.gem-in svg{width:1.05em;height:1.05em}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -2310,10 +2318,19 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.10.11', date: '2026-11-24', title: '매점 광고 칸, 증거 묶음',
+      items: [
+        '매점의 광고 보상을 작은 칸 다섯 개로 줄였어요. 그림과 오늘 받은 수가 한눈에 보여요.',
+        '글 속의 배지 표시를 모두 배지 그림으로 바꿨어요.',
+        '증거판의 같은 색 묶음 배수를 없앴어요. 열기만 하면 저절로 다 묶여서 고를 것이 없었어요.',
+        '다 올린(MAX) 칸은 접히기만 하고 제자리에 있어요.',
+        '"켜진 효과"를 "적용 중인 효과"로 바꿨어요.'
+      ] },
     { ver: '0.10.10', date: '2026-11-24', title: '가운뎃점 정리',
       items: [
         '화면 글에서 가운뎃점( · )을 모두 뺐어요. 제목과 이름은 띄어쓰기로, 나열은 쉼표로 바꿨어요.',
-        '수사 일지의 접힌 줄이 화살표와 겹치지 않고 …으로 끊겨요.'
+        '수사 일지의 접힌 줄이 화살표와 겹치지 않고 …으로 끊겨요.',
+        '매점 "광고 없이 받기" 설명을 알기 쉽게 고쳤어요.'
       ] },
     { ver: '0.10.9', date: '2026-11-24', title: '화면 글 정리',
       items: [
@@ -4724,7 +4741,8 @@ body.prem-on #h-station::before{content:'👑 '}
     });
     return out;
   }
-  function groupMult(n) { return n >= 5 ? 2.5 : n >= 3 ? 2 : n === 2 ? 1.5 : 1; }
+  // 0.10.11 묶음 배수는 없앴다: 실이 같은 색끼리 이어져 있어 열기만 하면 저절로 다 묶였다(고를 것이 없고 효과만 2.5배로 불었다)
+  function groupMult(n) { return 1; }
   /** 붉은 실: 양 끝이 모두 열린 실 [[a, b]…](사건 파일 포함) */
   function links(save) { return EDGES.filter(function (e) { return opened(save, e[0]) && opened(save, e[1]); }); }
   /** 열린 증거 효과 합(묶음 배수 반영). 반환 { speed: …, … } */
@@ -7232,7 +7250,7 @@ body.prem-on #h-station::before{content:'👑 '}
     { id: 'sub30', kind: 'sub', name: '3팀 월정액', krw: 4900, days: 30,
       desc: '바로 ◆100, 30일 동안 매일 ◆20, 매일 무료 뽑기 +1, 자리 비움 한도 +2시간', gives: { gems: 100 } },
     // 0.10.4 광고 없이 받기는 30일 월정액(남은 기간에 이어 붙는다)
-    { id: 'adfree', kind: 'adsub', name: '광고 없이 받기, 30일', krw: 3300, days: 30,
+    { id: 'adfree', kind: 'adsub', name: '광고 없이 받기', krw: 3300, days: 30,
       desc: '30일 동안 광고 보상을 광고 없이 바로 받아요', gives: {} },
     { id: 'gems60', kind: 'gems', name: '배지 한 줌', krw: 1200, desc: '◆60', gives: { gems: 60 } },
     { id: 'gems330', kind: 'gems', name: '배지 주머니', krw: 5900, desc: '◆330 (10% 더)', gives: { gems: 330 } },
@@ -11568,7 +11586,7 @@ body.prem-on #h-station::before{content:'👑 '}
       var have = P.SPECIES.filter(function (x) { return p.own[P.key(x.id, g)]; }).length;
       return '<span class="' + (st.grades[g] ? 'on' : '') + '" style="--gc:' + P.GRADE[g].color + '">' + P.GRADE[g].name + ' ' + have + '/' + P.SPECIES.length + '<i>' + esc(P.describe(P.GRADE_SET[g]).join(', ')) + '</i></span>';
     }).join('');
-    var html = '<div class="pet-sum"><span class="label">보유 효과 합계<small>모은 파트너 모두, 늘 켜져 있어요</small></span><b>' + ownSummary() + '</b></div>' +
+    var html = '<div class="pet-sum"><span class="label">보유 효과 합계<small>모은 파트너 모두, 항상 적용돼요</small></span><b>' + ownSummary() + '</b></div>' +
       '<div class="pet-sets"><span class="label">세트 보너스, 한 종류 네 등급 = 그 종류 보유 효과 두 배, 한 등급 ' + P.SPECIES.length + '종 = 아래 보너스</span><div>' + gs + '</div></div>' +
       '<div class="pet-dex-head"><span></span>' + P.GRADES.map(function (g) { return '<span style="color:' + P.GRADE[g].color + '">' + P.GRADE[g].name + '</span>'; }).join('') + '</div>';
     // 0.9.2 한정 파트너 줄은 맨 위(전설 칸 하나만 · 나머지 등급 칸은 "없음" 자리)
@@ -11607,7 +11625,7 @@ body.prem-on #h-station::before{content:'👑 '}
       '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' ' + esc(sp.kind) + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
         (st && isNoir(detailKey) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') +
         '<small class="muted">' + esc(sp.line) + '</small></div>' +
-      '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(', ')) + '</b><small>갖고만 있어도 늘 켜짐</small></div>' +
+      '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(', ')) + '</b><small>갖고만 있어도 항상 적용</small></div>' +
         '<div><em>장착 효과</em><b class="eq">' + esc(eq.join(', ')) + '</b><small>파트너 1마리만' + (eq.join('').indexOf('⚡') >= 0 ? ', ⚡는 특별 출동에서 꺼짐' : '') + '</small>' + zapLocked + '</div></div>' +
       (st ? '' : '<p class="muted" style="font-size:12px">아직 없어서 ★1 기준으로 보여 줘요.</p>') +
       (st ? nameRow() : '') +
@@ -11909,14 +11927,14 @@ body.prem-on #h-station::before{content:'👑 '}
         payBtn('wolf', '데려오기 ' + priceLabel('wolf')) + '<small class="lim-note">한 사람당 한 번</small></div></div>';
     } else if (s.shop.bought.wolf) html += '<div class="lim-done">🐺 백랑이 3팀에 있어요, 파트너 탭에서 장착해요</div>';
     var adf = M.perks(s, t).adFree;
-    html += '<span class="label">무료로 받기' + (adf ? ', 광고 없이 바로' : ', 짧은 광고를 보면') + '</span>';
-    // 0.10.5 매점 광고 보상은 하루 한도(오늘 n / 한도)
-    [['ticket', '뽑기권 1장', '파트너 뽑기에 써요'], ['party', '팀 회식 무료', '30분 동안 팀이 2배로 일해요'], ['treats', '간식 15개', '★ 올리기, 의상에 써요'],
-     ['gems', '배지 ◆3', '뭐든 살 수 있어요'], ['clue', '단서 1개', '증거판에서 증거를 열어요']].forEach(function (a) {
+    // 0.10.11 광고 보상: 긴 줄 다섯 개 → 한 화면에 들어오는 작은 칸(그림 · 받는 것 · 오늘 n/한도). 칸을 누르면 받는다
+    html += '<span class="label">' + (adf ? '무료 보상 (광고 없이 바로)' : '광고 보고 무료로 받기') + '</span><div class="ad-grid">';
+    [['ticket', ic('ticket'), '뽑기권 1장'], ['treats', ic('treat'), '간식 15개'], ['gems', ic('gem'), '배지 3개'], ['clue', '<i class="em">🔍</i>', '단서 1개'], ['party', '<i class="em">🍻</i>', '팀 회식 30분']].forEach(function (a) {
       var seen = M.adSeen(s, a[0], day), lim = M.adLimit(s, a[0]), done = seen >= lim;
-      html += '<div class="shop-row' + (done ? ' off' : '') + '"><div class="shop-tx"><b>' + a[1] + '</b><small>' + a[2] + '</small><em class="ad-cnt">오늘 ' + seen + ' / ' + lim + '</em></div>' +
-        '<button class="ghost" data-ad="' + a[0] + '"' + (done ? ' disabled' : '') + '>' + (done ? '내일 다시' : adf ? '받기' : '▶ 광고 보고 받기') + '</button></div>';
+      html += '<button class="ad-tile' + (done ? ' off' : '') + '" data-ad="' + a[0] + '"' + (done ? ' disabled' : '') + ' aria-label="' + a[2] + ', 오늘 ' + seen + ' / ' + lim + '">' +
+        '<span class="ad-ic">' + a[1] + '</span><b>' + a[2] + '</b><small>' + seen + ' / ' + lim + '</small><em>' + (done ? '내일 다시' : adf ? '받기' : '▶ 받기') + '</em></button>';
     });
+    html += '</div>';
     // 0.10.4 유료 상품: 제목 · 받는 것(아이콘 칸) · 조건 한 줄 · 아래 전체 폭 단추 — 글을 점으로 이어 붙이지 않는다
     function chip(icn, txt) { return '<span class="pk-chip">' + (icn ? ic(icn) : '') + '<b>' + txt + '</b></span>'; }
     function card(o) {
@@ -11935,7 +11953,7 @@ body.prem-on #h-station::before{content:'👑 '}
       note: on ? (s.shop.subDay === day ? '오늘 배지 ' + M.SUB.dailyGems + '개를 받았어요' : '오늘 보상은 상황실에 오면 들어와요') : '', btn: payBtn('sub30', on ? '연장 ' + priceLabel('sub30') : null) });
     var afd = M.perks(s, t).adFreeDays;
     if (!s.shop.adFree) html += card({ cls: afd ? 'on' : '', tag: afd ? afd + '일 남음' : '30일', name: '광고 없이 받기',
-      line: '30일 동안 광고 보상을 광고 없이 바로', chips: [chip('', '▶ 광고 건너뛰기'), chip('', '무료 보상, 2배 받기 전부')], btn: payBtn('adfree', afd ? '연장 ' + priceLabel('adfree') : null) });
+      line: '30일 동안 광고를 보지 않고 보상을 바로 받아요', chips: [chip('', '매점 무료 보상'), chip('', '출동 끝 수사비 2배'), chip('', '자리 비움 수사비 2배')], btn: payBtn('adfree', afd ? '연장 ' + priceLabel('adfree') : null) });
     // 배지
     if (!Pay.gems) html += '<span class="label">배지</span><div class="shop-gems">' + M.PRODUCTS.filter(function (p) { return p.kind === 'gems'; }).map(function (p) {
       return '<div class="shop-gem"><b>' + esc(p.desc) + '</b><small>' + esc(p.name) + '</small>' + payBtn(p.id) + '</div>';
@@ -11995,7 +12013,7 @@ body.prem-on #h-station::before{content:'👑 '}
   function leftTxt(n) { return n === Infinity ? '정식 출시 전까지' : n + '일 남음'; }
   function premFx(on, left) {
     var P = M.PREM, rows = [['출동 수사비', '+' + P.pay + '%'], ['팀 수사비', '+' + P.idle + '%'], ['패스 경험치', '+' + P.xp + '%'], ['특별 출동', '하루 기회 +1번'], ['파트너 간식', '매일 +' + P.treats], ['꾸미기', '금빛 검거 도장, 왕관 팀 이름'], ['30단계 뒤', M.EXTRA_XP + 'XP마다 간식 ' + M.EXTRA.treats + ' (' + M.EXTRA_MAX + '번까지)'], ['유치장', '꽉 차면 자동 이송']];
-    return '<div class="pass-fx' + (on ? '' : ' off') + '"><b>👑 프리미엄 효과, ' + (on ? '켜짐, ' + leftTxt(left) : left === Infinity ? '사면 정식 출시 전까지 켜져요' : '사면 이번 시즌 동안 켜져요') + '</b>' + rows.map(function (r) { return '<div><span>' + r[0] + '</span><em>' + (on ? '' : '🔒 ') + r[1] + '</em></div>'; }).join('') + '</div>';
+    return '<div class="pass-fx' + (on ? '' : ' off') + '"><b>👑 프리미엄 효과, ' + (on ? '적용 중, ' + leftTxt(left) : left === Infinity ? '사면 정식 출시 전까지 적용돼요' : '사면 이번 시즌 동안 적용돼요') + '</b>' + rows.map(function (r) { return '<div><span>' + r[0] + '</span><em>' + (on ? '' : '🔒 ') + r[1] + '</em></div>'; }).join('') + '</div>';
   }
   function drawPass() {
     var s = S(), day = ctx.day(), ps = M.passOf(s, day), se = M.seasonOf(s, day), tier = M.tierOf(ps.xp), can = M.claimable(s, day).length;
@@ -12778,9 +12796,7 @@ body.prem-on #h-station::before{content:'👑 '}
       '<div class="ev-vp" id="ev-vp"><div class="ev-world" id="ev-world"><svg class="ev-str2" id="ev-str" viewBox="0 0 2000 2000"></svg></div>' +
         '<div class="ev-hud"><span>🔍 단서 <b id="ev-left"></b></span><span id="ev-count"></span></div>' +
         '<div class="ev-info" id="ev-info"></div>' +
-        // 0.10.9 색 이름만 있던 범례 → "같은 색끼리 이으면 효과가 커진다"는 뜻을 적은 단추(누르면 설명)
-        '<button class="ev-legend" id="ev-legend" aria-label="색 묶음 설명">' + ['r', 'b', 'y', 'g'].map(function (c) { return '<i style="background:' + Ev.COLOR[c].hex + '"></i>'; }).join('') + '<span>같은 색 묶음 <b>?</b></span></button>' +
-        '<button class="ev-effbtn" id="ev-effbtn">켜진 효과 보기</button>' +
+        '<button class="ev-effbtn" id="ev-effbtn">적용 중인 효과</button>' +
         '<div class="ev-zoom"><button id="ev-zi" aria-label="확대">+</button><button id="ev-zo" aria-label="축소">−</button><button id="ev-zc" aria-label="가운데로">◎</button></div></div>' +
       '<div class="ev-locks" id="ev-locks" hidden></div>';   // 0.10.8 효과 합계는 가운데 사건 파일을 누르면 나온다   // 0.10.2 아래 묶음 안내 칩은 뺐다(잠긴 칸 자체에 조건이 보인다)
     var w = $('ev-world'), h = '';
@@ -12829,7 +12845,7 @@ body.prem-on #h-station::before{content:'👑 '}
     info();
     var f = Ev.effects(s);
     var eff = Object.keys(Ev.KEY_NAME).filter(function (k) { return f[k]; }).map(function (k) { return '<span class="ev-chip">' + Ev.KEY_NAME[k] + ' <b>' + (k === 'miss' ? '−' : '+') + (k === 'startMoney' ? fmtShort(f[k]) : f[k]) + '</b></span>'; }).join('');
-    effSum = '<button class="ev-chip career" data-career>재수사 경력 <b>+' + Ev.careerPct(s) + '%</b> ⓘ</button>' + (eff || '<span class="muted" style="font-size:12px">증거를 열면 효과가 생겨요. 같은 색 증거가 실로 이어지면 효과가 커져요(2장 ×1.5, 3장 ×2, 5장 ×2.5).</span>');
+    effSum = '<button class="ev-chip career" data-career>재수사 경력 <b>+' + Ev.careerPct(s) + '%</b> ⓘ</button>' + (eff || '<span class="muted" style="font-size:12px">증거를 열면 효과가 생겨요. 강화하면 효과가 더 커져요.</span>');
     var locked = Ev.CARDS.filter(function (c) { return !Ev.tierOpen(s, c.tier); }), byT = {};
     locked.forEach(function (c) { (byT[c.tier] = byT[c.tier] || []).push(c); });
     $('ev-locks').innerHTML = locked.length ? Object.keys(byT).map(function (t) { return '<span class="ev-lock">' + lockText(+t) + '에 ' + byT[t].length + '장</span>'; }).join('') : '';
@@ -12852,7 +12868,7 @@ body.prem-on #h-station::before{content:'👑 '}
       return;
     }
     var st = Ev.state(s, sel);
-    if (sel === 'core') { box.innerHTML = '<div class="tx"><b>' + (st === 'open' ? '현재 켜진 효과' : '???') + '</b>' + (st === 'open' ? '<div class="ev-eff-sum">' + effSum + '</div>' : '<small>첫 재수사를 하면 열려요.</small>') + '</div>'; return; }
+    if (sel === 'core') { box.innerHTML = '<div class="tx"><b>' + (st === 'open' ? '현재 적용 중인 효과' : '???') + '</b>' + (st === 'open' ? '<div class="ev-eff-sum">' + effSum + '</div>' : '<small>첫 재수사를 하면 열려요.</small>') + '</div>'; return; }
     var c = Ev.BY_ID[sel], col = Ev.COLOR[c.color];
     if (st === 'open') {
       var lv = s.evid.lv[sel] || 1, up = Ev.upCost(s, sel);
@@ -12928,7 +12944,6 @@ body.prem-on #h-station::before{content:'👑 '}
     $('ev-zi').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); });
     $('ev-zo').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(0.8, r.width / 2, r.height / 2); });
     $('ev-zc').addEventListener('click', function () { center(0.95); });
-    $('ev-legend').addEventListener('click', function () { sel = 'legend'; draw(); });
     $('ev-effbtn').addEventListener('click', function () { if (!Ev.coreOpen(S())) { toast('재수사하면 열려요'); return; } sel = 'core'; draw(); });
   }
   // 0.8.0 증거판은 아래 메뉴 '증거' 탭 안에 있다(창이 아니다). open = 그 탭으로 옮기고 다시 그리기
@@ -14450,6 +14465,26 @@ body.prem-on #h-station::before{content:'👑 '}
     var it = e.target.closest && e.target.closest('.shop:not(#h-support) .item');
     if (it && it.querySelector(':scope > .buy.max')) it.classList.toggle('open');
   });
+  /* 0.10.11 글 속의 ◆ 는 어디에 나오든 배지 그림으로 바꾼다(창 · 알림 · 단추 모두). 글 넣는 칸은 건드리지 않는다 */
+  (function () {
+    var IC = window.Team3Icons; if (!IC || !window.MutationObserver) return;
+    function fix(node) {
+      if (node.nodeType === 3) {
+        var v = node.nodeValue; if (v.indexOf('◆') < 0) return;
+        var par = node.parentNode; if (!par || /^(SCRIPT|STYLE|TEXTAREA|INPUT|TITLE)$/.test(par.nodeName)) return;
+        var parts = v.split(/◆\s?/), frag = document.createDocumentFragment();
+        parts.forEach(function (t, i) { if (i) { var sp = document.createElement('span'); sp.className = 'gem-in'; sp.innerHTML = IC.icon('gem'); frag.appendChild(sp); } if (t) frag.appendChild(document.createTextNode(t)); });
+        par.replaceChild(frag, node);
+      } else if (node.nodeType === 1 && !/^(SCRIPT|STYLE|TEXTAREA|svg)$/.test(node.nodeName)) {
+        var w = document.createTreeWalker(node, 4, null), list = [], n;
+        while ((n = w.nextNode())) if (n.nodeValue.indexOf('◆') >= 0) list.push(n);
+        list.forEach(fix);
+      }
+    }
+    fix(document.body);
+    new MutationObserver(function (ms) { ms.forEach(function (m) { if (m.type === 'characterData') fix(m.target); else for (var i = 0; i < m.addedNodes.length; i++) fix(m.addedNodes[i]); }); })
+      .observe(document.body, { childList: true, subtree: true, characterData: true });
+  })();
   window.Team3AttendUI = { open: openAttend, can: function () { return !!AT && AT.canCheck(save, dayNow()); } };
   // 하루 한 번, 상황실에 있을 때(창 · 출동 없음) 자동으로 띄운다
   function attendAuto() {
