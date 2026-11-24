@@ -1707,7 +1707,9 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 #t-pets .pet-card .pet-bg{position:absolute;left:0;right:0;top:0;aspect-ratio:3/2}
 #t-pets .pet-card .pet-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,20,.25),transparent 30%,transparent 78%,var(--panel) 100%);z-index:2}
 #t-pets .pet-card .pet-stage{transform:scale(1.25);margin:120px 0 30px;margin-top:calc((100cqw + 28px) * .6 - 108px)}
-#t-pets .pet-card .pet-tx,#t-pets .pet-card .pet-bubble{position:relative;z-index:3}
+#t-pets .pet-card .pet-tx{position:relative;z-index:3}
+#t-pets .pet-card .pet-empty{margin-top:16px}
+#t-pets .pet-card .pet-bubble{z-index:5;left:84px;right:84px;max-width:calc(100% - 168px)}   /* 0.12.2 말풍선은 원래대로 그림 위쪽 가운데(배경 단추를 피해서) */
 #t-pets .pet-card .pet-stage{z-index:3}
 .pet-bgbtn{display:none}
 #t-pets .pet-card .pet-bgbtn{display:block;position:absolute;left:10px;top:10px;z-index:4;border:0;font-family:inherit;padding:6px 12px;border-radius:999px;background:rgba(10,13,20,.72);color:#fff;font-size:12px;font-weight:800;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
