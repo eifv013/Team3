@@ -402,3 +402,18 @@ test('사건 2 장비: 사건 2에서만 보이고 살 수 있고, 목격자 출
   const back = I.load(I.serialize(s), T0).save;
   assert.equal(back.gear.informant, 2); assert.equal(back.gear.keeper, 1);
 });
+
+test('0.10.12 출동 구간 증거: 출동 검거 +% · 팀 한계 +% · 재수사 때 출동 몫 남김', () => {
+  const s = I.newSave(T0), cs = I.caseOf(s);
+  I.setBonus(() => ({ runHit: 10, capUp: 10, keep: 20 }));
+  try {
+    assert.equal(I.capOf(s), cs.idleCap + Math.floor((cs.goal - cs.idleCap) * 0.1));
+    const r = I.applyRun(s, { score: 100, hits: 20 }, T0);
+    assert.equal(r.caught, 22); assert.equal(s.caught, 22); assert.equal(s.caseRun, 22); assert.equal(s.runCaught, 20);
+    I.resetTeam(s, {});
+    assert.equal(s.caught, 4); assert.equal(s.keepBank, 4);
+    assert.equal(I.capOf(s), cs.idleCap + Math.floor((cs.goal - cs.idleCap) * 0.1) + 4);
+  } finally { I.setBonus(null); }
+  const s2 = I.newSave(T0); I.applyRun(s2, { score: 100, hits: 20 }, T0); I.resetTeam(s2, {});
+  assert.equal(s2.caught, 0, '증거가 없으면 예전처럼 0');
+});

@@ -1685,6 +1685,7 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 .ad-tile.off{opacity:.5;box-shadow:none}.ad-tile.off em{background:none;color:var(--muted)}
 .ad-tile:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #0E1116}
 .gem-in{display:inline-block;vertical-align:-.16em;margin-right:.12em;line-height:0}.gem-in .ic,.gem-in svg{width:1.05em;height:1.05em}
+.rt-lose{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}.rt-lose span{padding:7px 9px;border-radius:10px;background:rgba(0,0,0,.25);font-size:12.5px;font-weight:800;color:var(--text)}.rt-lose em{display:block;font-style:normal;font-weight:600;font-size:11.5px;color:var(--muted)}.rt-lose .hot{box-shadow:inset 0 0 0 1.5px #E5484F;color:#FFB3AD}.rt-lose .hot em{color:#FFB3AD}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -2318,6 +2319,11 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.10.12', date: '2026-11-24', title: '출동 구간 증거',
+      items: [
+        '증거 셋이 새로 생겼어요(사건 1을 닫으면 열려요): 잠복 사진(출동 검거 +%), 조직 명부(팀 검거 한계 +%), 현장 수첩(재수사해도 출동으로 잡은 몫 일부 남김).',
+        '재수사 확인 창이 잃는 진척을 팀이 잡은 몫과 출동으로 잡은 몫으로 나눠 보여 줘요.'
+      ] },
     { ver: '0.10.11', date: '2026-11-24', title: '매점 광고 칸, 증거 묶음',
       items: [
         '매점의 광고 보상을 작은 칸 다섯 개로 줄였어요. 그림과 오늘 받은 수가 한눈에 보여요.',
@@ -3627,6 +3633,7 @@ body.prem-on #h-station::before{content:'👑 '}
       lastSeen: now,
       buffUntil: 0,
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
+      caseRun: 0, keepBank: 0,   // 0.10.12 현재 사건에서 출동으로 잡은 수 · 재수사 때 남긴 몫(팀 한계에 더해진다)
       closed: false, closedAt: 0,
       tutorialDone: false,
       storySeen: 0,        // 수사 일지에서 읽은 편 수(새 편이 열리면 "수사 일지 보기"에 NEW)
@@ -3684,6 +3691,7 @@ body.prem-on #h-station::before{content:'👑 '}
     s.runs = int(data.runs, 0, 0);
     s.bestScore = int(data.bestScore, 0, 0);
     s.runCaught = int(data.runCaught, 0, 0);
+    s.caseRun = int(data.caseRun, 0, 0); s.keepBank = int(data.keepBank, 0, 0);
     s.teamCaught = int(data.teamCaught, 0, 0);
     // 목표가 늘어난 뒤(0.1.3, 300 → 1000) 예전에 300명으로 종결된 저장은 다시 진행 중으로 돌린다
     s.caseNo = int(data.caseNo, 1, 1, CASES.length);
@@ -3843,7 +3851,7 @@ body.prem-on #h-station::before{content:'👑 '}
     save.money += money;                       // 수사비는 상한과 상관없이 잡은 만큼 다 들어온다
     earned(save, money);
     // 사건 진척은 idleCap 까지만(이미 넘었으면 0). 출동으로 넘긴 몫은 깎지 않는다
-    var room = Math.max(0, caseOf(save).idleCap - save.caught);
+    var room = Math.max(0, capOf(save) - save.caught);
     var counted = Math.min(whole, room);
     save.caught += counted;
     save.caseBest = Math.max(save.caseBest || 0, save.caught);   // 0.7.0 재수사해도 열어 본 일지는 계속 열려 있게
@@ -3914,13 +3922,14 @@ body.prem-on #h-station::before{content:'👑 '}
     save.money += pay;
     earned(save, Math.round(base * cm));
     save.recent = save.recent.concat([score]).slice(-5);
-    save.caught += hits;
+    var got = Math.round(hits * (1 + Math.min(0.3, pctOf(bn, 'runHit'))));   // 0.10.12 증거 "출동 검거 +%": 사건 진척에만(계급은 실제 검거 수)
+    save.caught += got; save.caseRun = (save.caseRun || 0) + got;
     save.runCaught += hits;
     save.runs += 1;
     var best = score > save.bestScore;
     if (best) save.bestScore = score;
     save.buffUntil = now + (TUNE.buffSec + amtOf(bn, 'buff')) * 1000;   // 0.3.0 고슴도치: 사기 충전 +초
-    return { money: pay, caught: hits, best: best, closedNow: checkClose(save, now) };
+    return { money: pay, caught: got, best: best, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 프로필 ---------- */
@@ -3990,7 +3999,12 @@ body.prem-on #h-station::before{content:'👑 '}
   function isStreaming(save, now) { return catchInterval(save, now) < FAST_SEC; }
 
   // 팀(방치)으로는 더 못 올리고 출동으로만 남은 걸 잡을 수 있는 상태인가
-  function idleCapped(save) { return !save.closed && save.caught >= caseOf(save).idleCap; }
+  /* 0.10.12 팀이 혼자 올릴 수 있는 한계: 사건 기본 한계 + 증거 "팀 검거 한계"(남은 출동 구간의 %) + 재수사 때 남긴 출동 몫. 목표보다 100명은 늘 출동 몫으로 남긴다 */
+  function capOf(save) {
+    var cs = caseOf(save), up = Math.floor((cs.goal - cs.idleCap) * Math.min(0.3, pctOf(bonusOf(save), 'capUp')));
+    return Math.min(cs.goal - 100, cs.idleCap + up + (save.keepBank || 0));
+  }
+  function idleCapped(save) { return !save.closed && save.caught >= capOf(save); }
   /** 다음 사건이 있는가(지금 사건을 끝냈고, 다음이 준비돼 있을 때만 파견할 수 있다) */
   function nextCase(save) { return save.closed ? (CASES[save.caseNo] || null) : null; }
   /**
@@ -4003,7 +4017,7 @@ body.prem-on #h-station::before{content:'👑 '}
     if (!nx) throw IdleError(save.closed ? 'NO_NEXT' : 'NOT_CLOSED', save.closed ? '다음 사건이 아직 없다' : '현재 사건을 먼저 끝내야 한다');
     save.past = save.past.concat([{ no: save.caseNo, caught: save.caught, closedAt: save.closedAt }]).slice(-20);
     save.caseNo = nx.no;
-    save.caught = 0; save.frac = 0; save.closed = false; save.closedAt = 0; save.storySeen = 0; save.caseBest = 0;
+    save.caught = 0; save.caseRun = 0; save.keepBank = 0; save.frac = 0; save.closed = false; save.closedAt = 0; save.storySeen = 0; save.caseBest = 0;
     save.lastSeen = now;
     return nx;
   }
@@ -4019,7 +4033,10 @@ body.prem-on #h-station::before{content:'👑 '}
     save.detectives = 1 + Math.max(0, Math.floor(start.startDet || 0));
     save.training = 0;
     GEAR_KEYS.forEach(function (k) { save.gear[k] = 0; });
-    if (!save.closed) { save.caught = 0; }
+    if (!save.closed) {   // 0.10.12 증거 "현장 수첩": 출동으로 잡은 몫의 일부를 남긴다(남긴 만큼 팀 한계도 올라 출동 구간이 그만큼 줄어 있다)
+      var keep = Math.floor((save.caseRun || 0) * Math.min(0.5, pctOf(bonusOf(save), 'keep')));
+      save.caught = keep; save.caseRun = keep; save.keepBank = keep;
+    }
     save.frac = 0; save.dfrac = 0;   // 준비물은 남긴다(배지로 산 것을 잃지 않게)
   }
   function storyUnread(save) { return storyUnlocked(save).length > save.storySeen; }
@@ -4031,7 +4048,7 @@ body.prem-on #h-station::before{content:'👑 '}
     cleanName: cleanName, setProfile: setProfile, profileCost: profileCost, changeProfile: changeProfile, NAME_TAGS: NAME_TAGS, payName: payName, buyNameTags: buyNameTags,
     newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf, setExtraIncome: setExtraIncome, setEarn: setEarn, resetTeam: resetTeam,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
-    idleCapped: idleCapped, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
+    idleCapped: idleCapped, capOf: capOf, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
   };
 });
@@ -4622,9 +4639,9 @@ body.prem-on #h-station::before{content:'👑 '}
 
   var CLUE_UNIT = 20000;
   var COLOR = { r: { name: '사람, 증언', hex: '#E5484F' }, b: { name: '기록, 영상', hex: '#2F6FD6' }, y: { name: '돈, 거래', hex: '#E0A100' }, g: { name: '장소, 물건', hex: '#2E9E5B' } };
-  var KEY_NAME = { speed: '팀 속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서 수입', cap: '자리 비움 한도', off: '자리 비움 속도', gear: '장비 할인',
+  var KEY_NAME = { runHit: '출동 검거', capUp: '팀 검거 한계', keep: '재수사 때 남는 출동 검거', speed: '팀 속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서 수입', cap: '자리 비움 한도', off: '자리 비움 속도', gear: '장비 할인',
                    buff: '사기 충전', time: '출동 시간', combo: '연속 배수 상한', shield: '오인 면제', miss: '오인 벌점', startDet: '재수사 뒤 형사', startMoney: '재수사 뒤 수사비', clue: '단서' };
-  var UNIT = { speed: '%', idle: '%', pay: '%', dept: '%', cap: '분', off: '%p', gear: '%', buff: '초', time: '초', combo: '', shield: '번', miss: '초', startDet: '명', startMoney: '', clue: '%' };
+  var UNIT = { runHit: '%', capUp: '%', keep: '%', speed: '%', idle: '%', pay: '%', dept: '%', cap: '분', off: '%p', gear: '%', buff: '초', time: '초', combo: '', shield: '번', miss: '초', startDet: '명', startMoney: '', clue: '%' };
   /* 카드: [id, 이름, 색, 효과, 값, 단서 값, 묶음(0 처음 · 1 재수사 2번 · 2 사건 1 종결 · 3 재수사 6번 또는 사건 2 종결)] */
   var RAW = [
     // 묶음 0 — 골목 사건의 흔한 증거
@@ -4641,6 +4658,8 @@ body.prem-on #h-station::before{content:'👑 '}
     ['diary', '피의자 일기', 'r', 'idle', 25, 4, 2], ['photo3', '세 명의 사진', 'r', 'startDet', 2, 5, 2], ['voice', '변조 음성', 'r', 'miss', 1, 4, 2],
     ['drone', '드론 영상', 'b', 'pay', 25, 4, 2], ['server', '서버 로그', 'b', 'dept', 30, 5, 2], ['radio', '무전 기록', 'b', 'combo', 1, 6, 2],
     ['crypto', '코인 지갑', 'y', 'dept', 30, 5, 2], ['contract', '위장 계약서', 'y', 'idle', 25, 4, 2], ['auction', '경매 낙찰서', 'y', 'clue', 10, 6, 2],
+    // 0.10.12 출동 구간을 다루는 증거 셋(묶음 2): 출동 검거 +% · 팀이 혼자 잡는 한계 +% · 재수사해도 출동으로 잡은 몫 일부 남김
+    ['stakeout', '잠복 사진', 'b', 'runHit', 6, 5, 2], ['roster', '조직 명부', 'r', 'capUp', 6, 5, 2], ['fieldnote', '현장 수첩', 'g', 'keep', 10, 5, 2],
     ['ship', '선적 목록', 'g', 'off', 10, 4, 2], ['warehouse', '창고 열쇠', 'g', 'cap', 60, 5, 2], ['rope', '밧줄 매듭', 'g', 'speed', 20, 4, 2],
     // 묶음 3 — 재수사 6번 또는 사건 2 종결
     ['note3', '써드의 쪽지', 'r', 'clue', 15, 8, 3], ['scar', '흉터 사진', 'r', 'speed', 30, 7, 3], ['team', '옛 3팀 명단', 'r', 'startDet', 3, 8, 3],
@@ -4753,6 +4772,7 @@ body.prem-on #h-station::before{content:'👑 '}
       g.ids.forEach(function (id) { var c = BY_ID[id]; out[c.key] += c.value * (e.lv[c.id] || 1) * g.mult; });
     });
     Object.keys(out).forEach(function (k) { out[k] = Math.round(out[k] * 10) / 10; });
+    out.runHit = Math.min(30, out.runHit); out.capUp = Math.min(30, out.capUp); out.keep = Math.min(50, out.keep);   // 상한
     out.startDet = Math.floor(out.startDet); out.shield = Math.floor(out.shield); out.combo = Math.floor(out.combo); out.miss = Math.floor(out.miss);
     return out;
   }
@@ -4804,7 +4824,7 @@ body.prem-on #h-station::before{content:'👑 '}
   }
   function lastGain(save) { var e = E(save); return e.log.length ? e.log[e.log.length - 1].gain : 0; }
 
-  var SHORT = { speed: '속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서', cap: '비움 한도', off: '비움 속도', gear: '장비 할인', buff: '사기', time: '출동 시간', combo: '연속', shield: '면제', miss: '벌점', startDet: '시작 형사', startMoney: '시작 수사비', clue: '단서' };
+  var SHORT = { runHit: '출동 검거', capUp: '팀 한계', keep: '재수사 보존', speed: '속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서', cap: '비움 한도', off: '비움 속도', gear: '장비 할인', buff: '사기', time: '출동 시간', combo: '연속', shield: '면제', miss: '벌점', startDet: '시작 형사', startMoney: '시작 수사비', clue: '단서' };
   /** 보드 칸에 쓰는 짧은 효과 글 */
   function shortText(c, lv) { var v = c.value * (lv || 1); return SHORT[c.key] + (c.key === 'miss' ? ' −' : ' +') + (c.key === 'startMoney' ? (v >= 10000 ? (v / 10000) + '만' : v) : v) + (UNIT[c.key] === '%' || UNIT[c.key] === '%p' ? '%' : ''); }
   function describe(c, lv) {
@@ -4996,9 +5016,9 @@ body.prem-on #h-station::before{content:'👑 '}
     crypto: ['가상 자산 추적', '🪙'], contract: ['위장 회사 조사', '📜'], auction: ['경매 기록 조회', '🔨'], ship: ['해운 조사', '🚢'], warehouse: ['창고 수색', '🏚️'],
     rope: ['매듭 감정', '🪢'], note3: ['필적 감정', '✍️'], scar: ['신체 특징 대조', '🩹'], team: ['옛 동료 탐문', '👥'], satellite: ['위성 분석', '🛰️'],
     cctvall: ['도시 관제', '🏙️'], blackbox: ['블랙박스 수집', '📦'], offshore: ['국제 공조 수사', '🌐'], bribe: ['내부 감찰', '🕵️'], gold: ['귀금속 추적', '🥇'],
-    badge3: ['3팀의 전통', '⭐'], blueprint: ['건물 구조 분석', '📐'], frame: ['오래된 사건 복기', '🖼️'], coldbox: ['미제 파일 정리', '🗃️'], coldpost: ['공개 수배', '📰'], coldseal: ['봉인 증거 재감정', '🔏']
+    badge3: ['3팀의 전통', '⭐'], blueprint: ['건물 구조 분석', '📐'], frame: ['오래된 사건 복기', '🖼️'], stakeout: ['잠복 촬영', '📸'], roster: ['조직도 그리기', '🗂️'], fieldnote: ['현장 기록법', '📒'], coldbox: ['미제 파일 정리', '🗃️'], coldpost: ['공개 수배', '📰'], coldseal: ['봉인 증거 재감정', '🔏']
   };
-  var TECH_KEY = { clue: 'idle', startMoney: 'idle', startDet: 'speed', shield: 'miss' };
+  var TECH_KEY = { runHit: 'pay', capUp: 'speed', keep: 'idle', clue: 'idle', startMoney: 'idle', startDet: 'speed', shield: 'miss' };
   // 효과 키마다 단계당 값(10단계면 이것 × 10)
   var TECH_PER = { speed: 1, idle: 2, pay: 2, dept: 2, cap: 3, off: 1, gear: 1, buff: 2, time: 0.5, combo: 0.1, miss: 0.1 };
   var TECH_BASE = [2000, 25000, 300000, 3000000, 3000000], TECH_GROW = 1.55, TECH_MAX = 10;
@@ -12755,7 +12775,13 @@ body.prem-on #h-station::before{content:'👑 '}
       body: '<p class="rt-why">현재 수사를 접고 <b>처음부터 다시 파고들어요.</b> 그동안 모은 자료에서 놓쳤던 단서를 건져 증거판에 써요.</p>' +
         '<div class="rt-list"><div class="keep"><b>남는 것</b><span>' + chips(['사건 번호', '닫은 사건', '연 수사 일지', '계급', '동물', '배지', '업적', '단서', '증거판']) + '</span></div>' +
         '<div class="reset"><b>처음으로</b><span>' + chips(['수사비' + (f.startMoney ? '(→ ' + fmt(f.startMoney) + ')' : ''), '형사(→ ' + (1 + f.startDet) + '명)', '훈련', '출동 장비', '부서', '유치장'].concat(s.closed ? [] : ['사건 ' + cs.no + ' 진척'])) + '</span></div>' +
-        (lose ? '<div class="warn"><b>현재 사건 진척 ' + fmt(s.caught) + '명이 0으로 돌아가요</b><span>사건을 닫을 때 재수사하면 잃는 진척이 없어요.</span></div>' : '') +
+        (lose ? (function () {   // 0.10.12 잃는 것을 팀 몫 / 출동 몫으로 나눠 보여 준다(출동 몫은 다시 직접 잡아야 하므로 빨갛게)
+          var run = Math.min(s.caught, s.caseRun || 0), keep = Math.floor(run * Math.min(0.5, (f.keep || 0) / 100)), team = s.caught - run;
+          return '<div class="warn"><b>현재 사건 진척 ' + fmt(s.caught) + '명이 ' + fmt(keep) + '명으로 돌아가요</b>' +
+            '<div class="rt-lose"><span>팀이 잡은 ' + fmt(team) + '명<em>다시 알아서 잡아요</em></span>' +
+            (run ? '<span class="hot">출동으로 잡은 ' + fmt(run) + '명<em>' + (keep ? fmt(keep) + '명 남고 ' + fmt(run - keep) + '명은 다시 출동' : '다시 출동해서 잡아야 해요') + '</em></span>' : '') + '</div>' +
+            '<span>사건을 닫을 때 재수사하면 잃는 진척이 없어요.</span></div>';
+        })() : '') +
         '<div class="gain"><b>얻는 것</b><span>' + chips(['단서 +' + g, '재수사 경력 +' + Ev.RANK_PCT + '%']) + '</span><small class="rt-note">재수사 경력은 팀 속도, 수사비, 부서 수입에 계속 붙어요</small></div></div>',
       ok: '재수사하고 단서 +' + g, cancel: '그만두기',
       onOk: function () { doRetreat(then); } });
@@ -13803,7 +13829,7 @@ body.prem-on #h-station::before{content:'👑 '}
     $('h-caught').textContent = fmt(Math.min(save.caught, goal)) + ' / ' + goal;
     $('h-bar').style.width = (I.progress(save) * 100).toFixed(1) + '%';
     // 방치 상한 뒤 구간(800 → 1000)은 빗금 = 현장에서만. 다 차면 빨간 알림 줄과 출동 단추 맥박
-    var capPct = (1 - CS().idleCap / goal) * 100;
+    var capPct = (1 - I.capOf(save) / goal) * 100;
     $('h-cap').style.width = save.closed ? '0' : capPct.toFixed(1) + '%';
     var capped = I.idleCapped(save);
     $('h-cap-note').classList.toggle('on', capped);

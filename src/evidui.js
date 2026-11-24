@@ -109,7 +109,13 @@
       body: '<p class="rt-why">현재 수사를 접고 <b>처음부터 다시 파고들어요.</b> 그동안 모은 자료에서 놓쳤던 단서를 건져 증거판에 써요.</p>' +
         '<div class="rt-list"><div class="keep"><b>남는 것</b><span>' + chips(['사건 번호', '닫은 사건', '연 수사 일지', '계급', '동물', '배지', '업적', '단서', '증거판']) + '</span></div>' +
         '<div class="reset"><b>처음으로</b><span>' + chips(['수사비' + (f.startMoney ? '(→ ' + fmt(f.startMoney) + ')' : ''), '형사(→ ' + (1 + f.startDet) + '명)', '훈련', '출동 장비', '부서', '유치장'].concat(s.closed ? [] : ['사건 ' + cs.no + ' 진척'])) + '</span></div>' +
-        (lose ? '<div class="warn"><b>현재 사건 진척 ' + fmt(s.caught) + '명이 0으로 돌아가요</b><span>사건을 닫을 때 재수사하면 잃는 진척이 없어요.</span></div>' : '') +
+        (lose ? (function () {   // 0.10.12 잃는 것을 팀 몫 / 출동 몫으로 나눠 보여 준다(출동 몫은 다시 직접 잡아야 하므로 빨갛게)
+          var run = Math.min(s.caught, s.caseRun || 0), keep = Math.floor(run * Math.min(0.5, (f.keep || 0) / 100)), team = s.caught - run;
+          return '<div class="warn"><b>현재 사건 진척 ' + fmt(s.caught) + '명이 ' + fmt(keep) + '명으로 돌아가요</b>' +
+            '<div class="rt-lose"><span>팀이 잡은 ' + fmt(team) + '명<em>다시 알아서 잡아요</em></span>' +
+            (run ? '<span class="hot">출동으로 잡은 ' + fmt(run) + '명<em>' + (keep ? fmt(keep) + '명 남고 ' + fmt(run - keep) + '명은 다시 출동' : '다시 출동해서 잡아야 해요') + '</em></span>' : '') + '</div>' +
+            '<span>사건을 닫을 때 재수사하면 잃는 진척이 없어요.</span></div>';
+        })() : '') +
         '<div class="gain"><b>얻는 것</b><span>' + chips(['단서 +' + g, '재수사 경력 +' + Ev.RANK_PCT + '%']) + '</span><small class="rt-note">재수사 경력은 팀 속도, 수사비, 부서 수입에 계속 붙어요</small></div></div>',
       ok: '재수사하고 단서 +' + g, cancel: '그만두기',
       onOk: function () { doRetreat(then); } });

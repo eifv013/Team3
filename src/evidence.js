@@ -29,9 +29,9 @@
 
   var CLUE_UNIT = 20000;
   var COLOR = { r: { name: '사람, 증언', hex: '#E5484F' }, b: { name: '기록, 영상', hex: '#2F6FD6' }, y: { name: '돈, 거래', hex: '#E0A100' }, g: { name: '장소, 물건', hex: '#2E9E5B' } };
-  var KEY_NAME = { speed: '팀 속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서 수입', cap: '자리 비움 한도', off: '자리 비움 속도', gear: '장비 할인',
+  var KEY_NAME = { runHit: '출동 검거', capUp: '팀 검거 한계', keep: '재수사 때 남는 출동 검거', speed: '팀 속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서 수입', cap: '자리 비움 한도', off: '자리 비움 속도', gear: '장비 할인',
                    buff: '사기 충전', time: '출동 시간', combo: '연속 배수 상한', shield: '오인 면제', miss: '오인 벌점', startDet: '재수사 뒤 형사', startMoney: '재수사 뒤 수사비', clue: '단서' };
-  var UNIT = { speed: '%', idle: '%', pay: '%', dept: '%', cap: '분', off: '%p', gear: '%', buff: '초', time: '초', combo: '', shield: '번', miss: '초', startDet: '명', startMoney: '', clue: '%' };
+  var UNIT = { runHit: '%', capUp: '%', keep: '%', speed: '%', idle: '%', pay: '%', dept: '%', cap: '분', off: '%p', gear: '%', buff: '초', time: '초', combo: '', shield: '번', miss: '초', startDet: '명', startMoney: '', clue: '%' };
   /* 카드: [id, 이름, 색, 효과, 값, 단서 값, 묶음(0 처음 · 1 재수사 2번 · 2 사건 1 종결 · 3 재수사 6번 또는 사건 2 종결)] */
   var RAW = [
     // 묶음 0 — 골목 사건의 흔한 증거
@@ -48,6 +48,8 @@
     ['diary', '피의자 일기', 'r', 'idle', 25, 4, 2], ['photo3', '세 명의 사진', 'r', 'startDet', 2, 5, 2], ['voice', '변조 음성', 'r', 'miss', 1, 4, 2],
     ['drone', '드론 영상', 'b', 'pay', 25, 4, 2], ['server', '서버 로그', 'b', 'dept', 30, 5, 2], ['radio', '무전 기록', 'b', 'combo', 1, 6, 2],
     ['crypto', '코인 지갑', 'y', 'dept', 30, 5, 2], ['contract', '위장 계약서', 'y', 'idle', 25, 4, 2], ['auction', '경매 낙찰서', 'y', 'clue', 10, 6, 2],
+    // 0.10.12 출동 구간을 다루는 증거 셋(묶음 2): 출동 검거 +% · 팀이 혼자 잡는 한계 +% · 재수사해도 출동으로 잡은 몫 일부 남김
+    ['stakeout', '잠복 사진', 'b', 'runHit', 6, 5, 2], ['roster', '조직 명부', 'r', 'capUp', 6, 5, 2], ['fieldnote', '현장 수첩', 'g', 'keep', 10, 5, 2],
     ['ship', '선적 목록', 'g', 'off', 10, 4, 2], ['warehouse', '창고 열쇠', 'g', 'cap', 60, 5, 2], ['rope', '밧줄 매듭', 'g', 'speed', 20, 4, 2],
     // 묶음 3 — 재수사 6번 또는 사건 2 종결
     ['note3', '써드의 쪽지', 'r', 'clue', 15, 8, 3], ['scar', '흉터 사진', 'r', 'speed', 30, 7, 3], ['team', '옛 3팀 명단', 'r', 'startDet', 3, 8, 3],
@@ -160,6 +162,7 @@
       g.ids.forEach(function (id) { var c = BY_ID[id]; out[c.key] += c.value * (e.lv[c.id] || 1) * g.mult; });
     });
     Object.keys(out).forEach(function (k) { out[k] = Math.round(out[k] * 10) / 10; });
+    out.runHit = Math.min(30, out.runHit); out.capUp = Math.min(30, out.capUp); out.keep = Math.min(50, out.keep);   // 상한
     out.startDet = Math.floor(out.startDet); out.shield = Math.floor(out.shield); out.combo = Math.floor(out.combo); out.miss = Math.floor(out.miss);
     return out;
   }
@@ -211,7 +214,7 @@
   }
   function lastGain(save) { var e = E(save); return e.log.length ? e.log[e.log.length - 1].gain : 0; }
 
-  var SHORT = { speed: '속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서', cap: '비움 한도', off: '비움 속도', gear: '장비 할인', buff: '사기', time: '출동 시간', combo: '연속', shield: '면제', miss: '벌점', startDet: '시작 형사', startMoney: '시작 수사비', clue: '단서' };
+  var SHORT = { runHit: '출동 검거', capUp: '팀 한계', keep: '재수사 보존', speed: '속도', idle: '팀 수사비', pay: '출동 수사비', dept: '부서', cap: '비움 한도', off: '비움 속도', gear: '장비 할인', buff: '사기', time: '출동 시간', combo: '연속', shield: '면제', miss: '벌점', startDet: '시작 형사', startMoney: '시작 수사비', clue: '단서' };
   /** 보드 칸에 쓰는 짧은 효과 글 */
   function shortText(c, lv) { var v = c.value * (lv || 1); return SHORT[c.key] + (c.key === 'miss' ? ' −' : ' +') + (c.key === 'startMoney' ? (v >= 10000 ? (v / 10000) + '만' : v) : v) + (UNIT[c.key] === '%' || UNIT[c.key] === '%p' ? '%' : ''); }
   function describe(c, lv) {

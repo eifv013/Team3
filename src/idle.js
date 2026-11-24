@@ -213,6 +213,7 @@
       lastSeen: now,
       buffUntil: 0,
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
+      caseRun: 0, keepBank: 0,   // 0.10.12 현재 사건에서 출동으로 잡은 수 · 재수사 때 남긴 몫(팀 한계에 더해진다)
       closed: false, closedAt: 0,
       tutorialDone: false,
       storySeen: 0,        // 수사 일지에서 읽은 편 수(새 편이 열리면 "수사 일지 보기"에 NEW)
@@ -270,6 +271,7 @@
     s.runs = int(data.runs, 0, 0);
     s.bestScore = int(data.bestScore, 0, 0);
     s.runCaught = int(data.runCaught, 0, 0);
+    s.caseRun = int(data.caseRun, 0, 0); s.keepBank = int(data.keepBank, 0, 0);
     s.teamCaught = int(data.teamCaught, 0, 0);
     // 목표가 늘어난 뒤(0.1.3, 300 → 1000) 예전에 300명으로 종결된 저장은 다시 진행 중으로 돌린다
     s.caseNo = int(data.caseNo, 1, 1, CASES.length);
@@ -429,7 +431,7 @@
     save.money += money;                       // 수사비는 상한과 상관없이 잡은 만큼 다 들어온다
     earned(save, money);
     // 사건 진척은 idleCap 까지만(이미 넘었으면 0). 출동으로 넘긴 몫은 깎지 않는다
-    var room = Math.max(0, caseOf(save).idleCap - save.caught);
+    var room = Math.max(0, capOf(save) - save.caught);
     var counted = Math.min(whole, room);
     save.caught += counted;
     save.caseBest = Math.max(save.caseBest || 0, save.caught);   // 0.7.0 재수사해도 열어 본 일지는 계속 열려 있게
@@ -500,13 +502,14 @@
     save.money += pay;
     earned(save, Math.round(base * cm));
     save.recent = save.recent.concat([score]).slice(-5);
-    save.caught += hits;
+    var got = Math.round(hits * (1 + Math.min(0.3, pctOf(bn, 'runHit'))));   // 0.10.12 증거 "출동 검거 +%": 사건 진척에만(계급은 실제 검거 수)
+    save.caught += got; save.caseRun = (save.caseRun || 0) + got;
     save.runCaught += hits;
     save.runs += 1;
     var best = score > save.bestScore;
     if (best) save.bestScore = score;
     save.buffUntil = now + (TUNE.buffSec + amtOf(bn, 'buff')) * 1000;   // 0.3.0 고슴도치: 사기 충전 +초
-    return { money: pay, caught: hits, best: best, closedNow: checkClose(save, now) };
+    return { money: pay, caught: got, best: best, closedNow: checkClose(save, now) };
   }
 
   /* ---------- 프로필 ---------- */
@@ -576,7 +579,12 @@
   function isStreaming(save, now) { return catchInterval(save, now) < FAST_SEC; }
 
   // 팀(방치)으로는 더 못 올리고 출동으로만 남은 걸 잡을 수 있는 상태인가
-  function idleCapped(save) { return !save.closed && save.caught >= caseOf(save).idleCap; }
+  /* 0.10.12 팀이 혼자 올릴 수 있는 한계: 사건 기본 한계 + 증거 "팀 검거 한계"(남은 출동 구간의 %) + 재수사 때 남긴 출동 몫. 목표보다 100명은 늘 출동 몫으로 남긴다 */
+  function capOf(save) {
+    var cs = caseOf(save), up = Math.floor((cs.goal - cs.idleCap) * Math.min(0.3, pctOf(bonusOf(save), 'capUp')));
+    return Math.min(cs.goal - 100, cs.idleCap + up + (save.keepBank || 0));
+  }
+  function idleCapped(save) { return !save.closed && save.caught >= capOf(save); }
   /** 다음 사건이 있는가(지금 사건을 끝냈고, 다음이 준비돼 있을 때만 파견할 수 있다) */
   function nextCase(save) { return save.closed ? (CASES[save.caseNo] || null) : null; }
   /**
@@ -589,7 +597,7 @@
     if (!nx) throw IdleError(save.closed ? 'NO_NEXT' : 'NOT_CLOSED', save.closed ? '다음 사건이 아직 없다' : '현재 사건을 먼저 끝내야 한다');
     save.past = save.past.concat([{ no: save.caseNo, caught: save.caught, closedAt: save.closedAt }]).slice(-20);
     save.caseNo = nx.no;
-    save.caught = 0; save.frac = 0; save.closed = false; save.closedAt = 0; save.storySeen = 0; save.caseBest = 0;
+    save.caught = 0; save.caseRun = 0; save.keepBank = 0; save.frac = 0; save.closed = false; save.closedAt = 0; save.storySeen = 0; save.caseBest = 0;
     save.lastSeen = now;
     return nx;
   }
@@ -605,7 +613,10 @@
     save.detectives = 1 + Math.max(0, Math.floor(start.startDet || 0));
     save.training = 0;
     GEAR_KEYS.forEach(function (k) { save.gear[k] = 0; });
-    if (!save.closed) { save.caught = 0; }
+    if (!save.closed) {   // 0.10.12 증거 "현장 수첩": 출동으로 잡은 몫의 일부를 남긴다(남긴 만큼 팀 한계도 올라 출동 구간이 그만큼 줄어 있다)
+      var keep = Math.floor((save.caseRun || 0) * Math.min(0.5, pctOf(bonusOf(save), 'keep')));
+      save.caught = keep; save.caseRun = keep; save.keepBank = keep;
+    }
     save.frac = 0; save.dfrac = 0;   // 준비물은 남긴다(배지로 산 것을 잃지 않게)
   }
   function storyUnread(save) { return storyUnlocked(save).length > save.storySeen; }
@@ -617,7 +628,7 @@
     cleanName: cleanName, setProfile: setProfile, profileCost: profileCost, changeProfile: changeProfile, NAME_TAGS: NAME_TAGS, payName: payName, buyNameTags: buyNameTags,
     newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf, setExtraIncome: setExtraIncome, setEarn: setEarn, resetTeam: resetTeam,
     teamRate: teamRate, payPerCatch: payPerCatch, buffed: buffed, advance: advance, nextCatch: nextCatch,
-    idleCapped: idleCapped, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
+    idleCapped: idleCapped, capOf: capOf, incomePerMin: incomePerMin, catchInterval: catchInterval, isStreaming: isStreaming, cost: cost, buy: buy, runOptions: runOptions, applyRun: applyRun,
     storyUnlocked: storyUnlocked, progress: progress, storyUnread: storyUnread, markStorySeen: markStorySeen
   };
 });

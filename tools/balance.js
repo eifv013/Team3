@@ -64,7 +64,7 @@ function simulate(pf, days, seed) {
     const b = bonus(s), cap = I.TUNE.offlineCapSec + (b.cap || 0) * 60, off = Math.min(1, I.TUNE.offlineRate + (b.off || 0) / 100);
     const offSec = (Math.min(gapSec, cap) * (pf.ses - 1) + Math.min(nightSec + gapSec, cap)) * off;
     const team = I.teamRate(s) * I.payPerCatch(s), dept = D.perSec(s, deptMult(s));
-    const prog = s.caught < I.caseOf(s).idleCap ? 1 : 0;      // 사건 진척도 값으로 친다(팀 한계 전까지)
+    const prog = s.caught < I.capOf(s) ? 1 : 0;      // 사건 진척도 값으로 친다(팀 한계 전까지)
     return (team * (onlineSec * (2.2 + prog) + offSec * (1 + prog)) + dept * (onlineSec + offSec) + pf.ses * pf.runs * runMoney()) / 86400;
   }
   function options() {
@@ -184,7 +184,7 @@ function simulate(pf, days, seed) {
           add('tickets', '사건 종결', P.giftOnce(s, 'case' + s.caseNo, 10));
           if (Ev.gainNow(s) >= 1) doRetreat('사건 종결', day);
           if (I.nextCase(s)) { I.moveToNextCase(s, T); petB = null; } else done = true;
-        } else if (online - lastRetreat >= 7200 && (process.env.NAIVE === '1' || s.caught < I.caseOf(s).idleCap)) {   // 팀 한계를 넘긴 뒤(출동으로만 잡는 구간)에는 재수사하지 않는다 — 출동으로 잡은 진척이 사라지므로. NAIVE=1 이면 그래도 한다
+        } else if (online - lastRetreat >= 7200 && (process.env.NAIVE === '1' || s.caught < I.capOf(s))) {   // 팀 한계를 넘긴 뒤(출동으로만 잡는 구간)에는 재수사하지 않는다 — 출동으로 잡은 진척이 사라지므로. NAIVE=1 이면 그래도 한다
           const g = Ev.gainNow(s); if (g >= Math.max(3, Math.ceil(s.evid.clues * 0.6))) doRetreat('막힘', day);
         }
       }

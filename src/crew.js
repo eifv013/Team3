@@ -47,9 +47,9 @@
     crypto: ['가상 자산 추적', '🪙'], contract: ['위장 회사 조사', '📜'], auction: ['경매 기록 조회', '🔨'], ship: ['해운 조사', '🚢'], warehouse: ['창고 수색', '🏚️'],
     rope: ['매듭 감정', '🪢'], note3: ['필적 감정', '✍️'], scar: ['신체 특징 대조', '🩹'], team: ['옛 동료 탐문', '👥'], satellite: ['위성 분석', '🛰️'],
     cctvall: ['도시 관제', '🏙️'], blackbox: ['블랙박스 수집', '📦'], offshore: ['국제 공조 수사', '🌐'], bribe: ['내부 감찰', '🕵️'], gold: ['귀금속 추적', '🥇'],
-    badge3: ['3팀의 전통', '⭐'], blueprint: ['건물 구조 분석', '📐'], frame: ['오래된 사건 복기', '🖼️'], coldbox: ['미제 파일 정리', '🗃️'], coldpost: ['공개 수배', '📰'], coldseal: ['봉인 증거 재감정', '🔏']
+    badge3: ['3팀의 전통', '⭐'], blueprint: ['건물 구조 분석', '📐'], frame: ['오래된 사건 복기', '🖼️'], stakeout: ['잠복 촬영', '📸'], roster: ['조직도 그리기', '🗂️'], fieldnote: ['현장 기록법', '📒'], coldbox: ['미제 파일 정리', '🗃️'], coldpost: ['공개 수배', '📰'], coldseal: ['봉인 증거 재감정', '🔏']
   };
-  var TECH_KEY = { clue: 'idle', startMoney: 'idle', startDet: 'speed', shield: 'miss' };
+  var TECH_KEY = { runHit: 'pay', capUp: 'speed', keep: 'idle', clue: 'idle', startMoney: 'idle', startDet: 'speed', shield: 'miss' };
   // 효과 키마다 단계당 값(10단계면 이것 × 10)
   var TECH_PER = { speed: 1, idle: 2, pay: 2, dept: 2, cap: 3, off: 1, gear: 1, buff: 2, time: 0.5, combo: 0.1, miss: 0.1 };
   var TECH_BASE = [2000, 25000, 300000, 3000000, 3000000], TECH_GROW = 1.55, TECH_MAX = 10;

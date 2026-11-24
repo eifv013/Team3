@@ -280,7 +280,7 @@
     $('h-caught').textContent = fmt(Math.min(save.caught, goal)) + ' / ' + goal;
     $('h-bar').style.width = (I.progress(save) * 100).toFixed(1) + '%';
     // 방치 상한 뒤 구간(800 → 1000)은 빗금 = 현장에서만. 다 차면 빨간 알림 줄과 출동 단추 맥박
-    var capPct = (1 - CS().idleCap / goal) * 100;
+    var capPct = (1 - I.capOf(save) / goal) * 100;
     $('h-cap').style.width = save.closed ? '0' : capPct.toFixed(1) + '%';
     var capped = I.idleCapped(save);
     $('h-cap-note').classList.toggle('on', capped);
