@@ -145,7 +145,7 @@
     var m = /^([a-z0-9]+):([crhl])$/.exec(k || '');
     return m && BY_ID[m[1]] ? { id: m[1], g: m[2] } : null;
   }
-  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
+  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, bgs: { office: true }, bg: 'office', free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
   function int(v, def, min, max) {
     if (typeof v !== 'number' || !isFinite(v)) return def;
     v = Math.floor(v);
@@ -177,6 +177,9 @@
     if (d.free && typeof d.free === 'object' && /^\d{4}-\d{2}-\d{2}$/.test(d.free.day)) p.free = { day: d.free.day, n: int(d.free.n, 0, 0, 99) };
     var cl = d.closet && typeof d.closet === 'object' ? d.closet : {};
     Object.keys(cl).forEach(function (k) { if (cl[k] === true && OUTFIT_BY[k]) p.closet[k] = true; });
+    var bo = d.bgs && typeof d.bgs === 'object' ? d.bgs : {};   // 0.12.0 파트너 배경
+    BGS.forEach(function (b) { if (bo[b.id] === true) p.bgs[b.id] = true; });
+    p.bg = typeof d.bg === 'string' && p.bgs[d.bg] ? d.bg : 'office';
     var wr = d.wear && typeof d.wear === 'object' ? d.wear : {};
     Object.keys(wr).forEach(function (k) { if (parse(k) && p.own[k] && p.closet[wr[k]]) p.wear[k] = wr[k]; });
     // 0.8.4 누아르 각성: 켠 동물(noir) · 각성이 열린 걸 이미 알려 준 동물(noirSeen). 조건이 안 되는 키는 버린다
@@ -267,6 +270,37 @@
     return id || '';
   }
   function wearing(save, k) { var p = save && save.pets; return p && p.wear && p.wear[k] || ''; }
+
+  /* ---------- 0.12.0 파트너 배경 ----------
+   *   파트너 탭에서 현재 파트너 뒤에 깔리는 그림(그림은 Team3BgPics, 움직임은 화면 쪽 CSS). 효과는 없고 꾸미기만.
+   *   사건 배경 3장은 간식이나 배지, 움직이는 배경 3장은 배지, 황금 무대는 전설 파트너와 함께일 때만 보인다. */
+  var BGS = [
+    { id: 'office', name: '3팀 사무실', desc: '처음부터 있는 배경이에요.' },
+    { id: 'alley', name: '비 오는 골목', treats: 300, gems: 30, desc: '사건 1의 골목이에요. 비가 내려요.' },
+    { id: 'harbor', name: '해무항 부두', treats: 300, gems: 30, desc: '사건 2의 부두예요. 안개가 흘러요.' },
+    { id: 'room', name: '면통실', treats: 300, gems: 30, desc: '사건 3의 면통실이에요. 형광등이 깜빡여요.' },
+    { id: 'neon', name: '네온 거리', gems: 60, desc: '비 오는 네온 밤거리예요.' },
+    { id: 'snow', name: '눈 오는 밤', gems: 60, desc: '달밤에 눈이 내려요.' },
+    { id: 'roof', name: '잠복 옥상', gems: 60, desc: '별이 반짝이는 옥상이에요.' },
+    { id: 'gold', name: '황금 무대', gems: 120, legend: true, desc: '전설 파트너와 함께일 때만 보여요.' }
+  ];
+  var BG_BY = {}; BGS.forEach(function (b) { BG_BY[b.id] = b; });
+  function buyBg(save, id, pay) {
+    var b = BG_BY[id], p = P(save);
+    if (!b) throw PetError('BAD_BG', '모르는 배경');
+    if (p.bgs[id]) throw PetError('ALREADY', '이미 있다');
+    if (pay === 'treats' && b.treats) { if (p.treats < b.treats) throw PetError('NOT_ENOUGH', '간식이 모자란다'); p.treats -= b.treats; }
+    else if (pay === 'gems' && b.gems) { if (!(save.gems >= b.gems)) throw PetError('NOT_ENOUGH', '배지가 모자란다'); save.gems -= b.gems; }
+    else throw PetError('BAD_PAY', '이 배경은 그 재화로 살 수 없다');
+    p.bgs[id] = true; p.bg = id;
+    return b;
+  }
+  function useBg(save, id) { var p = P(save); if (!p.bgs[id]) throw PetError('NO_BG', '없는 배경'); p.bg = id; return BG_BY[id]; }
+  /** 현재 화면에 깔리는 배경 id(황금 무대는 전설 파트너일 때만, 아니면 사무실) */
+  function bgNow(save) {
+    var p = P(save), b = BG_BY[p.bg] || BG_BY.office, x = parse(p.eq);
+    return b.legend && !(x && x.g === 'l') ? 'office' : b.id;
+  }
 
   /* ---------- 확률 ---------- */
   /** 등급 확률(%)과 한 마리 확률(%) — 화면에 공개하는 표 */
@@ -583,6 +617,7 @@
 
   return {
     codename: codename, CODENAME: CODENAME,
+    BGS: BGS, BG_BY: BG_BY, buyBg: buyBg, useBg: useBg, bgNow: bgNow,
     LIMITED: LIMITED, grantLimited: grantLimited,
     canNoir: canNoir, noirOn: noirOn, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,

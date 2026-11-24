@@ -143,6 +143,18 @@
     ]
   };
   var CASES = [CASE, CASE2, CASE3];
+  /*
+   * 0.12.0 사건 수치 공식(정식 출시 7개 기준). 사건 번호만 넣으면 나온다 — 사건 4~7을 만들 때 숫자를 따로 맞추지 않는다.
+   *   수사비 배수 pay = n(n+1)/2            → 1, 3, 6, 10, 15, 21, 28
+   *   목표 goal     = 1000 × (pay + 2)      → 3000, 5000, 8000, 12000, 17000, 23000, 30000
+   *   출동으로만 채우는 구간 = 1~3번은 500n, 4번부터는 목표의 25%(500 단위)  → 500, 1000, 1500, 3000, 4500, 6000, 7500
+   *   tools/balance.js "보통" 성향: 2 / 3 / 5 / 8 / 10 / 10 / 11일, 모두 약 7주
+   */
+  function caseNums(n) {
+    var pay = n * (n + 1) / 2, goal = 1000 * (pay + 2), run = n <= 3 ? 500 * n : Math.round(goal * 0.25 / 500) * 500;
+    return { pay: pay, goal: goal, idleCap: goal - run };
+  }
+  CASES.forEach(function (c) { var k = caseNums(c.no); c.pay = k.pay; c.goal = k.goal; c.idleCap = k.idleCap; });
   /** 지금 맡은 사건(save.caseNo, 1부터) */
   function caseOf(save) { var n = save && save.caseNo; return CASES[(n >= 1 && n <= CASES.length ? n : 1) - 1]; }
 
@@ -623,7 +635,7 @@
   function markStorySeen(save) { save.storySeen = storyUnlocked(save).length; return save.storySeen; }
 
   return {
-    VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
+    VERSION: VERSION, TUNE: TUNE, GEAR: GEAR, GEAR_KEYS: GEAR_KEYS, gearFor: gearFor, CASE: CASE, CASES: CASES, caseNums: caseNums, caseOf: caseOf, nextCase: nextCase, moveToNextCase: moveToNextCase, PROFILE: PROFILE,
     RANKS: RANKS, RANK_BONUS: RANK_BONUS, rankIndex: rankIndex, rankOf: rankOf, claimPromotions: claimPromotions, moneyMult: moneyMult, boostUntil: boostUntil,
     cleanName: cleanName, setProfile: setProfile, profileCost: profileCost, changeProfile: changeProfile, NAME_TAGS: NAME_TAGS, payName: payName, buyNameTags: buyNameTags,
     newSave: newSave, load: load, serialize: serialize, setBonus: setBonus, bonusOf: bonusOf, setExtraIncome: setExtraIncome, setEarn: setEarn, resetTeam: resetTeam,

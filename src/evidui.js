@@ -157,6 +157,7 @@
         '<div class="ev-hud"><span>🔍 단서 <b id="ev-left"></b></span><span id="ev-count"></span></div>' +
         '<div class="ev-info" id="ev-info"></div>' +
         '<button class="ev-effbtn" id="ev-effbtn">적용 중인 효과</button>' +
+        '<button class="ev-repick" id="ev-repick" hidden><b>⇄ 다시 고르는 중</b><em>확정</em></button>' +
         '<div class="ev-zoom"><button id="ev-zi" aria-label="확대">+</button><button id="ev-zo" aria-label="축소">−</button><button id="ev-zc" aria-label="가운데로">◎</button></div></div>' +
       '<div class="ev-locks" id="ev-locks" hidden></div>';   // 0.10.8 효과 합계는 가운데 사건 파일을 누르면 나온다   // 0.10.2 아래 묶음 안내 칩은 뺐다(잠긴 칸 자체에 조건이 보인다)
     var w = $('ev-world'), h = '';
@@ -164,16 +165,16 @@
     w.insertAdjacentHTML('beforeend', h);
     bindPan();
     built = true;
-    requestAnimationFrame(function () { center(); });
+    requestAnimationFrame(function () { center(fitS()); });
   }
   function nodeHTML(k, st) {
     var s = S();
     if (k === 'core') return st === 'open' ? '<span class="ev-stamp">미제, 재수사</span><b>' + CASE_TITLE + '</b><small>' + CASE_LINE + '</small>' : '<b class="q">???</b><small>첫 재수사를 하면 열려요</small>';
-    var c = Ev.BY_ID[k], lv = s.evid.lv[k] || 1;
-    if (st === 'open') return '<b>' + esc(c.name) + '</b><small>' + esc(Ev.shortText(c, lv)) + '</small>' + (lv >= Ev.MAX_LV ? '<em class="ev-max">MAX</em>' : lv > 1 ? '<em class="ev-lv">' + '★'.repeat(lv) + '</em>' : '') + (groupOf(k) > 1 ? '<span class="ev-x">×' + groupOf(k) + '</span>' : '');
-    // 0.9.2 실로 이어진(열 수 있거나 묶음 대기) 증거는 이름 · 효과를 보여 준다 — 무엇을 열지 보고 고르게. 안 이어진 것만 ???
-    if (st === 'can') return '<b>' + esc(c.name) + '</b><small>' + esc(Ev.shortText(c, 1)) + '</small><em class="ev-cost">🔍 ' + c.cost + '로 열기</em>';
-    if (st === 'lock') return '<b>' + esc(c.name) + '</b><small>' + esc(Ev.shortText(c, 1)) + '</small><em class="ev-cost lk">🔒 ' + LOCK[c.tier] + '</em>';
+    // 0.12.0 갈림길: 자리마다 증거가 둘. 연 자리는 고른 증거를, 열 수 있는 자리는 "A 또는 B"를 보여 준다
+    var ch = Ev.chosen(s, k), c = Ev.BY_ID[ch || k], alt = Ev.BY_ID[Ev.PAIR[k]], lv = s.evid.lv[c.id] || 1;
+    if (st === 'open') return '<b>' + esc(c.name) + '</b><small>' + esc(Ev.shortText(c, lv)) + '</small>' + (lv >= Ev.MAX_LV ? '<em class="ev-max">MAX</em>' : lv > 1 ? '<em class="ev-lv">' + '★'.repeat(lv) + '</em>' : '') + (Ev.canRepick(s) ? '<span class="ev-sw">⇄</span>' : '');
+    if (st === 'can') return '<b>' + esc(c.name) + '</b><small class="ev-or">또는 ' + esc(alt.name) + '</small><em class="ev-cost">🔍 ' + c.cost + ' 둘 중 하나</em>';
+    if (st === 'lock') return '<b>' + esc(c.name) + '</b><small class="ev-or">또는 ' + esc(alt.name) + '</small><em class="ev-cost lk">🔒 ' + LOCK[c.tier] + '</em>';
     return '<b class="q">???</b>';
   }
   var GM = {}, effSum = '';
@@ -201,6 +202,7 @@
     popId = null;
     var nOwn = Object.keys(e.own).length;
     $('ev-left').textContent = Ev.left(s);
+    var rpb = $('ev-repick'); if (rpb) rpb.hidden = !(Ev.canRepick(s) && nOwn > 0);
     $('ev-count').textContent = '열린 증거 ' + nOwn + ' / ' + Ev.CARDS.length;
     info();
     var f = Ev.effects(s);
@@ -229,19 +231,23 @@
     }
     var st = Ev.state(s, sel);
     if (sel === 'core') { box.innerHTML = '<div class="tx"><b>' + (st === 'open' ? '현재 적용 중인 효과' : '???') + '</b>' + (st === 'open' ? '<div class="ev-eff-sum">' + effSum + '</div>' : '<small>첫 재수사를 하면 열려요.</small>') + '</div>'; return; }
-    var c = Ev.BY_ID[sel], col = Ev.COLOR[c.color];
+    var ch = Ev.chosen(s, sel), c = Ev.BY_ID[ch || sel], other = Ev.BY_ID[Ev.PAIR[c.id]], col = Ev.COLOR[c.color], dot = '<i class="dot" style="background:' + col.hex + '"></i>';
     if (st === 'open') {
-      var lv = s.evid.lv[sel] || 1, up = Ev.upCost(s, sel);
-      box.innerHTML = '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + (lv > 1 ? ' <em class="ev-lv">' + '★'.repeat(lv) + '</em>' : '') + '</b><small>' + esc(Ev.describe(c, lv)) + (groupOf(sel) > 1 ? ', 묶음 ×' + groupOf(sel) : '') + ' ' + col.name + '</small></div>' +
-        '<button class="ev-act up" data-up="' + sel + '"' + (up != null && up <= Ev.left(s) ? '' : ' disabled') + '>' + (up == null ? '<span>최고 단계</span>' : '<span>강화</span><b>🔍 ' + up + '</b>') + '</button>';
+      var lv = s.evid.lv[c.id] || 1, up = Ev.upCost(s, c.id), olv = s.evid.lv[other.id] || 1, rp = Ev.canRepick(s);
+      box.innerHTML = '<div class="ev-opt on"><div class="tx"><b>' + dot + esc(c.name) + (lv > 1 ? ' <em class="ev-lv">' + '★'.repeat(lv) + '</em>' : '') + '</b><small>' + esc(Ev.describe(c, lv)) + '</small></div>' +
+        '<button class="ev-act up" data-up="' + c.id + '"' + (up != null && up <= Ev.left(s) ? '' : ' disabled') + '>' + (up == null ? '<span>최고 단계</span>' : '<span>강화</span><b>🔍 ' + up + '</b>') + '</button></div>' +
+        '<div class="ev-opt off"><div class="tx"><b>' + esc(other.name) + (olv > 1 ? ' <em class="ev-lv">' + '★'.repeat(olv) + '</em>' : '') + '</b><small>' + esc(Ev.describe(other, olv)) + '</small></div>' +
+        (rp ? '<button class="ev-act sw" data-swap="' + other.id + '"><span>이걸로</span><b>바꾸기</b></button>' : '<span class="ev-note">재수사하면<br>바꿀 수 있어요</span>') + '</div>';
       return;
     }
     if (st === 'can') {
-      box.innerHTML = '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + ', 이어진 증거</b><small>' + esc(Ev.describe(c, 1)) + ', 단서로 열면 붉은 실로 이어지고 바로 효과가 나요.</small></div>' +
-        '<button class="ev-act" data-buyc="' + sel + '"' + (Ev.left(s) >= c.cost ? '' : ' disabled') + '><span>열기</span><b>🔍 ' + c.cost + '</b></button>';
+      box.innerHTML = '<p class="ev-pick-t">둘 중 하나만 열 수 있어요</p>' + [c, other].map(function (x) {
+        return '<div class="ev-opt"><div class="tx"><b>' + dot + esc(x.name) + '</b><small>' + esc(Ev.describe(x, 1)) + '</small></div>' +
+          '<button class="ev-act" data-buyc="' + x.id + '"' + (Ev.left(s) >= x.cost ? '' : ' disabled') + '><span>열기</span><b>🔍 ' + x.cost + '</b></button></div>';
+      }).join('');
       return;
     }
-    box.innerHTML = st === 'lock' ? '<div class="tx"><b><i class="dot" style="background:' + col.hex + '"></i>' + esc(c.name) + '</b><small>' + esc(Ev.describe(c, 1)) + ' ' + lockText(c.tier) + '부터 열 수 있어요.</small></div>'
+    box.innerHTML = st === 'lock' ? '<div class="tx"><b>' + dot + esc(c.name) + ' 또는 ' + esc(other.name) + '</b><small>' + esc(Ev.describe(c, 1)) + ' / ' + esc(Ev.describe(other, 1)) + '<br>' + lockText(c.tier) + '부터 열 수 있어요.</small></div>'
       : '<div class="tx"><b>???</b><small>아직 이어진 증거가 없어요. 실로 이어진 옆 증거를 먼저 열어요.</small></div>';
   }
   /* 끌기 · 확대 */
@@ -264,11 +270,12 @@
   }
   function apply() { clamp(); var w = $('ev-world'); if (w) w.style.transform = 'translate(' + Z.x + 'px,' + Z.y + 'px) scale(' + Z.s + ')'; }
   function center(s) { var vp = $('ev-vp'); if (!vp) return; var r = vp.getBoundingClientRect(); if (!r.width) return; Z.s = s || Z.s; Z.x = r.width / 2 - Ev.CX * Z.s; Z.y = r.height / 2 - Ev.CY * Z.s; apply(); zoomed = true; }
+  function fitS() { var vp = $('ev-vp'), r = vp ? vp.getBoundingClientRect() : null; return r && r.width ? Math.max(0.5, Math.min(0.95, Math.min(r.width, r.height) / 430)) : 0.95; }   // 0.12.0 작은 화면에서는 첫 줄 증거가 다 보이게 줄여서 시작
   function zoomAt(f, px, py) { var ns = Math.max(0.35, Math.min(2.2, Z.s * f)); Z.x = px - (px - Z.x) * ns / Z.s; Z.y = py - (py - Z.y) * ns / Z.s; Z.s = ns; apply(); }
   function bindPan() {
     var vp = $('ev-vp'), pts = {}, start = null, moved = false;
     function snap() { start = { x: Z.x, y: Z.y, s: Z.s, pts: JSON.parse(JSON.stringify(pts)) }; }
-    vp.addEventListener('pointerdown', function (e) { if (e.target.closest('.ev-zoom, .ev-info.evc, .ev-legend, .ev-effbtn')) return; try { vp.setPointerCapture(e.pointerId); } catch (x) { /* 무시 */ } pts[e.pointerId] = { x: e.clientX, y: e.clientY }; moved = false; snap(); });
+    vp.addEventListener('pointerdown', function (e) { if (e.target.closest('.ev-zoom, .ev-info.evc, .ev-legend, .ev-effbtn, .ev-repick')) return; try { vp.setPointerCapture(e.pointerId); } catch (x) { /* 무시 */ } pts[e.pointerId] = { x: e.clientX, y: e.clientY }; moved = false; snap(); });
     vp.addEventListener('pointermove', function (e) {
       if (!pts[e.pointerId] || !start) return; pts[e.pointerId] = { x: e.clientX, y: e.clientY };
       var ks = Object.keys(pts), r = vp.getBoundingClientRect();
@@ -303,23 +310,29 @@
     vp.addEventListener('wheel', function (e) { e.preventDefault(); var r = vp.getBoundingClientRect(); zoomAt(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
     $('ev-zi').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); });
     $('ev-zo').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(0.8, r.width / 2, r.height / 2); });
-    $('ev-zc').addEventListener('click', function () { center(0.95); });
+    $('ev-zc').addEventListener('click', function () { center(fitS()); });
     $('ev-effbtn').addEventListener('click', function () { if (!Ev.coreOpen(S())) { toast('재수사하면 열려요'); return; } sel = 'core'; draw(); });
   }
   // 0.8.0 증거판은 아래 메뉴 '증거' 탭 안에 있다(창이 아니다). open = 그 탭으로 옮기고 다시 그리기
-  function open() { if (ctx.showTab) ctx.showTab('evid'); draw(); if (!zoomed) requestAnimationFrame(function () { center(0.95); }); }
+  function open() { if (ctx.showTab) ctx.showTab('evid'); draw(); if (!zoomed) requestAnimationFrame(function () { center(fitS()); }); }
   function close() { sel = null; }
 
   function onBoardClick(e) {
     var s = S(), t;
     if ((t = e.target.closest('[data-buyc]'))) {
       var id = t.getAttribute('data-buyc');
-      try { var c = Ev.buyCard(s, id); if (root.Team3QuestUI) root.Team3QuestUI.track('evid', 1); ctx.persist(); popId = id;
-        Ev.EDGES.forEach(function (ed) { if ((ed[0] === id && Ev.opened(s, ed[1])) || (ed[1] === id && Ev.opened(s, ed[0]))) fresh[ed.join('-')] = 1; });
+      try { var c = Ev.buyCard(s, id), sl = Ev.slotOf(id); if (root.Team3QuestUI) root.Team3QuestUI.track('evid', 1); ctx.persist(); popId = sl;
+        Ev.EDGES.forEach(function (ed) { if ((ed[0] === sl && Ev.opened(s, ed[1])) || (ed[1] === sl && Ev.opened(s, ed[0]))) fresh[ed.join('-')] = 1; });
         toast(c.name + ' — 이어졌어요!'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } ctx.render(); }
       catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '단서가 모자라요' : e3.code === 'NOT_LINKED' ? '열린 증거와 이어진 칸만 열 수 있어요' : '열 수 없어요'); }
       draw(); return;
     }
+    if ((t = e.target.closest('[data-swap]'))) {   // 0.12.0 다시 고르기(재수사 뒤)
+      try { var w = Ev.swap(s, t.getAttribute('data-swap')); ctx.persist(); popId = Ev.slotOf(w.id); toast(w.name + '(으)로 바꿨어요'); try { ctx.UI.sfx.pick(2); } catch (e6) { /* 무시 */ } ctx.render(); }
+      catch (e7) { toast('바꿀 수 없어요'); }
+      draw(); return;
+    }
+    if (e.target.closest('#ev-repick')) { Ev.endRepick(s); ctx.persist(); toast('갈림길을 확정했어요'); draw(); return; }
     if ((t = e.target.closest('[data-up]'))) {
       try { var lv = Ev.upgrade(s, t.getAttribute('data-up')); ctx.persist(); toast('강화! ★' + lv); try { ctx.UI.sfx.pick(3); } catch (e4) { /* 무시 */ } ctx.render(); }
       catch (e5) { toast(e5.code === 'NOT_ENOUGH' ? '단서가 모자라요' : '더 강화할 수 없어요'); }

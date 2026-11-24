@@ -95,7 +95,7 @@
   function kitsOpen(save) { var n = caseNo(save); return KITS.filter(function (x) { return x.caseNo <= n; }); }
   function rolesNext(save) { var n = caseNo(save); return ROLES.filter(function (x) { return x.caseNo === n + 1; }); }
   function kitsNext(save) { var n = caseNo(save); return KITS.filter(function (x) { return x.caseNo === n + 1; }); }
-  function techOpen(save, id) { var e = save.evid; return !!(e && e.own && e.own[id]); }
+  function techOpen(save, id) { var e = save.evid, Ev = evidence(); return !!(e && e.own && (e.own[id] || (Ev && Ev.PAIR && e.own[Ev.PAIR[id]]))); }   // 0.12.0 그 자리의 짝을 골라도 기법은 열린다
   function techsOpen(save) { return techs().filter(function (x) { return techOpen(save, x.id); }); }
   function techsLocked(save) { return techs().filter(function (x) { return !techOpen(save, x.id); }); }
 

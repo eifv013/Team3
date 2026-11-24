@@ -430,3 +430,14 @@ test('가진 만큼 뽑기(0.4.1): 최대 횟수 · 배지 값 · 10마리마다
   const u = fresh(0); P.addTickets(u, 7); P.pull(u, 7, 'ticket', Math.random);
   assert.equal(u.pets.tickets, 0);
 });
+
+test('0.12.0 파트너 배경: 사고 고르기, 황금 무대는 전설 파트너일 때만 보인다', () => {
+  const s = { gems: 200 }; P.clean(s); s.pets.treats = 300;
+  assert.equal(P.bgNow(s), 'office'); assert.equal(P.BGS.length, 8);
+  assert.throws(() => P.buyBg(s, 'neon', 'treats'), { code: 'BAD_PAY' });
+  P.buyBg(s, 'alley', 'treats'); assert.equal(s.pets.treats, 0); assert.equal(P.bgNow(s), 'alley');
+  assert.throws(() => P.buyBg(s, 'alley', 'gems'), { code: 'ALREADY' });
+  P.buyBg(s, 'gold', 'gems'); assert.equal(s.gems, 80); assert.equal(P.bgNow(s), 'office', '전설 파트너가 아니면 사무실');
+  assert.throws(() => P.useBg(s, 'snow'), { code: 'NO_BG' });
+  P.useBg(s, 'alley'); P.clean(s); assert.equal(s.pets.bg, 'alley'); assert.ok(s.pets.bgs.gold);
+});

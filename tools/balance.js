@@ -21,6 +21,14 @@ const PROFILES = {
   hard:    { name: '열심히', ses: 6, min: 30, runs: 8, hitSec: 4.6, brk: 0.05, adT: 5, adG: 5, adDouble: 0.8 }
 };
 if (process.env.DEPT_PAY) D.LIST.forEach(x => { x.pay *= +process.env.DEPT_PAY; });   // 실험: 부서 수입 배수
+// 실험: 사건 수치 덮어쓰기. CASES="목표:팀한계,…" (7개까지, 내용 없는 4~7번은 3번을 본떠 숫자만)
+if (process.env.CASES) process.env.CASES.split(',').forEach((x, i) => {
+  const v = x.split(':').map(Number);
+  if (!I.CASES[i]) I.CASES.push(Object.assign({}, I.CASES[2], { no: i + 1, pay: (i + 1) * (i + 2) / 2, story: [{ at: 0, text: '' }] }));
+  I.CASES[i].goal = v[0]; I.CASES[i].idleCap = v[1];
+});
+// 0.12.0 사건 4~7은 아직 내용이 없어서 공식(I.caseNums) 숫자만으로 채워 7개를 돌린다(ONLY3=1 이면 있는 3개만)
+if (!process.env.CASES && !process.env.ONLY3) for (let n = I.CASES.length + 1; n <= 7; n++) I.CASES.push(Object.assign({}, I.CASES[2], I.caseNums(n), { no: n, story: [{ at: 0, text: '' }] }));
 const DAYS = +process.argv[2] || 60, WHO = process.argv[3] || 'all', SEED = +process.argv[4] || 1;
 const SNAP = [1, 2, 3, 5, 7, 10, 14, 21, 30, 45, 60, 90];
 const fmt = n => n >= 1e12 ? (n / 1e12).toFixed(1) + '조' : n >= 1e8 ? (n / 1e8).toFixed(1) + '억' : n >= 1e4 ? (n / 1e4).toFixed(1) + '만' : String(Math.round(n));
@@ -98,7 +106,8 @@ function simulate(pf, days, seed) {
   // ---- 증거판: 열 수 있는 가장 싼 증거부터, 남으면 강화 ----
   function boardBuy(day) {
     for (let g = 0; g < 300; g++) {
-      const can = Ev.CARDS.filter(c => Ev.state(s, c.id) === 'can' && c.cost <= Ev.left(s)).sort((x, y) => x.cost - y.cost)[0];
+      let can = Ev.CARDS.filter(c => Ev.state(s, c.id) === 'can' && c.cost <= Ev.left(s)).sort((x, y) => x.cost - y.cost)[0];
+      if (can && rng() < 0.5) can = Ev.BY_ID[Ev.PAIR[can.id]];   // 0.12.0 갈림길: 봇은 둘 중 아무거나 고른다
       let up = null; Object.keys(s.evid.own).forEach(id => { const k = Ev.upCost(s, id); if (k != null && k <= Ev.left(s) && (!up || k < up.k)) up = { id, k }; });
       if (can && (!up || can.cost <= up.k)) { Ev.buyCard(s, can.id); Q.track(s, 'evid', 1, day); } else if (up) Ev.upgrade(s, up.id); else break;
     }

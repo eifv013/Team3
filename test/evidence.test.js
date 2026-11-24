@@ -116,3 +116,23 @@ test('idle: 부서 수입은 자리 비움이면 절반 · 번 수사비 알림'
     assert.equal(r2.dept, 10);
   } finally { I.setExtraIncome(null); I.setEarn(null); }
 });
+
+test('0.12.0 갈림길: 짝은 하나만, 재수사 뒤에만 무료로 바꾸고 강화 단계는 따로 기억', () => {
+  assert.equal(Ev.ALTS.length, Ev.CARDS.length);
+  const names = new Set(Ev.CARDS.concat(Ev.ALTS).map(c => c.name)); assert.equal(names.size, Ev.CARDS.length * 2, '이름이 겹치지 않음');
+  Ev.ALTS.forEach(a => { const p = Ev.BY_ID[a.slot]; assert.equal(a.color, p.color); assert.equal(a.cost, p.cost); assert.notEqual(a.key, p.key, a.id + ' 는 짝과 효과가 달라야'); assert.ok(a.key in Ev.KEY_NAME); });
+  const s = {}; Ev.clean(s); s.evid.clues = 50; s.evid.retreats = 1;
+  Ev.buyCard(s, 'tip');
+  assert.equal(Ev.state(s, 'print'), 'open'); assert.equal(Ev.chosen(s, 'print'), 'tip'); assert.equal(Ev.effects(s).idle, 10); assert.equal(Ev.effects(s).speed, 0);
+  assert.throws(() => Ev.buyCard(s, 'print'), { code: 'PAIR_TAKEN' });
+  Ev.upgrade(s, 'tip');
+  assert.throws(() => Ev.swap(s, 'print'), { code: 'NO_REPICK' });
+  s.evid.runEarned = 1e9; Ev.retreat(s, {});
+  assert.equal(Ev.canRepick(s), true);
+  const spent = s.evid.spent; Ev.swap(s, 'print');
+  assert.equal(s.evid.spent, spent, '바꾸기는 무료'); assert.equal(Ev.effects(s).speed, 10); assert.equal(Ev.effects(s).idle, 0);
+  Ev.swap(s, 'tip'); assert.equal(s.evid.lv.tip, 2, '강화 단계 기억');
+  Ev.endRepick(s); assert.throws(() => Ev.swap(s, 'print'), { code: 'NO_REPICK' });
+  s.evid.own.print = true; Ev.clean(s); assert.equal(Object.keys(s.evid.own).filter(k => Ev.slotOf(k) === 'print').length, 1, '짝 둘 다는 못 가진다');
+  assert.equal(Ev.bonus(s).runHit, 0); assert.ok('keep' in Ev.bonus(s) && 'capUp' in Ev.bonus(s));
+});

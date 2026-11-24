@@ -739,6 +739,7 @@
     var dk = Df && cfg.diff ? cfg.diff : 'normal', DL = Df ? Df.info(dk) : { pay: 1, clue: 1, xp: 1 };
     questTrack('run', 1); questTrack('caught', g.hits || 0); if (cfg.daily) questTrack('daily', 1);   // 0.10.3 임무
     var r = I.applyRun(save, { score: g.score, hits: g.hits, payMult: cfg.payMult || 1, diffMult: DL.pay, clueMult: DL.clue }, nowMs());
+    if (window.Team3Evidence && window.Team3Evidence.canRepick(save)) window.Team3Evidence.endRepick(save);   // 0.12.0 갈림길 다시 고르기는 재수사 뒤 첫 출동까지
     if (Df) Df.noteRun(save, dk, g.score);   // 강력 이상이면 실력 기록(최고 점수)도
     if (E && cfg.daily && dk === 'easy') {
       // 단순 사건: 특별 출동 메달 보상 대신 그날 한 번 참가 보상(◆1)

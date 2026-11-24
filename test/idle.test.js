@@ -417,3 +417,10 @@ test('0.10.12 출동 구간 증거: 출동 검거 +% · 팀 한계 +% · 재수�
   const s2 = I.newSave(T0); I.applyRun(s2, { score: 100, hits: 20 }, T0); I.resetTeam(s2, {});
   assert.equal(s2.caught, 0, '증거가 없으면 예전처럼 0');
 });
+
+test('0.12.0 사건 수치 공식: 번호만으로 목표 · 배수 · 팀 한계가 나오고 있는 사건과 같다', () => {
+  assert.deepEqual([1, 2, 3, 4, 5, 6, 7].map(n => I.caseNums(n).goal), [3000, 5000, 8000, 12000, 17000, 23000, 30000]);
+  assert.deepEqual([1, 2, 3, 4, 5, 6, 7].map(n => I.caseNums(n).pay), [1, 3, 6, 10, 15, 21, 28]);
+  assert.deepEqual([1, 2, 3, 4, 5, 6, 7].map(n => I.caseNums(n).idleCap), [2500, 4000, 6500, 9000, 12500, 17000, 22500]);
+  I.CASES.forEach(c => { const k = I.caseNums(c.no); assert.equal(c.goal, k.goal); assert.equal(c.idleCap, k.idleCap); assert.equal(c.pay, k.pay); });
+});

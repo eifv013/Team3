@@ -63,6 +63,41 @@
   var BY_ID = {}; CARDS.forEach(function (c) { BY_ID[c.id] = c; });
   var MAX_LV = 5;
 
+  /* ---------- 0.12.0 갈림길: 증거마다 짝이 하나 있고 둘 중 하나만 연다 ----------
+   *   짝은 같은 자리(slot) · 같은 색 · 같은 단서 값 · 같은 묶음이고 효과만 다르다. [원래 증거 id, 짝 id, 이름, 효과, 값]
+   *   재수사하면 다시 고를 수 있다(repick): 고른 것을 짝으로 무료로 바꾼다. 강화 단계는 증거마다 따로 기억한다. */
+  var ALT_RAW = [
+    ['print', 'tip', '익명 제보', 'idle', 10], ['witness', 'neighbor', '이웃 탐문', 'speed', 8], ['glove', 'mask', '버려진 복면', 'pay', 12],
+    ['cctv', 'dashcam', '택시 블랙박스', 'time', 5], ['tape', 'memo', '음성 메모', 'pay', 15], ['log', 'sms', '문자 내역', 'idle', 10],
+    ['receipt', 'pawn', '전당포 전표', 'startMoney', 300], ['bank', 'atm', '현금 인출 기록', 'gear', 5], ['coin', 'tipjar', '팁 상자', 'dept', 12],
+    ['key', 'lock', '부서진 자물쇠', 'off', 5], ['map', 'busmap', '버스 노선도', 'cap', 30], ['shoe', 'tire', '타이어 자국', 'buff', 20],
+    ['hair', 'fiber', '손톱 밑 섬유', 'idle', 15], ['alibi', 'falsewit', '위증 진술서', 'keep', 6], ['sketch', 'faceoff', '대질 기록', 'speed', 12],
+    ['plate', 'toll', '톨게이트 기록', 'pay', 20], ['email', 'cloud', '클라우드 백업', 'dept', 20], ['gps', 'cell', '기지국 기록', 'runHit', 4],
+    ['ledger', 'invoice', '허위 세금계산서', 'dept', 20], ['cash', 'ghostacct', '대포 통장', 'idle', 15], ['card', 'pricelist', '납품 단가표', 'startMoney', 2000],
+    ['ticket', 'locker', '물품 보관함', 'capUp', 4], ['badge', 'uniform', '버려진 작업복', 'speed', 12], ['glass', 'paint', '페인트 조각', 'off', 8],
+    ['diary', 'letter', '옥중 편지', 'clue', 10], ['photo3', 'flyer', '모집 전단', 'speed', 20], ['voice', 'polygraph', '거짓말 탐지 기록', 'shield', 1],
+    ['roster', 'informant', '정보원 명단', 'runHit', 6], ['drone', 'bodycam', '보디캠 영상', 'time', 8], ['server', 'backupdisk', '백업 디스크', 'idle', 25],
+    ['radio', 'wiretap', '무전 도청 기록', 'pay', 25], ['stakeout', 'routemap', '동선 지도', 'capUp', 6], ['crypto', 'shellco', '유령 회사 등기', 'idle', 25],
+    ['contract', 'loanbook', '사채 장부', 'gear', 12], ['auction', 'insurance', '보험 청구서', 'startMoney', 10000], ['ship', 'container', '컨테이너 봉인', 'cap', 60],
+    ['warehouse', 'tunnel', '지하 통로', 'off', 10], ['rope', 'toolbox', '공구 상자', 'buff', 45], ['fieldnote', 'evbag', '증거 봉투', 'runHit', 6],
+    ['note3', 'cipher', '암호 수첩', 'idle', 40], ['scar', 'tattoo', '문신 도안', 'pay', 40], ['team', 'mole', '내부자 메모', 'keep', 12],
+    ['satellite', 'intercept', '감청 기록', 'runHit', 8], ['cctvall', 'facial', '얼굴 인식 기록', 'dept', 50], ['blackbox', 'flightlog', '운항 기록', 'combo', 1],
+    ['offshore', 'trust', '신탁 증서', 'dept', 50], ['bribe', 'slush', '비자금 수첩', 'clue', 15], ['gold', 'vault', '대여 금고', 'idle', 40],
+    ['badge3', 'trophy', '낡은 표창장', 'speed', 30], ['blueprint', 'hideout', '은신처 약도', 'capUp', 8], ['frame', 'mirror', '깨진 거울', 'miss', 1],
+    ['coldbox', 'coldvhs', '늘어진 비디오테이프', 'dept', 40], ['coldpost', 'coldwit', '사라진 증인 조서', 'idle', 35], ['coldseal', 'coldkey', '녹슨 열쇠', 'keep', 10]
+  ];
+  var PAIR = {};
+  CARDS.forEach(function (c) { c.slot = c.id; });
+  var ALTS = ALT_RAW.map(function (r) {
+    var p = BY_ID[r[0]]; if (!p || BY_ID[r[1]]) throw new Error('짝 정의 오류: ' + r[0] + ' / ' + r[1]);
+    var a = { id: r[1], name: r[2], color: p.color, key: r[3], value: r[4], cost: p.cost, tier: p.tier, slot: p.id, alt: true };
+    PAIR[p.id] = a.id; PAIR[a.id] = p.id; return a;
+  });
+  ALTS.forEach(function (a) { BY_ID[a.id] = a; });
+  function slotOf(id) { return BY_ID[id] ? BY_ID[id].slot : id; }
+  /** 그 자리에서 고른 증거 id(없으면 null) */
+  function chosen(save, id) { var e = E(save), sl = slotOf(id); return e.own[sl] ? sl : e.own[PAIR[sl]] ? PAIR[sl] : null; }
+
   /* ---------- 0.9.0 연결판: 자리 · 실 ---------- */
   var CX = 1000, CY = 1000, RING = [0, 215, 385, 555, 725, 880], DIR = { r: -135, b: -45, y: 45, g: 135 };
   var NODE = { core: { id: 'core', x: CX, y: CY, rot: 0 } };
@@ -94,9 +129,9 @@
   /** 사건 파일이 열렸나(첫 재수사부터) */
   function coreOpen(save) { return E(save).retreats >= 1; }
   /** 판 위 자리가 열렸나: 사건 파일 · 산 증거 */
-  function opened(save, id) { return id === 'core' ? coreOpen(save) : !!E(save).own[id]; }
+  function opened(save, id) { return id === 'core' ? coreOpen(save) : !!chosen(save, id); }
   /** 열린 것과 실로 이어졌나(열 수 있는 자리) */
-  function linked(save, id) { return (NEI[id] || []).some(function (q) { return opened(save, q); }); }
+  function linked(save, id) { return (NEI[slotOf(id)] || []).some(function (q) { return opened(save, q); }); }
   /** 자리 상태: open · can(지금 열 수 있음) · lock(이어졌지만 아직 안 나온 묶음) · shut(???) */
   function state(save, id) {
     if (opened(save, id)) return 'open';
@@ -116,10 +151,11 @@
   function clean(save) {
     var d = save.evid && typeof save.evid === 'object' ? save.evid : {}, own = {}, lv = {};
     var dO = d.own && typeof d.own === 'object' ? d.own : {}, dL = d.lv && typeof d.lv === 'object' ? d.lv : {};
-    Object.keys(dO).forEach(function (k) { if (dO[k] === true && BY_ID[k]) { own[k] = true; lv[k] = int(dL[k], 1, 1, MAX_LV); } });
+    Object.keys(dO).forEach(function (k) { if (dO[k] === true && BY_ID[k] && !own[PAIR[k]]) { own[k] = true; lv[k] = int(dL[k], 1, 1, MAX_LV); } });   // 짝을 둘 다 가질 수는 없다
+    Object.keys(dL).forEach(function (k) { if (BY_ID[k] && !own[k]) { var v = int(dL[k], 0, 0, MAX_LV); if (v >= 1) lv[k] = v; } });   // 0.12.0 바꿔 둔 짝의 강화 단계도 기억
     var log = Array.isArray(d.log) ? d.log.filter(function (x) { return x && typeof x === 'object'; }).slice(-20).map(function (x) { return { at: int(x.at, 0, 0, 9e15), gain: int(x.gain, 0, 0, 1e9), earned: int(x.earned, 0, 0, 1e18) }; }) : [];
     save.evid = { clues: int(d.clues, 0, 0, 1e9), spent: int(d.spent, 0, 0, 1e9), own: own, lv: lv, runEarned: Math.max(0, +d.runEarned || 0), retreats: int(d.retreats, 0, 0, 1e6), log: log,
-                  caseBest: int(d.caseBest, 0, 0, 1e9) };
+                  caseBest: int(d.caseBest, 0, 0, 1e9), repick: d.repick === true };
     if (save.evid.spent > save.evid.clues) save.evid.spent = save.evid.clues;
     return save.evid;
   }
@@ -141,12 +177,7 @@
     var e = E(save), seen = {}, out = [];
     Object.keys(e.own).forEach(function (id0) {
       if (seen[id0]) return;
-      var col = BY_ID[id0].color, st = [id0], mem = []; seen[id0] = 1;
-      while (st.length) {
-        var id = st.pop(); mem.push(id);
-        (NEI[id] || []).forEach(function (q) { if (q !== 'core' && !seen[q] && e.own[q] && BY_ID[q].color === col) { seen[q] = 1; st.push(q); } });
-      }
-      out.push({ color: col, ids: mem, mult: groupMult(mem.length) });
+      seen[id0] = 1; out.push({ color: BY_ID[id0].color, ids: [id0], mult: 1 });   // 묶음 배수는 없다(0.10.11) — 증거 하나가 한 덩어리
     });
     return out;
   }
@@ -172,7 +203,8 @@
   function careerPct(save) { return E(save).retreats * RANK_PCT; }
   function bonus(save) {
     var f = effects(save), k = careerPct(save);
-    return { pay: f.pay + k, idle: f.idle + k, speed: f.speed + k, cap: f.cap, off: f.off, gear: f.gear, buff: f.buff, time: f.time, combo: f.combo, shield: f.shield, miss: f.miss, dept: f.dept + k };
+    return { runHit: f.runHit, capUp: f.capUp, keep: f.keep,   // 0.12.0 (0.10.12 에서 빠뜨려 효과가 안 붙던 것)
+             pay: f.pay + k, idle: f.idle + k, speed: f.speed + k, cap: f.cap, off: f.off, gear: f.gear, buff: f.buff, time: f.time, combo: f.combo, shield: f.shield, miss: f.miss, dept: f.dept + k };
   }
 
   /* ---------- 카드 사기 · 꽂기 ---------- */
@@ -181,12 +213,24 @@
     if (!c) throw EError('BAD_CARD', '모르는 증거');
     if (!tierOpen(save, c.tier)) throw EError('LOCKED', '아직 안 나온 증거');
     if (e.own[id]) throw EError('ALREADY', '이미 가진 증거');
+    if (chosen(save, id)) throw EError('PAIR_TAKEN', '이 자리에서는 이미 다른 증거를 골랐다');
     if (!coreOpen(save)) throw EError('NO_CASE', '아직 사건 파일이 없다(첫 재수사부터)');
     if (!linked(save, id)) throw EError('NOT_LINKED', '열린 증거와 이어지지 않았다');
     if (left(save) < c.cost) throw EError('NOT_ENOUGH', '단서가 모자란다');
-    e.own[id] = true; e.lv[id] = 1; e.spent += c.cost;
+    e.own[id] = true; e.lv[id] = Math.max(1, e.lv[id] || 0); e.spent += c.cost;
     return c;
   }
+  /** 다시 고르기(재수사 뒤에만): 그 자리의 증거를 짝(id)으로 바꾼다. 무료, 강화 단계는 증거마다 기억 */
+  function swap(save, id) {
+    var e = E(save), c = BY_ID[id], other = PAIR[id];
+    if (!c || !other) throw EError('BAD_CARD', '모르는 증거');
+    if (!e.repick) throw EError('NO_REPICK', '재수사한 뒤에만 다시 고를 수 있다');
+    if (!e.own[other]) throw EError('NOT_OWNED', '이 자리는 아직 열지 않았다');
+    delete e.own[other]; e.own[id] = true; e.lv[id] = Math.max(1, e.lv[id] || 0);
+    return c;
+  }
+  function canRepick(save) { return !!E(save).repick; }
+  function endRepick(save) { E(save).repick = false; }
   /** 강화 값(다음 단계). 다 올렸으면 null */
   function upCost(save, id) { var e = E(save), c = BY_ID[id], l = e.lv[id] || 0; return !c || !e.own[id] || l >= MAX_LV ? null : c.cost * (l + 1); }
   function upgrade(save, id) {
@@ -206,7 +250,7 @@
     var e = E(save), g = gainNow(save);
     if (g < 1) throw EError('TOO_EARLY', '아직 단서를 받을 수 없다');
     var f = effects(save), earned = Math.round(e.runEarned);
-    e.clues += g; e.retreats += 1;
+    e.clues += g; e.retreats += 1; e.repick = true;   // 0.12.0 재수사하면 갈림길을 다시 고를 수 있다
     e.log = e.log.concat([{ at: opts && opts.now || 0, gain: g, earned: earned }]).slice(-20);
     e.runEarned = 0;
     if (opts && typeof opts.newTeam === 'function') opts.newTeam(save, { startDet: f.startDet, startMoney: f.startMoney });
@@ -227,5 +271,6 @@
            NODE: NODE, EDGES: EDGES, CX: CX, CY: CY, coreOpen: coreOpen, opened: opened, linked: linked, state: state,
            clean: clean, left: left, earn: earn, gainNow: gainNow, nextAt: nextAt, tierOpen: tierOpen,
            groups: groups, groupMult: groupMult, links: links, effects: effects, bonus: bonus, buyCard: buyCard,
+           ALTS: ALTS, PAIR: PAIR, slotOf: slotOf, chosen: chosen, swap: swap, canRepick: canRepick, endRepick: endRepick,
            retreat: retreat, lastGain: lastGain, describe: describe, shortText: shortText };
 });

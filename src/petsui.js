@@ -47,7 +47,8 @@
     box.style.setProperty('--gc', g.color);
     var eff = P.describe(P.eqEffect(x.id, x.g, st)), bd = P.bondOf(S(), p.eq);
     // 0.4.1 무대: 등급 빛(영웅 · 전설은 도는 후광) · 바닥 그림자 · 전설 반짝이. 버튼 안에는 그림만(act 가 갈아 끼운다)
-    box.innerHTML = '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
+    box.innerHTML = '<div class="pet-bg bg-' + P.bgNow(S()) + '" aria-hidden="true"><i class="fx"></i></div><button class="pet-bgbtn" id="h-pet-bgbtn">배경</button>' +   // 0.12.0 파트너 배경
+      '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
       '<div class="pet-tx"><b><span style="color:' + g.color + '">' + g.name + '</span> ' + ttl(p.eq) + esc(nm) + ' ' + stars(st) + '</b>' + (isNoir(p.eq) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') + '<small>' + esc(eff.join(', ')) + '</small>' +
@@ -510,8 +511,54 @@
   }
 
   /* ---------- 연결 ---------- */
+  /* ---------- 0.12.0 파트너 배경 고르기 ----------
+   *   그림은 Team3BgPics(없으면 색만). 그림 주소가 길어서 한 번만 <style> 로 넣고, 칸에는 클래스(bg-id)만 단다(1초마다 다시 그려도 깜빡이지 않게). */
+  var bgSel = '', bgEl = null;
+  function bgStyle() {
+    var pics = root.Team3BgPics; if (!pics || document.getElementById('bg-pics-css')) return;
+    var st = document.createElement('style'); st.id = 'bg-pics-css';
+    st.textContent = Object.keys(pics).map(function (k) { return '.bg-' + k + '{background-image:url(' + pics[k] + ')}'; }).join('\n');
+    document.head.appendChild(st);
+  }
+  function openBg() {
+    if (bgEl) return;
+    bgSel = pets().bg; bgEl = document.createElement('div'); bgEl.className = 'bgp-back';
+    bgEl.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var t = e.target.closest('[data-bg],[data-bgact]'), s = S(), b = P.BG_BY[bgSel];
+      if (!t) { if (e.target === bgEl) closeBg(); return; }
+      if (t.hasAttribute('data-bg')) { bgSel = t.getAttribute('data-bg'); drawBg(); return; }
+      var act = t.getAttribute('data-bgact');
+      if (act === 'x') { closeBg(); return; }
+      if (act === 'use') { try { P.useBg(s, bgSel); ctx.persist(); toast(b.name + ' 배경으로 바꿨어요'); } catch (e2) { toast('바꿀 수 없어요'); } renderPartner(); drawBg(); return; }
+      var need = act === 'gems' ? b.gems : b.treats, have = act === 'gems' ? s.gems : pets().treats;
+      if (have < need) { toast((act === 'gems' ? '배지가' : '간식이') + ' 모자라요'); return; }
+      ctx.UI.confirmBuy({ title: b.name + ' 배경을 살까요?', body: '한 번 사면 계속 쓸 수 있어요.', cost: ic(act === 'gems' ? 'gem' : 'treat') + need, onOk: function () {
+        try { P.buyBg(S(), b.id, act); ctx.persist(); toast(b.name + ' 배경을 샀어요'); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } } catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '재화가 모자라요' : '살 수 없어요'); }
+        if (ctx.render) ctx.render(); renderPartner(); drawBg();
+      } });
+    });
+    $('toast').parentNode.appendChild(bgEl); drawBg();
+  }
+  function closeBg() { if (bgEl && bgEl.parentNode) bgEl.parentNode.removeChild(bgEl); bgEl = null; }
+  function drawBg() {
+    if (!bgEl) return;
+    var s = S(), p = pets(), b = P.BG_BY[bgSel] || P.BG_BY.office, own = !!p.bgs[b.id], x = P.parse(p.eq), isL = !!(x && x.g === 'l'), btn;
+    if (own) btn = p.bg === b.id ? '<button class="ghost" disabled>사용 중</button>' : '<button class="primary" data-bgact="use">이 배경 쓰기</button>';
+    else btn = (b.treats ? '<button class="ghost" data-bgact="treats">' + ic('treat') + b.treats + '</button>' : '') + '<button class="primary" data-bgact="gems">' + ic('gem') + b.gems + '</button>';
+    bgEl.innerHTML = '<div class="bgp-box" role="dialog" aria-modal="true" aria-label="파트너 배경">' +
+      '<div class="bgp-head"><b>파트너 배경</b><span class="bgp-w">' + ic('treat') + fmt(p.treats) + '</span><span class="bgp-w">' + ic('gem') + fmt(s.gems) + '</span><button class="bgp-x" data-bgact="x" aria-label="닫기">×</button></div>' +
+      '<div class="bgp-view pet-bg bg-' + b.id + '"><i class="fx"></i>' + (x ? '<div class="bgp-pet">' + portrait(p.eq, x, { grade: x.g, outfit: P.wearing(s, p.eq) }) + '</div>' : '') + '</div>' +
+      '<div class="bgp-info"><b>' + esc(b.name) + '</b><small>' + esc(b.desc) + '</small>' + (b.legend && own && !isL ? '<small class="warn">현재 파트너가 전설이 아니라서 사무실이 보여요.</small>' : '') + '</div>' +
+      '<div class="bgp-grid">' + P.BGS.map(function (o) {
+        return '<button class="bgp-cell bg-' + o.id + (o.id === b.id ? ' on' : '') + (p.bgs[o.id] ? '' : ' lock') + '" data-bg="' + o.id + '" aria-label="' + esc(o.name) + '">' +
+          (p.bg === o.id ? '<i class="use">사용 중</i>' : !p.bgs[o.id] ? '<i class="lk">' + ic('gem') + o.gems + '</i>' : '') + (o.legend ? '<i class="lg">전설</i>' : '') + '</button>';
+      }).join('') + '</div>' +
+      '<div class="bgp-acts">' + btn + '</div></div>';
+  }
+
   function mount(c) {
-    ctx = c;
+    ctx = c; bgStyle();
     $('pets-x').addEventListener('click', close);
     // 0.10.5 자세히 팝업은 창(.sheet) 밖, 어두운 바탕 위에 띄운다
     $('pets-sheet').appendChild($('pets-pop-back')); $('pets-sheet').appendChild($('pets-detail'));
@@ -579,6 +626,7 @@
       if (!t) return;
       if (t.id === 'h-pet-open') open(pets().tickets > 0 || !Object.keys(pets().own).length ? 'draw' : 'dex');
       else if (t.id === 'h-pet-art') pat();
+      else if (t.id === 'h-pet-bgbtn') openBg();
     });
     $('pets-sheet').addEventListener('change', function (e) {
       if (e.target.id === 'pets-wear') {
