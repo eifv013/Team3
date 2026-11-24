@@ -540,7 +540,7 @@
   var PROLOGUE = ['도시의 밤은 조용한 적이 없다.', '신고는 밀려들고, 용의자는 늘 여럿이다.', '그중에서 진짜 범인을 가려내는 일.', '그게 수사 3팀의 일이다.', '오늘부터 당신이 3팀 팀장이다.'];
   function caseScene(cs, hint, onDone, last) {
     if (!SC) { if (onDone) onDone(); return; }
-    SC.play({ tone: cs.no <= 3 ? 'c' + cs.no : 'cx', kicker: '사건 ' + cs.no, title: cs.title, sub: cs.city, lines: SC.sentences(cs.story[0].text), hint: hint, last: last, onDone: onDone });
+    SC.play({ tone: cs.no <= 3 ? 'c' + cs.no : 'cx', kicker: '사건 ' + cs.no, title: cs.title, sub: cs.city, stamp: '수사 개시', lines: SC.sentences(cs.story[0].text), hint: hint, last: last, onDone: onDone });
   }
   /** 처음 시작: 프롤로그 → 사건 1 장면 → then. 설정의 "처음 이야기 다시 보기"도 이것 */
   function introScene(then) {
@@ -548,7 +548,21 @@
     SC.play({ tone: 'intro', kicker: 'LOOP & LAMP STUDIO', title: '수사 3팀', lines: PROLOGUE, last: '다음',
       onDone: function () { caseScene(I.CASES[0], '', then, then ? '사무실로' : '닫기'); } });
   }
-  window.Team3Intro = { play: introScene };
+  /* 0.11.1 이야기 다시 보기: 프롤로그와 지금까지 온 사건의 장면을 골라 본다(아직 안 간 사건은 제목을 가린다) */
+  function storyMenu() {
+    var rows = '<button class="st-row" data-st="p"><small>처음</small><b>수사 3팀</b><i>▶</i></button>' + I.CASES.map(function (c) {
+      var ok = c.no <= save.caseNo;
+      return '<button class="st-row" data-st="' + c.no + '"' + (ok ? '' : ' disabled') + '><small>사건 ' + c.no + '</small><b>' + (ok ? esc(c.title) : '???') + '</b><i>' + (ok ? '▶' : '🔒') + '</i></button>';
+    }).join('');
+    openInfo({ label: '설정', title: '이야기 다시 보기', body: '<div class="st-list" id="st-list">' + rows + '</div>', readOnly: true });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('#st-list .st-row'); if (!b || b.disabled || !SC) return;
+    var k = b.getAttribute('data-st');
+    if (k === 'p') SC.play({ tone: 'intro', kicker: 'LOOP & LAMP STUDIO', title: '수사 3팀', lines: PROLOGUE, last: '닫기' });
+    else caseScene(I.CASES[+k - 1], '', null, '닫기');
+  });
+  window.Team3Intro = { play: introScene, menu: storyMenu };
   // 사건마다 사무실 색(0.2.0): body 에 case-N 을 단다. 사건 2(해무항)는 청록 + 창밖 비
   function applyTheme() {
     for (var i = 1; i <= I.CASES.length; i++) document.body.classList.toggle('case-' + i, save.caseNo === i);

@@ -1490,7 +1490,7 @@
     buzz(30);   // 켰을 때만 실제로 떤다
   });
   $('set-tut').addEventListener('click', function () { closeSettings(); openTutorial(); });
-  $('set-intro').addEventListener('click', function () { closeSettings(); if (window.Team3Intro) window.Team3Intro.play(); });   // 0.11.0
+  $('set-intro').addEventListener('click', function () { closeSettings(); if (window.Team3Intro) window.Team3Intro.menu(); });   // 0.11.1 고르는 창
   $('set-export').addEventListener('click', exportSave);
   $('set-import').addEventListener('click', showImport);
   $('set-import-go').addEventListener('click', importSave);

@@ -24,7 +24,7 @@ h1{font-size:18px;margin:0}
 .col h3{margin:0;font-size:11.5px;text-align:center;color:#fff;padding:3px 0;border-radius:999px}
 .tier{display:flex;flex-direction:column;gap:4px;position:relative}
 .tier+.tier::before{content:'';position:absolute;left:50%;top:-6px;width:2px;height:6px;background:rgba(255,255,255,.45)}
-.card{border:0;border-radius:6px;padding:6px 3px 5px;font:inherit;text-align:center;min-height:54px;display:flex;flex-direction:column;justify-content:center;gap:1px;position:relative}
+.card{border:0;border-radius:6px;padding:5px 3px 4px;font:inherit;text-align:center;min-height:48px;display:flex;flex-direction:column;justify-content:center;gap:1px;position:relative}
 .card b{font-size:11.5px;line-height:1.2}.card small{font-size:10px;line-height:1.2}
 .card.open{background:#F4EBD3;color:#2E2414;box-shadow:0 2px 4px rgba(0,0,0,.4)}.card.open small{color:#6A5330}
 .card.can{background:#2A2014;color:#FFE9B0;box-shadow:inset 0 0 0 1.5px var(--acc)}.card.can small{color:#D9C58C}
@@ -47,7 +47,7 @@ h1{font-size:18px;margin:0}
 .hint{color:var(--muted);font-size:12.5px;margin:0}
 </style></head><body><div class="wrap">
 <h1>증거판에 고르는 재미 넣기</h1>
-<div class="tabs" id="tabs"><button data-m="D" class="on">끝에만 갈림길</button><button data-m="A">전부 갈림길</button><button data-m="B">핵심 증거</button><button data-m="C">색 완성</button></div>
+<div class="tabs" id="tabs"><button data-m="D" class="on">중간, 끝</button><button data-m="A">전부</button><button data-m="B">핵심 증거</button><button data-m="C">색 완성</button></div>
 <div class="why" id="why"></div>
 <div class="hud"><span class="clue">🔍 단서<b id="clue"></b></span><button id="reset">처음부터</button></div>
 <div class="board"><div class="core">3팀 수사 파일</div><div class="cols" id="cols"></div></div>
@@ -56,21 +56,21 @@ h1{font-size:18px;margin:0}
 </div>
 <script>
 (function(){
-  var COL=[{k:'r',n:'사람',hex:'#E5484F',a:['목격자 진술','동료 증언','내부 고발'],ae:['팀 수사비',10,15,20,'%'],b:['지문','족적','DNA'],be:['팀 속도',8,12,16,'%'],bonus:'커피 대기 절반'},
-           {k:'b',n:'기록',hex:'#2F6FD6',a:['CCTV 사진','통화 기록','지운 메일'],ae:['출동 수사비',15,20,30,'%'],b:['녹음 테이프','GPS 기록','블랙박스'],be:['출동 시간',5,8,10,'초'],bonus:'출동 연속 2부터 시작'},
-           {k:'y',n:'돈',hex:'#C98F00',a:['영수증','계좌 내역','차명 통장'],ae:['부서 수입',15,25,40,'%'],b:['동전 지갑','현금 다발','금고 열쇠'],be:['시작 수사비',300,1000,5000,''],bonus:'이송 수사비 +50%'},
-           {k:'g',n:'장소',hex:'#2E9E5B',a:['동네 지도','창고 도면','아지트 사진'],ae:['비움 한도',30,60,90,'분'],b:['열쇠 꾸러미','출입 카드','비밀 통로'],be:['비움 속도',5,10,15,'%'],bonus:'잠복 보고 2배 하루 1번 무료'}];
-  var COST=[1,2,4], WHY={
-    D:['끝에만 갈림길','현재 판은 그대로 두고, 색마다 마지막 단계에서만 두 증거 중 하나를 골라요. 재수사하면 다시 고를 수 있어요.','판을 거의 안 바꾸고 선택이 생김','선택이 색마다 한 번뿐'],
+  var COL=[{k:'r',n:'사람',hex:'#E5484F',a:['목격자 진술','동료 증언','내부 고발','자백 녹취'],ae:['팀 수사비',[10,15,20,30],'%'],b:['지문','족적','DNA','홍채 기록'],be:['팀 속도',[8,12,16,24],'%'],bonus:'커피 대기 절반'},
+           {k:'b',n:'기록',hex:'#2F6FD6',a:['CCTV 사진','통화 기록','지운 메일','서버 로그'],ae:['출동 수사비',[15,20,30,40],'%'],b:['녹음 테이프','잠복 사진','블랙박스','위성 사진'],be:['출동 검거',[4,6,8,12],'%'],bonus:'출동 연속 2부터 시작'},
+           {k:'y',n:'돈',hex:'#C98F00',a:['영수증','계좌 내역','차명 통장','해외 계좌'],ae:['부서 수입',[15,25,40,60],'%'],b:['동전 지갑','현금 다발','금고 열쇠','금괴'],be:['시작 수사비',[300,1000,5000,30000],''],bonus:'이송 수사비 +50%'},
+           {k:'g',n:'장소',hex:'#2E9E5B',a:['동네 지도','창고 도면','아지트 사진','설계도'],ae:['비움 한도',[30,60,90,120],'분'],b:['열쇠 꾸러미','현장 수첩','비밀 통로','조직 명부'],be:['팀 검거 한계',[4,6,8,12],'%'],bonus:'잠복 보고 2배 하루 1번 무료'}];
+  var COST=[1,2,3,5], T=4, WHY={
+    D:['중간과 끝 갈림길','현재 판은 그대로 두고, 색마다 중간과 마지막 단계에서 두 증거 중 하나를 골라요. 재수사하면 다시 고를 수 있어요.','판을 거의 안 바꾸고 선택이 두 번씩','갈림길 증거 8쌍을 새로 만들어야 함'],
     A:['전부 갈림길','단계마다 두 증거 중 하나만 열 수 있어요. 재수사하면 다시 고를 수 있어요.','재수사마다 다른 조합을 시험','증거 수가 두 배로 필요'],
     B:['핵심 증거','증거는 전부 열 수 있어요. 색마다 하나를 핵심으로 정하면 그 증거만 2배예요. 언제든 바꿀 수 있어요.','현재 판을 거의 그대로 사용','고르는 맛은 가벼움'],
     C:['색 완성','한 색을 끝까지 열면 그 색만의 보너스가 붙어요. 어느 색부터 채울지가 선택이에요.','목표가 분명하고 만들기 쉬움','결국은 다 열게 됨']};
   var mode='D', clue, open, key, sel;
   function $(i){return document.getElementById(i)}
-  function fork(t){return mode==='A'||(mode==='D'&&t===2)}
-  function reset(){clue=mode==='A'?20:30;open={};key={};sel=null;draw()}
+  function fork(t){return mode==='A'||(mode==='D'&&(t===1||t===3))}
+  function reset(){clue=mode==='A'?26:mode==='D'?34:44;open={};key={};sel=null;draw()}
   function id(c,t,s){return ''+c+t+s}
-  function eff(c,t,s){var e=COL[c][s==='a'?'ae':'be'];return {name:e[0],v:e[t+1],u:e[4]}}
+  function eff(c,t,s){var e=COL[c][s==='a'?'ae':'be'];return {name:e[0],v:e[1][t],u:e[2]}}
   function state(c,t,s){
     if(open[id(c,t,s)])return 'open';
     if(fork(t)&&open[id(c,t,s==='a'?'b':'a')])return 'gone';
@@ -90,14 +90,14 @@ h1{font-size:18px;margin:0}
     $('clue').textContent=clue;
     $('cols').innerHTML=COL.map(function(C,c){
       var h='<div class="col"><h3 style="background:'+C.hex+'">'+C.n+'</h3>';
-      for(var t=0;t<3;t++) h+='<div class="tier">'+cardHTML(c,t,'a')+(fork(t)?'<div class="or">또는</div>'+cardHTML(c,t,'b'):'')+'</div>';
-      if(mode==='C'){var full=[0,1,2].every(function(t){return open[id(c,t,'a')]});h+='<div class="bonus'+(full?' on':'')+'"><i>'+(full?'완성 보너스':'3장 모두 열면')+'</i>'+C.bonus+'</div>';}
+      for(var t=0;t<T;t++) h+='<div class="tier">'+cardHTML(c,t,'a')+(fork(t)?'<div class="or">또는</div>'+cardHTML(c,t,'b'):'')+'</div>';
+      if(mode==='C'){var full=[0,1,2,3].every(function(t){return open[id(c,t,'a')]});h+='<div class="bonus'+(full?' on':'')+'"><i>'+(full?'완성 보너스':'4장 모두 열면')+'</i>'+C.bonus+'</div>';}
       return h+'</div>';
     }).join('');
     var tot={},ord=[];
     Object.keys(open).forEach(function(k){var c=+k[0],t=+k[1],s=k[2],e=eff(c,t,s),m=key[c]===k?2:1,n=e.name+'|'+e.u;if(!(n in tot)){tot[n]=0;ord.push(n)}tot[n]+=e.v*m});
     var chips=ord.map(function(n){var p=n.split('|');return '<span>'+p[0]+' +'+tot[n].toLocaleString()+p[1]+'</span>'});
-    if(mode==='C')COL.forEach(function(C,c){if([0,1,2].every(function(t){return open[id(c,t,'a')]}))chips.push('<span class="x">'+C.bonus+'</span>')});
+    if(mode==='C')COL.forEach(function(C,c){if([0,1,2,3].every(function(t){return open[id(c,t,'a')]}))chips.push('<span class="x">'+C.bonus+'</span>')});
     $('sum').innerHTML=chips.join('')||'<span>아직 없어요</span>';
     var p='';
     if(mode==='B'&&sel&&open[sel]){var c=+sel[0];p='<div class="pick"><span>'+COL[c].a[+sel[1]]+'</span>'+(key[c]===sel?'<button class="ghost" id="unkey">핵심 해제</button>':'<button id="setkey">'+COL[c].n+'의 핵심으로 정하기</button>')+'</div>'}
