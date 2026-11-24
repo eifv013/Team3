@@ -525,10 +525,8 @@
     var after = function () {
       applyTheme(); render();
       I.markStorySeen(save); persist(); renderStoryButton();
-      openInfo({ label: '사건 ' + nx.no + ' ' + nx.city, title: nx.title,
-        body: '<p style="white-space:pre-line;margin:0">' + esc(nx.story[0].text) + '</p>' +
-          p('<span class="muted">이번 현장 출동은 목격자 진술로 범인을 찾아요. 처음이면 도움말(?)의 "목격자 진술"을 먼저 보세요.</span>'),
-        readOnly: true });
+      // 0.11.0 사건이 넘어갈 때: 지도 연출 뒤 이야기 장면(사건 색 · 제목 · 시작 편을 한 줄씩)
+      caseScene(nx, '이번 사건은 현장 출동 퍼즐이 달라져요. 도움말(?)에서 먼저 볼 수 있어요.');
     };
     var m = $('dispatch-map');
     if (!m) { after(); return; }
@@ -537,6 +535,20 @@
     try { UI.sfx.levelUp ? UI.sfx.levelUp() : UI.sfx.none(); } catch (e) { /* 소리 실패 무시 */ }
     setTimeout(function () { m.hidden = true; m.classList.remove('go'); after(); }, 3000);
   }
+  /* 0.11.0 이야기 장면 */
+  var SC = window.Team3Scene;
+  var PROLOGUE = ['도시의 밤은 조용한 적이 없다.', '신고는 밀려들고, 용의자는 늘 여럿이다.', '그중에서 진짜 범인을 가려내는 일.', '그게 수사 3팀의 일이다.', '오늘부터 당신이 3팀 팀장이다.'];
+  function caseScene(cs, hint, onDone, last) {
+    if (!SC) { if (onDone) onDone(); return; }
+    SC.play({ tone: cs.no <= 3 ? 'c' + cs.no : 'cx', kicker: '사건 ' + cs.no, title: cs.title, sub: cs.city, lines: SC.sentences(cs.story[0].text), hint: hint, last: last, onDone: onDone });
+  }
+  /** 처음 시작: 프롤로그 → 사건 1 장면 → then. 설정의 "처음 이야기 다시 보기"도 이것 */
+  function introScene(then) {
+    if (!SC) { if (then) then(); return; }
+    SC.play({ tone: 'intro', kicker: 'LOOP & LAMP STUDIO', title: '수사 3팀', lines: PROLOGUE, last: '다음',
+      onDone: function () { caseScene(I.CASES[0], '', then, then ? '사무실로' : '닫기'); } });
+  }
+  window.Team3Intro = { play: introScene };
   // 사건마다 사무실 색(0.2.0): body 에 case-N 을 단다. 사건 2(해무항)는 청록 + 창밖 비
   function applyTheme() {
     for (var i = 1; i <= I.CASES.length; i++) document.body.classList.toggle('case-' + i, save.caseNo === i);
@@ -1315,14 +1327,15 @@
   } else if (!save.tutorialDone && save.runs === 0) {
     // 처음 켬: 사건 소개 + 튜토리얼 권유(시작 편을 보여 주므로 읽음으로 친다)
     I.markStorySeen(save); persist(); renderStoryButton();
-    openInfo({
-      label: '사건 ' + CS().no, title: CS().title,
-      // 일지 줄바꿈 그대로
-      body: '<p style="white-space:pre-line;margin:0">' + esc(CS().story[0].text) + '</p>' +
-        p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),
-      ok: '튜토리얼 하기', cancel: '바로 사무실로',
-      onOk: UI.openTutorial,
-      onCancel: function () { save.tutorialDone = true; persist(); askDiffSoon(600); }
+    // 0.11.0 시작 장면(프롤로그 + 사건 1)을 먼저 보여 주고, 끝나면 튜토리얼을 권한다
+    introScene(function () {
+      openInfo({
+        label: '사건 ' + CS().no, title: CS().title,
+        body: p('현장 출동은 용의자 카드에서 범인 세 명을 찾는 퍼즐이에요.') + p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),
+        ok: '튜토리얼 하기', cancel: '바로 사무실로',
+        onOk: UI.openTutorial,
+        onCancel: function () { save.tutorialDone = true; persist(); askDiffSoon(600); }
+      });
     });
   } else if (away.closedNow) {
     showCaseClosed();

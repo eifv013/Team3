@@ -2169,6 +2169,7 @@ body.prem-on #h-station::before{content:'👑 '}
         <button class="df-set" id="set-diff" aria-label="난이도 바꾸기"></button>
         <div class="set-sep"></div>
         <button class="ghost" id="set-tut">튜토리얼 다시 하기</button>
+        <button class="ghost" id="set-intro">처음 이야기 다시 보기</button>
         <div class="set-sep"></div>
         <span class="label">저장 백업</span>
         <p class="muted" style="font-size:13px">진행은 이 기기에만 저장돼요. 백업 코드를 복사해 두면 앱을 지우거나 기기를 바꿔도 이어서 할 수 있어요.</p>
@@ -2319,6 +2320,12 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.11.0', date: '2026-11-24', title: '이야기 장면',
+      items: [
+        '처음 시작할 때 이야기 장면이 나와요. 화면을 누르면 한 줄씩 넘어가고, 언제든 건너뛸 수 있어요.',
+        '다음 사건으로 넘어갈 때도 지도 연출 뒤에 그 사건의 이야기 장면이 나와요.',
+        '설정에서 "처음 이야기 다시 보기"로 다시 볼 수 있어요.'
+      ] },
     { ver: '0.10.12', date: '2026-11-24', title: '출동 구간 증거',
       items: [
         '증거 셋이 새로 생겼어요(사건 1을 닫으면 열려요): 잠복 사진(출동 검거 +%), 조직 명부(팀 검거 한계 +%), 현장 수첩(재수사해도 출동으로 잡은 몫 일부 남김).',
@@ -7701,6 +7708,108 @@ body.prem-on #h-station::before{content:'👑 '}
   return { LIST: LIST, NAME: NAME, DAILY_BOX: DAILY_BOX, BOX: BOX, keyOf: keyOf, clean: clean, track: track, list: list, boxState: boxState, ready: ready, claim: claim };
 });
 
+/*
+ * 수사 3팀 — 이야기 장면(0.11.0)
+ *
+ * 화면 전체를 덮고 글을 한 줄씩 보여 준다. 처음 시작할 때(프롤로그 + 사건 1)와 사건이 넘어갈 때 쓴다.
+ *   구조: Team3Scene.play({ tone, kicker, title, sub, lines[], hint, last, onDone })
+ *     - 화면을 누르면 다음 줄, 마지막 줄 뒤에는 아래 단추(last, 기본 "수사 시작")로 끝낸다. 오른쪽 위 "건너뛰기"는 언제나.
+ *     - onDone 은 어떤 경우에도(건너뛰기, 오류, 시험 환경) 정확히 한 번 불린다 → 뒤 흐름(튜토리얼 권유 등)이 막히지 않는다.
+ *     - 시험 도구는 window.__noScene(또는 __noAttendPop)을 켜서 장면 없이 바로 onDone.
+ *   sentences(text): 일지 글을 문장 단위로 나누는 순수 함수(node 단위 테스트).
+ */
+(function (root) {
+  'use strict';
+  /** 글을 문장으로 나눈다. 따옴표 안의 마침표에서는 끊지 않는다 */
+  function sentences(text) {
+    var out = [], cur = '', q = false;
+    String(text == null ? '' : text).split('').forEach(function (ch, i, a) {
+      cur += ch;
+      if (ch === '"' || ch === '“' || ch === '”') q = ch === '“' ? true : ch === '”' ? false : !q;
+      var end = /[.?!]/.test(ch) && !q, endQ = (ch === '"' || ch === '”') && !q && /[.?!]/.test(a[i - 1] || '');
+      if ((end || endQ) && (a[i + 1] === undefined || /\s/.test(a[i + 1]))) { out.push(cur.trim()); cur = ''; }
+    });
+    if (cur.trim()) out.push(cur.trim());
+    return out.filter(Boolean);
+  }
+  if (typeof document === 'undefined') { if (typeof module !== 'undefined') module.exports = { sentences: sentences }; return; }
+
+  var CSS = [
+    '.sc-back{position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;overflow:hidden;color:#F1F3F7;background:#080B12;animation:scin .5s ease-out}',
+    '.sc-sky{position:absolute;inset:0;background:radial-gradient(120% 70% at 50% 100%,var(--sc-glow) 0%,transparent 60%),linear-gradient(180deg,#05070C 0%,var(--sc-top) 55%,var(--sc-low) 100%)}',
+    '.sc-city{position:absolute;left:0;right:0;bottom:0;width:100%;height:34%;opacity:.9}',
+    '.sc-lamp{position:absolute;left:50%;bottom:26%;width:150%;height:40%;transform:translateX(-50%);background:radial-gradient(closest-side,var(--sc-lamp),transparent);animation:scpulse 3.2s ease-in-out infinite}',
+    '.sc-skip{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px;z-index:2;border:0;border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.1);color:#C9CFDA;font:inherit;font-size:13px;font-weight:700}',
+    '.sc-body{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:64px 26px 20px}',
+    '.sc-head{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}',
+    '.sc-kick{font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--sc-acc)}',
+    '.sc-title{font-family:"Black Han Sans",sans-serif;font-weight:400;font-size:34px;line-height:1.15}',
+    '.sc-sub{font-size:13px;color:#98A1B2}',
+    '.sc-line{margin:0;font-size:17px;line-height:1.6;opacity:.45;transition:opacity .4s;animation:scup .5s ease-out}',
+    '.sc-line.now{opacity:1}.sc-line.hint{font-size:13.5px;color:#FFE58A;text-align:left;margin-top:6px}','.sc-body,.sc-line{text-align:left}',
+    '.sc-foot{position:relative;padding:0 22px calc(22px + env(safe-area-inset-bottom));min-height:86px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px}',
+    '.sc-tap{font-size:12.5px;color:#98A1B2;animation:scblink 1.6s ease-in-out infinite}',
+    '.sc-go{width:100%;height:56px;border:0;border-radius:16px;background:linear-gradient(180deg,#FFE066,#F6B91C);box-shadow:0 4px 0 #A87A0B;color:#1B1500;font-family:"Black Han Sans",sans-serif;font-size:21px}',
+    '.sc-back.out{animation:scout .35s ease-in forwards}',
+    '.sc-t-intro,.sc-t-c1{--sc-top:#0C1424;--sc-low:#16233C;--sc-glow:rgba(229,72,79,.28);--sc-lamp:rgba(79,140,255,.16);--sc-acc:#FFD23F}',
+    '.sc-t-c2{--sc-top:#08171B;--sc-low:#12333A;--sc-glow:rgba(120,200,210,.26);--sc-lamp:rgba(200,235,240,.14);--sc-acc:#7FE0E8}',
+    '.sc-t-c3{--sc-top:#17100A;--sc-low:#33230F;--sc-glow:rgba(255,190,90,.26);--sc-lamp:rgba(255,220,150,.14);--sc-acc:#FFC86B}',
+    '.sc-t-cx{--sc-top:#120C1C;--sc-low:#231838;--sc-glow:rgba(170,120,255,.26);--sc-lamp:rgba(200,170,255,.14);--sc-acc:#C9B8FF}',
+    '@keyframes scin{from{opacity:0}}@keyframes scout{to{opacity:0}}@keyframes scup{from{opacity:0;transform:translateY(10px)}}',
+    '@keyframes scpulse{50%{opacity:.45}}@keyframes scblink{50%{opacity:.35}}',
+    '@media (prefers-reduced-motion:reduce){.sc-back,.sc-line,.sc-lamp,.sc-tap{animation:none}}',
+    '@media (max-height:700px){.sc-title{font-size:28px}.sc-line{font-size:15.5px}.sc-body{gap:10px;padding-top:54px}}'
+  ].join('\n');
+  var styled = false;
+  function style() { if (styled) return; styled = true; var s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // 도시 윤곽(건물 높이는 정해진 값 — 볼 때마다 같게)
+  var CITY = (function () {
+    var hs = [38, 62, 30, 80, 52, 44, 92, 36, 70, 48, 58, 28, 76, 40, 66, 34], x = 0, d = '', win = '';
+    hs.forEach(function (h, i) { var w = 22 + (i * 7) % 12; d += 'M' + x + ' 100V' + (100 - h) + 'H' + (x + w) + 'V100Z';
+      for (var k = 0; k < 3; k++) if ((i + k) % 3 === 0) win += '<rect x="' + (x + 5 + (k * 5) % (w - 9)) + '" y="' + (100 - h + 8 + k * 11) + '" width="3" height="4"/>';
+      x += w + 2; });
+    return '<svg class="sc-city" viewBox="0 0 ' + x + ' 100" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '" fill="#05070C"/><g fill="#FFD98A" opacity=".55">' + win + '</g></svg>';
+  })();
+
+  var playing = null;
+  function play(o) {
+    o = o || {};
+    var done = false, finish = function () { if (done) return; done = true; playing = null; try { if (typeof o.onDone === 'function') o.onDone(); } catch (e) { /* 뒤 흐름 오류는 장면 탓이 아니다 */ } };
+    var host = o.host || (document.getElementById('toast') || {}).parentNode || document.body;
+    if (root.__noScene || root.__noAttendPop || !host) { finish(); return; }
+    try {
+      style();
+      if (playing) playing();
+      var lines = (o.lines || []).filter(Boolean), i = 0, el = document.createElement('div');
+      el.className = 'sc-back sc-t-' + (o.tone || 'intro');
+      el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', o.title || '이야기');
+      el.innerHTML = '<div class="sc-sky"></div><div class="sc-lamp"></div>' + CITY + '<button class="sc-skip">건너뛰기</button>' +
+        '<div class="sc-body">' + (o.title ? '<div class="sc-head">' + (o.kicker ? '<span class="sc-kick">' + esc(o.kicker) + '</span>' : '') + '<b class="sc-title">' + esc(o.title) + '</b>' + (o.sub ? '<span class="sc-sub">' + esc(o.sub) + '</span>' : '') + '</div>' : '') +
+        '<div class="sc-lines"></div></div><div class="sc-foot"><span class="sc-tap">화면을 누르면 다음</span></div>';
+      var box = el.querySelector('.sc-lines'), foot = el.querySelector('.sc-foot');
+      var close = function () { if (!el.parentNode) { finish(); return; } el.classList.add('out'); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); finish(); }, 340); };
+      playing = function () { if (el.parentNode) el.parentNode.removeChild(el); finish(); };
+      var next = function () {
+        if (i >= lines.length) return;
+        Array.prototype.forEach.call(box.children, function (p) { p.classList.remove('now'); });
+        var p = document.createElement('p'); p.className = 'sc-line now'; p.textContent = lines[i++]; box.appendChild(p);
+        if (i >= lines.length) {
+          if (o.hint) { var h = document.createElement('p'); h.className = 'sc-line now hint'; h.textContent = o.hint; box.appendChild(h); }
+          foot.innerHTML = '<button class="sc-go">' + esc(o.last || '수사 시작') + '</button>';
+        }
+      };
+      el.addEventListener('click', function (e) {
+        if (e.target.closest('.sc-skip') || e.target.closest('.sc-go')) { close(); return; }
+        next();
+      });
+      host.appendChild(el);
+      if (lines.length) next(); else foot.innerHTML = '<button class="sc-go">' + esc(o.last || '수사 시작') + '</button>';
+    } catch (e) { finish(); }
+  }
+  root.Team3Scene = { play: play, sentences: sentences, isPlaying: function () { return !!playing; } };
+})(typeof self !== 'undefined' ? self : this);
+
 </script>
 <script>
 /*
@@ -10962,6 +11071,7 @@ body.prem-on #h-station::before{content:'👑 '}
     buzz(30);   // 켰을 때만 실제로 떤다
   });
   $('set-tut').addEventListener('click', function () { closeSettings(); openTutorial(); });
+  $('set-intro').addEventListener('click', function () { closeSettings(); if (window.Team3Intro) window.Team3Intro.play(); });   // 0.11.0
   $('set-export').addEventListener('click', exportSave);
   $('set-import').addEventListener('click', showImport);
   $('set-import-go').addEventListener('click', importSave);
@@ -14074,10 +14184,8 @@ body.prem-on #h-station::before{content:'👑 '}
     var after = function () {
       applyTheme(); render();
       I.markStorySeen(save); persist(); renderStoryButton();
-      openInfo({ label: '사건 ' + nx.no + ' ' + nx.city, title: nx.title,
-        body: '<p style="white-space:pre-line;margin:0">' + esc(nx.story[0].text) + '</p>' +
-          p('<span class="muted">이번 현장 출동은 목격자 진술로 범인을 찾아요. 처음이면 도움말(?)의 "목격자 진술"을 먼저 보세요.</span>'),
-        readOnly: true });
+      // 0.11.0 사건이 넘어갈 때: 지도 연출 뒤 이야기 장면(사건 색 · 제목 · 시작 편을 한 줄씩)
+      caseScene(nx, '이번 사건은 현장 출동 퍼즐이 달라져요. 도움말(?)에서 먼저 볼 수 있어요.');
     };
     var m = $('dispatch-map');
     if (!m) { after(); return; }
@@ -14086,6 +14194,20 @@ body.prem-on #h-station::before{content:'👑 '}
     try { UI.sfx.levelUp ? UI.sfx.levelUp() : UI.sfx.none(); } catch (e) { /* 소리 실패 무시 */ }
     setTimeout(function () { m.hidden = true; m.classList.remove('go'); after(); }, 3000);
   }
+  /* 0.11.0 이야기 장면 */
+  var SC = window.Team3Scene;
+  var PROLOGUE = ['도시의 밤은 조용한 적이 없다.', '신고는 밀려들고, 용의자는 늘 여럿이다.', '그중에서 진짜 범인을 가려내는 일.', '그게 수사 3팀의 일이다.', '오늘부터 당신이 3팀 팀장이다.'];
+  function caseScene(cs, hint, onDone, last) {
+    if (!SC) { if (onDone) onDone(); return; }
+    SC.play({ tone: cs.no <= 3 ? 'c' + cs.no : 'cx', kicker: '사건 ' + cs.no, title: cs.title, sub: cs.city, lines: SC.sentences(cs.story[0].text), hint: hint, last: last, onDone: onDone });
+  }
+  /** 처음 시작: 프롤로그 → 사건 1 장면 → then. 설정의 "처음 이야기 다시 보기"도 이것 */
+  function introScene(then) {
+    if (!SC) { if (then) then(); return; }
+    SC.play({ tone: 'intro', kicker: 'LOOP & LAMP STUDIO', title: '수사 3팀', lines: PROLOGUE, last: '다음',
+      onDone: function () { caseScene(I.CASES[0], '', then, then ? '사무실로' : '닫기'); } });
+  }
+  window.Team3Intro = { play: introScene };
   // 사건마다 사무실 색(0.2.0): body 에 case-N 을 단다. 사건 2(해무항)는 청록 + 창밖 비
   function applyTheme() {
     for (var i = 1; i <= I.CASES.length; i++) document.body.classList.toggle('case-' + i, save.caseNo === i);
@@ -14864,14 +14986,15 @@ body.prem-on #h-station::before{content:'👑 '}
   } else if (!save.tutorialDone && save.runs === 0) {
     // 처음 켬: 사건 소개 + 튜토리얼 권유(시작 편을 보여 주므로 읽음으로 친다)
     I.markStorySeen(save); persist(); renderStoryButton();
-    openInfo({
-      label: '사건 ' + CS().no, title: CS().title,
-      // 일지 줄바꿈 그대로
-      body: '<p style="white-space:pre-line;margin:0">' + esc(CS().story[0].text) + '</p>' +
-        p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),
-      ok: '튜토리얼 하기', cancel: '바로 사무실로',
-      onOk: UI.openTutorial,
-      onCancel: function () { save.tutorialDone = true; persist(); askDiffSoon(600); }
+    // 0.11.0 시작 장면(프롤로그 + 사건 1)을 먼저 보여 주고, 끝나면 튜토리얼을 권한다
+    introScene(function () {
+      openInfo({
+        label: '사건 ' + CS().no, title: CS().title,
+        body: p('현장 출동은 용의자 카드에서 범인 세 명을 찾는 퍼즐이에요.') + p('<span class="muted">이런 퍼즐이 처음이면 1분짜리 튜토리얼부터 해 보세요.</span>'),
+        ok: '튜토리얼 하기', cancel: '바로 사무실로',
+        onOk: UI.openTutorial,
+        onCancel: function () { save.tutorialDone = true; persist(); askDiffSoon(600); }
+      });
     });
   } else if (away.closedNow) {
     showCaseClosed();
