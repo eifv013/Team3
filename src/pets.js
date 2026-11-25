@@ -203,6 +203,8 @@
   }
   /** 0.10.6 도감에서 봤다(NEW 지우기) */
   function seeFresh(save, k) { var p = P(save); if (p.fresh) delete p.fresh[k]; }
+  /** 0.13.2 도감을 보고 나갈 때: NEW 를 한꺼번에 끈다 */
+  function seeAllFresh(save) { var p = P(save), n = p.fresh ? Object.keys(p.fresh).length : 0; p.fresh = {}; return n; }
   function freshCount(save) { var p = P(save); return p.fresh ? Object.keys(p.fresh).length : 0; }
   /* ---------- 코드네임(0.8.4, 안에서는 noir) ----------
      전설 등급이면 바로, 그 밖의 등급은 ★5(최고)가 되면 열린다. 켜면 파트너 카드 · 도감 자세히 · 출동 머리 사진이 누아르 그림으로.
@@ -647,7 +649,7 @@
     key: key, parse: parse, clean: clean, rates: rates, effectiveLegend: effectiveLegend, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,
     addTickets: addTickets, claimWelcome: claimWelcome, giftOnce: giftOnce,
     usePick: usePick, BOND: BOND, bondOf: bondOf, pat: pat, TALK: TALK, talk: talk, PICKUP_ORDER: PICKUP_ORDER, PICKUP_RATE: PICKUP_RATE, pickup: pickup, FREE_DAILY: FREE_DAILY, freeLeft: freeLeft, GRADE_SET: GRADE_SET, sets: sets,
-    seeFresh: seeFresh, freshCount: freshCount,
+    seeFresh: seeFresh, seeAllFresh: seeAllFresh, freshCount: freshCount,
     OUTFITS: OUTFITS, OUTFIT_BY: OUTFIT_BY, outfitOpen: outfitOpen, buyOutfit: buyOutfit, wear: wear, wearing: wearing,
     NAME_MAX: NAME_MAX, RENAME_GEMS: RENAME_GEMS, cleanText: cleanText, nameOf: nameOf, renameCost: renameCost, rename: rename, resetName: resetName, ownEffect: ownEffect, eqEffect: eqEffect, bonus: bonus, describe: describe,
     starMul: starMul, progress: progress, zero: zero

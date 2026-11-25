@@ -274,9 +274,13 @@
     $('pets-sheet').querySelector('.sheet').scrollTop = 0;
     if (gift) toast('환영 선물: 뽑기권 ' + gift + '장!');
   }
+  // 0.13.2 도감을 한 번 보고 나가면(창 닫기 · 다른 탭으로) NEW 를 모두 끈다 — 하나하나 눌러 끄지 않아도 되게
+  var dexSeen = false;
+  function leaveDex() { if (dexSeen) { dexSeen = false; if (P.seeAllFresh(S())) ctx.persist(); } }
   function close() {
     if (busy) return;
     if (detailKey && !$('pets-detail').hidden) { detailKey = ''; naming = false; drawDetail(); return; }   // 0.10.5 뒤로가기: 팝업 먼저 닫기
+    leaveDex();
     $('pets-sheet').hidden = true;
     ctx.render();
   }
@@ -524,7 +528,7 @@
     return lines.length ? lines.map(function (t) { return '<i>' + esc(t) + '</i>'; }).join('') : '아직 없어요. 파트너를 모으면 하나하나 쌓여요.';
   }
   function drawDex() {
-    var p = pets();
+    var p = pets(); if (tab === 'dex' && !$('pets-sheet').hidden) dexSeen = true;
     var st = P.sets(S()), gs = P.GRADES.map(function (g) {
       var have = P.SPECIES.filter(function (x) { return p.own[P.key(x.id, g)]; }).length;
       return '<span class="' + (st.grades[g] ? 'on' : '') + '" style="--gc:' + P.GRADE[g].color + '">' + P.GRADE[g].name + ' ' + have + '/' + P.SPECIES.length + '<i>' + esc(P.describe(P.GRADE_SET[g]).join(', ')) + '</i></span>';
@@ -706,7 +710,7 @@
       if (!t) return;
       if (t.id === 'pets-one') askPull('one');
       else if (t.id === 'pets-ten') askPull('multi');
-      else if (t.getAttribute('data-tab')) { tab = t.getAttribute('data-tab'); detailKey = ''; draw(); }
+      else if (t.getAttribute('data-tab')) { if (tab === 'dex' && t.getAttribute('data-tab') !== 'dex') leaveDex(); tab = t.getAttribute('data-tab'); detailKey = ''; draw(); }
       else if (t.classList.contains('pet-cell')) showDetail(t.getAttribute('data-k'));
       else if (t.id === 'pets-detail-x') { detailKey = ''; naming = false; drawDetail(); }
       else if (t.getAttribute('data-outfit')) {

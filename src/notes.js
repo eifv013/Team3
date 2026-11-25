@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.2', date: '2026-11-25', title: '도감 NEW',
+      items: [
+        '도감의 NEW 표시는 도감을 한 번 보고 나가면 모두 꺼져요. 하나하나 눌러서 끄지 않아도 돼요.'
+      ] },
     { ver: '0.13.1', date: '2026-11-25', title: '설명 줄 맞춤',
       items: [
         '설명 글의 줄바꿈을 다듬었어요. 줄 길이를 고르게 나누고, 문장이 중간에 어색하게 꺾이지 않게 했어요.'
