@@ -509,7 +509,6 @@
   var fLast = 0;
   function frame(ms) {
     raf = requestAnimationFrame(frame);
-    if (ms - fLast < 66) return; fLast = ms;
     if (document.hidden || !box || box.offsetParent === null) return;
     if (!visible()) return;
     var s = S(), D = deskN(); if (!D) return;

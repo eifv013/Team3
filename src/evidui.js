@@ -57,7 +57,7 @@
       html += '<div class="dept" data-dept="' + x.id + '"><div class="d-ico"><svg viewBox="0 0 24 24">' + ICON[x.id] + '</svg><b>' + n + '</b></div>' +
         '<div class="d-mid"><b class="d-name">' + x.name + '</b>' +
         // 0.10.9 인원이 없으면 막대는 멈춘다 · 한 바퀴 시간과 버는 값은 처음부터 보인다 · 속도 ×2 목표는 점(채운 것은 금색)으로
-        '<div class="d-bar' + (fast ? ' fast' : '') + (n ? '' : ' idle') + '"><i data-cyc="' + (n ? cyc : 0) + '"></i><span>' + (n ? '<b>+' + fmtPay(x.pay * n * mult) + '</b>' : '<b>1명당 +' + fmtPay(x.pay * mult) + '</b>') + '<em>' + (cyc >= 1 ? cyc.toFixed(1) : cyc.toFixed(2)) + '초마다</em></span></div>' +
+        '<div class="d-bar' + (fast ? ' fast' : '') + (n ? '' : ' idle') + '"><i' + (n && !fast ? ' style="animation:dfill ' + cyc.toFixed(2) + 's linear infinite;animation-delay:-' + (((Date.now() - t0) / 1000) % cyc).toFixed(2) + 's"' : '') + '></i><span>' + (n ? '<b>+' + fmtPay(x.pay * n * mult) + '</b>' : '<b>1명당 +' + fmtPay(x.pay * mult) + '</b>') + '<em>' + (cyc >= 1 ? cyc.toFixed(1) : cyc.toFixed(2)) + '초마다</em></span></div>' +
         '<div class="d-miles" aria-label="' + (nm ? nm + '명을 채우면 속도 2배' : '목표 모두 달성') + '"><span>' + (nm ? '속도 ×2' : '속도 ×' + D.mileMult(n)) + '</span>' + D.MILES.map(function (m) { return '<i class="' + (n >= m ? 'on' : m === nm ? 'next' : '') + '">' + m + '</i>'; }).join('') +
           '</div></div>' +
         '<button class="buy d-buy' + (ok ? '' : ' poor') + '" data-buy="' + x.id + '"' + (ok ? '' : ' disabled') + '>' + (ok ? '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>' : '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>') + '</button></div>';
@@ -66,15 +66,9 @@
   }
   // 막대: 화면이 보일 때 매 프레임(실제 수입은 연속 — 막대는 보여 주기용)
   // 0.12.9 발열: 부서 줄이 실제로 보일 때만, 초당 약 15번만 움직인다(전에는 어느 탭에서나 매 장 돌았다)
-  var t0 = Date.now(), fLast = 0;
-  function frame(ms) {
-    requestAnimationFrame(frame);
-    if (ms - fLast < 32) return; fLast = ms;   // 0.13.4 초당 30번(15번은 끊겨 보였다)
-    if (document.hidden) return;
-    var dp = $('h-dept'); if (!dp || dp.offsetParent === null) return;
-    var t = (Date.now() - t0) / 1000;
-    var bars = document.querySelectorAll('#h-dept .d-bar:not(.fast) i');
-    for (var i = 0; i < bars.length; i++) { var c = +bars[i].getAttribute('data-cyc'); if (c > 0) bars[i].style.transform = 'scaleX(' + ((t % c) / c).toFixed(3) + ')'; }
+  var t0 = Date.now();
+  function frame() {
+    // 0.13.5 막대는 CSS 가 움직인다(dfill) — 화면 주사율 그대로 부드럽고, 코드는 매 장 돌지 않는다
   }
 
   /* ---------- 재수사 칸 ---------- */
@@ -343,33 +337,40 @@
   function open() { if (ctx.showTab) ctx.showTab('evid'); draw(); if (!zoomed) requestAnimationFrame(function () { center(fitS()); }); }
   function close() { sel = null; }
 
+  // 0.13.5 증거판에서 한 일의 알림은 판 안에 띄운다(화면 맨 위에 뜨면 눈이 멀리 가야 했다)
+  function bt(text) {
+    var vp = $('ev-vp'); if (!vp) { toast(text); return; }
+    var old = vp.querySelector('.ev-toast'); if (old) old.parentNode.removeChild(old);
+    var el = document.createElement('div'); el.className = 'ev-toast'; el.textContent = text; vp.appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 1900);
+  }
   function onBoardClick(e) {
     var s = S(), t;
     if ((t = e.target.closest('[data-buyc]'))) {
       var id = t.getAttribute('data-buyc');
       try { var c = Ev.buyCard(s, id), sl = Ev.slotOf(id); if (root.Team3QuestUI) root.Team3QuestUI.track('evid', 1); ctx.persist(); popId = sl;
         Ev.EDGES.forEach(function (ed) { if ((ed[0] === sl && Ev.opened(s, ed[1])) || (ed[1] === sl && Ev.opened(s, ed[0]))) fresh[ed.join('-')] = 1; });
-        toast(c.name + ' — 이어졌어요!'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } ctx.render(); }
-      catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '단서가 모자라요' : e3.code === 'NOT_LINKED' ? '열린 증거와 이어진 칸만 열 수 있어요' : '열 수 없어요'); }
+        bt(c.name + ' — 이어졌어요!'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } ctx.render(); }
+      catch (e3) { bt(e3.code === 'NOT_ENOUGH' ? '단서가 모자라요' : e3.code === 'NOT_LINKED' ? '열린 증거와 이어진 칸만 열 수 있어요' : '열 수 없어요'); }
       draw(); return;
     }
     if ((t = e.target.closest('[data-vault]'))) {
-      try { Ev.buyVault(s); ctx.persist(); toast('단서 금고 ' + s.evid.vault + '단계'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { toast(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '올릴 수 없어요'); }
+      try { Ev.buyVault(s); ctx.persist(); bt('단서 금고 ' + s.evid.vault + '단계'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { bt(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '올릴 수 없어요'); }
       draw(); return;
     }
     if ((t = e.target.closest('[data-memo]'))) {
-      try { Ev.buyMemo(s, t.getAttribute('data-memo')); ctx.persist(); toast('현장 메모를 붙였어요'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { toast(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '붙일 수 없어요'); }
+      try { Ev.buyMemo(s, t.getAttribute('data-memo')); ctx.persist(); bt('현장 메모를 붙였어요'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { bt(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '붙일 수 없어요'); }
       draw(); return;
     }
     if ((t = e.target.closest('[data-swap]'))) {   // 0.12.0 다시 고르기(재수사 뒤)
-      try { var w = Ev.swap(s, t.getAttribute('data-swap')); ctx.persist(); popId = Ev.slotOf(w.id); toast(w.name + '(으)로 바꿨어요'); try { ctx.UI.sfx.pick(2); } catch (e6) { /* 무시 */ } ctx.render(); }
-      catch (e7) { toast('바꿀 수 없어요'); }
+      try { var w = Ev.swap(s, t.getAttribute('data-swap')); ctx.persist(); popId = Ev.slotOf(w.id); bt(w.name + '(으)로 바꿨어요'); try { ctx.UI.sfx.pick(2); } catch (e6) { /* 무시 */ } ctx.render(); }
+      catch (e7) { bt('바꿀 수 없어요'); }
       draw(); return;
     }
-    if (e.target.closest('#ev-repick')) { Ev.endRepick(s); ctx.persist(); toast('갈림길을 확정했어요'); draw(); return; }
+    if (e.target.closest('#ev-repick')) { Ev.endRepick(s); ctx.persist(); bt('갈림길을 확정했어요'); draw(); return; }
     if ((t = e.target.closest('[data-up]'))) {
-      try { var lv = Ev.upgrade(s, t.getAttribute('data-up')); ctx.persist(); toast('강화! ★' + lv); try { ctx.UI.sfx.pick(3); } catch (e4) { /* 무시 */ } ctx.render(); }
-      catch (e5) { toast(e5.code === 'NOT_ENOUGH' ? '단서가 모자라요' : '더 강화할 수 없어요'); }
+      try { var lv = Ev.upgrade(s, t.getAttribute('data-up')); ctx.persist(); bt('강화! ★' + lv); try { ctx.UI.sfx.pick(3); } catch (e4) { /* 무시 */ } ctx.render(); }
+      catch (e5) { bt(e5.code === 'NOT_ENOUGH' ? '단서가 모자라요' : '더 강화할 수 없어요'); }
       draw(); return;
     }
   }

@@ -409,7 +409,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .hub-nav em{position:absolute;top:0;right:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--miss);color:#fff;font-size:10px;font-weight:800;font-style:normal;display:grid;place-items:center}
 .hub-nav em.can{background:var(--ok);color:var(--ink)}
 .hub-nav button.main em{top:-2px;right:calc(50% - 30px)}
-.hub-nav button.glow i{animation:navglow 1.2s steps(4) infinite}
+.hub-nav button.glow i{animation:navglow 1.2s ease-in-out infinite}
 @keyframes navglow{50%{transform:scale(1.15)}}
 .hub-nav button.glow i{filter:drop-shadow(0 0 6px #9FD8FF)}
 /* 팀 탭 */
@@ -713,7 +713,7 @@ body.case-2 #s-hub{background-image:repeating-linear-gradient(105deg,rgba(160,21
 .ship2{position:absolute;left:-75%;bottom:84px;width:75%;z-index:6;pointer-events:none;animation:ship2 6s linear forwards}
 .ship2 svg{display:block;width:100%}
 .ship2 .hull{fill:#061014;stroke:#061014}
-.ship2 .lamp{fill:#FF4A3D;animation:lamp 1s steps(1) infinite steps(3)}.ship2 .lamp.g{fill:#5CFF9A;animation-delay:.5s}
+.ship2 .lamp{fill:#FF4A3D;animation:lamp 1s steps(1) infinite}.ship2 .lamp.g{fill:#5CFF9A;animation-delay:.5s}
 .ship2 .refl{transform:scaleY(-.5);transform-origin:50% 0;opacity:.28;filter:blur(2px);margin-top:-30px}
 @keyframes lamp{50%{opacity:.15}}
 @keyframes ship2{0%{left:-75%;opacity:0}12%{opacity:.85}88%{opacity:.85}100%{left:105%;opacity:0}}
@@ -731,7 +731,7 @@ body.case-2 #s-hub{background-image:repeating-linear-gradient(105deg,rgba(160,21
 @keyframes burst{0%{opacity:.9;background-position:0 0}25%{background-position:13px 7px}50%{opacity:.8;background-position:-9px 3px}75%{background-position:4px -11px}100%{opacity:0}}
 .cctv-hud{position:absolute;left:0;right:0;top:-22px;white-space:nowrap;z-index:4;display:flex;gap:10px;align-items:center;font:700 10px/1 ui-monospace,monospace;color:#9FE6A8;letter-spacing:.06em;pointer-events:none;text-shadow:0 0 6px rgba(120,255,150,.5)}
 .cctv-hud .rec{color:#FF6B5B;display:flex;align-items:center;gap:4px}
-.cctv-hud .rec i{width:7px;height:7px;border-radius:50%;background:#FF4A3D;animation:lamp 1.2s steps(1) infinite steps(3)}
+.cctv-hud .rec i{width:7px;height:7px;border-radius:50%;background:#FF4A3D;animation:lamp 1.2s steps(1) infinite}
 .cctv-hud .ts{margin-left:auto;margin-right:-.06em;color:#B8C7BB}   /* 글자 사이 간격이 마지막 글자 뒤에도 붙어 오른쪽으로 넘치던 것 상쇄 */
 .cctv-strings{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none;overflow:visible}
 .cctv-strings path{fill:none;stroke:#D2343A;stroke-width:2.2;stroke-linecap:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5));stroke-dasharray:400;animation:string .35s ease-out}
@@ -988,7 +988,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .cr-col{display:flex;flex-direction:column;gap:4px;min-width:0}
 .cr-cctv{position:relative;flex:1;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:12px 2px 2px;border-radius:4px;background:#081626;border:1px solid #1E5070}
 .cr-cctv b{position:absolute;left:4px;top:1px;font:800 8px/10px ui-monospace,monospace;color:#7FD3FF}
-.cr-cctv .rec{position:absolute;right:4px;top:3px;width:5px;height:5px;border-radius:50%;background:#FF4A3D;animation:lamp 1.2s steps(1) infinite steps(3)}
+.cr-cctv .rec{position:absolute;right:4px;top:3px;width:5px;height:5px;border-radius:50%;background:#FF4A3D;animation:lamp 1.2s steps(1) infinite}
 .cr-cctv .f{border-radius:2px;background:radial-gradient(circle at 50% 60%,#5A6B80 0 22%,transparent 23%),radial-gradient(circle at 50% 38%,#5A6B80 0 12%,transparent 13%),linear-gradient(160deg,#2A3B52,#132235);filter:saturate(.6)}
 .cr-cctv .f:nth-child(4){animation:crflick 3.6s steps(1) infinite}
 @keyframes crflick{0%,90%{opacity:1}92%{opacity:.3}94%{opacity:1}}
@@ -1006,9 +1006,9 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .office.fog .cr-wxwin::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(220,232,236,.7),rgba(220,232,236,.2))}
 .cr-map{position:relative;border-radius:4px;overflow:hidden;background:#0A2238;border:1px solid #1E5070}
 .cr-map svg{position:absolute;inset:0;width:100%;height:100%}
-.cr-sweep{position:absolute;left:50%;top:50%;width:160%;height:160%;margin:-80% 0 0 -80%;background:conic-gradient(from 0deg,rgba(63,168,216,.0) 0deg,rgba(63,168,216,.28) 40deg,transparent 42deg);animation:crsweep 4s steps(16) infinite;border-radius:50%}
+.cr-sweep{position:absolute;left:50%;top:50%;width:160%;height:160%;margin:-80% 0 0 -80%;background:conic-gradient(from 0deg,rgba(63,168,216,.0) 0deg,rgba(63,168,216,.28) 40deg,transparent 42deg);animation:crsweep 4s linear infinite;border-radius:50%}
 @keyframes crsweep{to{transform:rotate(360deg)}}
-.cr-dots i{position:absolute;width:6px;height:6px;margin:-3px;border-radius:50%;background:#FF6B5B;box-shadow:0 0 6px #FF6B5B;animation:crdot 1.6s steps(5) infinite}
+.cr-dots i{position:absolute;width:6px;height:6px;margin:-3px;border-radius:50%;background:#FF6B5B;box-shadow:0 0 6px #FF6B5B;animation:crdot 1.6s ease-in-out infinite}
 @keyframes crdot{50%{transform:scale(1.6);opacity:.5}}
 .cr-case{position:absolute;left:5px;top:3px;font-size:9px;font-weight:800;color:#E6F5FF;text-shadow:0 1px 2px #000;white-space:nowrap}
 .cr-van{position:absolute;left:-30px;bottom:14%;width:26px;height:14px;opacity:0}
@@ -1021,7 +1021,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .cr-stat .bar{display:block;height:4px;border-radius:2px;background:#13324D;overflow:hidden;margin-top:2px}
 .cr-stat .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3FA8D8,#FFD23F)}
 .cr-spark{display:flex;align-items:flex-end;gap:2px;height:12px;margin-top:3px}
-.cr-spark i{flex:1;height:100%;background:#3FA8D8;border-radius:1px 1px 0 0;animation:crspark 2.4s steps(5) infinite;transform-origin:bottom}
+.cr-spark i{flex:1;height:100%;background:#3FA8D8;border-radius:1px 1px 0 0;animation:crspark 2.4s ease-in-out infinite;transform-origin:bottom}
 .cr-spark i:nth-child(2){animation-delay:-.3s}.cr-spark i:nth-child(3){animation-delay:-.6s}.cr-spark i:nth-child(4){animation-delay:-.9s}.cr-spark i:nth-child(5){animation-delay:-1.2s}.cr-spark i:nth-child(6){animation-delay:-1.5s}.cr-spark i:nth-child(7){animation-delay:-1.8s}.cr-spark i:nth-child(8){animation-delay:-2.1s;background:#FFD23F}
 @keyframes crspark{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
 .of-cell{position:relative;flex:1;padding:12px 3px 3px;border-radius:4px;background:#081626;border:1px solid #1E5070;display:flex;flex-direction:column;gap:3px;min-height:0}
@@ -1039,7 +1039,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .of-send.ready{animation:ofready .8s ease-in-out infinite alternate}
 @keyframes ofready{to{box-shadow:0 0 0 3px rgba(255,210,63,.35),0 0 14px rgba(255,210,63,.7)}}
 .cr-tick{grid-column:1 / -1;overflow:hidden;border-radius:3px;background:#081626;font:700 9px/16px ui-monospace,monospace;color:#7FD3FF;white-space:nowrap;padding:0 6px}
-.cr-tick span{display:inline-block;animation:crtick 9s steps(6) infinite}
+.cr-tick span{display:inline-block;animation:crtick 9s linear infinite}
 @keyframes crtick{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
 .cr-wall.alert .cr-tick{color:#FF8A8A}
 /* 자리: left/top = 의자 아래 가운데. 크기는 --s(앞줄 1 · 가운데 .8 · 뒷줄 .64) */
@@ -1166,8 +1166,10 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .d-name{font-size:14px}
 .d-bar{position:relative;height:16px;border-radius:8px;background:var(--panel2);overflow:hidden}
 .d-bar i{position:absolute;inset:0;background:linear-gradient(90deg,#FFB13F,var(--acc));transform-origin:left;transform:scaleX(0)}
-.d-bar.fast i{transform:none;background:repeating-linear-gradient(115deg,#FFB13F 0 10px,var(--acc) 10px 20px);background-size:200% 100%;animation:dfast .5s linear infinite}
-@keyframes dfast{to{background-position:-28px 0}}
+@keyframes dfill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* 0.13.5 빠른 막대: 배경 위치 대신 넓은 줄무늬를 옆으로 민다(다시 칠하지 않는다) */
+.d-bar.fast i{right:-44px;transform:none;background:repeating-linear-gradient(115deg,#FFB13F 0 10px,var(--acc) 10px 20px);animation:dfast .5s linear infinite}
+@keyframes dfast{to{transform:translateX(-22.07px)}}
 .d-bar span{position:relative;display:block;text-align:center;font-size:11px;font-weight:800;line-height:16px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
 .d-mile{font-size:11px;color:var(--muted)}.d-mile em{font-style:normal;color:var(--acc);font-weight:700}
 .d-buy{min-width:84px;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.15}
@@ -1776,6 +1778,9 @@ small,p,.muted,.tx small,.cf-b,.pet-desc,.bgp-info small,.ev-vnote,.pn-fx small,
 .item .buy::after,.cr-row .buy::after,.d-buy::after{animation:none;display:none}
 .reco-rib .buy::after,.reco-rib .d-buy::after{display:block;animation:buyshine 3.6s steps(40) infinite}
 .ev-n.can::after,.pass-btn.has::before{animation-timing-function:steps(5)}
+/* 0.13.5 증거판 안 알림(판 위쪽 가운데) */
+.ev-toast{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:6;max-width:80%;padding:8px 14px;border-radius:999px;background:rgba(14,18,26,.94);box-shadow:0 0 0 1.5px var(--acc),0 6px 16px rgba(0,0,0,.5);color:#fff;font-size:13px;font-weight:800;white-space:nowrap;pointer-events:none;animation:evtoast 1.8s ease-out forwards}
+@keyframes evtoast{0%{opacity:0;transform:translate(-50%,-8px)}10%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,0)}}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -1796,7 +1801,7 @@ small,p,.muted,.tx small,.cf-b,.pet-desc,.bgp-info small,.ev-vnote,.pn-fx small,
 .t-plinks b{font-size:15px}
 .t-plinks button:active{transform:translateY(3px);box-shadow:0 1px 0 #0C0F14,inset 0 3px 0 color-mix(in srgb,var(--pc) 70%,transparent)}
 .t-plinks button.hot{border-color:rgba(255,120,100,.6)}
-.t-plinks button.hot::after{content:'';position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 3px rgba(255,95,87,.25);animation:plhot 1.4s steps(4) infinite}
+.t-plinks button.hot::after{content:'';position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 3px rgba(255,95,87,.25);animation:plhot 1.4s ease-in-out infinite}
 @keyframes plhot{50%{transform:scale(1.35);opacity:.6}}
 .t-plinks.q2{grid-template-columns:1fr 1fr}
 .t-plinks.q2 button{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center}
@@ -2416,6 +2421,12 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.5', date: '2026-11-25', title: '부서 막대',
+      items: [
+        '부서 줄의 막대가 끊기지 않고 부드럽게 차요.',
+        '상황실의 모든 움직임을 다시 부드럽게 되돌렸어요.',
+        '증거판에서 증거를 열거나 메모를 붙였을 때의 알림이 증거판 안에 나와요.'
+      ] },
     { ver: '0.13.4', date: '2026-11-25', title: '움직임 다듬기',
       items: [
         '부서 줄 막대와 상황실의 형사 숨쉬기, 커피 김, 창밖 비가 다시 부드럽게 움직여요.'
@@ -13366,7 +13377,6 @@ if (typeof window !== 'undefined') window.Team3NoirHot = {"alpaca": {"w": "in", 
   var fLast = 0;
   function frame(ms) {
     raf = requestAnimationFrame(frame);
-    if (ms - fLast < 66) return; fLast = ms;
     if (document.hidden || !box || box.offsetParent === null) return;
     if (!visible()) return;
     var s = S(), D = deskN(); if (!D) return;
@@ -13482,7 +13492,7 @@ if (typeof window !== 'undefined') window.Team3NoirHot = {"alpaca": {"w": "in", 
       html += '<div class="dept" data-dept="' + x.id + '"><div class="d-ico"><svg viewBox="0 0 24 24">' + ICON[x.id] + '</svg><b>' + n + '</b></div>' +
         '<div class="d-mid"><b class="d-name">' + x.name + '</b>' +
         // 0.10.9 인원이 없으면 막대는 멈춘다 · 한 바퀴 시간과 버는 값은 처음부터 보인다 · 속도 ×2 목표는 점(채운 것은 금색)으로
-        '<div class="d-bar' + (fast ? ' fast' : '') + (n ? '' : ' idle') + '"><i data-cyc="' + (n ? cyc : 0) + '"></i><span>' + (n ? '<b>+' + fmtPay(x.pay * n * mult) + '</b>' : '<b>1명당 +' + fmtPay(x.pay * mult) + '</b>') + '<em>' + (cyc >= 1 ? cyc.toFixed(1) : cyc.toFixed(2)) + '초마다</em></span></div>' +
+        '<div class="d-bar' + (fast ? ' fast' : '') + (n ? '' : ' idle') + '"><i' + (n && !fast ? ' style="animation:dfill ' + cyc.toFixed(2) + 's linear infinite;animation-delay:-' + (((Date.now() - t0) / 1000) % cyc).toFixed(2) + 's"' : '') + '></i><span>' + (n ? '<b>+' + fmtPay(x.pay * n * mult) + '</b>' : '<b>1명당 +' + fmtPay(x.pay * mult) + '</b>') + '<em>' + (cyc >= 1 ? cyc.toFixed(1) : cyc.toFixed(2)) + '초마다</em></span></div>' +
         '<div class="d-miles" aria-label="' + (nm ? nm + '명을 채우면 속도 2배' : '목표 모두 달성') + '"><span>' + (nm ? '속도 ×2' : '속도 ×' + D.mileMult(n)) + '</span>' + D.MILES.map(function (m) { return '<i class="' + (n >= m ? 'on' : m === nm ? 'next' : '') + '">' + m + '</i>'; }).join('') +
           '</div></div>' +
         '<button class="buy d-buy' + (ok ? '' : ' poor') + '" data-buy="' + x.id + '"' + (ok ? '' : ' disabled') + '>' + (ok ? '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>' : '<em>영입 ×' + q + '</em><b class="cn">' + fmtShort(c) + '</b>') + '</button></div>';
@@ -13491,15 +13501,9 @@ if (typeof window !== 'undefined') window.Team3NoirHot = {"alpaca": {"w": "in", 
   }
   // 막대: 화면이 보일 때 매 프레임(실제 수입은 연속 — 막대는 보여 주기용)
   // 0.12.9 발열: 부서 줄이 실제로 보일 때만, 초당 약 15번만 움직인다(전에는 어느 탭에서나 매 장 돌았다)
-  var t0 = Date.now(), fLast = 0;
-  function frame(ms) {
-    requestAnimationFrame(frame);
-    if (ms - fLast < 32) return; fLast = ms;   // 0.13.4 초당 30번(15번은 끊겨 보였다)
-    if (document.hidden) return;
-    var dp = $('h-dept'); if (!dp || dp.offsetParent === null) return;
-    var t = (Date.now() - t0) / 1000;
-    var bars = document.querySelectorAll('#h-dept .d-bar:not(.fast) i');
-    for (var i = 0; i < bars.length; i++) { var c = +bars[i].getAttribute('data-cyc'); if (c > 0) bars[i].style.transform = 'scaleX(' + ((t % c) / c).toFixed(3) + ')'; }
+  var t0 = Date.now();
+  function frame() {
+    // 0.13.5 막대는 CSS 가 움직인다(dfill) — 화면 주사율 그대로 부드럽고, 코드는 매 장 돌지 않는다
   }
 
   /* ---------- 재수사 칸 ---------- */
@@ -13768,33 +13772,40 @@ if (typeof window !== 'undefined') window.Team3NoirHot = {"alpaca": {"w": "in", 
   function open() { if (ctx.showTab) ctx.showTab('evid'); draw(); if (!zoomed) requestAnimationFrame(function () { center(fitS()); }); }
   function close() { sel = null; }
 
+  // 0.13.5 증거판에서 한 일의 알림은 판 안에 띄운다(화면 맨 위에 뜨면 눈이 멀리 가야 했다)
+  function bt(text) {
+    var vp = $('ev-vp'); if (!vp) { toast(text); return; }
+    var old = vp.querySelector('.ev-toast'); if (old) old.parentNode.removeChild(old);
+    var el = document.createElement('div'); el.className = 'ev-toast'; el.textContent = text; vp.appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 1900);
+  }
   function onBoardClick(e) {
     var s = S(), t;
     if ((t = e.target.closest('[data-buyc]'))) {
       var id = t.getAttribute('data-buyc');
       try { var c = Ev.buyCard(s, id), sl = Ev.slotOf(id); if (root.Team3QuestUI) root.Team3QuestUI.track('evid', 1); ctx.persist(); popId = sl;
         Ev.EDGES.forEach(function (ed) { if ((ed[0] === sl && Ev.opened(s, ed[1])) || (ed[1] === sl && Ev.opened(s, ed[0]))) fresh[ed.join('-')] = 1; });
-        toast(c.name + ' — 이어졌어요!'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } ctx.render(); }
-      catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '단서가 모자라요' : e3.code === 'NOT_LINKED' ? '열린 증거와 이어진 칸만 열 수 있어요' : '열 수 없어요'); }
+        bt(c.name + ' — 이어졌어요!'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } ctx.render(); }
+      catch (e3) { bt(e3.code === 'NOT_ENOUGH' ? '단서가 모자라요' : e3.code === 'NOT_LINKED' ? '열린 증거와 이어진 칸만 열 수 있어요' : '열 수 없어요'); }
       draw(); return;
     }
     if ((t = e.target.closest('[data-vault]'))) {
-      try { Ev.buyVault(s); ctx.persist(); toast('단서 금고 ' + s.evid.vault + '단계'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { toast(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '올릴 수 없어요'); }
+      try { Ev.buyVault(s); ctx.persist(); bt('단서 금고 ' + s.evid.vault + '단계'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { bt(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '올릴 수 없어요'); }
       draw(); return;
     }
     if ((t = e.target.closest('[data-memo]'))) {
-      try { Ev.buyMemo(s, t.getAttribute('data-memo')); ctx.persist(); toast('현장 메모를 붙였어요'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { toast(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '붙일 수 없어요'); }
+      try { Ev.buyMemo(s, t.getAttribute('data-memo')); ctx.persist(); bt('현장 메모를 붙였어요'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { bt(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '붙일 수 없어요'); }
       draw(); return;
     }
     if ((t = e.target.closest('[data-swap]'))) {   // 0.12.0 다시 고르기(재수사 뒤)
-      try { var w = Ev.swap(s, t.getAttribute('data-swap')); ctx.persist(); popId = Ev.slotOf(w.id); toast(w.name + '(으)로 바꿨어요'); try { ctx.UI.sfx.pick(2); } catch (e6) { /* 무시 */ } ctx.render(); }
-      catch (e7) { toast('바꿀 수 없어요'); }
+      try { var w = Ev.swap(s, t.getAttribute('data-swap')); ctx.persist(); popId = Ev.slotOf(w.id); bt(w.name + '(으)로 바꿨어요'); try { ctx.UI.sfx.pick(2); } catch (e6) { /* 무시 */ } ctx.render(); }
+      catch (e7) { bt('바꿀 수 없어요'); }
       draw(); return;
     }
-    if (e.target.closest('#ev-repick')) { Ev.endRepick(s); ctx.persist(); toast('갈림길을 확정했어요'); draw(); return; }
+    if (e.target.closest('#ev-repick')) { Ev.endRepick(s); ctx.persist(); bt('갈림길을 확정했어요'); draw(); return; }
     if ((t = e.target.closest('[data-up]'))) {
-      try { var lv = Ev.upgrade(s, t.getAttribute('data-up')); ctx.persist(); toast('강화! ★' + lv); try { ctx.UI.sfx.pick(3); } catch (e4) { /* 무시 */ } ctx.render(); }
-      catch (e5) { toast(e5.code === 'NOT_ENOUGH' ? '단서가 모자라요' : '더 강화할 수 없어요'); }
+      try { var lv = Ev.upgrade(s, t.getAttribute('data-up')); ctx.persist(); bt('강화! ★' + lv); try { ctx.UI.sfx.pick(3); } catch (e4) { /* 무시 */ } ctx.render(); }
+      catch (e5) { bt(e5.code === 'NOT_ENOUGH' ? '단서가 모자라요' : '더 강화할 수 없어요'); }
       draw(); return;
     }
   }
