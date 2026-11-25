@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.8', date: '2026-11-26', title: '코드네임 그림 추가',
+      items: [
+        '늑대, 사자, 사슴 파트너의 코드네임 그림이 사무실과 현장 두 가지로 늘었어요.'
+      ] },
     { ver: '0.13.7', date: '2026-11-25', title: '배경 단추',
       items: [
         '배경 단추와 배경 창의 글을 "배경 1 / 8"처럼 짧게 줄였어요.'
