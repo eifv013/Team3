@@ -1765,6 +1765,9 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 .pn-fx{display:flex;align-items:center;gap:8px;margin-top:4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
 .pn-fx b{font-size:13px;white-space:nowrap}.pn-fx small{flex:1;font-size:11.5px;color:var(--muted)}.pn-fx.own span{margin-left:auto;font-size:12px;font-weight:800;color:#7FE0A0}
 .pn-fx button{flex:none;height:36px;padding:0 12px;border-radius:10px;font-size:14px;font-weight:900;display:inline-flex;align-items:center;gap:3px}
+/* 0.13.1 설명 글 줄 맞춤: 낱말 중간에서 끊지 않고, 줄 길이를 고르게 나눠 마지막 줄에 한두 낱말만 남지 않게. 문장마다 줄을 바꾸는 곳은 .ln */
+small,p,.muted,.tx small,.cf-b,.pet-desc,.bgp-info small,.ev-vnote,.pn-fx small,.d-mid small,.item .tx small{text-wrap:balance}
+.ln{display:block}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -2405,6 +2408,10 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.1', date: '2026-11-25', title: '설명 줄 맞춤',
+      items: [
+        '설명 글의 줄바꿈을 다듬었어요. 줄 길이를 고르게 나누고, 문장이 중간에 어색하게 꺾이지 않게 했어요.'
+      ] },
     { ver: '0.13.0', date: '2026-11-25', title: '현장 메모, 단서 금고, 연출',
       items: [
         '증거판에 현장 메모가 생겼어요. 연 증거 옆에 수사비로 붙이는 작은 메모예요. 한 장마다 수사비와 팀 수입 +3%이고, 재수사하면 사라져요.',
@@ -12321,7 +12328,7 @@ if (typeof window !== 'undefined') window.Team3NoirHot = {"alpaca": {"w": "in", 
         (N.has && N.has(x.id, 'b')
           ? '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on && P.noirScene(S(), detailKey) === 'a' ? 'on' : '') + '" data-noir="1">사무실</button><button class="' + (on && P.noirScene(S(), detailKey) === 'b' ? 'on' : '') + '" data-noir="b">현장</button></div>'
           : '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on ? 'on' : '') + '" data-noir="1">코드네임</button></div>') +
-        (on ? '<small class="muted">코드네임일 땐 의상이 안 보여요, 상황실 안에서는 본명 모습 그대로예요</small>' : '') +
+        (on ? '<small class="muted"><span class="ln">코드네임일 땐 의상이 안 보여요</span><span class="ln">상황실 안에서는 본명 모습 그대로예요</span></small>' : '') +
         (P.fxOn(S(), x.id) ? '<div class="pn-fx own"><b>움직이는 연출</b><span>보유</span></div>' : '<div class="pn-fx"><b>움직이는 연출</b><small>비, 불빛, 카메라가 움직여요</small><button class="primary" data-fxbuy="' + x.id + '">' + ic('gem') + P.FX_GEMS + '</button></div>') + '</div>';
     }
     return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, size: 56 }) + '<i>' + LOCK + '</i></span>' +
@@ -12456,7 +12463,7 @@ if (typeof window !== 'undefined') window.Team3NoirHot = {"alpaca": {"w": "in", 
       else if (t.hasAttribute('data-fxbuy')) {   // 0.13.0 연출 사기(확인 창)
         var fid = t.getAttribute('data-fxbuy');
         if (!(S().gems >= P.FX_GEMS)) { toast('배지가 모자라요'); return; }
-        ctx.UI.confirmBuy({ title: '움직이는 연출을 살까요?', body: '이 파트너의 코드네임 그림이 움직여요. 한 번 사면 계속 써요.', cost: ic('gem') + P.FX_GEMS, onOk: function () {
+        ctx.UI.confirmBuy({ title: '움직이는 연출을 살까요?', body: '<span class="ln">이 파트너의 코드네임 그림이 움직여요.</span><span class="ln">한 번 사면 계속 써요.</span>', cost: ic('gem') + P.FX_GEMS, onOk: function () {
           try { P.buyFx(S(), fid); ctx.persist(); toast('연출을 샀어요'); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } } catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '살 수 없어요'); }
           renderPartner(); drawDetail(); ctx.render();
         } });
@@ -13619,15 +13626,15 @@ if (typeof window !== 'undefined') window.Team3NoirHot = {"alpaca": {"w": "in", 
     }
     if (sel === 'vault') {   // 0.13.0 단서 금고
       var cp = Ev.cluePct(s), vc0 = Ev.vaultCost(s), chip = function (n, v, mx) { return '<span class="ev-chip">' + n + ' <b>+' + v + '%</b> / ' + mx + '%</span>'; };
-      box.innerHTML = '<div class="ev-opt on"><div class="tx"><b>단서 금고 ' + s.evid.vault + ' / ' + Ev.VAULT.max + '</b><small>단계마다 재수사 단서 +' + Ev.VAULT.pct + '%, 재수사해도 남아요</small></div>' +
+      box.innerHTML = '<div class="ev-opt on"><div class="tx"><b>단서 금고 ' + s.evid.vault + ' / ' + Ev.VAULT.max + '</b><small><span class="ln">단계마다 재수사 단서 +' + Ev.VAULT.pct + '%</span><span class="ln">재수사해도 남아요</span></small></div>' +
         '<button class="ev-act up" data-vault="1"' + (vc0 != null && s.money >= vc0 ? '' : ' disabled') + '>' + (vc0 == null ? '<span>최고 단계</span>' : '<span>올리기</span><b>' + ic('money') + fmtShort(vc0) + '</b>') + '</button></div>' +
         '<div class="ev-eff-sum">' + chip('증거', cp.card, 100) + chip('금고', cp.vault, Ev.VAULT.max * Ev.VAULT.pct) + chip('기록 갱신', cp.record, Ev.RECORD.max) + '</div>' +
-        '<small class="ev-vnote">기록 갱신: 이번 수사비가 지난 최고 기록의 두 배가 될 때마다 +' + Ev.RECORD.per + '%</small>';
+        '<small class="ev-vnote"><span class="ln">기록 갱신은 이번 수사비가</span><span class="ln">지난 최고 기록의 두 배가 될 때마다 +' + Ev.RECORD.per + '%</span></small>';
       return;
     }
     if (/^m_/.test(sel)) {   // 0.13.0 현장 메모
       var mst2 = Ev.memoState(s, sel), mc2 = Ev.memoCost(s), at = Ev.BY_ID[Ev.chosen(s, Ev.MEMOS.filter(function (m) { return m.id === sel; })[0].at) || Ev.MEMOS.filter(function (m) { return m.id === sel; })[0].at];
-      box.innerHTML = '<div class="ev-opt' + (mst2 === 'open' ? ' on' : '') + '"><div class="tx"><b>현장 메모 ' + Ev.memoCount(s) + ' / ' + Ev.MEMOS.length + '</b><small>수사비와 팀 수입 +' + Ev.MEMO.pct + '%. 재수사하면 사라져요.' + (mst2 === 'shut' ? '<br>' + esc(at.name) + ' 자리를 먼저 열어야 해요.' : '') + '</small></div>' +
+      box.innerHTML = '<div class="ev-opt' + (mst2 === 'open' ? ' on' : '') + '"><div class="tx"><b>현장 메모 ' + Ev.memoCount(s) + ' / ' + Ev.MEMOS.length + '</b><small><span class="ln">수사비와 팀 수입 +' + Ev.MEMO.pct + '%</span><span class="ln">재수사하면 사라져요</span>' + (mst2 === 'shut' ? '<span class="ln">' + esc(at.name) + ' 자리를 먼저 열어야 해요</span>' : '') + '</small></div>' +
         (mst2 === 'open' ? '<span class="ev-note">붙였어요</span>' : '<button class="ev-act" data-memo="' + sel + '"' + (mst2 === 'can' && s.money >= mc2 ? '' : ' disabled') + '><span>붙이기</span><b>' + ic('money') + fmtShort(mc2) + '</b></button>') + '</div>';
       return;
     }
