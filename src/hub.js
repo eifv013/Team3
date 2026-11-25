@@ -892,6 +892,8 @@
       var c = QS.list(save, k, day).filter(function (x) { return x.done && !x.got; }).length + (QS.boxState(save, day, k).ready ? 1 : 0);
       return '<button class="' + (questTab === k ? 'on' : '') + '" data-qt="' + k + '">' + QS.NAME[k] + (c ? '<em>' + c + '</em>' : '') + '</button>';
     }).join('');
+    var nAll = QS.list(save, questTab, day).filter(function (x) { return x.done && !x.got; }).length + (QS.boxState(save, day, questTab).ready ? 1 : 0);
+    var allBtn = '<button class="primary qs-all" data-qall="1"' + (nAll ? '' : ' disabled') + '>전체 받기' + (nAll ? ' ' + nAll : '') + '</button>';
     var rows = QS.list(save, questTab, day).map(function (x) {
       return '<div class="qs-row' + (x.got ? ' got' : x.done ? ' done' : '') + '"><div class="qs-tx"><b>' + esc(x.name) + '</b>' +
         '<div class="qs-bar"><i style="width:' + Math.round(x.n / x.goal * 100) + '%"></i></div><small>' + fmt(x.n) + ' / ' + fmt(x.goal) + '</small></div>' +
@@ -905,7 +907,7 @@
         (b.got ? '<span class="qs-ok">받음 ✓</span>' : '<button class="primary qs-get" data-qc="' + (questTab === 'd' ? 'box' : 'box:' + questTab) + '"' + (b.ready ? '' : ' disabled') + '>열기</button>') + '</div>';
     }
     var reset = questTab === 'd' ? '자정에 새로 시작해요' : questTab === 'w' ? '월요일 0시에 새로 시작해요' : '매달 1일 0시에 새로 시작해요';
-    return '<div class="qs-tabs">' + tabs + '</div><div class="qs-left" id="qs-left">' + questLeft(questTab) + '</div><div class="qs-list">' + rows + box + '</div>';   // 0.10.9 "언제 새로 시작" 글은 뺐다(위에 남은 시간이 있다)
+    return '<div class="qs-tabs">' + tabs + '</div><div class="qs-left" id="qs-left">' + questLeft(questTab) + '</div><div class="qs-list">' + rows + box + '</div>' + allBtn;   // 0.10.9 "언제 새로 시작" 글은 뺐다(위에 남은 시간이 있다)
   }
   /* 0.10.6 일간 · 주간 · 월간 남은 시간(이 기기 시각 기준 0시에 바뀐다) */
   function questLeft(k) {
@@ -921,9 +923,13 @@
     openInfo({ label: '임무', title: '3팀 임무', body: questHTML(), readOnly: true });
   }
   document.addEventListener('click', function (e) {
-    var t = e.target.closest && e.target.closest('#info-body [data-qt], #info-body [data-qc]');
+    var t = e.target.closest && e.target.closest('#info-body [data-qt], #info-body [data-qc], #info-body [data-qall]');
     if (!t || !QS) return;
     if (t.getAttribute('data-qt')) questTab = t.getAttribute('data-qt');
+    else if (t.hasAttribute('data-qall')) {   // 0.13.3 전체 받기
+      var ra = QS.claimAll(save, questTab, dayNow(), grant);
+      if (ra.n) { UI.sfx.coin(); UI.toast('임무 보상 ' + ra.n + '개: ' + [ra.tickets ? '뽑기권 ' + ra.tickets + '장' : '', ra.gems ? '배지 ' + ra.gems : '', ra.treats ? '간식 ' + ra.treats : ''].filter(Boolean).join(', ')); persist(); render(); }
+    }
     else {
       try { var r = QS.claim(save, t.getAttribute('data-qc'), dayNow(), grant); UI.sfx.coin(); UI.toast('임무 보상: ' + [r.tickets ? '뽑기권 ' + r.tickets + '장' : '', r.gems ? '배지 ◆' + r.gems : '', r.treats ? '간식 ' + r.treats : ''].filter(Boolean).join(', ')); persist(); render(); }
       catch (x) { UI.toast(x.code === 'NOT_DONE' ? '아직 다 못 했어요' : '이미 받았어요'); }

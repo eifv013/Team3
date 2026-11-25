@@ -72,7 +72,7 @@
     var cls = 'pet-bg' + (bg ? ' bg-' + bg : '');
     if (b.className !== cls) { b.className = cls; b.firstChild.setAttribute('data-k', bg || ''); b.firstChild._p = null; }
     b.hidden = !bg;
-    inn.innerHTML = html;
+    if (inn._h !== html || inn._dirty) { inn._h = html; inn._dirty = false; inn.innerHTML = html; }   // 0.13.3 발열: 내용이 같으면 다시 넣지 않는다(1초마다 큰 그림을 다시 풀어 그리던 것). 표정을 직접 바꾼 뒤에는 _dirty
     if (bg) fxStart();
   }
   /*
@@ -120,7 +120,7 @@
   }
   function glow(c, x, y, r, col, a) { var g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(1, col.replace('A', 0)); c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2); }
   function fxDraw(cv, t, dt) {
-    var k = cv.getAttribute('data-k') || 'office', w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, root.devicePixelRatio || 1);
+    var k = cv.getAttribute('data-k') || 'office', w = cv.clientWidth, h = cv.clientHeight, dpr = 1;   // 0.13.3 발열: 배경 그림판은 1배로만
     if (!w || !h) return false;
     if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     if (!cv._p) cv._p = fxInit(k, w, h);
@@ -173,7 +173,7 @@
     if (fxOn || typeof requestAnimationFrame !== 'function') return;
     fxOn = true; var last = 0, skip = 0, calm = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
     (function loop(ms) {
-      if ((skip ^= 1)) { requestAnimationFrame(loop); return; }   // 0.12.7 초당 30장만 그린다(발열)
+      if ((skip = (skip + 1) % 3)) { requestAnimationFrame(loop); return; }   // 0.13.3 초당 20장   // 0.12.7 초당 30장만 그린다(발열)
       var cvs = document.querySelectorAll('.pet-bg > canvas'), any = false, t = (ms || 0) / 1000, dt = last ? Math.min(0.08, t - last) : 0.033; last = t;
       for (var i = 0; i < cvs.length; i++) if (cvs[i].offsetParent !== null && !cvs[i].parentNode.hidden) { if (calm && cvs[i]._still) { any = true; continue; } if (fxDraw(cvs[i], calm ? 3 : t, calm ? 0 : dt)) { any = true; cvs[i]._still = true; } }
       var ncv = calm ? [] : document.querySelectorAll('.noir-pic[data-fx] > canvas');   // 0.13.0 코드네임 연출
@@ -188,7 +188,7 @@
     var b = $('h-pet-art'), x = P.parse(pets().eq);
     if (!b || !x) return;
     var o = P.wearing(S(), pets().eq), nz = isNoir(pets().eq);
-    if (!nz) b.innerHTML = A.draw(x.id, { grade: x.g, mood: mood, anim: true, outfit: o });
+    if (!nz) { b.innerHTML = A.draw(x.id, { grade: x.g, mood: mood, anim: true, outfit: o }); var pin = b.closest('.pet-in'); if (pin) pin._dirty = true; }
     b.classList.remove('pa-jump', 'pa-peek', 'pa-wiggle', 'pa-doze');
     void b.offsetWidth;   // 같은 몸짓을 다시 시작하게
     if (move) b.classList.add(move);
@@ -198,6 +198,7 @@
       if (!bb || !xx) return;
       bb.classList.remove('pa-jump', 'pa-peek', 'pa-wiggle', 'pa-doze');
       if (!isNoir(pets().eq)) bb.innerHTML = A.draw(xx.id, { grade: xx.g, anim: true, outfit: P.wearing(S(), pets().eq) });
+      var pin2 = bb.closest('.pet-in'); if (pin2) pin2._dirty = true;
     }, ms || 1400);
   }
   // 말풍선(0.4.0)

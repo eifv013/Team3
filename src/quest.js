@@ -96,6 +96,13 @@
     if (typeof grant === 'function') { if (r.tickets) grant('tickets', r.tickets); if (r.treats) grant('treats', r.treats); }
   }
   /** 임무 하나 받기(id) 또는 'box'(일간 완료 상자). 반환: 보상 */
+  /** 0.13.3 그 묶음(일 · 주 · 월)에서 받을 수 있는 것을 한꺼번에: 임무 → 완료 상자 순서. 받은 것의 합을 돌려준다 */
+  function claimAll(save, sc, day, grant) {
+    var sum = { tickets: 0, gems: 0, treats: 0, n: 0 }, add = function (r) { sum.n += 1; ['tickets', 'gems', 'treats'].forEach(function (k) { sum[k] += r[k] || 0; }); };
+    list(save, sc, day).forEach(function (x) { if (x.done && !x.got) add(claim(save, x.id, day, grant)); });
+    if (boxState(save, day, sc).ready) add(claim(save, sc === 'd' ? 'box' : 'box:' + sc, day, grant));
+    return sum;
+  }
   function claim(save, id, day, grant) {
     var err = function (c) { var e = new Error(c); e.code = c; return e; };
     if (id === 'box' || /^box:[dwm]$/.test(id)) {   // 'box' = 일간(예전 이름), 'box:w' · 'box:m' = 주간 · 월간
@@ -110,5 +117,5 @@
     if ((s.n[x.kind] || 0) < x.goal) throw err('NOT_DONE');
     s.got[id] = true; give(save, x.r, grant); return x.r;
   }
-  return { LIST: LIST, NAME: NAME, DAILY_BOX: DAILY_BOX, BOX: BOX, keyOf: keyOf, clean: clean, track: track, list: list, boxState: boxState, ready: ready, claim: claim };
+  return { LIST: LIST, NAME: NAME, DAILY_BOX: DAILY_BOX, BOX: BOX, keyOf: keyOf, clean: clean, track: track, list: list, boxState: boxState, ready: ready, claim: claim, claimAll: claimAll };
 });
