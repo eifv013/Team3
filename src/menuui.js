@@ -13,6 +13,7 @@
 (function (root) {
   'use strict';
   var ORDER = ['team', 'run', 'home', 'evid', 'pets'];
+  var evSeen = -1;
   var ctx = null, cur = 'home', hist = [], sub = 'team', onShow = {};
   function $(id) { return document.getElementById(id); }
   function S() { return ctx.getSave(); }
@@ -164,6 +165,10 @@
     var dailyLeft = ctx.E ? !ctx.E.dailyStatus(s, ctx.dayNow()).done : false;
     var ev = ctx.Ev, gain = ev ? ev.gainNow(s) : 0, lg = s.evid && s.evid.log && s.evid.log.length ? s.evid.log[s.evid.log.length - 1].gain : 0;
     var evGlow = gain >= 1 && (lg ? gain > lg : gain >= 3);
+    // 0.12.8 증거 탭을 한 번 열면 끈다. 재수사해서 다시 조건이 될 때(재수사 횟수가 바뀜)만 또 켠다
+    var evKey = s.evid ? s.evid.retreats : 0;
+    if (cur === 'evid' && evGlow) evSeen = evKey;
+    if (evSeen === evKey) evGlow = false;
     var p = s.pets || {}, unpat = ctx.PT && p.eq && ctx.PT.bondOf(s, p.eq).last !== ctx.dayNow();
     var fl0 = ctx.PT && ctx.PT.freeLeft ? ctx.PT.freeLeft(s, ctx.dayNow(), ctx.freeExtra ? ctx.freeExtra() : 0) : 0;
     var np = (p.tickets || 0) + (unpat ? 1 : 0) + (fl0 > 0 ? 1 : 0);
