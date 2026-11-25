@@ -238,7 +238,7 @@
     document.querySelectorAll('#shop-tabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === tab); });
     $('shop-body').hidden = tab !== 'shop';
     $('pass-body').hidden = tab !== 'pass';
-    $('shop-wallet').innerHTML = '<span>' + ic('gem') + '배지 <b>' + fmt(S().gems) + '</b></span><span>' + ic('ticket') + '뽑기권 <b>' + fmt(S().pets ? S().pets.tickets : 0) + '</b></span>';
+    $('shop-wallet').innerHTML = '<button data-cur="gem">' + ic('gem') + '배지 <b>' + fmt(S().gems) + '</b></button><button data-cur="ticket">' + ic('ticket') + '뽑기권 <b>' + fmt(S().pets ? S().pets.tickets : 0) + '</b></button><button data-cur="treat">' + ic('treat') + '간식 <b>' + fmt(S().pets ? S().pets.treats : 0) + '</b></button>';
     if (tab === 'shop') drawShop(); else drawPass();
   }
 

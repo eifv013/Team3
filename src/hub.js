@@ -1261,6 +1261,7 @@
     if (dispatching) return 'stay';   // 출동 전환 중: 사무실에서 뒤로(=앱 종료)로 오해하지 않게 그냥 둔다
     // 0.12.7 위에 뜬 작은 창(구매 확인 · 파트너 배경)부터 닫는다 — 전에는 뒤의 탭이 넘어갔다
     var cfb = document.querySelector('.cf-back [data-cf="no"]'); if (cfb) { cfb.click(); return 'stay'; }
+    if (PUI && PUI.closeGd && PUI.closeGd()) return 'stay';   // 0.13.6 재화 안내 · 코드네임 미리 보기
     if (PUI && PUI.closeBg && PUI.closeBg()) return 'stay';
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }
     if (DUI && DUI.isOpen()) { if (Df.chosen(save)) DUI.close(); return 'stay'; }   // 처음 고르는 창은 뒤로로 닫히지 않는다

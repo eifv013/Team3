@@ -53,7 +53,7 @@
     box.style.setProperty('--gc', g.color);
     var eff = P.describe(P.eqEffect(x.id, x.g, st)), bd = P.bondOf(S(), p.eq);
     // 0.4.1 무대: 등급 빛(영웅 · 전설은 도는 후광) · 바닥 그림자 · 전설 반짝이. 버튼 안에는 그림만(act 가 갈아 끼운다)
-    setCard(box, '<button class="pet-bgbtn" id="h-pet-bgbtn">배경</button>' +   // 0.12.0 파트너 배경
+    setCard(box, '<button class="pet-bgbtn" id="h-pet-bgbtn"><i class="em">🖼️</i>배경 바꾸기<em>' + Object.keys(pets().bgs || {}).length + ' / ' + P.BGS.length + '</em></button>' +   // 0.12.0 파트너 배경
       '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
@@ -325,7 +325,7 @@
   }
   function walletHtml() {
     var p = pets();
-    return '<span>' + ic('ticket') + '뽑기권 <b>' + fmt(p.tickets) + '</b></span><span>' + ic('gem') + '배지 <b>' + fmt(S().gems) + '</b></span><span>' + ic('treat') + '간식 <b>' + fmt(p.treats) + '</b></span>';
+    return '<button data-cur="ticket">' + ic('ticket') + '뽑기권 <b>' + fmt(p.tickets) + '</b></button><button data-cur="gem">' + ic('gem') + '배지 <b>' + fmt(S().gems) + '</b></button><button data-cur="treat">' + ic('treat') + '간식 <b>' + fmt(p.treats) + '</b></button>';
   }
   function drawDraw() {
     var p = pets(), pl = plan(), one = pl.one, multi = pl.multi, pk = P.pickup(today()), sp = P.BY_ID[pk.id];
@@ -503,7 +503,7 @@
     var can = P.canNoir(S(), p.eq), on = isNoir(p.eq), st = p.own[p.eq] || 1;
     return '<div class="pet-noircard' + (can ? '' : ' locked') + (on ? ' on' : '') + '"><span class="pnc-art' + (can ? ' noir-anim' : '') + '">' + N.draw(x.id, { grade: x.g, size: 84 }) + (can ? '' : '<i>' + LOCK + '</i>') + '</span>' +
       '<span class="pnc-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (can ? '비밀 요원 모습의 반신 초상, 파트너 카드와 도감에서 보여요' : (x.g === 'l' ? '전설은 데려오면 바로 받아요' : '이 파트너가 ★5가 되면 받아요, 현재 ★' + st)) + '</small>' +
-      (can ? '<button class="' + (on ? 'ghost' : 'primary') + '" data-noircl="' + (on ? 0 : 1) + '">' + (on ? '본명으로' : '코드네임으로') + '</button>' : '') + '</span></div>';
+      (can ? '<button class="' + (on ? 'ghost' : 'primary') + '" data-noircl="' + (on ? 0 : 1) + '">' + (on ? '본명으로' : '코드네임으로') + '</button>' : '<button class="primary" data-noirprev="' + x.id + '">미리 보기</button>') + '</span></div>';
   }
   function drawCloset() {
     var p = pets(), x = P.parse(p.eq) || { id: 'corgi', g: 'c' }, cur = p.eq ? P.wearing(S(), p.eq) : '';
@@ -586,7 +586,7 @@
         '<div><em>장착 효과</em><b class="eq">' + esc(eq.join(', ')) + '</b><small>파트너 1마리만' + (eq.join('').indexOf('⚡') >= 0 ? ', ⚡는 특별 출동에서 꺼짐' : '') + '</small>' + zapLocked + '</div></div>' +
       (st ? '' : '<p class="muted" style="font-size:12px">아직 없어서 ★1 기준으로 보여 줘요.</p>') +
       (st ? nameRow() : '') +
-      (st ? noirRow(x, st) : '') +
+      noirRow(x, st) +
       (st && !isNoir(detailKey) ? outfitSelect() : '') +
       (st && root.Team3AchUI ? '<div class="pet-name">' + root.Team3AchUI.titleSelect('pets-ttl', (S().ach && S().ach.pet[detailKey]) || '', '칭호') + '</div>' : '') +
       '<div class="pet-acts">' +
@@ -609,8 +609,9 @@
         (on ? '<small class="muted"><span class="ln">코드네임일 땐 의상이 안 보여요</span><span class="ln">상황실 안에서는 본명 모습 그대로예요</span></small>' : '') +
         (P.fxOn(S(), x.id) ? '<div class="pn-fx own"><b>움직이는 연출</b><span>보유</span></div>' : '<div class="pn-fx"><b>움직이는 연출</b><small>비, 불빛, 카메라가 움직여요</small><button class="primary" data-fxbuy="' + x.id + '">' + ic('gem') + P.FX_GEMS + '</button></div>') + '</div>';
     }
-    return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, size: 56 }) + '<i>' + LOCK + '</i></span>' +
-      '<span class="pn-tx"><b>코드네임 <em>???</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : '★5가 되면 받아요, 현재 ★' + st) + '</small></span></div>';
+    return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, scene: 'a', size: 64 }) + '</span>' + (N.has(x.id, 'b') ? '<span class="pn-thumb">' + N.draw(x.id, { grade: x.g, scene: 'b', size: 64 }) + '</span>' : '') +
+      '<span class="pn-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : st ? '★5가 되면 받아요' : '데려와서 ★5가 되면 받아요') + '</small>' + (x.g === 'l' || !st ? '' : '<span class="pn-prog">현재 ★' + st + ' / ' + P.STAR_MAX + '</span>') + '</span>' +
+      '<button class="primary pn-prev" data-noirprev="' + x.id + '">미리 보기</button></div>';
   }
   function outfitSelect() {
     var p = pets(), have = P.OUTFITS.filter(function (o) { return p.closet[o.id]; }), cur = P.wearing(S(), detailKey);
@@ -662,13 +663,66 @@
     st.textContent = Object.keys(pics).map(function (k) { return '.bg-' + k + '{background-image:url(' + pics[k] + ')}'; }).join('\n');
     document.head.appendChild(st);
   }
+  /* ---------- 0.13.6 작은 안내 창: 재화 안내 · 코드네임 미리 보기 ---------- */
+  var gdEl = null, gdDraw = null;
+  function closeGd() { var was = !!gdEl; if (gdEl && gdEl.parentNode) gdEl.parentNode.removeChild(gdEl); gdEl = null; gdDraw = null; return was; }
+  function openGd(drawFn, onTap) {
+    closeGd(); gdEl = document.createElement('div'); gdEl.className = 'bgp-back gd-back'; gdDraw = drawFn;
+    gdEl.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (e.target === gdEl || e.target.closest('[data-gdx]')) { closeGd(); return; }
+      if (onTap) onTap(e);
+    });
+    gdEl.innerHTML = '<div class="bgp-box gd-box" role="dialog" aria-modal="true">' + drawFn() + '</div>';
+    $('toast').parentNode.appendChild(gdEl);
+  }
+  function gdRedraw() { if (gdEl && gdDraw) gdEl.firstChild.innerHTML = gdDraw(); }
+  /* 재화마다: 얻는 곳 · 사는 곳 · 쓰는 곳. 실제로 들어오고 나가는 길만 적는다(코드와 어긋나면 여기부터 고친다) */
+  function curInfo(k) {
+    var live = root.Team3Monet && root.Team3Monet.PAY_MODE !== 'gems';
+    if (k === 'gem') return { name: '배지', have: S().gems,
+      get: ['계급 승진', '사건 종결', '특별 출동 메달', '임무', '출석', '업적', '시즌 패스', '매점 광고 보기'],
+      buy: [live ? '매점의 배지 상품' : '정식 출시 때 매점에서 팔아요'],
+      use: ['파트너 뽑기', '파트너 배경', '의상', '움직이는 연출', '칭호', '매점 상품', '이름 바꾸기', '수사비가 모자랄 때 준비물'] };
+    if (k === 'ticket') return { name: '뽑기권', have: pets().tickets,
+      get: ['처음 선물', '사건 종결', '계급 승진', '특별 출동 메달', '임무 상자', '출석', '업적', '시즌 패스', '매점 광고 보기'],
+      buy: ['매점 묶음 상품', '뽑기권이 없으면 배지로 바로 뽑아요'],
+      use: ['파트너 뽑기'] };
+    return { name: '간식', have: pets().treats,
+      get: ['★5인 파트너를 또 뽑았을 때', '파트너와 친해질 때', '시즌 패스', '매점 광고 보기'],
+      buy: ['따로 팔지 않아요'],
+      use: ['원하는 파트너 데려오기', '의상', '파트너 배경'] };
+  }
+  function openCur(k) {
+    if (k !== 'gem' && k !== 'ticket' && k !== 'treat') return;
+    openGd(function () {
+      var c = curInfo(k), row = function (label, cls, list) { return '<div class="gd-sec"><span class="label">' + label + '</span><div class="gd-chips ' + cls + '">' + list.map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div></div>'; };
+      return '<div class="bgp-head"><b class="gd-ttl">' + ic(k) + esc(c.name) + '</b><span class="bgp-w">가진 수 ' + fmt(c.have) + '</span><button class="bgp-x" data-gdx aria-label="닫기">×</button></div>' +
+        row('얻는 곳', 'g-get', c.get) + row('사는 곳', 'g-buy', c.buy) + row('쓰는 곳', 'g-use', c.use);
+    });
+  }
+  /* 코드네임 미리 보기: 아직 못 받은 파트너도 사무실 · 현장 그림을 크게 보고, 어떻게 받는지 한눈에 */
+  function openNoirPrev(id, g, st) {
+    var N = noirArt(); if (!N) return;
+    var sc = 'a', two = N.has(id, 'a') && N.has(id, 'b');
+    openGd(function () {
+      var leg = g === 'l', can = leg ? st > 0 : st >= P.STAR_MAX;
+      return '<div class="bgp-head"><b>코드네임 ' + esc(P.codename(id)) + '</b><button class="bgp-x" data-gdx aria-label="닫기">×</button></div>' +
+        '<div class="gd-pic">' + N.draw(id, { grade: g, scene: sc, size: 300 }) + '</div>' +
+        (two ? '<div class="pn-seg"><button class="' + (sc === 'a' ? 'on' : '') + '" data-gdsc="a">사무실</button><button class="' + (sc === 'b' ? 'on' : '') + '" data-gdsc="b">현장</button></div>' : '') +
+        '<div class="gd-sec"><span class="label">받는 법</span><div class="gd-chips g-get">' +
+          (can ? '<span>받았어요</span>' : leg ? '<span>전설은 데려오면 바로</span>' : '<span>이 파트너 ★5</span><span>현재 ★' + st + ' / ' + P.STAR_MAX + '</span>') + '</div></div>' +
+        '<div class="gd-sec"><span class="label">바꾸는 곳</span><div class="gd-chips g-use"><span>도감에서 파트너 누르기</span><span>본명, 사무실, 현장 중 고르기</span></div></div>' +
+        '<div class="gd-sec"><span class="label">움직이는 연출</span><div class="gd-chips g-buy"><span>코드네임을 받은 뒤 ' + ic('gem') + P.FX_GEMS + '</span></div></div>';
+    }, function (e) { var b = e.target.closest('[data-gdsc]'); if (b) { sc = b.getAttribute('data-gdsc'); gdRedraw(); } });
+  }
   function openBg() {
     if (bgEl) return;
     bgSel = pets().bg; bgEl = document.createElement('div'); bgEl.className = 'bgp-back';
     bgEl.addEventListener('click', function (e) {
       e.stopPropagation();
       var t = e.target.closest('[data-bg],[data-bgact]'), s = S(), b = P.BG_BY[bgSel];
-      if (!t) { if (e.target === bgEl) closeBg(); return; }
+      if (!t) { var cu = e.target.closest('[data-cur]'); if (cu) openCur(cu.getAttribute('data-cur')); else if (e.target === bgEl) closeBg(); return; }
       if (t.hasAttribute('data-bg')) { bgSel = t.getAttribute('data-bg'); drawBg(); return; }
       var act = t.getAttribute('data-bgact');
       if (act === 'x') { closeBg(); return; }
@@ -689,9 +743,10 @@
     if (own) btn = p.bg === b.id ? '<button class="ghost" disabled>사용 중</button>' : '<button class="primary" data-bgact="use">이 배경 쓰기</button>';
     else btn = (b.treats ? '<button class="ghost" data-bgact="treats">' + ic('treat') + b.treats + '</button>' : '') + '<button class="primary" data-bgact="gems">' + ic('gem') + b.gems + '</button>';
     bgEl.innerHTML = '<div class="bgp-box" role="dialog" aria-modal="true" aria-label="파트너 배경">' +
-      '<div class="bgp-head"><b>파트너 배경</b><span class="bgp-w">' + ic('treat') + fmt(p.treats) + '</span><span class="bgp-w">' + ic('gem') + fmt(s.gems) + '</span><button class="bgp-x" data-bgact="x" aria-label="닫기">×</button></div>' +
+      '<div class="bgp-head"><b>파트너 배경</b><button class="bgp-w" data-cur="treat">' + ic('treat') + fmt(p.treats) + '</button><button class="bgp-w" data-cur="gem">' + ic('gem') + fmt(s.gems) + '</button><button class="bgp-x" data-bgact="x" aria-label="닫기">×</button></div>' +
       '<div class="bgp-view pet-bg bg-' + b.id + '"><canvas data-k="' + b.id + '"></canvas>' + (x ? '<div class="bgp-pet">' + portrait(p.eq, x, { grade: x.g, outfit: P.wearing(s, p.eq) }) + '</div>' : '') + '</div>' +
       '<div class="bgp-info"><b>' + esc(b.name) + '</b><small>' + esc(b.desc) + '</small>' + (b.legend && own && !isL ? '<small class="warn">현재 파트너가 전설이 아니라서 사무실이 보여요.</small>' : '') + '</div>' +
+      '<div class="bgp-how"><span>가진 배경 ' + Object.keys(p.bgs || {}).length + ' / ' + P.BGS.length + '</span><span>그림을 눌러 미리 보기</span><span>사면 계속 써요</span></div>' +
       '<div class="bgp-grid">' + P.BGS.map(function (o) {
         return '<button class="bgp-cell bg-' + o.id + (o.id === b.id ? ' on' : '') + (p.bgs[o.id] ? '' : ' lock') + '" data-bg="' + o.id + '" aria-label="' + esc(o.name) + '">' +
           (p.bg === o.id ? '<i class="use">사용 중</i>' : !p.bgs[o.id] ? '<i class="lk">' + ic('gem') + o.gems + '</i>' : '') + (o.legend ? '<i class="lg">전설</i>' : '') + '</button>';
@@ -709,6 +764,8 @@
       if (e.target === this) { close(); return; }
       var t = e.target.closest('button');
       if (!t) return;
+      if (t.hasAttribute('data-cur')) { openCur(t.getAttribute('data-cur')); return; }
+      if (t.hasAttribute('data-noirprev')) { var nid = t.getAttribute('data-noirprev'), kk = detailKey && (P.parse(detailKey) || {}).id === nid ? detailKey : pets().eq, px = P.parse(kk) || { g: 'r' }; openNoirPrev(nid, px.g, pets().own[kk] || 0); return; }
       if (t.id === 'pets-one') askPull('one');
       else if (t.id === 'pets-ten') askPull('multi');
       else if (t.getAttribute('data-tab')) { if (tab === 'dex' && t.getAttribute('data-tab') !== 'dex') leaveDex(); tab = t.getAttribute('data-tab'); detailKey = ''; draw(); }
@@ -809,5 +866,5 @@
       onOk: function () { P.setNoir(S(), k, true); ctx.persist(); renderPartner(); ctx.render(); toast('코드네임 ' + P.codename(x.id) + ', 임무 시작'); } });
     return true;
   }
-  root.Team3PetsUI = { closeBg: closeBg, noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
+  root.Team3PetsUI = { closeGd: closeGd, openCur: openCur, closeBg: closeBg, noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
 })(typeof self !== 'undefined' ? self : this);
