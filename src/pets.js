@@ -117,6 +117,7 @@
     { id: 'lion', kind: '사자', name: '갈기', own: 'pay', eq: { pay: 11 }, line: '갈기 휘날리는 출동 대장' },
     { id: 'deer', kind: '사슴', name: '방울', own: 'idle', eq: { idle: 9 }, line: '뿔에 방울 달고 순찰 중' }
   ];
+  /* 0.13.10 한정 파트너의 소속은 '특수수사팀'(그림의 간판 · 명찰도 특수수사팀). 일반 파트너는 수사3팀. */
   /* 0.9.0 한정 파트너: 뽑기 · 도감 세트에는 안 들어간다(SPECIES 밖). 상점 한정 칸에서만 데려온다(★5로) */
   var LIMITED = [
     { id: 'wolf', kind: '늑대', name: '백랑', own: 'pay', eq: { pay: 12, idle: 8 }, line: '특수수사팀에서 온 말 없는 사냥꾼', limited: true }

@@ -120,7 +120,7 @@
       var pic = root.Team3NoirPics && root.Team3NoirPics.wolf;
       html += '<div class="lim-card"><span class="lim-rib">한정 파트너</span><span class="lim-time' + (limLeft <= 3 ? ' soon' : '') + '">' + (limLeft === Infinity ? '정식 출시 전까지' : limLeft === 1 ? '오늘까지' : limLeft + '일 남음') + '</span>' +
         (pic ? '<div class="lim-pic"><img src="' + pic + '" alt="한정 파트너 늑대"></div>' : '') +
-        '<div class="lim-body"><div class="lim-nm">수사3팀, 늑대, 한정<b>백랑, 코드네임 고스트</b></div>' +
+        '<div class="lim-body"><div class="lim-nm">특수수사팀, 늑대, 한정<b>백랑, 코드네임 고스트</b></div>' +
         '<div class="lim-tags"><span>전설 등급</span><span>★5로 시작</span><span>코드네임 바로 열림</span><span>뽑기에 안 나와요</span></div>' +
         limFx() +
         payBtn('wolf', '데려오기 ' + priceLabel('wolf')) + '<small class="lim-note">한 사람당 한 번</small></div></div>';

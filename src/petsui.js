@@ -540,7 +540,7 @@
     // 0.9.2 한정 파트너 줄은 맨 위(전설 칸 하나만 · 나머지 등급 칸은 "없음" 자리)
     (P.LIMITED || []).forEach(function (sp) {
       var k = P.key(sp.id, 'l'), st = p.own[k];
-      html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + ', 한정</small></span>' +
+      html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + ', 한정</small><i class="siu">특수수사팀</i></span>' +
         '<span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span>' +
         '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE.l.color + '" aria-label="한정 전설 ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
         (st && isNoir(k) ? portrait(k, { id: sp.id, g: 'l' }, {}) : A.draw(sp.id, { grade: 'l' })) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button></div>';
@@ -560,7 +560,7 @@
       var n = (P.UPCOMING || []).filter(function (u) { return !!u.limited === lim; }).length, Q = '<span class="pet-cell soon" aria-hidden="true">?</span>', X = '<span class="pet-cell none" aria-hidden="true"></span>', out = '';
       if (!n) return '';
       out += '<div class="pet-dex-soon">' + (lim ? '한정 파트너 예정' : '다음 파트너 예정') + ' <b>' + n + '</b></div>';
-      for (var q = 0; q < n; q++) out += '<div class="pet-dex-row soon" aria-label="준비 중인 파트너"><span class="pet-dex-name"><b>???</b><small>' + (lim ? '한정, 준비 중' : '준비 중') + '</small></span>' + (lim ? X + X + X + Q : Q + Q + Q + Q) + '</div>';
+      for (var q = 0; q < n; q++) out += '<div class="pet-dex-row soon" aria-label="준비 중인 파트너"><span class="pet-dex-name"><b>???</b><small>' + (lim ? '한정, 준비 중' : '준비 중') + '</small>' + (lim ? '<i class="siu">특수수사팀</i>' : '') + '</span>' + (lim ? X + X + X + Q : Q + Q + Q + Q) + '</div>';
       return out;
     };
     html += soon(false) + soon(true);
@@ -579,7 +579,7 @@
     box.style.setProperty('--gc', g.color);
     box.innerHTML = '<button class="pet-x" id="pets-detail-x" aria-label="자세히 닫기">×</button>' +
       '<div class="pet-big' + (st ? '' : ' locked') + (st && isNoir(detailKey) ? ' noir' : '') + '">' + (st ? portrait(detailKey, x, { grade: x.g, anim: true, outfit: P.wearing(S(), detailKey) }) : A.draw(x.id, { grade: x.g })) + '</div>' +
-      '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' ' + esc(sp.kind) + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
+      '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' ' + esc(sp.kind) + (sp.limited ? '<i class="siu">특수수사팀</i>' : '') + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
         (st && isNoir(detailKey) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') +
         '<small class="muted">' + esc(sp.line) + '</small></div>' +
       '<div class="pet-eff"><div><em>보유 효과</em><b class="own">' + esc(own.join(', ')) + '</b><small>갖고만 있어도 항상 적용</small></div>' +
