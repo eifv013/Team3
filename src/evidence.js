@@ -155,7 +155,10 @@
     Object.keys(dL).forEach(function (k) { if (BY_ID[k] && !own[k]) { var v = int(dL[k], 0, 0, MAX_LV); if (v >= 1) lv[k] = v; } });   // 0.12.0 바꿔 둔 짝의 강화 단계도 기억
     var log = Array.isArray(d.log) ? d.log.filter(function (x) { return x && typeof x === 'object'; }).slice(-20).map(function (x) { return { at: int(x.at, 0, 0, 9e15), gain: int(x.gain, 0, 0, 1e9), earned: int(x.earned, 0, 0, 1e18) }; }) : [];
     save.evid = { clues: int(d.clues, 0, 0, 1e9), spent: int(d.spent, 0, 0, 1e9), own: own, lv: lv, runEarned: Math.max(0, +d.runEarned || 0), retreats: int(d.retreats, 0, 0, 1e6), log: log,
-                  caseBest: int(d.caseBest, 0, 0, 1e9), repick: d.repick === true };
+                  caseBest: int(d.caseBest, 0, 0, 1e9), repick: d.repick === true,
+                  vault: int(d.vault, 0, 0, 10), best: Math.max(0, +d.best || 0), memo: {} };
+    var dm = d.memo && typeof d.memo === 'object' ? d.memo : {}; Object.keys(dm).forEach(function (k) { if (dm[k] === true && /^m_/.test(k)) save.evid.memo[k] = true; });
+    if (!save.evid.best && log.length) save.evid.best = Math.max.apply(null, log.map(function (x) { return x.earned; }));   // 0.13.0 예전 저장: 기록은 재수사 일지에서
     if (save.evid.spent > save.evid.clues) save.evid.spent = save.evid.clues;
     return save.evid;
   }
@@ -167,8 +170,46 @@
 
   /** 지금 재수사하면 받는 단서(효과 포함) */
   // 단서 = ∛(번 수사비 / CLUE_UNIT) — 수사비는 갈수록 크게 불어나므로 세제곱근으로(2만 → 1 · 16만 → 2 · 54만 → 3 · 2천만 → 10 · 20억 → 46)
+  /* ---------- 0.13.0 재수사 단서를 늘리는 두 장치(둘 다 최대치가 있다) ----------
+   *   단서 금고: 수사비로 올리는 영구 강화. 단계마다 단서 +5%, 10단계(+50%)까지. 값은 10만 × 3^단계.
+   *   기록 갱신: 이번 수사비가 지난 최고 기록을 넘으면, 두 배 넘을 때마다 +10%, +30% 까지(첫 재수사는 기록이 없어 0).
+   *   증거 효과(+100% 까지)와 더해서 계산한다 → 다 합쳐 최대 +180%. */
+  var VAULT = { max: 10, pct: 5, base: 100000, grow: 3 }, RECORD = { per: 10, max: 30 };
+  function vaultCost(save) { var l = E(save).vault; return l >= VAULT.max ? null : Math.round(VAULT.base * Math.pow(VAULT.grow, l)); }
+  function buyVault(save) {
+    var e = E(save), c = vaultCost(save);
+    if (c == null) throw EError('MAX', '금고는 더 올릴 수 없다');
+    if (!(save.money >= c)) throw EError('NO_MONEY', '수사비가 모자란다');
+    save.money -= c; e.vault += 1; return e.vault;
+  }
+  function recordPct(save) {
+    var e = E(save);
+    if (!(e.best > 0) || e.runEarned <= e.best) return 0;
+    return Math.min(RECORD.max, Math.floor(Math.log(e.runEarned / e.best) / Math.LN2 * RECORD.per));
+  }
+  /** 단서 배수의 속(화면에 나눠 보여 주려고): {card, vault, record, total} (%) */
+  function cluePct(save) { var c = Math.min(100, effects(save).clue), v = E(save).vault * VAULT.pct, r = recordPct(save); return { card: c, vault: v, record: r, total: c + v + r }; }
+
+  /* ---------- 0.13.0 현장 메모: 수사비로 여는 작은 칸(재수사하면 사라진다) ----------
+   *   첫 줄 증거 12장 저마다 바깥쪽 실 위에 한 장. 그 자리의 증거를 열어야 붙일 수 있다.
+   *   한 장마다 수사비와 팀 수입 +3%(12장 = +36%). 값은 3만 × 2.5^(이미 붙인 장 수) — 붙일수록 비싸진다. */
+  var MEMO = { pct: 3, base: 30000, grow: 2.5 }, MEMOS = [];
+  CARDS.forEach(function (c) { if (c.tier !== 0) return; for (var i = 0; i < EDGES.length; i++) if (EDGES[i][0] === c.id) { var a = NODE[c.id], b = NODE[EDGES[i][1]]; MEMOS.push({ id: 'm_' + c.id, at: c.id, x: Math.round((a.x + b.x) / 2), y: Math.round((a.y + b.y) / 2) }); return; } });
+  var MEMO_BY = {}; MEMOS.forEach(function (m) { MEMO_BY[m.id] = m; });
+  function memoCount(save) { return Object.keys(E(save).memo).length; }
+  function memoCost(save) { return Math.round(MEMO.base * Math.pow(MEMO.grow, memoCount(save))); }
+  function memoState(save, id) { var m = MEMO_BY[id]; return !m ? 'shut' : E(save).memo[id] ? 'open' : opened(save, m.at) ? 'can' : 'shut'; }
+  function buyMemo(save, id) {
+    var e = E(save), st = memoState(save, id), c = memoCost(save);
+    if (st === 'open') throw EError('ALREADY', '이미 붙인 메모');
+    if (st !== 'can') throw EError('LOCKED', '그 자리의 증거를 먼저 열어야 한다');
+    if (!(save.money >= c)) throw EError('NO_MONEY', '수사비가 모자란다');
+    save.money -= c; e.memo[id] = true; return c;
+  }
+  function memoPct(save) { return memoCount(save) * MEMO.pct; }
+
   function baseGain(earned) { return Math.floor(Math.cbrt(earned / CLUE_UNIT) + 1e-9); }
-  function gainNow(save) { var e = E(save), base = baseGain(e.runEarned); return base > 0 ? Math.floor(base * (1 + Math.min(100, effects(save).clue) / 100)) : 0; }   // 단서 효과는 +100% 까지
+  function gainNow(save) { var e = E(save), base = baseGain(e.runEarned); return base > 0 ? Math.floor(base * (1 + cluePct(save).total / 100)) : 0; }   // 단서 효과는 +100% 까지
   /** 다음 단서 +1 까지 더 벌어야 하는 수사비(효과 전 기준) */
   function nextAt(save) { var e = E(save), b = baseGain(e.runEarned); return Math.pow(b + 1, 3) * CLUE_UNIT - e.runEarned; }
 
@@ -202,9 +243,9 @@
   var RANK_PCT = 10;
   function careerPct(save) { return E(save).retreats * RANK_PCT; }
   function bonus(save) {
-    var f = effects(save), k = careerPct(save);
+    var f = effects(save), k = careerPct(save) + memoPct(save), kd = careerPct(save);   // 0.13.0 현장 메모는 수사비와 팀 수입에만
     return { runHit: f.runHit, capUp: f.capUp, keep: f.keep,   // 0.12.0 (0.10.12 에서 빠뜨려 효과가 안 붙던 것)
-             pay: f.pay + k, idle: f.idle + k, speed: f.speed + k, cap: f.cap, off: f.off, gear: f.gear, buff: f.buff, time: f.time, combo: f.combo, shield: f.shield, miss: f.miss, dept: f.dept + k };
+             pay: f.pay + k, idle: f.idle + k, speed: f.speed + kd, cap: f.cap, off: f.off, gear: f.gear, buff: f.buff, time: f.time, combo: f.combo, shield: f.shield, miss: f.miss, dept: f.dept + kd };
   }
 
   /* ---------- 카드 사기 · 꽂기 ---------- */
@@ -250,7 +291,8 @@
     var e = E(save), g = gainNow(save);
     if (g < 1) throw EError('TOO_EARLY', '아직 단서를 받을 수 없다');
     var f = effects(save), earned = Math.round(e.runEarned);
-    e.clues += g; e.retreats += 1; e.repick = true;   // 0.12.0 재수사하면 갈림길을 다시 고를 수 있다
+    e.clues += g; e.retreats += 1; e.repick = true;
+    e.best = Math.max(e.best, e.runEarned); e.memo = {};   // 0.13.0 최고 기록 갱신 · 현장 메모는 팀과 함께 사라진다   // 0.12.0 재수사하면 갈림길을 다시 고를 수 있다
     e.log = e.log.concat([{ at: opts && opts.now || 0, gain: g, earned: earned }]).slice(-20);
     e.runEarned = 0;
     if (opts && typeof opts.newTeam === 'function') opts.newTeam(save, { startDet: f.startDet, startMoney: f.startMoney });
@@ -271,6 +313,8 @@
            NODE: NODE, EDGES: EDGES, CX: CX, CY: CY, coreOpen: coreOpen, opened: opened, linked: linked, state: state,
            clean: clean, left: left, earn: earn, gainNow: gainNow, nextAt: nextAt, tierOpen: tierOpen,
            groups: groups, groupMult: groupMult, links: links, effects: effects, bonus: bonus, buyCard: buyCard,
+           VAULT: VAULT, RECORD: RECORD, vaultCost: vaultCost, buyVault: buyVault, recordPct: recordPct, cluePct: cluePct,
+           MEMO: MEMO, MEMOS: MEMOS, memoCost: memoCost, memoState: memoState, buyMemo: buyMemo, memoPct: memoPct, memoCount: memoCount,
            ALTS: ALTS, PAIR: PAIR, slotOf: slotOf, chosen: chosen, swap: swap, canRepick: canRepick, endRepick: endRepick,
            retreat: retreat, lastGain: lastGain, describe: describe, shortText: shortText };
 });

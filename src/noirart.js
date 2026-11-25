@@ -520,7 +520,7 @@
       rainL('nz-rain', [[18, 20], [52, 76], [96, 8], [140, 54], [178, 18], [30, 128], [118, 120], [186, 140]]) + rainL('nz-rain b', [[36, 40], [80, 110], [126, 30], [164, 96], [8, 160], [150, 170]]) +
       '<rect width="200" height="200" fill="url(#' + n + 'v)"/>';
     return '<svg viewBox="0 0 200 200" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="' + n + 'c"><rect width="200" height="200" rx="18"/></clipPath></defs>' +
-      '<g clip-path="url(#' + n + 'c)"><g class="nz-body"><image href="' + src + '" x="-4" y="-4" width="208" height="208" preserveAspectRatio="xMidYMid slice"/></g>' + (o.plain ? '' : fx) + '</g>' + badge + gold + '</svg>';
+      '<g clip-path="url(#' + n + 'c)"><g class="nz-body"><image href="' + src + '" x="-4" y="-4" width="208" height="208" preserveAspectRatio="xMidYMid slice"/></g>' + '</g>' + badge + gold + '</svg>';
   }
   function soonDraw(id, o) {
     var sz = o.size || 200, g = o.grade || 'r', gold = g === 'l';

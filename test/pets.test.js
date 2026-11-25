@@ -448,3 +448,11 @@ test('0.12.4 예정 파트너 10종은 기록만: 뽑기 · 세트 · 도감 수
   P.UPCOMING.forEach(u => { assert.ok(!ids.has(u.id), u.id); assert.equal(P.parse(u.id + ':c'), null, u.id + ' 는 아직 데려올 수 없다'); });
   assert.equal(P.SPECIES.length, 30);
 });
+
+test('0.13.0 코드네임 연출은 따로 산다', () => {
+  const s = { gems: 100 }; P.clean(s);
+  assert.equal(P.fxOn(s, 'tiger'), false);
+  P.buyFx(s, 'tiger'); assert.equal(s.gems, 100 - P.FX_GEMS); assert.equal(P.fxOn(s, 'tiger'), true);
+  assert.throws(() => P.buyFx(s, 'tiger'), { code: 'ALREADY' }); assert.throws(() => P.buyFx(s, 'corgi'), { code: 'NOT_ENOUGH' }); assert.throws(() => P.buyFx(s, 'nope'), { code: 'BAD_PET' });
+  P.clean(s); assert.equal(P.fxOn(s, 'tiger'), true);
+});

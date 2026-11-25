@@ -154,7 +154,7 @@
     var m = /^([a-z0-9]+):([crhl])$/.exec(k || '');
     return m && BY_ID[m[1]] ? { id: m[1], g: m[2] } : null;
   }
-  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, bgs: { office: true }, bg: 'office', free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
+  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, bgs: { office: true }, bg: 'office', fx: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
   function int(v, def, min, max) {
     if (typeof v !== 'number' || !isFinite(v)) return def;
     v = Math.floor(v);
@@ -189,6 +189,7 @@
     var bo = d.bgs && typeof d.bgs === 'object' ? d.bgs : {};   // 0.12.0 파트너 배경
     BGS.forEach(function (b) { if (bo[b.id] === true) p.bgs[b.id] = true; });
     p.bg = typeof d.bg === 'string' && p.bgs[d.bg] ? d.bg : 'office';
+    var fxo = d.fx && typeof d.fx === 'object' ? d.fx : {}; Object.keys(fxo).forEach(function (k) { if (fxo[k] === true && /^[a-z0-9]+$/.test(k)) p.fx[k] = true; });
     var wr = d.wear && typeof d.wear === 'object' ? d.wear : {};
     Object.keys(wr).forEach(function (k) { if (parse(k) && p.own[k] && p.closet[wr[k]]) p.wear[k] = wr[k]; });
     // 0.8.4 누아르 각성: 켠 동물(noir) · 각성이 열린 걸 이미 알려 준 동물(noirSeen). 조건이 안 되는 키는 버린다
@@ -211,6 +212,16 @@
   function codename(id) { return CODENAME[id] || ''; }
   function canNoirP(p, k) { var x = parse(k); return !!(x && p.own[k] && (x.g === 'l' || p.own[k] >= STAR_MAX)); }
   function canNoir(save, k) { return canNoirP(P(save), k); }
+  /* 0.13.0 코드네임 그림 연출(움직임)은 따로 판다. 기본 그림은 효과가 없다. 종류마다 한 번 사면 그 동물의 모든 등급 · 장면에 켜진다 */
+  var FX_GEMS = 80;
+  function fxOn(save, id) { return !!P(save).fx[id]; }
+  function buyFx(save, id) {
+    var p = P(save);
+    if (!BY_ID[id] && !(LIMITED || []).some(function (x) { return x.id === id; })) throw PetError('BAD_PET', '모르는 파트너');
+    if (p.fx[id]) throw PetError('ALREADY', '이미 있다');
+    if (!(save.gems >= FX_GEMS)) throw PetError('NOT_ENOUGH', '배지가 모자란다');
+    save.gems -= FX_GEMS; p.fx[id] = true; return id;
+  }
   function noirOn(save, k) { var p = P(save); return !!(p.noir[k] && canNoirP(p, k)); }
   /** 코드네임 그림의 장면: 'a' 사무실, 'b' 현장 */
   function noirScene(save, k) { return P(save).noir[k] === 'b' ? 'b' : 'a'; }
@@ -630,7 +641,7 @@
     codename: codename, CODENAME: CODENAME,
     UPCOMING: UPCOMING, BGS: BGS, BG_BY: BG_BY, buyBg: buyBg, useBg: useBg, bgNow: bgNow,
     LIMITED: LIMITED, grantLimited: grantLimited,
-    canNoir: canNoir, noirOn: noirOn, noirScene: noirScene, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
+    FX_GEMS: FX_GEMS, fxOn: fxOn, buyFx: buyFx, canNoir: canNoir, noirOn: noirOn, noirScene: noirScene, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,
     STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, MAX_PULL: MAX_PULL, gemCost: gemCost, maxPull: maxPull, WELCOME: WELCOME, CAPS: CAPS,
     key: key, parse: parse, clean: clean, rates: rates, effectiveLegend: effectiveLegend, rollGrade: rollGrade, pull: pull, grant: grant, swap: swap, equip: equip,

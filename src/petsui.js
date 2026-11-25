@@ -16,7 +16,13 @@
   /* 0.8.4 누아르 각성 그림. 켜진 동물이면 초상(파트너 카드 · 도감 자세히)을 누아르로. 표정·의상은 귀여운 그림에만 있다 */
   function noirArt() { return root.Team3NoirArt; }
   function isNoir(k) { return !!(noirArt() && k && P.noirOn(S(), k)); }
-  function portrait(k, x, o) { return isNoir(k) ? '<span class="noir-pic' + (o && o.anim ? ' noir-anim' : '') + '">' + noirArt().draw(x.id, { grade: x.g, scene: P.noirScene(S(), k) }) + '</span>' : A.draw(x.id, o); }
+  // 0.13.0 코드네임 그림은 기본이 멈춘 그림. 연출을 산 동물만 큰 그림(anim)에서 움직인다(data-fx + 그림판)
+  function portrait(k, x, o) {
+    if (!isNoir(k)) return A.draw(x.id, o);
+    var sc = P.noirScene(S(), k), N = noirArt(), fk = N.has(x.id, sc) ? x.id + '_' + sc : N.has(x.id, 'a') ? x.id + '_a' : x.id, fx = !!(o && o.anim && P.fxOn(S(), x.id));
+    if (fx) setTimeout(fxStart, 0);
+    return '<span class="noir-pic' + (fx ? ' fxon' : '') + '"' + (fx ? ' data-fx="' + fk + '"' : '') + '>' + N.draw(x.id, { grade: x.g, scene: sc }) + (fx ? '<canvas></canvas>' : '') + '</span>';
+  }
   if (!P || !A) return;
   var $ = function (id) { return document.getElementById(id); };
   function fmt(n) { return Math.floor(n).toLocaleString('ko-KR'); }
@@ -74,6 +80,32 @@
    *   종류: 비(골목 · 네온) · 안개와 등대 빛(부두) · 형광등 깜빡임(면통실) · 눈 · 별과 별똥별(옥상) · 빛줄기와 금가루(황금 무대) · 지나가는 차 불빛과 먼지(사무실)
    *   화면에 보이는 .pet-bg canvas 만 그리고, 하나도 없으면 멈춘다. "움직임 줄이기"면 한 장만 그린다.
    */
+  /* 0.13.0 코드네임 연출: 그림마다 찾아 둔 불빛 자리(Team3NoirHot)에서 등 · 경광등이 번지고, 날씨(비 · 눈 · 실내 먼지)가 앞에 내린다.
+   *   카드는 1초마다 다시 그려져 그림판이 새로 생기므로 입자는 그림 이름별로 따로 들고 있는다(NP). */
+  var NP = {};
+  function nfxDraw(cv, t, dt) {
+    var key = cv.parentNode.getAttribute('data-fx'), H = (root.Team3NoirHot || {})[key] || { w: 'in', h: [] }, w = cv.clientWidth, h = cv.clientHeight, dpr = Math.min(2, root.devicePixelRatio || 1), i, o;
+    if (!w || !h) return false;
+    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    var st = NP[key]; if (!st) { st = NP[key] = { a: [], d: [], flash: 0, next: 5 }; for (i = 0; i < 46; i++) st.a.push({ x: rnd(-0.2, 1.2), y: rnd(0, 1), z: Math.random() }); for (i = 0; i < 34; i++) st.d.push({ x: rnd(0, 1), y: rnd(0, 1), z: Math.random(), p: rnd(0, 6.3) }); }
+    var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h); c.globalCompositeOperation = 'lighter';
+    for (i = 0; i < H.h.length; i++) { o = H.h[i]; var x = o[0] * w, y = o[1] * h;
+      if (o[2] === 'w') glow(c, x, y, w * 0.3, 'rgba(255,200,130,A)', (Math.sin(t * 37 + i * 9) > 0.985 ? 0.12 : 0.4) * (0.75 + 0.25 * Math.sin(t * 1.7 + i * 2.1)));
+      else if (o[2] === 'r') glow(c, x, y, w * 0.34, 'rgba(255,40,70,A)', 0.55 * Math.max(0, Math.sin(t * 6)));
+      else glow(c, x, y, w * 0.34, 'rgba(70,110,255,A)', 0.55 * Math.max(0, Math.sin(t * 6 + 3.14))); }
+    if (H.w === 'rain') {
+      st.next -= dt; if (st.next < 0) { st.flash = 1; st.next = rnd(6, 12); }
+      if (st.flash > 0) { c.fillStyle = 'rgba(215,205,255,' + (0.3 * st.flash) + ')'; c.fillRect(0, 0, w, h); st.flash -= dt * 2.4; }
+      c.lineCap = 'round';
+      for (i = 0; i < st.a.length; i++) { o = st.a[i]; var sp = 0.9 + o.z * 1.5; o.y += sp * dt; o.x -= sp * dt * 0.16; if (o.y > 1.1) { o.y = -0.15; o.x = rnd(-0.1, 1.3); }
+        var L = (0.05 + o.z * 0.1) * h; c.strokeStyle = 'rgba(210,222,255,' + (0.14 + o.z * 0.26) + ')'; c.lineWidth = 0.5 + o.z; c.beginPath(); c.moveTo(o.x * w, o.y * h); c.lineTo(o.x * w - L * 0.16, o.y * h + L); c.stroke(); }
+    } else if (H.w === 'snow') {
+      for (i = 0; i < st.d.length; i++) { o = st.d[i]; o.y += (0.03 + o.z * 0.12) * dt; if (o.y > 1.05) { o.y = -0.05; o.x = rnd(0, 1); } c.fillStyle = 'rgba(255,255,255,' + (0.4 + o.z * 0.5) + ')'; c.beginPath(); c.arc((o.x + Math.sin(t * 0.8 + o.p) * 0.02) * w, o.y * h, 0.6 + o.z * 2.2, 0, 6.3); c.fill(); }
+    } else {
+      for (i = 0; i < st.d.length; i++) { o = st.d[i]; o.y -= (0.006 + o.z * 0.012) * dt; if (o.y < 0) o.y = 1; c.fillStyle = 'rgba(255,228,185,' + (0.2 + 0.25 * Math.sin(t * 1.3 + o.p)) + ')'; c.beginPath(); c.arc((o.x + Math.sin(t * 0.4 + o.p) * 0.015) * w, o.y * h, 0.5 + o.z * 1.1, 0, 6.3); c.fill(); }
+    }
+    return true;
+  }
   var fxOn = false, fxT0 = 0;
   function rnd(a, b) { return a + Math.random() * (b - a); }
   function fxInit(k, w, h) {
@@ -144,6 +176,8 @@
       if ((skip ^= 1)) { requestAnimationFrame(loop); return; }   // 0.12.7 초당 30장만 그린다(발열)
       var cvs = document.querySelectorAll('.pet-bg > canvas'), any = false, t = (ms || 0) / 1000, dt = last ? Math.min(0.08, t - last) : 0.033; last = t;
       for (var i = 0; i < cvs.length; i++) if (cvs[i].offsetParent !== null && !cvs[i].parentNode.hidden) { if (calm && cvs[i]._still) { any = true; continue; } if (fxDraw(cvs[i], calm ? 3 : t, calm ? 0 : dt)) { any = true; cvs[i]._still = true; } }
+      var ncv = calm ? [] : document.querySelectorAll('.noir-pic[data-fx] > canvas');   // 0.13.0 코드네임 연출
+      for (i = 0; i < ncv.length; i++) if (ncv[i].offsetParent !== null && nfxDraw(ncv[i], t, dt)) any = true;
       if (any) requestAnimationFrame(loop); else fxOn = false;   // 0.12.7 보이는 판이 없으면 완전히 멈춘다(전에는 다른 탭에서도 매 장 돌았다)   // 판이 하나도 없으면 멈춘다(다시 그릴 때 fxStart 가 켠다)
     })(0);
   }
@@ -567,7 +601,8 @@
         (N.has && N.has(x.id, 'b')
           ? '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on && P.noirScene(S(), detailKey) === 'a' ? 'on' : '') + '" data-noir="1">사무실</button><button class="' + (on && P.noirScene(S(), detailKey) === 'b' ? 'on' : '') + '" data-noir="b">현장</button></div>'
           : '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on ? 'on' : '') + '" data-noir="1">코드네임</button></div>') +
-        (on ? '<small class="muted">코드네임일 땐 의상이 안 보여요, 상황실 안에서는 본명 모습 그대로예요</small>' : '') + '</div>';
+        (on ? '<small class="muted"><span class="ln">코드네임일 땐 의상이 안 보여요</span><span class="ln">상황실 안에서는 본명 모습 그대로예요</span></small>' : '') +
+        (P.fxOn(S(), x.id) ? '<div class="pn-fx own"><b>움직이는 연출</b><span>보유</span></div>' : '<div class="pn-fx"><b>움직이는 연출</b><small>비, 불빛, 카메라가 움직여요</small><button class="primary" data-fxbuy="' + x.id + '">' + ic('gem') + P.FX_GEMS + '</button></div>') + '</div>';
     }
     return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, size: 56 }) + '<i>' + LOCK + '</i></span>' +
       '<span class="pn-tx"><b>코드네임 <em>???</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : '★5가 되면 받아요, 현재 ★' + st) + '</small></span></div>';
@@ -697,6 +732,14 @@
       else if (t.hasAttribute('data-noircl')) {
         var onC = t.getAttribute('data-noircl') === '1';
         if (P.setNoir(S(), pets().eq, onC)) { ctx.persist(); renderPartner(); draw(); ctx.render(); if (onC) toast('코드네임 ' + P.codename(P.parse(pets().eq).id) + ', 임무 시작'); }
+      }
+      else if (t.hasAttribute('data-fxbuy')) {   // 0.13.0 연출 사기(확인 창)
+        var fid = t.getAttribute('data-fxbuy');
+        if (!(S().gems >= P.FX_GEMS)) { toast('배지가 모자라요'); return; }
+        ctx.UI.confirmBuy({ title: '움직이는 연출을 살까요?', body: '<span class="ln">이 파트너의 코드네임 그림이 움직여요.</span><span class="ln">한 번 사면 계속 써요.</span>', cost: ic('gem') + P.FX_GEMS, onOk: function () {
+          try { P.buyFx(S(), fid); ctx.persist(); toast('연출을 샀어요'); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } } catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '살 수 없어요'); }
+          renderPartner(); drawDetail(); ctx.render();
+        } });
       }
       else if (t.hasAttribute('data-noir')) {
         var onN = t.getAttribute('data-noir') === 'b' ? 'b' : t.getAttribute('data-noir') === '1';

@@ -1743,6 +1743,30 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 .pet-cell .noir-pic{border-radius:7px;box-shadow:none}
 /* 0.12.9 발열: 흐림(blur)이 걸린 큰 안개 층은 한 번만 그려 두고 옮기기만 한다 */
 .fog2,.fogbank{will-change:transform}
+/* 0.13.0 현장 메모 · 단서 금고 */
+.ev-m{position:absolute;width:44px;height:36px;margin:-18px 0 0 -22px;border:0;border-radius:3px;font-family:inherit;font-size:10px;font-weight:900;color:#3A2A08;background:#F6E27A;box-shadow:1px 2px 0 rgba(0,0,0,.35);transform:rotate(-5deg);padding:0;z-index:1}
+.ev-m.shut{display:none}
+.ev-m.can{box-shadow:0 0 0 2px #7FE0A0,1px 2px 0 rgba(0,0,0,.35)}
+.ev-m.can.poor{background:#8E7B52;color:#E8DCC0;box-shadow:1px 2px 0 rgba(0,0,0,.35)}
+.ev-m.open{background:#BFF0C8;color:#0D4D22}
+.ev-m.sel{outline:3px solid #7FD3FF;outline-offset:2px}
+.ev-vaultbtn{top:72px;color:#DFF4FF}.ev-vaultbtn.can{box-shadow:inset 0 0 0 1.5px #7FE0A0}
+@media (max-height:700px){.ev-vaultbtn{top:66px}}
+@media (max-height:700px){.ev-vnote{display:none !important}.ev-vp .ev-info.evc{max-height:78%}}
+.ev-vnote{display:block;font-size:11.5px;color:var(--muted);margin:0 2px}
+.ev-repick{top:42px}
+/* 0.13.0 코드네임 연출(따로 사는 움직임) */
+.noir-pic{position:relative}
+.noir-pic.fxon>canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;border-radius:inherit}
+.noir-pic.fxon svg image{transform-box:fill-box;transform-origin:50% 40%;animation:nzcam 14s ease-in-out infinite alternate}
+@keyframes nzcam{0%{transform:scale(1.03) translate(-1%,.6%)}50%{transform:scale(1.08) translate(.8%,-.5%)}100%{transform:scale(1.13) translate(-.3%,-1.2%)}}
+@media (prefers-reduced-motion:reduce){.noir-pic.fxon svg image{animation:none}}
+.pn-fx{display:flex;align-items:center;gap:8px;margin-top:4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+.pn-fx b{font-size:13px;white-space:nowrap}.pn-fx small{flex:1;font-size:11.5px;color:var(--muted)}.pn-fx.own span{margin-left:auto;font-size:12px;font-weight:800;color:#7FE0A0}
+.pn-fx button{flex:none;height:36px;padding:0 12px;border-radius:10px;font-size:14px;font-weight:900;display:inline-flex;align-items:center;gap:3px}
+/* 0.13.1 설명 글 줄 맞춤: 낱말 중간에서 끊지 않고, 줄 길이를 고르게 나눠 마지막 줄에 한두 낱말만 남지 않게. 문장마다 줄을 바꾸는 곳은 .ln */
+small,p,.muted,.tx small,.cf-b,.pet-desc,.bgp-info small,.ev-vnote,.pn-fx small,.d-mid small,.item .tx small{text-wrap:balance}
+.ln{display:block}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}

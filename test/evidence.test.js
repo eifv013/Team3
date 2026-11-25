@@ -136,3 +136,22 @@ test('0.12.0 갈림길: 짝은 하나만, 재수사 뒤에만 무료로 바꾸�
   s.evid.own.print = true; Ev.clean(s); assert.equal(Object.keys(s.evid.own).filter(k => Ev.slotOf(k) === 'print').length, 1, '짝 둘 다는 못 가진다');
   assert.equal(Ev.bonus(s).runHit, 0); assert.ok('keep' in Ev.bonus(s) && 'capUp' in Ev.bonus(s));
 });
+
+test('0.13.0 단서 금고 · 기록 갱신 · 현장 메모', () => {
+  const s = { money: 1e7 }; Ev.clean(s);
+  assert.equal(Ev.MEMOS.length, 12); assert.equal(Ev.vaultCost(s), 100000);
+  s.evid.runEarned = 20000 * 1000;   // 기본 단서 10
+  assert.equal(Ev.gainNow(s), 10);
+  Ev.buyVault(s); Ev.buyVault(s); assert.equal(s.money, 1e7 - 100000 - 300000); assert.equal(Ev.cluePct(s).vault, 10); assert.equal(Ev.gainNow(s), 11);
+  s.evid.vault = 10; assert.equal(Ev.vaultCost(s), null); assert.throws(() => Ev.buyVault(s), { code: 'MAX' }); assert.equal(Ev.gainNow(s), 15);
+  assert.equal(Ev.recordPct(s), 0, '첫 재수사는 기록 없음');
+  s.evid.best = 20000 * 1000 / 4; assert.equal(Ev.recordPct(s), 20); s.evid.best = 1; assert.equal(Ev.recordPct(s), 30, '최대 30%');
+  assert.equal(Ev.gainNow(s), 18);
+  // 메모
+  assert.equal(Ev.memoState(s, 'm_print'), 'shut'); assert.throws(() => Ev.buyMemo(s, 'm_print'), { code: 'LOCKED' });
+  s.evid.clues = 9; s.evid.retreats = 1; Ev.buyCard(s, 'tip');
+  assert.equal(Ev.memoState(s, 'm_print'), 'can'); const m0 = s.money; assert.equal(Ev.buyMemo(s, 'm_print'), 30000); assert.equal(s.money, m0 - 30000);
+  assert.equal(Ev.memoCost(s), 75000); assert.equal(Ev.bonus(s).pay - Ev.effects(s).pay - Ev.careerPct(s), 3);
+  Ev.clean(s); assert.equal(Ev.memoCount(s), 1, '저장 왕복');
+  const g = Ev.gainNow(s); const r = Ev.retreat(s, {}); assert.equal(r.gain, g); assert.equal(Ev.memoCount(s), 0, '재수사하면 메모는 사라진다'); assert.equal(s.evid.best, 20000 * 1000); assert.equal(s.evid.vault, 10);
+});

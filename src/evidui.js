@@ -159,12 +159,13 @@
       '<div class="ev-vp" id="ev-vp"><div class="ev-world" id="ev-world"><svg class="ev-str2" id="ev-str" viewBox="0 0 2000 2000"></svg></div>' +
         '<div class="ev-hud"><span>🔍 단서 <b id="ev-left"></b></span><span id="ev-count"></span></div>' +
         '<div class="ev-info" id="ev-info"></div>' +
-        '<button class="ev-effbtn" id="ev-effbtn">적용 중인 효과</button>' +
+        '<button class="ev-effbtn" id="ev-effbtn">적용 중인 효과</button><button class="ev-effbtn ev-vaultbtn" id="ev-vaultbtn"></button>' +
         '<button class="ev-repick" id="ev-repick" hidden><b>⇄ 다시 고르는 중</b><em>확정</em></button>' +
         '<div class="ev-zoom"><button id="ev-zi" aria-label="확대">+</button><button id="ev-zo" aria-label="축소">−</button><button id="ev-zc" aria-label="가운데로">◎</button></div></div>' +
       '<div class="ev-locks" id="ev-locks" hidden></div>';   // 0.10.8 효과 합계는 가운데 사건 파일을 누르면 나온다   // 0.10.2 아래 묶음 안내 칩은 뺐다(잠긴 칸 자체에 조건이 보인다)
     var w = $('ev-world'), h = '';
     Object.keys(Ev.NODE).forEach(function (k) { var n = Ev.NODE[k]; h += '<button class="' + (k === 'core' ? 'ev-core' : 'ev-n') + '" data-k="' + k + '" style="left:' + n.x + 'px;top:' + n.y + 'px;--r:' + n.rot + 'deg' + (k === 'core' ? '' : ';--c:' + Ev.COLOR[Ev.BY_ID[k].color].hex) + '"></button>'; });
+    Ev.MEMOS.forEach(function (m) { h += '<button class="ev-m" data-m="' + m.id + '" style="left:' + m.x + 'px;top:' + m.y + 'px" aria-label="현장 메모"></button>'; });   // 0.13.0 현장 메모
     w.insertAdjacentHTML('beforeend', h);
     bindPan();
     built = true;
@@ -194,6 +195,10 @@
       else if ((o0 && Ev.state(s, ed[1]) !== 'shut') || (o1 && Ev.state(s, ed[0]) !== 'shut')) h += '<path class="hint" d="' + d + '"/>';
     });
     $('ev-str').innerHTML = h; fresh = {};
+    // 0.13.0 현장 메모 · 단서 금고 단추
+    var mc = Ev.memoCost(s), ms = document.querySelectorAll('#ev-world .ev-m');
+    for (var mi = 0; mi < ms.length; mi++) { var mk = ms[mi].getAttribute('data-m'), mst = Ev.memoState(s, mk), mcl = 'ev-m ' + mst + (mst === 'can' && s.money < mc ? ' poor' : '') + (mk === sel ? ' sel' : ''); if (ms[mi].className !== mcl) ms[mi].className = mcl; var mt = mst === 'open' ? '+' + Ev.MEMO.pct + '%' : mst === 'can' ? '메모' : ''; if (ms[mi].textContent !== mt) ms[mi].textContent = mt; }
+    var vb = $('ev-vaultbtn'); if (vb) { var vt = '단서 금고 ' + e.vault + ' / ' + Ev.VAULT.max; if (vb.textContent !== vt) vb.textContent = vt; var vc = Ev.vaultCost(s); vb.classList.toggle('can', vc != null && s.money >= vc); }
     // 자리
     var els = $('ev-world').querySelectorAll('[data-k]');
     for (var i = 0; i < els.length; i++) {
@@ -230,6 +235,20 @@
         '<div class="ev-lg-rule"><span>2장 <b>×1.5</b></span><span>3장 <b>×2</b></span><span>5장 <b>×2.5</b></span></div>' +
         '<div class="ev-lg-cols">' + ['r', 'b', 'y', 'g'].map(function (c) { return '<span><i class="dot" style="background:' + Ev.COLOR[c].hex + '"></i>' + Ev.COLOR[c].name + '</span>'; }).join('') + '</div>' +
         '<small>' + (gs.length ? '현재 묶음: ' + gs.map(function (g) { return Ev.COLOR[g.color].name.split(',')[0] + ' ' + g.ids.length + '장 ×' + g.mult; }).join(', ') : '색은 증거의 종류예요. 효과는 증거마다 따로 적혀 있어요.') + '</small></div>';
+      return;
+    }
+    if (sel === 'vault') {   // 0.13.0 단서 금고
+      var cp = Ev.cluePct(s), vc0 = Ev.vaultCost(s), chip = function (n, v, mx) { return '<span class="ev-chip">' + n + ' <b>+' + v + '%</b> / ' + mx + '%</span>'; };
+      box.innerHTML = '<div class="ev-opt on"><div class="tx"><b>단서 금고 ' + s.evid.vault + ' / ' + Ev.VAULT.max + '</b><small><span class="ln">단계마다 재수사 단서 +' + Ev.VAULT.pct + '%</span><span class="ln">재수사해도 남아요</span></small></div>' +
+        '<button class="ev-act up" data-vault="1"' + (vc0 != null && s.money >= vc0 ? '' : ' disabled') + '>' + (vc0 == null ? '<span>최고 단계</span>' : '<span>올리기</span><b>' + ic('money') + fmtShort(vc0) + '</b>') + '</button></div>' +
+        '<div class="ev-eff-sum">' + chip('증거', cp.card, 100) + chip('금고', cp.vault, Ev.VAULT.max * Ev.VAULT.pct) + chip('기록 갱신', cp.record, Ev.RECORD.max) + '</div>' +
+        '<small class="ev-vnote"><span class="ln">기록 갱신은 이번 수사비가</span><span class="ln">지난 최고 기록의 두 배가 될 때마다 +' + Ev.RECORD.per + '%</span></small>';
+      return;
+    }
+    if (/^m_/.test(sel)) {   // 0.13.0 현장 메모
+      var mst2 = Ev.memoState(s, sel), mc2 = Ev.memoCost(s), at = Ev.BY_ID[Ev.chosen(s, Ev.MEMOS.filter(function (m) { return m.id === sel; })[0].at) || Ev.MEMOS.filter(function (m) { return m.id === sel; })[0].at];
+      box.innerHTML = '<div class="ev-opt' + (mst2 === 'open' ? ' on' : '') + '"><div class="tx"><b>현장 메모 ' + Ev.memoCount(s) + ' / ' + Ev.MEMOS.length + '</b><small><span class="ln">수사비와 팀 수입 +' + Ev.MEMO.pct + '%</span><span class="ln">재수사하면 사라져요</span>' + (mst2 === 'shut' ? '<span class="ln">' + esc(at.name) + ' 자리를 먼저 열어야 해요</span>' : '') + '</small></div>' +
+        (mst2 === 'open' ? '<span class="ev-note">붙였어요</span>' : '<button class="ev-act" data-memo="' + sel + '"' + (mst2 === 'can' && s.money >= mc2 ? '' : ' disabled') + '><span>붙이기</span><b>' + ic('money') + fmtShort(mc2) + '</b></button>') + '</div>';
       return;
     }
     var st = Ev.state(s, sel);
@@ -306,8 +325,8 @@
         var ox = start.overX; delete pts[e.pointerId]; snap(); root.Team3MenuUI.step(ox > 0 ? -1 : 1); return;
       }
       if (pts[e.pointerId] && !moved && e.type === 'pointerup') {
-        var el = document.elementFromPoint(e.clientX, e.clientY), b = el && el.closest && el.closest('#ev-world [data-k]');
-        if (b) { sel = b.getAttribute('data-k'); try { ctx.UI.sfx.tap(); } catch (x) { /* 무시 */ } draw(); }
+        var el = document.elementFromPoint(e.clientX, e.clientY), b = el && el.closest && el.closest('#ev-world [data-k], #ev-world [data-m]');
+        if (b) { sel = b.getAttribute('data-k') || b.getAttribute('data-m'); try { ctx.UI.sfx.tap(); } catch (x) { /* 무시 */ } draw(); }
         else if (sel && !(el && el.closest && el.closest('.ev-info, .ev-zoom'))) { sel = null; draw(); }   // 0.10.8 빈 곳을 누르면 아래 카드가 내려간다
       }
       delete pts[e.pointerId]; snap();
@@ -317,6 +336,7 @@
     $('ev-zi').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(1.25, r.width / 2, r.height / 2); });
     $('ev-zo').addEventListener('click', function () { var r = vp.getBoundingClientRect(); zoomAt(0.8, r.width / 2, r.height / 2); });
     $('ev-zc').addEventListener('click', function () { center(fitS()); });
+    $('ev-vaultbtn').addEventListener('click', function () { sel = 'vault'; draw(); });
     $('ev-effbtn').addEventListener('click', function () { if (!Ev.coreOpen(S())) { toast('재수사하면 열려요'); return; } sel = 'core'; draw(); });
   }
   // 0.8.0 증거판은 아래 메뉴 '증거' 탭 안에 있다(창이 아니다). open = 그 탭으로 옮기고 다시 그리기
@@ -331,6 +351,14 @@
         Ev.EDGES.forEach(function (ed) { if ((ed[0] === sl && Ev.opened(s, ed[1])) || (ed[1] === sl && Ev.opened(s, ed[0]))) fresh[ed.join('-')] = 1; });
         toast(c.name + ' — 이어졌어요!'); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } ctx.render(); }
       catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '단서가 모자라요' : e3.code === 'NOT_LINKED' ? '열린 증거와 이어진 칸만 열 수 있어요' : '열 수 없어요'); }
+      draw(); return;
+    }
+    if ((t = e.target.closest('[data-vault]'))) {
+      try { Ev.buyVault(s); ctx.persist(); toast('단서 금고 ' + s.evid.vault + '단계'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { toast(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '올릴 수 없어요'); }
+      draw(); return;
+    }
+    if ((t = e.target.closest('[data-memo]'))) {
+      try { Ev.buyMemo(s, t.getAttribute('data-memo')); ctx.persist(); toast('현장 메모를 붙였어요'); try { ctx.UI.sfx.coin(); } catch (e8) { /* 무시 */ } ctx.render(); } catch (e9) { toast(e9.code === 'NO_MONEY' ? '수사비가 모자라요' : '붙일 수 없어요'); }
       draw(); return;
     }
     if ((t = e.target.closest('[data-swap]'))) {   // 0.12.0 다시 고르기(재수사 뒤)
