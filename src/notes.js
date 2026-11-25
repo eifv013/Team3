@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.7', date: '2026-11-25', title: '배경 단추',
+      items: [
+        '배경 단추와 배경 창의 글을 "배경 1 / 8"처럼 짧게 줄였어요.'
+      ] },
     { ver: '0.13.6', date: '2026-11-25', title: '재화 안내와 코드네임 미리 보기',
       items: [
         '매점과 파트너 창의 배지, 뽑기권, 간식을 누르면 얻는 곳, 사는 곳, 쓰는 곳을 알려 줘요.',

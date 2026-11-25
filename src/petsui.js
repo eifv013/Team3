@@ -53,7 +53,7 @@
     box.style.setProperty('--gc', g.color);
     var eff = P.describe(P.eqEffect(x.id, x.g, st)), bd = P.bondOf(S(), p.eq);
     // 0.4.1 무대: 등급 빛(영웅 · 전설은 도는 후광) · 바닥 그림자 · 전설 반짝이. 버튼 안에는 그림만(act 가 갈아 끼운다)
-    setCard(box, '<button class="pet-bgbtn" id="h-pet-bgbtn"><i class="em">🖼️</i>배경 바꾸기<em>' + Object.keys(pets().bgs || {}).length + ' / ' + P.BGS.length + '</em></button>' +   // 0.12.0 파트너 배경
+    setCard(box, '<button class="pet-bgbtn" id="h-pet-bgbtn"><i class="em">🖼️</i>배경<em>' + Object.keys(pets().bgs || {}).length + ' / ' + P.BGS.length + '</em></button>' +   // 0.12.0 파트너 배경
       '<div class="pet-stage g-' + x.g + '" id="h-pet-stage" style="--gc:' + g.color + '"><i class="ps-aura" aria-hidden="true"></i><i class="ps-floor" aria-hidden="true"></i>' +
       (x.g === 'l' ? '<i class="ps-spark" aria-hidden="true"></i>' : '') +
       '<button class="pet-art' + (isNoir(p.eq) ? ' noir' : '') + '" id="h-pet-art" aria-label="' + esc(nm) + ' 쓰다듬기">' + portrait(p.eq, x, { grade: x.g, anim: true, outfit: P.wearing(S(), p.eq) }) + '</button></div>' +
@@ -743,10 +743,9 @@
     if (own) btn = p.bg === b.id ? '<button class="ghost" disabled>사용 중</button>' : '<button class="primary" data-bgact="use">이 배경 쓰기</button>';
     else btn = (b.treats ? '<button class="ghost" data-bgact="treats">' + ic('treat') + b.treats + '</button>' : '') + '<button class="primary" data-bgact="gems">' + ic('gem') + b.gems + '</button>';
     bgEl.innerHTML = '<div class="bgp-box" role="dialog" aria-modal="true" aria-label="파트너 배경">' +
-      '<div class="bgp-head"><b>파트너 배경</b><button class="bgp-w" data-cur="treat">' + ic('treat') + fmt(p.treats) + '</button><button class="bgp-w" data-cur="gem">' + ic('gem') + fmt(s.gems) + '</button><button class="bgp-x" data-bgact="x" aria-label="닫기">×</button></div>' +
+      '<div class="bgp-head"><b style="white-space:nowrap">배경 <em class="bgp-n">' + Object.keys(p.bgs || {}).length + ' / ' + P.BGS.length + '</em></b><button class="bgp-w" data-cur="treat">' + ic('treat') + fmt(p.treats) + '</button><button class="bgp-w" data-cur="gem">' + ic('gem') + fmt(s.gems) + '</button><button class="bgp-x" data-bgact="x" aria-label="닫기">×</button></div>' +
       '<div class="bgp-view pet-bg bg-' + b.id + '"><canvas data-k="' + b.id + '"></canvas>' + (x ? '<div class="bgp-pet">' + portrait(p.eq, x, { grade: x.g, outfit: P.wearing(s, p.eq) }) + '</div>' : '') + '</div>' +
       '<div class="bgp-info"><b>' + esc(b.name) + '</b><small>' + esc(b.desc) + '</small>' + (b.legend && own && !isL ? '<small class="warn">현재 파트너가 전설이 아니라서 사무실이 보여요.</small>' : '') + '</div>' +
-      '<div class="bgp-how"><span>가진 배경 ' + Object.keys(p.bgs || {}).length + ' / ' + P.BGS.length + '</span><span>그림을 눌러 미리 보기</span><span>사면 계속 써요</span></div>' +
       '<div class="bgp-grid">' + P.BGS.map(function (o) {
         return '<button class="bgp-cell bg-' + o.id + (o.id === b.id ? ' on' : '') + (p.bgs[o.id] ? '' : ' lock') + '" data-bg="' + o.id + '" aria-label="' + esc(o.name) + '">' +
           (p.bg === o.id ? '<i class="use">사용 중</i>' : !p.bgs[o.id] ? '<i class="lk">' + ic('gem') + o.gems + '</i>' : '') + (o.legend ? '<i class="lg">전설</i>' : '') + '</button>';
