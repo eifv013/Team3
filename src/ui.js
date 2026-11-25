@@ -625,10 +625,11 @@
     if (!game) return;
     var left = C.timeLeft(game, now());
     var sec = Math.ceil(left);
-    $('time').textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+    // 0.12.9 발열: 글자와 클래스는 값이 바뀔 때만 쓴다(전에는 매 장 다시 써서 화면을 계속 다시 그렸다)
+    if (sec !== lastSec) $('time').textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
     var fill = $('fill');
-    fill.style.transform = 'scaleX(' + Math.min(1, left / cfg.duration) + ')';
-    fill.classList.toggle('low', left <= 10);
+    fill.style.transform = 'scaleX(' + Math.min(1, left / cfg.duration).toFixed(3) + ')';
+    var low = left <= 10; if (fill._low !== low) { fill._low = low; fill.classList.toggle('low', low); }
     // 마지막 10초: 1초씩 줄어들 때만 시계 초침(0.6.0). 예전엔 "초가 바뀌면" 울려서, 검거(+초) · 오판(−초)으로
     // 초가 튀는 순간 판정 소리와 초침이 겹쳤다. 판정 직후 0.35초도 울리지 않는다.
     if (left <= 10 && sec > 0 && sec === lastSec - 1 && performance.now() > quietUntil) sfx.clock(left);

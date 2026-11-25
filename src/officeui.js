@@ -505,8 +505,12 @@
     var open = document.querySelector('.sheet-back:not([hidden])');
     return !open;
   }
-  function frame() {
+  // 0.12.9 발열: 상황실이 실제로 보일 때만, 초당 약 15번만 고친다
+  var fLast = 0;
+  function frame(ms) {
     raf = requestAnimationFrame(frame);
+    if (ms - fLast < 66) return; fLast = ms;
+    if (document.hidden || !box || box.offsetParent === null) return;
     if (!visible()) return;
     var s = S(), D = deskN(); if (!D) return;
     var now = Date.now(), n = ctx.idle.nextCatch(s, now), frac = Math.max(0, Math.min(1, n.frac)), k = ((s.teamCaught % D) + D) % D;
@@ -515,8 +519,8 @@
       var c = $('of-r' + i); if (!c) continue;
       var order = (i - k + D) % D, p = stream ? 1 : (frac + (D - 1 - order)) / D;
       if (D === 1) p = frac;
-      c.style.strokeDashoffset = String(56.55 * (1 - p));
-      var cup = $('of-cup' + i); if (cup) cup.classList.toggle('cool', OF.coffeeLeft(s, i, now) > 0);
+      var off = (56.55 * (1 - p)).toFixed(1); if (c._o !== off) { c._o = off; c.style.strokeDashoffset = off; }   // 값이 바뀔 때만 쓴다
+      var cup = $('of-cup' + i), cool = OF.coffeeLeft(s, i, now) > 0; if (cup && cup._c !== cool) { cup._c = cool; cup.classList.toggle('cool', cool); }
     }
     lastFrac = frac;
   }

@@ -65,10 +65,13 @@
     box.innerHTML = html;
   }
   // 막대: 화면이 보일 때 매 프레임(실제 수입은 연속 — 막대는 보여 주기용)
-  var t0 = Date.now();
-  function frame() {
+  // 0.12.9 발열: 부서 줄이 실제로 보일 때만, 초당 약 15번만 움직인다(전에는 어느 탭에서나 매 장 돌았다)
+  var t0 = Date.now(), fLast = 0;
+  function frame(ms) {
     requestAnimationFrame(frame);
-    var hub = $('s-hub'); if (!hub || !hub.classList.contains('on')) return;
+    if (ms - fLast < 66) return; fLast = ms;
+    if (document.hidden) return;
+    var dp = $('h-dept'); if (!dp || dp.offsetParent === null) return;
     var t = (Date.now() - t0) / 1000;
     var bars = document.querySelectorAll('#h-dept .d-bar:not(.fast) i');
     for (var i = 0; i < bars.length; i++) { var c = +bars[i].getAttribute('data-cyc'); if (c > 0) bars[i].style.transform = 'scaleX(' + ((t % c) / c).toFixed(3) + ')'; }
