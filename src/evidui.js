@@ -69,7 +69,7 @@
   var t0 = Date.now(), fLast = 0;
   function frame(ms) {
     requestAnimationFrame(frame);
-    if (ms - fLast < 66) return; fLast = ms;
+    if (ms - fLast < 32) return; fLast = ms;   // 0.13.4 초당 30번(15번은 끊겨 보였다)
     if (document.hidden) return;
     var dp = $('h-dept'); if (!dp || dp.offsetParent === null) return;
     var t = (Date.now() - t0) / 1000;
