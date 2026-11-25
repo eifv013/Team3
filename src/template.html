@@ -1706,7 +1706,9 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 #t-pets .pet-card .pet-bg,.bgp-view.pet-bg{display:block;background-color:#141A26;background-size:cover;background-position:center;overflow:hidden}
 #t-pets .pet-card .pet-bg{position:absolute;left:0;right:0;top:0;aspect-ratio:3/2}
 #t-pets .pet-card .pet-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,20,.25),transparent 30%,transparent 78%,var(--panel) 100%);z-index:2}
-#t-pets .pet-card .pet-stage{transform:scale(1.25);margin:120px 0 30px;margin-top:calc((100cqw + 28px) * .6 - 108px)}
+/* 0.12.6 크게 보이게 할 때 transform:scale 로 늘리지 않는다(그림이 작은 크기로 그려진 뒤 늘어나 뭉개졌다) — 실제 크기를 키운다 */
+#t-pets .pet-card .pet-stage{transform:none;width:120px;height:120px;margin:108px 0 18px;margin-top:calc((100cqw + 28px) * .6 - 120px)}
+#t-pets .pet-card .pet-stage .pet-art{width:110px;height:110px;border-radius:25px}
 #t-pets .pet-card .pet-tx{position:relative;z-index:3}
 #t-pets .pet-card .pet-empty{margin-top:16px}
 #t-pets .pet-card .pet-bubble{z-index:5;left:84px;right:84px;max-width:calc(100% - 168px)}   /* 0.12.2 말풍선은 원래대로 그림 위쪽 가운데(배경 단추를 피해서) */
@@ -1736,6 +1738,7 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 .pet-dex-soon{margin:14px 2px 6px;font-size:12.5px;font-weight:800;color:var(--muted)}.pet-dex-soon b{color:var(--acc)}
 .pet-cell.soon{display:flex;align-items:center;justify-content:center;border-style:dashed;background:#1C2029;color:#5A6272;font-size:20px;font-weight:900}
 .pet-dex-row.soon .pet-dex-name b{color:#8F98A8;letter-spacing:1px}
+.pet-cell .noir-pic{border-radius:7px;box-shadow:none}
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}

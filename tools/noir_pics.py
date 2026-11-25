@@ -14,8 +14,8 @@ for n in names:
         continue
     im = Image.open(os.path.join(SRC, n)).convert('RGB')
     w, h = im.size; s = min(w, h)
-    im = im.crop(((w - s) // 2, (h - s) // 2, (w - s) // 2 + s, (h - s) // 2 + s)).resize((320, 320), Image.LANCZOS)
-    b = io.BytesIO(); im.save(b, 'WEBP', quality=75, method=6)
+    im = im.crop(((w - s) // 2, (h - s) // 2, (w - s) // 2 + s, (h - s) // 2 + s)).resize((640, 640), Image.LANCZOS)   # 0.12.6 320 → 640: 휴대폰 화면(3배 밀도)에서 뭉개져 보였다
+    b = io.BytesIO(); im.save(b, 'WEBP', quality=80, method=6)
     out[n[:-4]] = 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode()
 js = """/*
  * Team3NoirPics(0.8.6) — 코드네임 초상 그림(그림 도구로 뽑은 그림, 320×320 webp).

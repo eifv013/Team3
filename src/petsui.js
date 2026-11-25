@@ -503,7 +503,7 @@
       html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + ', 한정</small></span>' +
         '<span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span>' +
         '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE.l.color + '" aria-label="한정 전설 ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
-        A.draw(sp.id, { grade: 'l' }) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button></div>';
+        (st && isNoir(k) ? portrait(k, { id: sp.id, g: 'l' }, {}) : A.draw(sp.id, { grade: 'l' })) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button></div>';
     });
     // 0.9.2 새로 들어온 동물(since 가 큰 것)이 한정 줄 바로 아래 맨 위로
     P.SPECIES.map(function (sp, i) { return { sp: sp, i: i }; }).sort(function (a, b) { return (b.sp.since || 0) - (a.sp.since || 0) || a.i - b.i; }).forEach(function (o) {
@@ -512,7 +512,7 @@
         P.GRADES.map(function (g) {
           var k = P.key(sp.id, g), st = p.own[k];
           return '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE[g].color + '" aria-label="' + P.GRADE[g].name + ' ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
-            A.draw(sp.id, { grade: g }) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button>';
+            (st && isNoir(k) ? portrait(k, { id: sp.id, g: g }, {}) : A.draw(sp.id, { grade: g })) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button>';
         }).join('') + '</div>';
     });
     // 0.12.4 나올 예정인 파트너: 이름도 그림도 "???" (눌러도 아무 일 없음)
@@ -699,7 +699,7 @@
       }
       else if (t.hasAttribute('data-noir')) {
         var onN = t.getAttribute('data-noir') === 'b' ? 'b' : t.getAttribute('data-noir') === '1';
-        if (P.setNoir(S(), detailKey, onN)) { ctx.persist(); renderPartner(); drawDetail(); ctx.render(); if (onN) { toast('코드네임 ' + P.codename(P.parse(detailKey).id) + ', 임무 시작'); try { ctx.UI.sfx.none(); } catch (e11) { /* 무시 */ } } }
+        if (P.setNoir(S(), detailKey, onN)) { ctx.persist(); renderPartner(); drawDetail(); drawDex(); ctx.render(); if (onN) { toast('코드네임 ' + P.codename(P.parse(detailKey).id) + ', 임무 시작'); try { ctx.UI.sfx.none(); } catch (e11) { /* 무시 */ } } }
       }
       else if (t.id === 'pets-name') startNaming();
       else if (t.id === 'pets-tags') {

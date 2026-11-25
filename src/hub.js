@@ -202,8 +202,8 @@
     $('hm-case').textContent = '사건 ' + cs.no + ' ' + cs.title + ' ' + fmt(Math.min(save.caught, cs.goal)) + ' / ' + fmt(cs.goal);
     $('hm-fill').style.width = (I.progress(save) * 100).toFixed(1) + '%';
     var x = PT && save.pets && save.pets.eq ? PT.parse(save.pets.eq) : null, pe = $('hm-pet'), key = x ? save.pets.eq : '';
-    var nzK = key && PT.noirOn && PT.noirOn(save, key) ? key + '|n' : key;   // 0.8.4 각성이면 머리 사진도 누아르
-    if (pe.getAttribute('data-k') !== nzK) { pe.setAttribute('data-k', nzK); pe.innerHTML = !x ? '' : nzK !== key && window.Team3NoirArt ? window.Team3NoirArt.draw(x.id, { grade: x.g }) : window.Team3PetArt ? window.Team3PetArt.draw(x.id, { grade: x.g }) : ''; }
+    var nzK = key && PT.noirOn && PT.noirOn(save, key) ? key + '|n' + PT.noirScene(save, key) : key;   // 0.8.4 각성이면 머리 사진도 누아르
+    if (pe.getAttribute('data-k') !== nzK) { pe.setAttribute('data-k', nzK); pe.innerHTML = !x ? '' : nzK !== key && window.Team3NoirArt ? window.Team3NoirArt.draw(x.id, { grade: x.g, scene: PT.noirScene(save, key) }) : window.Team3PetArt ? window.Team3PetArt.draw(x.id, { grade: x.g }) : ''; }
   }
   function miniScroll() {
     var hub = $('s-hub'), m = $('h-mini'), money = $('h-money'); if (!hub || !m || !money) return;
