@@ -100,7 +100,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .card .t{position:absolute;top:6px;left:6px;width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center}
 .card .m{position:absolute;bottom:6px;right:6px;width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;z-index:1}
 .card .fig{position:absolute;left:50%;bottom:0;width:84%;transform:translateX(-50%)}
-.card.sel{transform:translateY(-3px);box-shadow:inset 0 0 0 3px var(--acc),0 0 0 1px var(--acc),0 8px 18px rgba(0,0,0,.4)}   /* 0.10.3 키우지 않고 테두리를 안쪽으로 — 판 가장자리에서 잘리던 것 */
+.card.sel{box-shadow:inset 0 0 0 4px var(--acc)}   /* 0.10.3 키우지 않고 테두리를 안쪽으로 — 판 가장자리에서 잘리던 것 */
 .card .pick{position:absolute;top:-1px;left:50%;transform:translateX(-50%);min-width:22px;height:22px;padding:0 6px;border-radius:0 0 8px 8px;background:var(--acc);color:var(--ink);font-size:12px;font-weight:700;display:none;align-items:center;justify-content:center}
 .card.sel .pick{display:flex}
 .card.hit{animation:hit .38s ease-in forwards}
@@ -264,7 +264,7 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
   box-shadow:0 4px 0 #A8800F,0 6px 14px rgba(255,190,40,.22),inset 0 1px 0 rgba(255,255,255,.75),inset 0 -2px 0 rgba(150,100,0,.25);
   transition:transform .07s,box-shadow .07s,filter .15s;-webkit-tap-highlight-color:transparent}
 .item .buy::after,.cr-row .buy::after,.d-buy::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);animation:buyshine 3.6s ease-in-out infinite;pointer-events:none}
-@keyframes buyshine{0%,70%{left:-60%}100%{left:140%}}
+@keyframes buyshine{0%,70%{transform:translateX(0) skewX(-18deg)}100%{transform:translateX(520%) skewX(-18deg)}}   /* 0.12.7 left 대신 transform(다시 칠하지 않는다) */
 .item .buy:active:not(:disabled),.cr-row .buy:active:not(:disabled),.d-buy:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #A8800F,inset 0 1px 0 rgba(255,255,255,.6)}
 .item .buy,.cr-row .buy,.d-buy{width:112px;min-width:0;max-width:none}
 .buy em{font-style:normal;font-size:11.5px;font-weight:800;line-height:1;letter-spacing:.02em;opacity:.72;white-space:nowrap}
@@ -410,7 +410,8 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .hub-nav em.can{background:var(--ok);color:var(--ink)}
 .hub-nav button.main em{top:-2px;right:calc(50% - 30px)}
 .hub-nav button.glow i{animation:navglow 1.2s ease-in-out infinite}
-@keyframes navglow{50%{filter:drop-shadow(0 0 8px #9FD8FF);transform:scale(1.15)}}
+@keyframes navglow{50%{transform:scale(1.15)}}
+.hub-nav button.glow i{filter:drop-shadow(0 0 6px #9FD8FF)}
 /* 팀 탭 */
 .t-sum{display:grid;grid-template-columns:repeat(3,1fr);background:var(--panel);border:1px solid #262D39;border-radius:14px;overflow:hidden}
 .t-sum div{padding:8px 10px;border-right:1px solid #262D39;min-width:0}.t-sum div:last-child{border-right:0}
@@ -1020,9 +1021,9 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .cr-stat .bar{display:block;height:4px;border-radius:2px;background:#13324D;overflow:hidden;margin-top:2px}
 .cr-stat .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3FA8D8,#FFD23F)}
 .cr-spark{display:flex;align-items:flex-end;gap:2px;height:12px;margin-top:3px}
-.cr-spark i{flex:1;background:#3FA8D8;border-radius:1px 1px 0 0;animation:crspark 2.4s ease-in-out infinite;transform-origin:bottom}
+.cr-spark i{flex:1;height:100%;background:#3FA8D8;border-radius:1px 1px 0 0;animation:crspark 2.4s ease-in-out infinite;transform-origin:bottom}
 .cr-spark i:nth-child(2){animation-delay:-.3s}.cr-spark i:nth-child(3){animation-delay:-.6s}.cr-spark i:nth-child(4){animation-delay:-.9s}.cr-spark i:nth-child(5){animation-delay:-1.2s}.cr-spark i:nth-child(6){animation-delay:-1.5s}.cr-spark i:nth-child(7){animation-delay:-1.8s}.cr-spark i:nth-child(8){animation-delay:-2.1s;background:#FFD23F}
-@keyframes crspark{0%,100%{height:30%}50%{height:100%}}
+@keyframes crspark{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
 .of-cell{position:relative;flex:1;padding:12px 3px 3px;border-radius:4px;background:#081626;border:1px solid #1E5070;display:flex;flex-direction:column;gap:3px;min-height:0}
 .of-tag{position:absolute;left:4px;top:1px;font-size:8px;font-weight:800;color:#7FD3FF;white-space:nowrap}
 .of-in{display:grid;grid-template-columns:repeat(10,1fr);gap:1.5px}
@@ -1056,7 +1057,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .of-mons .mo::after{content:'';position:absolute;inset:2px;border-radius:1px}
 .of-mons .mo.map::after{background:radial-gradient(circle at 60% 40%,#FF6B5B 0 1.5px,transparent 2px),repeating-linear-gradient(90deg,transparent 0 5px,rgba(127,211,255,.4) 5px 6px),repeating-linear-gradient(0deg,transparent 0 5px,rgba(127,211,255,.4) 5px 6px),#123D5C}
 .of-mons .mo.graph::after{background:linear-gradient(180deg,transparent 60%,rgba(255,210,63,.6) 60% 64%,transparent 64%),linear-gradient(90deg,#1E5070 0 18%,transparent 18% 24%,#3FA8D8 24% 40%,transparent 40% 46%,#1E5070 46% 70%,transparent 70% 76%,#3FA8D8 76%) bottom/100% 60% no-repeat,#0F2E47}
-.of-mons .mo.text::after{background:repeating-linear-gradient(0deg,rgba(127,211,255,.55) 0 1px,transparent 1px 3px),#0F2E47;animation:crscroll 2.4s linear infinite}
+.of-mons .mo.text::after{background:repeating-linear-gradient(0deg,rgba(127,211,255,.55) 0 1px,transparent 1px 3px),#0F2E47;animation:crscroll 2.4s steps(3) infinite}
 @keyframes crscroll{to{background-position:0 -9px}}
 .of-desk.empty .of-mons .mo{background:#0B1424;box-shadow:none}.of-desk.empty .of-mons .mo::after{display:none}
 .of-desk.done .of-mons .mo{animation:crhit .6s ease-out}
@@ -1632,7 +1633,7 @@ button.ev-chip{border:0;font:inherit;color:inherit;cursor:pointer}
 .ev-vp:has(.ev-info.evc) .ev-legend,.ev-vp:has(.ev-info.evc) .ev-zoom{display:none}
 .ev-vp .ev-info .ev-eff-sum{margin-top:4px}.ev-vp .ev-info .ev-chip{white-space:nowrap;font-size:12px;padding:4px 9px}
 @media (max-height:700px){.ev-vp .ev-info.evp{display:none}.ev-legend{font-size:9px}}
-.ev-str2 .flow{stroke:rgba(255,220,160,.9);stroke-width:2;stroke-dasharray:6 34;animation:evflow 1.6s linear infinite}
+.ev-str2 .flow{stroke:rgba(255,220,160,.9);stroke-width:2;stroke-dasharray:6 34;animation:evflow 1.6s steps(8) infinite}   /* 0.12.7 초당 5칸으로만 움직인다(선 전체를 매 장 다시 칠하던 것 — 발열) */
 @keyframes evflow{to{stroke-dashoffset:-40}}
 .ev-n .ev-max{position:absolute;left:-4px;bottom:3px;font-style:normal;padding:1px 6px 1px 7px;background:#D2343A;color:#fff;font-size:8.5px;font-weight:900;letter-spacing:.5px;border-radius:0 3px 3px 0;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 @media (prefers-reduced-motion:reduce){.ev-str2 .flow{animation:none;display:none}}
@@ -1641,7 +1642,8 @@ button.ev-chip{border:0;font:inherit;color:inherit;cursor:pointer}
 .pass-btn{position:relative;color:#FFD23F}
 .pass-btn b{position:absolute;right:1px;bottom:5px;min-width:16px;height:15px;padding:0 3px;border-radius:8px;background:#FFD23F;color:#1B1500;font-size:10px;font-weight:900;line-height:15px;text-align:center}
 .pass-btn.prem b{background:linear-gradient(180deg,#FFE58A,#F2B71E)}
-.pass-btn i{position:absolute;top:7px;right:5px;width:9px;height:9px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 2px var(--bg,#12151B)}
+.pass-btn i{position:absolute;top:2px;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#FF5F57;color:#fff;font-style:normal;font-size:10px;font-weight:900;line-height:16px;text-align:center;box-shadow:0 0 0 2px var(--bg,#12151B)}
+.pass-btn.has::before{content:'';position:absolute;inset:3px;border-radius:12px;box-shadow:0 0 0 2px #FFD23F,0 0 12px rgba(255,210,63,.8);opacity:0;animation:evring 1.4s ease-in-out infinite;pointer-events:none;will-change:opacity}
 button.ev-legend{flex-direction:row;align-items:center;gap:3px;border:0;font-family:inherit;pointer-events:auto;padding:7px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
 button.ev-legend i{margin-right:0;width:9px;height:9px}button.ev-legend span{margin-left:4px;white-space:nowrap}button.ev-legend b{display:inline-flex;width:15px;height:15px;border-radius:50%;align-items:center;justify-content:center;background:#FFD23F;color:#1B1500;font-size:10px;font-weight:900;margin-left:2px}
 .ev-effbtn{position:absolute;left:8px;top:42px;z-index:3;border:0;font-family:inherit;padding:5px 10px;border-radius:999px;background:rgba(20,14,8,.78);color:#FFE58A;font-size:11.5px;font-weight:800}
@@ -1761,7 +1763,7 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 .t-plinks button:active{transform:translateY(3px);box-shadow:0 1px 0 #0C0F14,inset 0 3px 0 color-mix(in srgb,var(--pc) 70%,transparent)}
 .t-plinks button.hot{border-color:rgba(255,120,100,.6)}
 .t-plinks button.hot::after{content:'';position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 3px rgba(255,95,87,.25);animation:plhot 1.4s ease-in-out infinite}
-@keyframes plhot{50%{box-shadow:0 0 0 6px rgba(255,95,87,0)}}
+@keyframes plhot{50%{transform:scale(1.35);opacity:.6}}
 .t-plinks.q2{grid-template-columns:1fr 1fr}
 .t-plinks.q2 button{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center}
 .t-plinks.q2 button i{grid-row:1/3;margin:0}
@@ -1829,7 +1831,8 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
   background-image:radial-gradient(rgba(70,36,12,.38) 1.1px,transparent 1.6px),radial-gradient(rgba(255,226,180,.2) .9px,transparent 1.4px),radial-gradient(rgba(60,30,10,.25) 1.6px,transparent 2.2px);
   background-size:6px 6px,9px 9px,17px 17px;box-shadow:0 0 0 6px #6A4526,0 0 0 8px #3E2814,inset 0 0 40px rgba(40,18,4,.6)}
 .ev-vp::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 90% 80% at 50% 45%,transparent 50%,rgba(30,12,2,.45))}
-.ev-world{position:absolute;left:0;top:0;width:2000px;height:2000px;transform-origin:0 0}
+.ev-world{position:absolute;left:0;top:0;width:2000px;height:2000px;transform-origin:0 0;will-change:transform}
+.ev-vp.moving .flow{display:none}.ev-vp.moving .ev-n.can::after{animation:none}
 .ev-str2{position:absolute;inset:0;width:2000px;height:2000px;overflow:visible;pointer-events:none}
 .ev-str2 path{fill:none;stroke-linecap:round}
 .ev-str2 .on{stroke:#C42A2A;stroke-width:3.2;filter:drop-shadow(0 2px 1px rgba(30,10,0,.5))}
@@ -1845,7 +1848,12 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 .ev-n.shut{background:rgba(40,24,12,.55);box-shadow:inset 0 0 0 1.5px rgba(255,240,220,.18);color:rgba(255,240,220,.35)}
 .ev-n.lock{background:rgba(40,24,12,.7);box-shadow:inset 0 0 0 1.5px rgba(255,220,170,.3);color:rgba(255,220,170,.6)}
 .ev-n.lock small{font-weight:800;white-space:nowrap}
-.ev-n.can{background:#3A2A1A;color:#FFE58A;box-shadow:0 0 0 2px #FFD23F,0 0 18px rgba(255,210,63,.45);animation:evpulse 1.3s ease-in-out infinite}
+.ev-n.can{background:#3A2A1A;color:#FFE58A;box-shadow:0 0 0 2px #FFD23F,0 0 14px rgba(255,210,63,.45)}
+.ev-n.can::after{content:'';position:absolute;inset:-5px;border-radius:8px;box-shadow:0 0 0 2px rgba(255,210,63,.9);opacity:0;animation:evring 1.6s ease-in-out infinite;pointer-events:none;will-change:opacity}
+@keyframes evring{50%{opacity:1}}
+/* 0.12.7 열 수는 있지만 단서가 모자란 칸: 금테 · 반짝임 없이 평범하게 */
+.ev-n.can.poor{box-shadow:0 0 0 1.5px rgba(232,211,176,.35);color:#E8D3B0}.ev-n.can.poor::after{display:none}.ev-n.can.poor b{color:#E8D3B0}.ev-n.can.poor .ev-cost{color:#D9B88A}
+.ev-n.can.poor::before{background:radial-gradient(circle at 32% 30%,#E9E2D2 0 18%,#A89B84 45%,#5E5546 100%)}
 .ev-n.can small{font-weight:800;white-space:nowrap}
 .ev-n.can::before{background:radial-gradient(circle at 32% 30%,#FFF1B0 0 18%,#E0A81C 45%,#8A5A08 100%)}
 /* 0.9.2 이어진 증거(열 수 있음 · 묶음 대기): 이름 · 효과 · 값 */
@@ -2374,6 +2382,15 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.12.7', date: '2026-11-25', title: '버그 수정과 가볍게',
+      items: [
+        '파트너 배경 창과 구매 확인 창에서 뒤로 단추를 누르면 창이 닫혀요. 전에는 뒤의 탭이 넘어갔어요.',
+        '기법이나 부서를 한 번 올린 뒤 탭을 다시 열 때마다 그 줄이 또 반짝이던 문제를 고쳤어요.',
+        '출동에서 고른 용의자의 노란 테두리가 칸 밖으로 넘치지 않아요.',
+        '증거판에서 단서가 모자란 증거는 금테 없이 평범하게 보여요. 열 수 있을 때만 금테가 반짝여요.',
+        '시즌 패스에 받을 보상이 있으면 오른쪽 위 단추가 반짝이고 받을 개수가 보여요.',
+        '증거판을 움직일 때의 버벅임과 발열을 줄였어요.'
+      ] },
     { ver: '0.12.6', date: '2026-11-25', title: '코드네임 모습 반영',
       items: [
         '도감에서 본명, 사무실, 현장을 바꾸면 도감 목록의 작은 그림과 화면 위 파트너 그림도 바로 같은 모습으로 바뀌어요.',
@@ -11746,11 +11763,12 @@ body.prem-on #h-station::before{content:'👑 '}
   }
   function fxStart() {
     if (fxOn || typeof requestAnimationFrame !== 'function') return;
-    fxOn = true; var last = 0, calm = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    fxOn = true; var last = 0, skip = 0, calm = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
     (function loop(ms) {
-      var cvs = document.querySelectorAll('.pet-bg > canvas'), any = false, t = (ms || 0) / 1000, dt = last ? Math.min(0.05, t - last) : 0.016; last = t;
+      if ((skip ^= 1)) { requestAnimationFrame(loop); return; }   // 0.12.7 초당 30장만 그린다(발열)
+      var cvs = document.querySelectorAll('.pet-bg > canvas'), any = false, t = (ms || 0) / 1000, dt = last ? Math.min(0.08, t - last) : 0.033; last = t;
       for (var i = 0; i < cvs.length; i++) if (cvs[i].offsetParent !== null && !cvs[i].parentNode.hidden) { if (calm && cvs[i]._still) { any = true; continue; } if (fxDraw(cvs[i], calm ? 3 : t, calm ? 0 : dt)) { any = true; cvs[i]._still = true; } }
-      if (any || cvs.length) requestAnimationFrame(loop); else fxOn = false;   // 판이 하나도 없으면 멈춘다(다시 그릴 때 fxStart 가 켠다)
+      if (any) requestAnimationFrame(loop); else fxOn = false;   // 0.12.7 보이는 판이 없으면 완전히 멈춘다(전에는 다른 탭에서도 매 장 돌았다)   // 판이 하나도 없으면 멈춘다(다시 그릴 때 fxStart 가 켠다)
     })(0);
   }
   /*
@@ -12248,7 +12266,7 @@ body.prem-on #h-station::before{content:'👑 '}
     });
     $('toast').parentNode.appendChild(bgEl); drawBg(); fxStart();
   }
-  function closeBg() { if (bgEl && bgEl.parentNode) bgEl.parentNode.removeChild(bgEl); bgEl = null; }
+  function closeBg() { var was = !!bgEl; if (bgEl && bgEl.parentNode) bgEl.parentNode.removeChild(bgEl); bgEl = null; return was; }
   function drawBg() {
     if (!bgEl) return;
     var s = S(), p = pets(), b = P.BG_BY[bgSel] || P.BG_BY.office, own = !!p.bgs[b.id], x = P.parse(p.eq), isL = !!(x && x.g === 'l'), btn;
@@ -12367,7 +12385,7 @@ body.prem-on #h-station::before{content:'👑 '}
       onOk: function () { P.setNoir(S(), k, true); ctx.persist(); renderPartner(); ctx.render(); toast('코드네임 ' + P.codename(x.id) + ', 임무 시작'); } });
     return true;
   }
-  root.Team3PetsUI = { noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
+  root.Team3PetsUI = { closeBg: closeBg, noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
 })(typeof self !== 'undefined' ? self : this);
 
 </script>
@@ -13413,7 +13431,7 @@ body.prem-on #h-station::before{content:'👑 '}
     // 자리
     var els = $('ev-world').querySelectorAll('[data-k]');
     for (var i = 0; i < els.length; i++) {
-      var el = els[i], k = el.getAttribute('data-k'), st = Ev.state(s, k), cls = (k === 'core' ? 'ev-core ' : 'ev-n ') + st + (k === sel ? ' sel' : '') + (k === popId ? ' pop' : '');
+      var el = els[i], k = el.getAttribute('data-k'), st = Ev.state(s, k), cls = (k === 'core' ? 'ev-core ' : 'ev-n ') + st + (st === 'can' && k !== 'core' && Ev.left(s) < Ev.BY_ID[k].cost ? ' poor' : '') + (k === sel ? ' sel' : '') + (k === popId ? ' pop' : '');   // 0.12.7 poor: 열 수는 있지만 단서가 모자람(금테 없음)
       var html = nodeHTML(k, st);
       if (el.className !== cls) el.className = cls;
       if (el._h !== html) { el._h = html; el.innerHTML = html; }
@@ -13487,7 +13505,10 @@ body.prem-on #h-station::before{content:'👑 '}
     var vp = $('ev-vp'); if (!vp) return; var r = vp.getBoundingClientRect(); if (!r.width) return; var B = box();
     Z.x = lim(Z.x, r.width, B.x0, B.x1); Z.y = lim(Z.y, r.height, B.y0, B.y1);
   }
-  function apply() { clamp(); var w = $('ev-world'); if (w) w.style.transform = 'translate(' + Z.x + 'px,' + Z.y + 'px) scale(' + Z.s + ')'; }
+  // 0.12.7 움직이는 동안(.moving)은 판 위 애니메이션을 멈춰 버벅임을 줄인다 — 손을 떼고 0.25초 뒤 다시 켠다
+  var mvT = 0;
+  function apply() { clamp(); var w = $('ev-world'); if (!w) return; w.style.transform = 'translate3d(' + Z.x + 'px,' + Z.y + 'px,0) scale(' + Z.s + ')';
+    var vp = w.parentNode; if (vp && !vp._mv) { vp._mv = 1; vp.classList.add('moving'); } clearTimeout(mvT); mvT = setTimeout(function () { if (vp) { vp._mv = 0; vp.classList.remove('moving'); } }, 250); }
   function center(s) { var vp = $('ev-vp'); if (!vp) return; var r = vp.getBoundingClientRect(); if (!r.width) return; Z.s = s || Z.s; Z.x = r.width / 2 - Ev.CX * Z.s; Z.y = r.height / 2 - Ev.CY * Z.s; apply(); zoomed = true; }
   function fitS() { var vp = $('ev-vp'), r = vp ? vp.getBoundingClientRect() : null; return r && r.width ? Math.max(0.5, Math.min(0.95, Math.min(r.width, r.height) / 430)) : 0.95; }   // 0.12.0 작은 화면에서는 첫 줄 증거가 다 보이게 줄여서 시작
   function zoomAt(f, px, py) { var ns = Math.max(0.35, Math.min(2.2, Z.s * f)); Z.x = px - (px - Z.x) * ns / Z.s; Z.y = py - (py - Z.y) * ns / Z.s; Z.s = ns; apply(); }
@@ -13571,7 +13592,7 @@ body.prem-on #h-station::before{content:'👑 '}
         try { var r = D.buy(s, id, q, disc()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } if (r.mile) toast(D.BY_ID[id].name + ' ' + r.mile + '명! 속도 ×2');
           // 0.8.0 바로 보이게: 1초 묶음(render 의 900ms 제한)을 기다리지 않고 지금 다시 그리고, 산 칸을 반짝인다
           lastDraw = 0; ctx.render();
-          var row = document.querySelector('#h-dept [data-dept="' + id + '"]'); if (row) { row.classList.remove('bought'); void row.offsetWidth; row.classList.add('bought'); } }
+          var row = document.querySelector('#h-dept [data-dept="' + id + '"]'); if (row) { row.classList.remove('bought'); void row.offsetWidth; row.classList.add('bought'); setTimeout(function () { row.classList.remove('bought'); }, 600); } }
         catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '수사비가 모자라요' : '영입할 수 없어요'); }
         return;
       }
@@ -13839,7 +13860,7 @@ body.prem-on #h-station::before{content:'👑 '}
     ctx.UI.buzz(10);
     ctx.persist(); ctx.render(); render();
     var r = document.querySelector('[data-cr="' + p[0] + ':' + p[1] + '"]');
-    if (r) { r.classList.remove('bought'); void r.offsetWidth; r.classList.add('bought'); }
+    if (r) { r.classList.remove('bought'); void r.offsetWidth; r.classList.add('bought'); setTimeout(function () { r.classList.remove('bought'); }, 600); }   // 0.12.7 클래스를 남겨 두면 탭을 다시 열 때마다 또 반짝였다
     if (x && (lv === 1 || p[0] === 'k')) ctx.UI.toast(x.name + (p[0] === 'k' ? ' 장착' : p[0] === 't' ? ' ' + lv + '단계' : ' 영입') + ' ' + Cr.effText(x, lv));
   }
   // 그 칸을 한 번 보면 "새" 표시를 지운다(탭을 떠날 때)
@@ -13924,7 +13945,7 @@ body.prem-on #h-station::before{content:'👑 '}
       var pg = el.closest('.tab'); if (!pg) return;
       var r = el.getBoundingClientRect(), pr = pg.getBoundingClientRect();
       pg.scrollTo({ top: pg.scrollTop + r.top - pr.top - Math.max(0, (pr.height - r.height) / 2), behavior: 'smooth' });
-      el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot');
+      el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot'); setTimeout(function () { el.classList.remove('spot'); }, 1600);
     }, 60);
   }
 
@@ -14359,8 +14380,8 @@ body.prem-on #h-station::before{content:'👑 '}
       var pb0 = $('h-pass');
       if (pb0) {
         var pt = MO.tierOf(MO.passOf(save, dayNow()).xp), pn = MO.claimable(save, dayNow()).length, ph = pt + '|' + (pn > 0) + '|' + pOn;
-        if (pb0._h !== ph) { pb0._h = ph; pb0.className = 'icon-btn pass-btn' + (pOn ? ' prem' : '');
-          pb0.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M12 9.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 11.3l2-.3z" fill="currentColor" stroke="none"/></svg><b>' + pt + '</b>' + (pn > 0 ? '<i></i>' : '');
+        if (pb0._h !== ph) { pb0._h = ph; pb0.className = 'icon-btn pass-btn' + (pOn ? ' prem' : '') + (pn > 0 ? ' has' : '');
+          pb0.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M12 9.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 11.3l2-.3z" fill="currentColor" stroke="none"/></svg><b>' + pt + '</b>' + (pn > 0 ? '<i>' + (pn > 9 ? '9+' : pn) + '</i>' : '');
           pb0.setAttribute('aria-label', '시즌 패스 ' + pt + '단계' + (pn > 0 ? ', 받을 보상 ' + pn + '개' : '')); }
       }
       if (pc) { pc.hidden = !pOn; if (pOn) { var lf = MO.seasonOf(save, dayNow()).left; pc.textContent = lf === Infinity ? '👑 프리미엄' : '👑 ' + lf + '일'; pc.classList.toggle('soon', lf <= 3); } }
@@ -15368,6 +15389,9 @@ body.prem-on #h-station::before{content:'👑 '}
   window.Team3Back = function () {
     if (updating) return 'stay';
     if (dispatching) return 'stay';   // 출동 전환 중: 사무실에서 뒤로(=앱 종료)로 오해하지 않게 그냥 둔다
+    // 0.12.7 위에 뜬 작은 창(구매 확인 · 파트너 배경)부터 닫는다 — 전에는 뒤의 탭이 넘어갔다
+    var cfb = document.querySelector('.cf-back [data-cf="no"]'); if (cfb) { cfb.click(); return 'stay'; }
+    if (PUI && PUI.closeBg && PUI.closeBg()) return 'stay';
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }
     if (DUI && DUI.isOpen()) { if (Df.chosen(save)) DUI.close(); return 'stay'; }   // 처음 고르는 창은 뒤로로 닫히지 않는다
     if (PUI && PUI.isOpen()) { PUI.close(); return 'stay'; }

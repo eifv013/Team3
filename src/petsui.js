@@ -139,11 +139,12 @@
   }
   function fxStart() {
     if (fxOn || typeof requestAnimationFrame !== 'function') return;
-    fxOn = true; var last = 0, calm = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    fxOn = true; var last = 0, skip = 0, calm = root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches;
     (function loop(ms) {
-      var cvs = document.querySelectorAll('.pet-bg > canvas'), any = false, t = (ms || 0) / 1000, dt = last ? Math.min(0.05, t - last) : 0.016; last = t;
+      if ((skip ^= 1)) { requestAnimationFrame(loop); return; }   // 0.12.7 초당 30장만 그린다(발열)
+      var cvs = document.querySelectorAll('.pet-bg > canvas'), any = false, t = (ms || 0) / 1000, dt = last ? Math.min(0.08, t - last) : 0.033; last = t;
       for (var i = 0; i < cvs.length; i++) if (cvs[i].offsetParent !== null && !cvs[i].parentNode.hidden) { if (calm && cvs[i]._still) { any = true; continue; } if (fxDraw(cvs[i], calm ? 3 : t, calm ? 0 : dt)) { any = true; cvs[i]._still = true; } }
-      if (any || cvs.length) requestAnimationFrame(loop); else fxOn = false;   // 판이 하나도 없으면 멈춘다(다시 그릴 때 fxStart 가 켠다)
+      if (any) requestAnimationFrame(loop); else fxOn = false;   // 0.12.7 보이는 판이 없으면 완전히 멈춘다(전에는 다른 탭에서도 매 장 돌았다)   // 판이 하나도 없으면 멈춘다(다시 그릴 때 fxStart 가 켠다)
     })(0);
   }
   /*
@@ -641,7 +642,7 @@
     });
     $('toast').parentNode.appendChild(bgEl); drawBg(); fxStart();
   }
-  function closeBg() { if (bgEl && bgEl.parentNode) bgEl.parentNode.removeChild(bgEl); bgEl = null; }
+  function closeBg() { var was = !!bgEl; if (bgEl && bgEl.parentNode) bgEl.parentNode.removeChild(bgEl); bgEl = null; return was; }
   function drawBg() {
     if (!bgEl) return;
     var s = S(), p = pets(), b = P.BG_BY[bgSel] || P.BG_BY.office, own = !!p.bgs[b.id], x = P.parse(p.eq), isL = !!(x && x.g === 'l'), btn;
@@ -760,5 +761,5 @@
       onOk: function () { P.setNoir(S(), k, true); ctx.persist(); renderPartner(); ctx.render(); toast('코드네임 ' + P.codename(x.id) + ', 임무 시작'); } });
     return true;
   }
-  root.Team3PetsUI = { noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
+  root.Team3PetsUI = { closeBg: closeBg, noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
 })(typeof self !== 'undefined' ? self : this);

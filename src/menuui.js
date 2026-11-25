@@ -65,7 +65,7 @@
       var pg = el.closest('.tab'); if (!pg) return;
       var r = el.getBoundingClientRect(), pr = pg.getBoundingClientRect();
       pg.scrollTo({ top: pg.scrollTop + r.top - pr.top - Math.max(0, (pr.height - r.height) / 2), behavior: 'smooth' });
-      el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot');
+      el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot'); setTimeout(function () { el.classList.remove('spot'); }, 1600);
     }, 60);
   }
 

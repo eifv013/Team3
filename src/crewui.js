@@ -85,7 +85,7 @@
     ctx.UI.buzz(10);
     ctx.persist(); ctx.render(); render();
     var r = document.querySelector('[data-cr="' + p[0] + ':' + p[1] + '"]');
-    if (r) { r.classList.remove('bought'); void r.offsetWidth; r.classList.add('bought'); }
+    if (r) { r.classList.remove('bought'); void r.offsetWidth; r.classList.add('bought'); setTimeout(function () { r.classList.remove('bought'); }, 600); }   // 0.12.7 클래스를 남겨 두면 탭을 다시 열 때마다 또 반짝였다
     if (x && (lv === 1 || p[0] === 'k')) ctx.UI.toast(x.name + (p[0] === 'k' ? ' 장착' : p[0] === 't' ? ' ' + lv + '단계' : ' 영입') + ' ' + Cr.effText(x, lv));
   }
   // 그 칸을 한 번 보면 "새" 표시를 지운다(탭을 떠날 때)

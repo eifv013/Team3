@@ -194,7 +194,7 @@
     // 자리
     var els = $('ev-world').querySelectorAll('[data-k]');
     for (var i = 0; i < els.length; i++) {
-      var el = els[i], k = el.getAttribute('data-k'), st = Ev.state(s, k), cls = (k === 'core' ? 'ev-core ' : 'ev-n ') + st + (k === sel ? ' sel' : '') + (k === popId ? ' pop' : '');
+      var el = els[i], k = el.getAttribute('data-k'), st = Ev.state(s, k), cls = (k === 'core' ? 'ev-core ' : 'ev-n ') + st + (st === 'can' && k !== 'core' && Ev.left(s) < Ev.BY_ID[k].cost ? ' poor' : '') + (k === sel ? ' sel' : '') + (k === popId ? ' pop' : '');   // 0.12.7 poor: 열 수는 있지만 단서가 모자람(금테 없음)
       var html = nodeHTML(k, st);
       if (el.className !== cls) el.className = cls;
       if (el._h !== html) { el._h = html; el.innerHTML = html; }
@@ -268,7 +268,10 @@
     var vp = $('ev-vp'); if (!vp) return; var r = vp.getBoundingClientRect(); if (!r.width) return; var B = box();
     Z.x = lim(Z.x, r.width, B.x0, B.x1); Z.y = lim(Z.y, r.height, B.y0, B.y1);
   }
-  function apply() { clamp(); var w = $('ev-world'); if (w) w.style.transform = 'translate(' + Z.x + 'px,' + Z.y + 'px) scale(' + Z.s + ')'; }
+  // 0.12.7 움직이는 동안(.moving)은 판 위 애니메이션을 멈춰 버벅임을 줄인다 — 손을 떼고 0.25초 뒤 다시 켠다
+  var mvT = 0;
+  function apply() { clamp(); var w = $('ev-world'); if (!w) return; w.style.transform = 'translate3d(' + Z.x + 'px,' + Z.y + 'px,0) scale(' + Z.s + ')';
+    var vp = w.parentNode; if (vp && !vp._mv) { vp._mv = 1; vp.classList.add('moving'); } clearTimeout(mvT); mvT = setTimeout(function () { if (vp) { vp._mv = 0; vp.classList.remove('moving'); } }, 250); }
   function center(s) { var vp = $('ev-vp'); if (!vp) return; var r = vp.getBoundingClientRect(); if (!r.width) return; Z.s = s || Z.s; Z.x = r.width / 2 - Ev.CX * Z.s; Z.y = r.height / 2 - Ev.CY * Z.s; apply(); zoomed = true; }
   function fitS() { var vp = $('ev-vp'), r = vp ? vp.getBoundingClientRect() : null; return r && r.width ? Math.max(0.5, Math.min(0.95, Math.min(r.width, r.height) / 430)) : 0.95; }   // 0.12.0 작은 화면에서는 첫 줄 증거가 다 보이게 줄여서 시작
   function zoomAt(f, px, py) { var ns = Math.max(0.35, Math.min(2.2, Z.s * f)); Z.x = px - (px - Z.x) * ns / Z.s; Z.y = py - (py - Z.y) * ns / Z.s; Z.s = ns; apply(); }
@@ -352,7 +355,7 @@
         try { var r = D.buy(s, id, q, disc()); ctx.persist(); try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ } if (r.mile) toast(D.BY_ID[id].name + ' ' + r.mile + '명! 속도 ×2');
           // 0.8.0 바로 보이게: 1초 묶음(render 의 900ms 제한)을 기다리지 않고 지금 다시 그리고, 산 칸을 반짝인다
           lastDraw = 0; ctx.render();
-          var row = document.querySelector('#h-dept [data-dept="' + id + '"]'); if (row) { row.classList.remove('bought'); void row.offsetWidth; row.classList.add('bought'); } }
+          var row = document.querySelector('#h-dept [data-dept="' + id + '"]'); if (row) { row.classList.remove('bought'); void row.offsetWidth; row.classList.add('bought'); setTimeout(function () { row.classList.remove('bought'); }, 600); } }
         catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '수사비가 모자라요' : '영입할 수 없어요'); }
         return;
       }

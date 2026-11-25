@@ -244,8 +244,8 @@
       var pb0 = $('h-pass');
       if (pb0) {
         var pt = MO.tierOf(MO.passOf(save, dayNow()).xp), pn = MO.claimable(save, dayNow()).length, ph = pt + '|' + (pn > 0) + '|' + pOn;
-        if (pb0._h !== ph) { pb0._h = ph; pb0.className = 'icon-btn pass-btn' + (pOn ? ' prem' : '');
-          pb0.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M12 9.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 11.3l2-.3z" fill="currentColor" stroke="none"/></svg><b>' + pt + '</b>' + (pn > 0 ? '<i></i>' : '');
+        if (pb0._h !== ph) { pb0._h = ph; pb0.className = 'icon-btn pass-btn' + (pOn ? ' prem' : '') + (pn > 0 ? ' has' : '');
+          pb0.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M12 9.2l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 11.3l2-.3z" fill="currentColor" stroke="none"/></svg><b>' + pt + '</b>' + (pn > 0 ? '<i>' + (pn > 9 ? '9+' : pn) + '</i>' : '');
           pb0.setAttribute('aria-label', '시즌 패스 ' + pt + '단계' + (pn > 0 ? ', 받을 보상 ' + pn + '개' : '')); }
       }
       if (pc) { pc.hidden = !pOn; if (pOn) { var lf = MO.seasonOf(save, dayNow()).left; pc.textContent = lf === Infinity ? '👑 프리미엄' : '👑 ' + lf + '일'; pc.classList.toggle('soon', lf <= 3); } }
@@ -1253,6 +1253,9 @@
   window.Team3Back = function () {
     if (updating) return 'stay';
     if (dispatching) return 'stay';   // 출동 전환 중: 사무실에서 뒤로(=앱 종료)로 오해하지 않게 그냥 둔다
+    // 0.12.7 위에 뜬 작은 창(구매 확인 · 파트너 배경)부터 닫는다 — 전에는 뒤의 탭이 넘어갔다
+    var cfb = document.querySelector('.cf-back [data-cf="no"]'); if (cfb) { cfb.click(); return 'stay'; }
+    if (PUI && PUI.closeBg && PUI.closeBg()) return 'stay';
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }
     if (DUI && DUI.isOpen()) { if (Df.chosen(save)) DUI.close(); return 'stay'; }   // 처음 고르는 창은 뒤로로 닫히지 않는다
     if (PUI && PUI.isOpen()) { PUI.close(); return 'stay'; }
