@@ -47,7 +47,7 @@
   var COST = { one: 10, ten: 90 };   // 배지(◆): 1회 10, 10회 묶음마다 90(10% 덜)
   /* 0.13.19 한정 뽑기(배지로만): 한정 파트너(전설) 확률은 rate%, soft 번째부터 한 번에 step% 씩 오르고 pity 번째는 확정.
      나머지 결과는 일반 뽑기와 같다. 한정 확정 횟수(lpity)는 일반 천장(pity)과 따로 센다. 또 뽑히면 ★ +1, ★5 뒤로는 간식 */
-  var LIM_PULL = { id: 'wolf', rate: 0.4, soft: 76, step: 4, pity: 100 };   // 중간값 약 79회, 10명 중 9명은 84회 안에(시뮬레이션)
+  var LIM_PULL = { id: 'wolf', rate: 0.2, soft: 156, step: 4, pity: 180 };   // 0.13.20 반반 없이 확정만 길게: 중간값 약 159회, 30회 안 약 6%(시뮬레이션)
   /** k 번째(1부터) 한정 뽑기에서 한정 파트너가 나올 확률(%) */
   function limRate(k) { return k >= LIM_PULL.pity ? 100 : Math.min(100, LIM_PULL.rate + (k >= LIM_PULL.soft ? (k - LIM_PULL.soft + 1) * LIM_PULL.step : 0)); }
   var MAX_PULL = 50;                 // 0.4.1: 한 번에 뽑을 수 있는 최대(가진 만큼 뽑기 — 화면 · 연출이 감당하는 선)

@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.20', date: '2026-11-27', title: '한정 뽑기 확률',
+      items: [
+        '한정 뽑기 고스트 확률이 바뀌었어요. 확정은 180번째예요. 자세한 숫자는 한정 확률표에 있어요.'
+      ] },
     { ver: '0.13.19', date: '2026-11-26', title: '한정 뽑기',
       items: [
         '한정 뽑기가 생겼어요. 파트너 창의 뽑기 칸에서 한정 뽑기를 골라요.',

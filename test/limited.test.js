@@ -103,15 +103,16 @@ test('0.10.7 프리미엄은 30단계 뒤 300XP마다 간식 15(시즌 10번까�
   assert.equal(M.claimable(s, day).length, 0);
 });
 
-test('0.13.19 한정 뽑기: 배지로만, 75회부터 확률이 오르고 100회째 확정, 또 뽑히면 ★', () => {
+test('0.13.20 한정 뽑기: 배지로만, 156회부터 확률이 오르고 180회째 확정, 또 뽑히면 ★', () => {
   const s = fresh(); s.gems = 100000; s.pets.tickets = 50;
   assert.throws(() => P.pull(s, 1, 'ticket', Math.random, { limited: true }), (e) => e.code === 'BAD_PAY');
   assert.throws(() => P.pull(s, 1, 'free', Math.random, { limited: true, day: '2026-11-26' }), (e) => e.code === 'BAD_PAY');
-  assert.equal(P.limRate(1), 0.4); assert.equal(P.limRate(75), 0.4); assert.equal(P.limRate(76), 4.4); assert.ok(P.limRate(99) < 100); assert.equal(P.limRate(100), 100);
-  const r = P.pull(s, 50, 'gems', () => 0.999, { limited: true });   // 운이 가장 나쁨: 100번째에서만
+  assert.equal(P.limRate(1), 0.2); assert.equal(P.limRate(155), 0.2); assert.equal(P.limRate(156), 4.2); assert.ok(P.limRate(179) < 100); assert.equal(P.limRate(180), 100);
+  const r = P.pull(s, 50, 'gems', () => 0.999, { limited: true });   // 운이 가장 나쁨: 180번째에서만
+  P.pull(s, 50, 'gems', () => 0.999, { limited: true }); P.pull(s, 40, 'gems', () => 0.999, { limited: true });
   assert.equal(r.results.filter((x) => x.limited).length, 0);
-  const r2 = P.pull(s, 50, 'gems', () => 0.999, { limited: true });
-  assert.ok(r2.results[49].limited, '100번째는 확정');
+  const r2 = P.pull(s, 40, 'gems', () => 0.999, { limited: true });
+  assert.ok(r2.results[39].limited, '180번째는 확정');
   assert.equal(s.pets.own['wolf:l'], 1); assert.equal(s.pets.lpity, 0);
   P.pull(s, 1, 'gems', () => 0, { limited: true }); assert.equal(s.pets.own['wolf:l'], 2, '또 뽑히면 ★ +1');
   P.clean(s); assert.equal(s.pets.lpity, 0);
