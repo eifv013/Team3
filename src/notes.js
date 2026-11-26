@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.12', date: '2026-11-26', title: '킹의 사무실 간판',
+      items: [
+        '킹의 사무실 간판 글씨가 그림과 더 자연스럽게 어울려요.'
+      ] },
     { ver: '0.13.11', date: '2026-11-26', title: '킹의 사무실',
       items: [
         '킹의 사무실 그림 간판과 머그컵, 명찰이 수사3팀으로 바뀌었어요.'
