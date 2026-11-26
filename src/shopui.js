@@ -98,7 +98,8 @@
   function isOpen() { return !$('shop-sheet').hidden; }
   // 0.13.15 매점을 한 번 열면 이번 접속 동안은 배지 칸 빨간 점을 끈다(다시 접속하면 다시 켜짐 — 저장하지 않는다)
   var adDotSeen = false;
-  function open(which) { adDotSeen = true; tab = which || tab; $('shop-sheet').hidden = false; draw(); $('shop-sheet').querySelector('.sheet').scrollTop = 0; }
+  // 0.13.18 창은 늘 첫 칸(상점)부터 연다(마지막에 본 칸을 기억하지 않는다). 다른 칸은 부르는 쪽이 이름을 줄 때만
+  function open(which) { adDotSeen = true; tab = which || 'shop'; $('shop-sheet').hidden = false; draw(); $('shop-sheet').querySelector('.sheet').scrollTop = 0; }
   function close() { $('shop-sheet').hidden = true; ctx.render(); }
   function won(n) { return '₩' + fmt(n); }
   function payBtn(id, label) {
@@ -249,6 +250,8 @@
     ctx = c;
     $('shop-x').addEventListener('click', close);
     $('shop-sheet').addEventListener('click', function (e) {
+      var cu = e.target.closest('[data-cur]');   // 0.13.18 재화 칸: 얻는 곳 · 사는 곳 · 쓰는 곳(0.13.6 에 단추만 만들고 누르기를 안 이어 두었다)
+      if (cu && root.Team3PetsUI && root.Team3PetsUI.openCur) { root.Team3PetsUI.openCur(cu.getAttribute('data-cur')); return; }
       if (e.target === this) { close(); return; }
       var t = e.target.closest('button');
       if (!t) return;

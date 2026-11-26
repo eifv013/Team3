@@ -79,7 +79,8 @@
   /** 트로피 빨간 점: 받을 보상이 남아 있으면 늘 */
   function dot() { var d = $('h-ach-dot'); if (d) d.hidden = !(ctx && H.unclaimed(S()) > 0); }
   function isOpen() { return !$('ach-sheet').hidden; }
-  function open() { $('ach-sheet').hidden = false; draw(); $('ach-sheet').querySelector('.sheet').scrollTop = 0; }
+  function open() { tab = 'ach'; $('ach-sheet').hidden = false;   // 0.13.18 늘 업적 칸부터
+    draw(); $('ach-sheet').querySelector('.sheet').scrollTop = 0; }
   function close() { $('ach-sheet').hidden = true; ctx.render(); }
 
   /** 새로 달성한 업적 알림(사무실) */

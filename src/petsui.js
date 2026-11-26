@@ -270,7 +270,7 @@
   function open(which) {
     var gift = P.claimWelcome(S());
     if (gift) ctx.persist();
-    tab = which || tab;
+    tab = which || 'draw';   // 0.13.18 늘 첫 칸(뽑기)부터
     detailKey = '';
     $('pets-sheet').hidden = false;
     draw();
