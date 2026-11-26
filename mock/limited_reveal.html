@@ -62,13 +62,14 @@ h1{font-size:18px;margin:4px 0 2px}.sub{margin:0 0 12px;color:var(--muted);font-
 .cut.shake{animation:hit .28s cubic-bezier(.3,.6,.4,1)}
 @keyframes hit{0%{transform:translate(0,0)}20%{transform:translate(-9px,5px)}45%{transform:translate(7px,-6px)}70%{transform:translate(-4px,3px)}100%{transform:none}}
 .cut .bgb{position:absolute;inset:-40px;background-size:cover;background-position:center;filter:blur(28px) brightness(.35) saturate(.8);opacity:0;animation:fadein .6s 1.15s forwards}
-/* 폰 화면을 꽉 채운다: 세로에 맞추고 양옆만 잘라 얼굴 · 손전등이 남게 */
-.cut img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:58% 50%;opacity:0;animation:reveal 1.4s 1.1s cubic-bezier(.15,.8,.2,1) forwards}
+/* 그림은 자르지 않는다: 화면 너비에 맞춘 정사각형 전체. 그림 + 글자 묶음을 화면 세로 가운데에 */
+.cut{--iw:min(100vw,520px);--top:max(env(safe-area-inset-top,0px),calc((100% - var(--iw) - 150px) / 2))}
+.cut img{position:absolute;left:0;right:0;top:var(--top);width:100%;max-width:520px;margin:0 auto;aspect-ratio:1/1;height:auto;object-fit:contain;opacity:0;animation:reveal 1.4s 1.1s cubic-bezier(.15,.8,.2,1) forwards}
 @keyframes reveal{0%{opacity:1;transform:scale(1.18);filter:brightness(3) contrast(1.4) saturate(0)}25%{filter:brightness(1.4) contrast(1.2) saturate(.6)}100%{opacity:1;transform:none;filter:none}}
 @keyframes fadein{to{opacity:1}}
-.cut .sheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%);background-size:300% 100%;background-position:120% 0;animation:sheen 1s 2.5s ease-out forwards}
+.cut .sheen{position:absolute;left:0;right:0;top:var(--top);max-width:520px;margin:0 auto;aspect-ratio:1/1;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%);background-size:300% 100%;background-position:120% 0;animation:sheen 1s 2.5s ease-out forwards}
 @keyframes sheen{to{background-position:-60% 0}}
-.cut .grad{position:absolute;left:0;right:0;top:45%;bottom:0;background:linear-gradient(180deg,transparent,rgba(5,4,10,.92) 55%);opacity:0;animation:fadein .5s 1.4s forwards}
+.cut .grad{position:absolute;left:0;right:0;top:calc(var(--top) + var(--iw) * .55);height:calc(var(--iw) * .45 + 2px);background:linear-gradient(180deg,transparent,rgba(5,4,10,.9));opacity:0;animation:fadein .5s 1.4s forwards}
 /* 경광등 */
 .cut:before{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;animation:siren2 .5s steps(2) 3;mix-blend-mode:screen}
 @keyframes siren2{0%{background:radial-gradient(ellipse at 0% 50%,rgba(60,110,255,.3),transparent 55%)}100%{background:radial-gradient(ellipse at 100% 50%,rgba(255,50,70,.26),transparent 55%)}}
@@ -90,13 +91,13 @@ h1{font-size:18px;margin:4px 0 2px}.sub{margin:0 0 12px;color:var(--muted);font-
 .cut .flash{position:absolute;inset:0;z-index:7;background:#fff;opacity:0;pointer-events:none;animation:fls2 .7s 1.08s ease-out forwards}
 @keyframes fls2{0%{opacity:.95}100%{opacity:0}}
 /* 글자 */
-.cut .tx{position:absolute;left:18px;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 9%);z-index:8}
+.cut .tx{position:absolute;left:18px;right:18px;top:calc(var(--top) + var(--iw) - 96px);z-index:8}
 .cut .tag{display:inline-block;padding:3px 10px;border-radius:999px;background:linear-gradient(90deg,#B07CF0,#7A4AD8);font-size:12px;font-weight:900;opacity:0;animation:up .35s 1.7s forwards}
 .cut .nm{margin-top:8px;font-size:15px;font-weight:800;color:#C9B4F5;opacity:0;animation:up .35s 1.85s forwards}
 .cut .cnl{margin-top:6px;font-size:11px;font-weight:900;letter-spacing:6px;color:#E2C8FF;opacity:0;animation:up .3s 2s forwards}
 .cut .cn{font-size:56px;font-weight:900;letter-spacing:4px;line-height:1;color:#fff;text-shadow:0 0 24px rgba(176,124,240,.9),3px 3px 0 #3A1F6A;opacity:0;animation:slam .42s 2.1s cubic-bezier(.3,1.7,.5,1) forwards}
 .cut .sr{margin-top:8px;font-size:22px;color:#FFC93C;letter-spacing:3px;opacity:0;animation:up .3s 2.5s forwards}.cut .sr s{text-decoration:none;color:rgba(255,255,255,.25)}
-.cut .stamp{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 13%);z-index:8;width:100px;height:100px;border-radius:50%;border:4px solid #E2C8FF;color:#E2C8FF;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:13px;line-height:1.2;text-align:center;opacity:0;animation:stp .3s 2.75s cubic-bezier(.4,1.8,.6,1) forwards;background:rgba(40,20,70,.45);box-shadow:0 0 24px rgba(176,124,240,.6)}
+.cut .stamp{position:absolute;right:14px;top:calc(var(--top) + 12px);z-index:8;width:100px;height:100px;border-radius:50%;border:4px solid #E2C8FF;color:#E2C8FF;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:13px;line-height:1.2;text-align:center;opacity:0;animation:stp .3s 2.75s cubic-bezier(.4,1.8,.6,1) forwards;background:rgba(40,20,70,.45);box-shadow:0 0 24px rgba(176,124,240,.6)}
 .cut .stamp b{font-size:19px}
 @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes slam{0%{opacity:0;transform:scale(2.6) translateY(-10px);filter:blur(4px)}60%{opacity:1;filter:none}100%{opacity:1;transform:none}}
