@@ -423,8 +423,13 @@
   }
   function cardFace(x, cls) {
     var sp = P.BY_ID[x.id], g = P.GRADE[x.g];
+    if (x.limited) {   // 0.13.21 한정 파트너는 코드네임 그림 카드
+      var NPc = root.Team3NoirPics || {}, pc = NPc[x.id + '_b'] || NPc[x.id + '_a'];
+      if (pc) return '<div class="' + cls + ' g-' + x.g + ' lim" style="--gc:' + g.color + '"><img alt="" src="' + pc + '"><span>' + esc(P.codename(x.id)) + '</span>' +
+        (x.isNew ? '<em class="isnew">NEW</em>' : x.treats ? '<em>' + ic('treat') + '+' + x.treats + '</em>' : '<em>★' + x.star + '</em>') + '</div>';
+    }
     var tag = x.isNew ? '<em class="isnew">NEW</em>' : x.treats ? '<em>' + ic('treat') + '+' + x.treats + '</em>' : '<em>★' + x.star + '</em>';
-    return '<div class="' + cls + ' g-' + x.g + (x.limited ? ' lim' : '') + '" style="--gc:' + g.color + '">' +
+    return '<div class="' + cls + ' g-' + x.g + '" style="--gc:' + g.color + '">' +
       A.draw(x.id, { grade: x.g, mood: x.g === 'l' || x.g === 'h' ? 'happy' : null }) +
       '<span><b style="color:' + g.color + '">' + g.name + '</b> ' + esc(P.nameOf(S(), x.key) || sp.name) + '</span>' + tag + '</div>';
   }
@@ -457,15 +462,54 @@
     el.style.setProperty('--gx', startCol);
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-label', '뽑기 결과');
-    el.innerHTML = '<div class="gx-rays"></div><div class="gx-box">' + BOX + '</div><div class="gx-cards"></div><div class="gx-flash"></div>' +
+    var limR = results.filter(function (x) { return x.limited; })[0], limShown = false;
+    var NPg = root.Team3NoirPics || {}, limPic = limR ? (NPg[limR.id + '_b'] || NPg[limR.id + '_a']) : '';
+    if (!limPic) limR = null;
+    el.innerHTML = (limR ? '<canvas class="gx-rain"></canvas><div class="gx-siren"></div><div class="gx-limtag">특수수사팀</div>' : '') + '<div class="gx-rays"></div><div class="gx-box">' + BOX + '</div><div class="gx-cards"></div><div class="gx-flash"></div>' +
       '<div class="gx-spark"></div><div class="gx-foot"><span class="gx-hint">화면을 누르면 넘어가요</span><button class="primary gx-ok" hidden>확인</button></div>';
     document.body.appendChild(el);
     var cards = el.querySelector('.gx-cards');
     cards.innerHTML = results.map(function (x, i) {
-      return '<div class="gx-card g-' + x.g + '" style="--gc:' + P.GRADE[x.g].color + ';--i:' + i + '"><div class="gx-in">' +
+      return '<div class="gx-card g-' + x.g + (x.limited && limR ? ' lim' : '') + '" style="--gc:' + P.GRADE[x.g].color + ';--i:' + i + '"><div class="gx-in">' +
         '<div class="gx-back"><span>3</span></div>' + cardFace(x, 'gx-face') + '</div></div>';
     }).join('');
     function later(f, ms) { timers.push(setTimeout(f, ms)); }
+    /* ---- 0.13.21 한정: 비(빗방울 하나하나) ---- */
+    var rc = el.querySelector('.gx-rain'), rx = rc && rc.getContext('2d'), drops = [], spl = [], raf = 0, lastT = 0;
+    function rainSize() { var d = Math.min(2, root.devicePixelRatio || 1); rc.width = innerWidth * d; rc.height = innerHeight * d; rx.setTransform(d, 0, 0, d, 0, 0); }
+    function drop(top) { var z = Math.random(); return { x: Math.random() * (innerWidth + 120) - 60, y: top ? Math.random() * innerHeight : -40 - Math.random() * 200, v: 700 + z * 900, l: 10 + z * 26, w: .6 + z * 1.3, a: .1 + z * .32 }; }
+    function rainOn() { if (!rx || raf) return; rainSize(); drops = []; for (var i = 0; i < 110; i++) drops.push(drop(true)); lastT = 0; raf = requestAnimationFrame(rainFrame); }
+    function rainOff() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+    function rainFrame(t) {
+      raf = requestAnimationFrame(rainFrame);
+      if (document.hidden) return;
+      var dt = lastT ? Math.min(.05, (t - lastT) / 1000) : 0, W = innerWidth, H = innerHeight, wind = -.22; lastT = t;
+      rx.clearRect(0, 0, W, H); rx.lineCap = 'round';
+      for (var i = 0; i < drops.length; i++) {
+        var d = drops[i]; d.y += d.v * dt; d.x += d.v * wind * dt;
+        if (d.y > H - 6 - Math.random() * 40) { if (Math.random() < .5) spl.push({ x: d.x, y: d.y, r: 0, a: d.a }); drops[i] = drop(false); continue; }
+        rx.strokeStyle = 'rgba(210,200,255,' + d.a + ')'; rx.lineWidth = d.w; rx.beginPath(); rx.moveTo(d.x, d.y); rx.lineTo(d.x - d.l * wind, d.y - d.l); rx.stroke();
+      }
+      for (var j = spl.length - 1; j >= 0; j--) { var q = spl[j]; q.r += 60 * dt; q.a -= 1.6 * dt; if (q.a <= 0) { spl.splice(j, 1); continue; } rx.strokeStyle = 'rgba(210,200,255,' + q.a + ')'; rx.lineWidth = 1; rx.beginPath(); rx.ellipse(q.x, q.y, q.r, q.r * .3, 0, Math.PI, 2 * Math.PI); rx.stroke(); }
+    }
+    /* ---- 0.13.21 한정: 등장 컷(폴리스 라인 → 그림 → 코드네임) ---- */
+    function showLim() {
+      clear(); phase = 'lim'; limShown = true;
+      var sp = P.BY_ID[limR.id], st = limR.star || 1, cut = document.createElement('div');
+      cut.className = 'lc';
+      cut.innerHTML = '<div class="lc-bgb" style="background-image:url(' + limPic + ')"></div><img alt="" src="' + limPic + '"><div class="lc-sheen"></div><div class="lc-grad"></div>' +
+        '<div class="lc-tapes"><div class="lc-tape lc-t1"><i></i></div><div class="lc-tape lc-t2"><i></i></div><div class="lc-tape lc-t3"><i></i></div><div class="lc-tape lc-t4"><i></i></div></div><div class="lc-flash"></div>' +
+        '<div class="lc-stamp"><b>' + (limR.isNew ? 'NEW' : limR.treats ? '★5' : '★' + st) + '</b>특수<br>수사팀</div>' +
+        '<div class="lc-tx"><span class="lc-tag">한정 전설</span><div class="lc-nm">특수수사팀 ' + esc(sp.kind) + ', ' + esc(sp.name) + '</div><div class="lc-cnl">CODENAME</div><div class="lc-cn">' + esc(P.codename(limR.id)) + '</div>' +
+        '<div class="lc-sr">' + '★'.repeat(st) + '<s>' + '★'.repeat(P.STAR_MAX - st) + '</s></div></div>';
+      el.appendChild(cut); el.classList.add('lc-on');
+      function hit(ms, v) { later(function () { cut.classList.remove('lc-shake'); void cut.offsetWidth; cut.classList.add('lc-shake'); ctx.UI.buzz(v); }, ms); }
+      [60, 220, 380, 540].forEach(function (t) { hit(t, 25); snd(function (s) { later(function () { s.pick(2); }, t); }); });
+      hit(1080, 60); later(function () { snd(function (s) { s.none(); }); }, 1080);
+      hit(2200, 40); hit(2850, 30); later(function () { snd(function (s) { s.coin(); }); }, 2850);
+      later(function () { phase = 'limdone'; }, 3100);
+    }
+    function hideLim() { var c = el.querySelector('.lc'); if (c) c.parentNode.removeChild(c); el.classList.remove('lc-on'); }
     function snd(f) { try { f(ctx.UI.sfx); } catch (e) { /* 소리 실패는 무시 */ } }
     function clear() { timers.forEach(clearTimeout); timers = []; }
 
@@ -494,9 +538,10 @@
           if (g === 'l') ctx.UI.buzz([40, 40, 80]); else if (g === 'h') ctx.UI.buzz(25);
           // 0.9.2 여러 번 뽑기: 영웅 · 전설 카드가 뒤집힐 때 화면도 번쩍(한 번 뽑기는 상자 연출로 이미 보여 준다)
           if (n > 1 && (g === 'l' || g === 'h')) { el.classList.remove('hit-l', 'hit-h'); void el.offsetWidth; el.classList.add('hit-' + g); }
+          if (limR && results[i] === limR && !limShown) later(showLim, 450);
         }, reduce ? 0 : at[i]);
       });
-      later(finish, reduce ? 0 : at[n - 1] + 700);
+      later(function () { if (phase === 'cards') finish(); }, reduce ? 0 : at[n - 1] + 700);
     }
     function finish() {
       clear(); phase = 'done';
@@ -507,7 +552,7 @@
       try { ok.focus({ preventScroll: true }); } catch (e) { /* 옛 브라우저 */ }
     }
     function close() {
-      clear();
+      clear(); rainOff();
       el.classList.add('out');
       setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 220);
       done();
@@ -515,16 +560,18 @@
     el.addEventListener('click', function (e) {
       if (phase === 'box') openBox();
       else if (phase === 'open') showCards();
-      else if (phase === 'cards') finish();
+      else if (phase === 'cards') { if (limR && !limShown) { clear(); el.querySelectorAll('.gx-card').forEach(function (cd) { cd.classList.add('flip'); }); showLim(); } else finish(); }
+      else if (phase === 'lim' || phase === 'limdone') { hideLim(); finish(); }
       else close();   // 다 보여 준 뒤에는 어디를 눌러도 닫힌다
     });
 
-    if (reduce) { openBox(); showCards(); finish(); return; }
+    if (reduce) { limR = null; openBox(); showCards(); finish(); return; }
     // 상자 흔들기: 틱 소리가 점점 높게. 영웅·전설은 마지막에 색이 바뀐다(승급)
     later(function () { el.classList.add('shake'); }, 520);
     [0, 1, 2, 3].forEach(function (k) { later(function () { snd(function (s) { s.pick(1 + k * 2); }); }, 560 + k * 230); });
     if (best === 'h' || best === 'l') later(function () { el.style.setProperty('--gx', GX_COLOR[best]); el.classList.add('upgrade'); snd(function (s) { s.pick(9); }); }, 1250);
-    later(openBox, best === 'l' ? 1800 : 1550);
+    if (limR) later(function () { el.style.setProperty('--gx', '#B07CF0'); el.classList.add('lim'); rainOn(); ctx.UI.buzz([30, 60, 30, 60, 90]); }, 1300);
+    later(openBox, limR ? 2600 : best === 'l' ? 1800 : 1550);
   }
 
   /* 의상 탭(0.3.1): 파트너(없으면 일반 코기)에게 입혀 본 모습 · 간식/배지로 사기 · 파트너에게 입히기 */
