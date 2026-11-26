@@ -31,12 +31,13 @@ h1{font-size:18px;margin:4px 0 2px}.sub{margin:0 0 12px;color:var(--muted);font-
 .gx.lim .env .fl{background:linear-gradient(180deg,#3a2c58,#1d142e)}
 .gx.lim .env .lb{color:#C9B4F5}
 /* 비: 빗방울 하나하나를 캔버스로(속도 · 길이 · 굵기 · 밝기 제각각, 바닥에 튀는 물방울) */
-.rain{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .6s;pointer-events:none;z-index:9}
-.gx.lim .rain{opacity:1}
-.gx.cut-on .rain{opacity:.3}
+.rain{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .6s;pointer-events:none;z-index:0}
+.env,.cards{z-index:2}
+.gx.lim .rain{opacity:.7}
+.gx.cut-on .rain{opacity:0}
 .siren{position:absolute;inset:0;pointer-events:none;opacity:0}
-.gx.lim .siren{animation:sir 1.2s ease-in-out infinite;opacity:1}
-@keyframes sir{0%,100%{box-shadow:inset 60px 0 80px -40px rgba(80,120,255,.0),inset -60px 0 80px -40px rgba(255,60,80,.0)}50%{box-shadow:inset 80px 0 90px -40px rgba(80,120,255,.55),inset -80px 0 90px -40px rgba(255,60,80,.45)}}
+.gx.lim .siren{animation:sir 1.8s ease-in-out infinite;opacity:1}
+@keyframes sir{0%,100%{box-shadow:inset 40px 0 70px -40px rgba(80,120,255,0),inset -40px 0 70px -40px rgba(255,60,80,0)}50%{box-shadow:inset 50px 0 70px -40px rgba(80,120,255,.22),inset -50px 0 70px -40px rgba(255,60,80,.18)}}
 .gx.open .env .fl{transform:rotateX(180deg)}
 .gx.open .env{transform:translateY(40px) scale(.9);opacity:0;transition:transform .5s,opacity .5s .2s}
 /* 2) 카드 */
@@ -61,15 +62,16 @@ h1{font-size:18px;margin:4px 0 2px}.sub{margin:0 0 12px;color:var(--muted);font-
 .cut.shake{animation:hit .28s cubic-bezier(.3,.6,.4,1)}
 @keyframes hit{0%{transform:translate(0,0)}20%{transform:translate(-9px,5px)}45%{transform:translate(7px,-6px)}70%{transform:translate(-4px,3px)}100%{transform:none}}
 .cut .bgb{position:absolute;inset:-40px;background-size:cover;background-position:center;filter:blur(28px) brightness(.35) saturate(.8);opacity:0;animation:fadein .6s 1.15s forwards}
-.cut img{position:absolute;left:0;right:0;top:12%;width:100%;max-width:520px;margin:0 auto;aspect-ratio:1/1;height:auto;object-fit:contain;opacity:0;animation:reveal 1.4s 1.1s cubic-bezier(.15,.8,.2,1) forwards}
+/* 폰 화면을 꽉 채운다: 세로에 맞추고 양옆만 잘라 얼굴 · 손전등이 남게 */
+.cut img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:58% 50%;opacity:0;animation:reveal 1.4s 1.1s cubic-bezier(.15,.8,.2,1) forwards}
 @keyframes reveal{0%{opacity:1;transform:scale(1.18);filter:brightness(3) contrast(1.4) saturate(0)}25%{filter:brightness(1.4) contrast(1.2) saturate(.6)}100%{opacity:1;transform:none;filter:none}}
 @keyframes fadein{to{opacity:1}}
-.cut .sheen{position:absolute;left:0;right:0;top:12%;max-width:520px;margin:0 auto;aspect-ratio:1/1;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%);background-size:300% 100%;background-position:120% 0;animation:sheen 1s 2.5s ease-out forwards}
+.cut .sheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%);background-size:300% 100%;background-position:120% 0;animation:sheen 1s 2.5s ease-out forwards}
 @keyframes sheen{to{background-position:-60% 0}}
-.cut .grad{position:absolute;left:0;right:0;top:calc(12% + min(100vw,520px) - 34%);bottom:0;background:linear-gradient(180deg,transparent,rgba(5,4,10,.96) 40%);opacity:0;animation:fadein .5s 1.4s forwards}
+.cut .grad{position:absolute;left:0;right:0;top:45%;bottom:0;background:linear-gradient(180deg,transparent,rgba(5,4,10,.92) 55%);opacity:0;animation:fadein .5s 1.4s forwards}
 /* 경광등 */
 .cut:before{content:'';position:absolute;inset:0;z-index:4;pointer-events:none;animation:siren2 .5s steps(2) 3;mix-blend-mode:screen}
-@keyframes siren2{0%{background:radial-gradient(ellipse at 0% 50%,rgba(60,110,255,.75),transparent 60%)}100%{background:radial-gradient(ellipse at 100% 50%,rgba(255,50,70,.75),transparent 60%)}}
+@keyframes siren2{0%{background:radial-gradient(ellipse at 0% 50%,rgba(60,110,255,.3),transparent 55%)}100%{background:radial-gradient(ellipse at 100% 50%,rgba(255,50,70,.26),transparent 55%)}}
 /* 폴리스 라인 */
 .tapes{position:absolute;inset:0;z-index:6;pointer-events:none}
 .tape{position:absolute;left:-30%;width:160%;height:46px;background:#F5C518;box-shadow:0 6px 18px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.25);display:flex;align-items:center;overflow:hidden;opacity:0}
@@ -88,13 +90,13 @@ h1{font-size:18px;margin:4px 0 2px}.sub{margin:0 0 12px;color:var(--muted);font-
 .cut .flash{position:absolute;inset:0;z-index:7;background:#fff;opacity:0;pointer-events:none;animation:fls2 .7s 1.08s ease-out forwards}
 @keyframes fls2{0%{opacity:.95}100%{opacity:0}}
 /* 글자 */
-.cut .tx{position:absolute;left:18px;right:18px;top:calc(12% + min(100vw,520px) - 70px);z-index:8}
+.cut .tx{position:absolute;left:18px;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 9%);z-index:8}
 .cut .tag{display:inline-block;padding:3px 10px;border-radius:999px;background:linear-gradient(90deg,#B07CF0,#7A4AD8);font-size:12px;font-weight:900;opacity:0;animation:up .35s 1.7s forwards}
 .cut .nm{margin-top:8px;font-size:15px;font-weight:800;color:#C9B4F5;opacity:0;animation:up .35s 1.85s forwards}
 .cut .cnl{margin-top:6px;font-size:11px;font-weight:900;letter-spacing:6px;color:#E2C8FF;opacity:0;animation:up .3s 2s forwards}
 .cut .cn{font-size:56px;font-weight:900;letter-spacing:4px;line-height:1;color:#fff;text-shadow:0 0 24px rgba(176,124,240,.9),3px 3px 0 #3A1F6A;opacity:0;animation:slam .42s 2.1s cubic-bezier(.3,1.7,.5,1) forwards}
 .cut .sr{margin-top:8px;font-size:22px;color:#FFC93C;letter-spacing:3px;opacity:0;animation:up .3s 2.5s forwards}.cut .sr s{text-decoration:none;color:rgba(255,255,255,.25)}
-.cut .stamp{position:absolute;right:14px;top:calc(12% + 10px);z-index:8;width:100px;height:100px;border-radius:50%;border:4px solid #E2C8FF;color:#E2C8FF;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:13px;line-height:1.2;text-align:center;opacity:0;animation:stp .3s 2.75s cubic-bezier(.4,1.8,.6,1) forwards;background:rgba(40,20,70,.45);box-shadow:0 0 24px rgba(176,124,240,.6)}
+.cut .stamp{position:absolute;right:14px;top:calc(env(safe-area-inset-top,0px) + 13%);z-index:8;width:100px;height:100px;border-radius:50%;border:4px solid #E2C8FF;color:#E2C8FF;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:13px;line-height:1.2;text-align:center;opacity:0;animation:stp .3s 2.75s cubic-bezier(.4,1.8,.6,1) forwards;background:rgba(40,20,70,.45);box-shadow:0 0 24px rgba(176,124,240,.6)}
 .cut .stamp b{font-size:19px}
 @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes slam{0%{opacity:0;transform:scale(2.6) translateY(-10px);filter:blur(4px)}60%{opacity:1;filter:none}100%{opacity:1;transform:none}}
@@ -1558,8 +1560,8 @@ function later(f,ms){timers.push(setTimeout(f,ms))}
 /* ---- 비 ---- */
 var rc=document.getElementById('rain'),rx=rc.getContext('2d'),drops=[],splash=[],raf=0,lastT=0;
 function rainSize(){var d=Math.min(2,window.devicePixelRatio||1);rc.width=innerWidth*d;rc.height=innerHeight*d;rx.setTransform(d,0,0,d,0,0)}
-function newDrop(top){var z=Math.random();return{x:Math.random()*(innerWidth+120)-60,y:top?Math.random()*innerHeight:-40-Math.random()*200,v:700+z*900,l:10+z*26,w:.6+z*1.3,a:.18+z*.5}}
-function rainStart(){if(raf)return;rainSize();drops=[];splash=[];for(var i=0;i<220;i++)drops.push(newDrop(true));lastT=0;raf=requestAnimationFrame(rainFrame)}
+function newDrop(top){var z=Math.random();return{x:Math.random()*(innerWidth+120)-60,y:top?Math.random()*innerHeight:-40-Math.random()*200,v:700+z*900,l:10+z*26,w:.6+z*1.3,a:.1+z*.32}}
+function rainStart(){if(raf)return;rainSize();drops=[];splash=[];for(var i=0;i<110;i++)drops.push(newDrop(true));lastT=0;raf=requestAnimationFrame(rainFrame)}
 function rainStop(){cancelAnimationFrame(raf);raf=0;rx.clearRect(0,0,rc.width,rc.height)}
 function rainFrame(t){raf=requestAnimationFrame(rainFrame);var dt=lastT?Math.min(.05,(t-lastT)/1000):0;lastT=t;var W=innerWidth,H=innerHeight,wind=-.22;
   rx.clearRect(0,0,W,H);rx.lineCap='round';
