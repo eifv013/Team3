@@ -554,7 +554,6 @@
     var isNew = !p.own[k];
     p.own[k] = STAR_MAX;
     if (isNew) { if (!p.fresh) p.fresh = {}; p.fresh[k] = true; }
-    p.nlook[k] = { a: true, b: true };   // 0.13.15 한정 파트너는 코드네임 그림(두 장면)이 함께 온다
     p.noirSeen[k] = true;   // 상점 칸에서 코드네임을 이미 보여 줬다 → 각성 알림은 다시 띄우지 않는다
     return { key: k, isNew: isNew };
   }

@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.17', date: '2026-11-26', title: '한정 파트너 코드네임',
+      items: [
+        '한정 파트너도 코드네임 그림을 장면마다 따로 사요. ★5로 오니 바로 살 수 있어요.'
+      ] },
     { ver: '0.13.16', date: '2026-11-26', title: '소리',
       items: [
         '게임을 내리거나 화면에서 벗어나면 음악과 효과음이 확실히 멈춰요.'

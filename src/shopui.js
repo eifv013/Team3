@@ -124,7 +124,7 @@
       html += '<div class="lim-card"><span class="lim-rib">한정 파트너</span><span class="lim-time' + (limLeft <= 3 ? ' soon' : '') + '">' + (limLeft === Infinity ? '정식 출시 전까지' : limLeft === 1 ? '오늘까지' : limLeft + '일 남음') + '</span>' +
         (pic ? '<div class="lim-pic"><img src="' + pic + '" alt="한정 파트너 늑대"></div>' : '') +
         '<div class="lim-body"><div class="lim-nm">특수수사팀, 늑대, 한정<b>백랑, 코드네임 고스트</b></div>' +
-        '<div class="lim-tags"><span>전설 등급</span><span>★5로 시작</span><span>코드네임 바로 열림</span><span>뽑기에 안 나와요</span></div>' +
+        '<div class="lim-tags"><span>전설 등급</span><span>★5로 시작</span><span>뽑기에 안 나와요</span></div>' +
         limFx() +
         payBtn('wolf', '데려오기 ' + priceLabel('wolf')) + '<small class="lim-note">한 사람당 한 번</small></div></div>';
     } else if (s.shop.bought.wolf) html += '<div class="lim-done">🐺 백랑이 3팀에 있어요, 파트너 탭에서 장착해요</div>';
@@ -148,7 +148,7 @@
     if (st > 0) html += '<span class="label">처음 시작하는 팀장님께</span>' + card({ cls: 'hot', tag: st === Infinity ? '정식 출시 전까지' : hoursLeft(st) + ' 남음', name: '새내기 지원 꾸러미',
       line: '한 사람당 한 번, 가장 싼 꾸러미', chips: [chip('ticket', '뽑기권 10장'), chip('gem', '배지 100'), chip('', '😎 선글라스')], btn: payBtn('starter') });
     if (M.visible(s, 'legendpack', t)) html += '<span class="label">한 번만, 전설 확정</span>' + card({ cls: 'lp', tag: '한 사람당 한 번', name: '전설 확정 꾸러미',
-      line: '원하는 전설 파트너를 하나 골라 데려와요', chips: [chip('pick', '전설 선택권 1'), chip('ticket', '뽑기권 10장'), chip('gem', '배지 100')], note: '고른 전설은 코드네임 모습이 바로 열려요', btn: payBtn('legendpack') });
+      line: '원하는 전설 파트너를 하나 골라 데려와요', chips: [chip('pick', '전설 선택권 1'), chip('ticket', '뽑기권 10장'), chip('gem', '배지 100')], btn: payBtn('legendpack') });
     var sub = M.BY_ID.sub30, on = M.subActive(s, t);
     html += '<span class="label">꾸준히 하는 팀장님께</span>' + card({ cls: on ? 'on' : '', tag: on ? M.subDaysLeft(s, t) + '일 남음' : '30일', name: '3팀 월정액',
       line: '사면 바로 배지 100, 그 뒤 30일 동안 매일', chips: [chip('gem', '바로 100'), chip('gem', '매일 ' + M.SUB.dailyGems), chip('ticket', '매일 무료 뽑기 +1'), chip('', '⏱ 자리 비움 +2시간')],

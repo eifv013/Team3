@@ -44,7 +44,7 @@
       desc: '전설 선택권 1장(원하는 전설 하나), 뽑기권 10장, 배지 ◆100, 한 사람당 한 번', gives: { pick: 'l', tickets: 10, gems: 100 } },
     { id: 'pass', kind: 'pass', name: '시즌 패스 프리미엄', krw: 9900, desc: '이번 시즌 프리미엄 보상 줄 열기(이미 지난 단계도 받아요), 시즌 동안 프리미엄 효과', gives: {} },
     // 0.9.0 한정 파트너: 정식 출시 전까지는 기한 없이(LAUNCHED 가 true 가 되면 기간 한정으로 바꾼다). 뽑기에는 안 나온다
-    { id: 'wolf', kind: 'limited', name: '한정 파트너, 백랑(고스트)', krw: 9900, once: true, desc: '특수수사팀 늑대, 전설 ★5, 코드네임 바로 열림', gives: { pet: 'wolf:l' } }
+    { id: 'wolf', kind: 'limited', name: '한정 파트너, 백랑(고스트)', krw: 9900, once: true, desc: '특수수사팀 늑대, 전설 ★5', gives: { pet: 'wolf:l' } }
   ];
   var BY_ID = {};
   PRODUCTS.forEach(function (p) { BY_ID[p.id] = p; });

@@ -33,6 +33,9 @@ test('늑대는 뽑기 목록에 없고, 간식·선택권으로 못 데려온�
   assert.throws(() => P.usePick(s, 'wolf'), (e) => e.code === 'LIMITED');
   P.grantLimited(s, 'wolf:l');
   assert.equal(s.pets.own['wolf:l'], P.STAR_MAX);
+  // 0.13.17 코드네임 그림은 함께 오지 않는다(★5라 장면마다 바로 살 수 있다)
+  assert.deepEqual(P.looksOf(s, 'wolf:l'), []);
+  assert.equal(P.canNoir(s, 'wolf:l'), true);
 });
 
 test('프리미엄 효과: 꺼져 있으면 0, 켜면 출동·팀 보너스', () => {
