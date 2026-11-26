@@ -107,28 +107,28 @@
     var lb = label || priceLabel(id);
     return '<button class="primary shop-buy" data-buy="' + id + '"' + (Pay.available() ? '' : ' aria-disabled="true"') + '><span class="sb-l">' + lb + '</span>' + (Pay.gems ? '' : Pay.available() && Pay.test ? '<small>시험 구매</small>' : !Pay.available() ? '<small>출시 때 열려요</small>' : '') + '</button>';
   }
+  // 0.13.19 한정 뽑기는 ★1 부터: 효과를 "★1 → ★5" 로
   function limFx() {
     var P = root.Team3Pets; if (!P) return '';
-    var eq = P.describe(P.eqEffect('wolf', 'l', P.STAR_MAX)), own = P.describe(P.ownEffect('wolf', 'l', P.STAR_MAX));
-    return '<div class="lim-fx">' + eq.map(function (t) { return '<div><span>장착</span><b>' + esc(t) + '</b></div>'; }).join('') + own.map(function (t) { return '<div><span>보유</span><b>' + esc(t) + '</b></div>'; }).join('') + '</div>';
+    var row = function (kind, a, b) { return a.map(function (t, i) { var m = /^(.*?)([+-]?[\d.,]+%?.*)$/.exec(t), n = /([+-]?[\d.,]+%?.*)$/.exec(b[i] || ''); return '<div><span>' + kind + '</span><b>' + esc(m ? m[1] + m[2] + ' → ' + (n ? n[1] : '') : t) + '</b></div>'; }).join(''); };
+    return '<div class="lim-fx">' + row('장착', P.describe(P.eqEffect('wolf', 'l', 1)), P.describe(P.eqEffect('wolf', 'l', P.STAR_MAX))) +
+      row('보유', P.describe(P.ownEffect('wolf', 'l', 1)), P.describe(P.ownEffect('wolf', 'l', P.STAR_MAX))) + '</div>';
   }
   function hoursLeft(ms) { var h = Math.floor(ms / 3600e3), m = Math.floor(ms % 3600e3 / 60e3); return h + '시간 ' + m + '분'; }
 
   function drawShop() {
     var s = S(), day = ctx.day(), t = now(), html = '';
     // 무료(광고)
-    // 0.9.0 한정 파트너(정식 출시 전까지 계속)
-    if (M.limitedOpen(s, 'wolf', ctx.day())) {
-      var limLeft = M.limitedLeft('wolf', ctx.day());
-      // 0.13.14 그림이 사무실(_a) · 현장(_b) 두 장으로 나뉘면서 예전 이름(wolf)이 없어졌다 → 현장 그림, 없으면 사무실, 그다음 예전 이름
-      var NP = root.Team3NoirPics || {}, pic = NP.wolf_b || NP.wolf_a || NP.wolf;
-      html += '<div class="lim-card"><span class="lim-rib">한정 파트너</span><span class="lim-time' + (limLeft <= 3 ? ' soon' : '') + '">' + (limLeft === Infinity ? '정식 출시 전까지' : limLeft === 1 ? '오늘까지' : limLeft + '일 남음') + '</span>' +
+    // 0.13.19 한정 파트너는 바로 사지 않고 한정 뽑기로(배지만). 매점 카드는 한정 뽑기로 가는 길
+    var LP = root.Team3Pets && root.Team3Pets.LIM_PULL, limLeft = LP ? M.limitedLeft(LP.id, ctx.day()) : 0;
+    if (LP && limLeft > 0) {
+      var NP = root.Team3NoirPics || {}, pic = NP[LP.id + '_b'] || NP[LP.id + '_a'];
+      html += '<div class="lim-card"><span class="lim-rib">한정 뽑기</span><span class="lim-time' + (limLeft <= 3 ? ' soon' : '') + '">' + (limLeft === Infinity ? '정식 출시 전까지' : limLeft === 1 ? '오늘까지' : limLeft + '일 남음') + '</span>' +
         (pic ? '<div class="lim-pic"><img src="' + pic + '" alt="한정 파트너 늑대"></div>' : '') +
         '<div class="lim-body"><div class="lim-nm">특수수사팀, 늑대, 한정<b>백랑, 코드네임 고스트</b></div>' +
-        '<div class="lim-tags"><span>전설 등급</span><span>★5로 시작</span><span>뽑기에 안 나와요</span></div>' +
         limFx() +
-        payBtn('wolf', '데려오기 ' + priceLabel('wolf')) + '<small class="lim-note">한 사람당 한 번</small></div></div>';
-    } else if (s.shop.bought.wolf) html += '<div class="lim-done">🐺 백랑이 3팀에 있어요, 파트너 탭에서 장착해요</div>';
+        '<button class="primary shop-buy lim-go" data-limgo="1">한정 뽑기 하러 가기</button></div></div>';
+    }
     var adf = M.perks(s, t).adFree;
     // 0.10.11 광고 보상: 긴 줄 다섯 개 → 한 화면에 들어오는 작은 칸(그림 · 받는 것 · 오늘 n/한도). 칸을 누르면 받는다
     html += '<span class="label">' + (adf ? '무료 보상 (광고 없이 바로)' : '광고 보고 무료로 받기') + '</span><div class="ad-grid">';
@@ -242,7 +242,7 @@
     document.querySelectorAll('#shop-tabs button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === tab); });
     $('shop-body').hidden = tab !== 'shop';
     $('pass-body').hidden = tab !== 'pass';
-    $('shop-wallet').innerHTML = '<button data-cur="gem">' + ic('gem') + '배지 <b>' + fmt(S().gems) + '</b></button><button data-cur="ticket">' + ic('ticket') + '뽑기권 <b>' + fmt(S().pets ? S().pets.tickets : 0) + '</b></button><button data-cur="treat">' + ic('treat') + '간식 <b>' + fmt(S().pets ? S().pets.treats : 0) + '</b></button>';
+    $('shop-wallet').innerHTML = '<button data-cur="gem">' + ic('gem') + '<i class="wl">배지 </i><b>' + fmt(S().gems) + '</b></button><button data-cur="ticket">' + ic('ticket') + '<i class="wl">뽑기권 </i><b>' + fmt(S().pets ? S().pets.tickets : 0) + '</b></button><button data-cur="treat">' + ic('treat') + '<i class="wl">간식 </i><b>' + fmt(S().pets ? S().pets.treats : 0) + '</b></button>';
     if (tab === 'shop') drawShop(); else drawPass();
   }
 
@@ -256,6 +256,7 @@
       var t = e.target.closest('button');
       if (!t) return;
       if (t.getAttribute('data-tab')) { tab = t.getAttribute('data-tab'); draw(); }
+      else if (t.getAttribute('data-limgo')) { close(); if (root.Team3PetsUI && root.Team3PetsUI.openLimited) root.Team3PetsUI.openLimited(); }
       else if (t.getAttribute('data-buy')) buy(t.getAttribute('data-buy'));
       else if (t.getAttribute('data-ad') === 'ticket') watch('ticket', function () { ctx.grant('tickets', 1); toast('뽑기권 1장을 받았어요'); });
       else if (t.getAttribute('data-ad') === 'party') watch('party', function () { ctx.freeParty(); toast('팀 회식! 30분 동안 팀이 2배로 일해요'); });

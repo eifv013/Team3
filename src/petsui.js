@@ -271,6 +271,7 @@
     var gift = P.claimWelcome(S());
     if (gift) ctx.persist();
     tab = which || 'draw';   // 0.13.18 늘 첫 칸(뽑기)부터
+    lim = !!openLim; openLim = false;   // 0.13.19 한정 뽑기는 매점 카드에서 왔을 때만, 그 밖엔 일반 뽑기부터
     detailKey = '';
     $('pets-sheet').hidden = false;
     draw();
@@ -305,7 +306,10 @@
   // 오늘(기기 날짜) · 무료 뽑기 추가분(월정액 등, 사무실이 알려 준다)
   function today() { var E = root.Team3Economy; return E ? E.dayKey(Date.now(), new Date().getTimezoneOffset()) : new Date().toISOString().slice(0, 10); }
   function freeExtra() { return ctx && typeof ctx.freeExtra === 'function' ? ctx.freeExtra() : 0; }
-  function pullOpts() { return { day: today(), freeExtra: freeExtra() }; }
+  function pullOpts() { return { day: today(), freeExtra: freeExtra(), limited: lim && limOpen() }; }
+  /* 0.13.19 한정 뽑기: 뽑기 탭 위 '일반 뽑기 / 한정 뽑기'. 한정은 배지로만, 1회 · 10회 */
+  var lim = false;
+  function limOpen() { var M = root.Team3Monet; return !!(M && M.limitedLeft && M.limitedLeft(P.LIM_PULL.id, today()) > 0); }
   /*
    * 뽑기 단추 계획(0.4.1)
    *   one  : 1회 — 오늘 무료 → 뽑기권 → 배지 순. 모두 안 되면 부족(무엇이 얼마나 모자란지)
@@ -315,6 +319,11 @@
   function ic(name) { var I = root.Team3Icons; return I ? I.icon(name) : (name === 'gem' ? '◆' : ''); }
   function plan() {
     var p = pets(), s = S(), out = {};
+    if (lim && limOpen()) {
+      out.one = s.gems >= P.COST.one ? { ok: true, pay: 'gems', n: 1, text: ic('gem') + P.COST.one } : { ok: false, n: 1, text: '부족, ' + ic('gem') + fmt(s.gems) + '/' + P.COST.one };
+      out.multi = s.gems >= P.gemCost(10) ? { ok: true, pay: 'gems', n: 10, text: ic('gem') + P.gemCost(10) } : { ok: false, n: 10, text: '부족, ' + ic('gem') + fmt(s.gems) + '/' + P.gemCost(10) };
+      return out;
+    }
     if (P.freeLeft(s, today(), freeExtra()) > 0) out.one = { ok: true, pay: 'free', n: 1, text: '오늘 무료' };
     else if (p.tickets >= 1) out.one = { ok: true, pay: 'ticket', n: 1, text: ic('ticket') + '1장' };
     else if (s.gems >= P.COST.one) out.one = { ok: true, pay: 'gems', n: 1, text: ic('gem') + P.COST.one };
@@ -327,9 +336,30 @@
   }
   function walletHtml() {
     var p = pets();
-    return '<button data-cur="ticket">' + ic('ticket') + '뽑기권 <b>' + fmt(p.tickets) + '</b></button><button data-cur="gem">' + ic('gem') + '배지 <b>' + fmt(S().gems) + '</b></button><button data-cur="treat">' + ic('treat') + '간식 <b>' + fmt(p.treats) + '</b></button>';
+    return '<button data-cur="ticket">' + ic('ticket') + '<i class="wl">뽑기권 </i><b>' + fmt(p.tickets) + '</b></button><button data-cur="gem">' + ic('gem') + '<i class="wl">배지 </i><b>' + fmt(S().gems) + '</b></button><button data-cur="treat">' + ic('treat') + '<i class="wl">간식 </i><b>' + fmt(p.treats) + '</b></button>';
+  }
+  function drawLim() {
+    var p = pets(), pl = plan(), M = root.Team3Monet, L = P.LIM_PULL, sp = P.BY_ID[L.id], k = L.id + ':l', st = p.own[k] || 0;
+    var NP = root.Team3NoirPics || {}, pic = NP[L.id + '_b'] || NP[L.id + '_a'] || '', left = M.limitedLeft(L.id, today());
+    $('pets-pickup').innerHTML = '<div class="pl-ban">' + (pic ? '<img alt="" src="' + pic + '">' : '') + '<span class="pl-rib">한정 뽑기</span><span class="pl-left">' + (left === Infinity ? '정식 출시 전까지' : left + '일 남음') + '</span>' +
+      '<span class="pl-tx"><small>특수수사팀 ' + esc(sp.kind) + ', 전설</small><b>' + esc(sp.name) + ', 코드네임 ' + esc(P.codename(L.id)) + '</b>' + (st ? '<i class="pl-st">' + '★'.repeat(st) + '<s>' + '★'.repeat(P.STAR_MAX - st) + '</s></i>' : '') + '</span></div>';
+    $('pets-pity').innerHTML = esc(P.codename(L.id)) + ' 확정까지 <b>' + p.lpity + ' / ' + L.pity + '</b><i class="pl-bar"><i style="transform:scaleX(' + (p.lpity / L.pity) + ')"></i></i>';
+    $('pets-one').classList.remove('free');
+    $('pets-one').innerHTML = '1회 뽑기<small>' + pl.one.text + '</small>';
+    $('pets-ten').innerHTML = '10회 뽑기<small>' + pl.multi.text + '</small>';
+    $('pets-one').classList.toggle('short', !pl.one.ok); $('pets-ten').classList.toggle('short', !pl.multi.ok);
+    $('pets-one').disabled = busy || !pl.one.ok; $('pets-ten').disabled = busy || !pl.multi.ok;
+    var R = P.rates(), lp = L.rate, rest = 100 - lp, sm = document.querySelector('#pets-draw .pet-rate-box summary'); if (sm) sm.textContent = '한정 확률표';
+    $('pets-rates').innerHTML = '<table class="pet-rates"><tr><th>결과</th><th>확률</th></tr><tr class="pl-row"><td>' + esc(P.codename(L.id)) + '(한정 전설)</td><td>' + lp + '%</td></tr>' +
+      R.slice().reverse().map(function (r) { return '<tr><td style="color:' + P.GRADE[r.g].color + '">' + r.name + '</td><td>' + Math.round(r.pct * rest) / 100 + '%</td></tr>'; }).join('') + '</table>' +
+      '<table class="pet-rates pl-rule"><tr><td>확률 상승</td><td>' + L.soft + '번째부터 +' + L.step + '%씩</td></tr><tr><td>확정</td><td>' + L.pity + '번째</td></tr><tr><td>또 뽑히면</td><td>★ +1, ★5 뒤 ' + ic('treat') + P.GRADE.l.treat + '</td></tr></table>';
   }
   function drawDraw() {
+    if (lim && !limOpen()) lim = false;
+    var mode = $('pets-mode');
+    if (mode) mode.innerHTML = limOpen() ? '<button class="' + (lim ? '' : 'on') + '" data-pmode="0">일반 뽑기</button><button class="lim' + (lim ? ' on' : '') + '" data-pmode="1">한정 뽑기</button>' : '';
+    var sm0 = document.querySelector('#pets-draw .pet-rate-box summary'); if (sm0) sm0.textContent = '확률 공개, 규칙';
+    if (lim) { drawLim(); return; }
     var p = pets(), pl = plan(), one = pl.one, multi = pl.multi, pk = P.pickup(today()), sp = P.BY_ID[pk.id];
     // 이번 주 픽업
     $('pets-pickup').innerHTML = '<div class="pet-pk-art">' + A.draw(pk.id, { grade: 'l', anim: true }) + '</div>' +
@@ -367,8 +397,8 @@
     var c = plan()[kind];
     if (busy) return;
     if (!c.ok || c.pay !== 'gems') { doPull(kind); return; }
-    var g = kind === 'one' ? P.COST.one : P.gemCost(c.n);
-    ctx.UI.confirmBuy({ title: '배지로 ' + c.n + '번 뽑을까요?', body: '뽑기권이 없어서 배지를 써요.', cost: ic('gem') + fmt(g), ok: '뽑기', onOk: function () { doPull(kind); } });
+    var g = kind === 'one' ? P.COST.one : P.gemCost(c.n), L = lim && limOpen();
+    ctx.UI.confirmBuy({ title: (L ? '한정 뽑기 ' : '배지로 ') + c.n + '번 뽑을까요?', body: L ? '' : '뽑기권이 없어서 배지를 써요.', cost: ic('gem') + fmt(g), ok: '뽑기', onOk: function () { doPull(kind); } });
   }
   function doPull(kind) {
     if (busy) return;
@@ -394,7 +424,7 @@
   function cardFace(x, cls) {
     var sp = P.BY_ID[x.id], g = P.GRADE[x.g];
     var tag = x.isNew ? '<em class="isnew">NEW</em>' : x.treats ? '<em>' + ic('treat') + '+' + x.treats + '</em>' : '<em>★' + x.star + '</em>';
-    return '<div class="' + cls + ' g-' + x.g + '" style="--gc:' + g.color + '">' +
+    return '<div class="' + cls + ' g-' + x.g + (x.limited ? ' lim' : '') + '" style="--gc:' + g.color + '">' +
       A.draw(x.id, { grade: x.g, mood: x.g === 'l' || x.g === 'h' ? 'happy' : null }) +
       '<span><b style="color:' + g.color + '">' + g.name + '</b> ' + esc(P.nameOf(S(), x.key) || sp.name) + '</span>' + tag + '</div>';
   }
@@ -809,6 +839,7 @@
       var t = e.target.closest('button');
       if (!t) return;
       if (t.hasAttribute('data-cur')) { openCur(t.getAttribute('data-cur')); return; }
+      if (t.hasAttribute('data-pmode')) { lim = t.getAttribute('data-pmode') === '1'; draw(); return; }
       if (t.hasAttribute('data-noirprev')) { var nid = t.getAttribute('data-noirprev'), kk = detailKey && (P.parse(detailKey) || {}).id === nid ? detailKey : pets().eq, px = P.parse(kk) || { g: 'r' }; openNoirPrev(nid, px.g, pets().own[kk] || 0); return; }
       if (t.id === 'pets-one') askPull('one');
       else if (t.id === 'pets-ten') askPull('multi');
@@ -924,5 +955,8 @@
       onOk: function () { open('dex'); showDetail(k); } });
     return true;
   }
-  root.Team3PetsUI = { closeZoom: closeZoom, closeGd: closeGd, openCur: openCur, closeBg: closeBg, noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
+  // 0.13.19 매점 한정 카드에서: 뽑기 탭의 한정 뽑기로 바로
+  var openLim = false;
+  function openLimited() { openLim = true; open('draw'); }
+  root.Team3PetsUI = { openLimited: openLimited, closeZoom: closeZoom, closeGd: closeGd, openCur: openCur, closeBg: closeBg, noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
 })(typeof self !== 'undefined' ? self : this);

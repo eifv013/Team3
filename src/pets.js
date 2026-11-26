@@ -45,6 +45,11 @@
   var STAR_MAX = 5, STAR_STEP = 0.25;
   var PITY = 120;   // 0.9.2 천장 80 → 120(선택권 · 확정이 너무 쉬웠다)
   var COST = { one: 10, ten: 90 };   // 배지(◆): 1회 10, 10회 묶음마다 90(10% 덜)
+  /* 0.13.19 한정 뽑기(배지로만): 한정 파트너(전설) 확률은 rate%, soft 번째부터 한 번에 step% 씩 오르고 pity 번째는 확정.
+     나머지 결과는 일반 뽑기와 같다. 한정 확정 횟수(lpity)는 일반 천장(pity)과 따로 센다. 또 뽑히면 ★ +1, ★5 뒤로는 간식 */
+  var LIM_PULL = { id: 'wolf', rate: 0.4, soft: 76, step: 4, pity: 100 };   // 중간값 약 79회, 10명 중 9명은 84회 안에(시뮬레이션)
+  /** k 번째(1부터) 한정 뽑기에서 한정 파트너가 나올 확률(%) */
+  function limRate(k) { return k >= LIM_PULL.pity ? 100 : Math.min(100, LIM_PULL.rate + (k >= LIM_PULL.soft ? (k - LIM_PULL.soft + 1) * LIM_PULL.step : 0)); }
   var MAX_PULL = 50;                 // 0.4.1: 한 번에 뽑을 수 있는 최대(가진 만큼 뽑기 — 화면 · 연출이 감당하는 선)
   /** n회의 배지 값: 10회 묶음마다 COST.ten, 나머지는 회당 COST.one */
   function gemCost(n) { return Math.floor(n / 10) * COST.ten + (n % 10) * COST.one; }
@@ -155,7 +160,7 @@
     var m = /^([a-z0-9]+):([crhl])$/.exec(k || '');
     return m && BY_ID[m[1]] ? { id: m[1], g: m[2] } : null;
   }
-  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, bgs: { office: true }, bg: 'office', fx: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, nlook: {}, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
+  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, bgs: { office: true }, bg: 'office', fx: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, nlook: {}, lpity: 0, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
   function int(v, def, min, max) {
     if (typeof v !== 'number' || !isFinite(v)) return def;
     v = Math.floor(v);
@@ -168,6 +173,7 @@
     Object.keys(own).forEach(function (k) { if (parse(k)) p.own[k] = int(own[k], 1, 1, STAR_MAX); });
     p.eq = typeof d.eq === 'string' && p.own[d.eq] ? d.eq : '';
     p.pity = int(d.pity, 0, 0, PITY - 1);
+    p.lpity = int(d.lpity, 0, 0, LIM_PULL.pity - 1);
     p.treats = int(d.treats, 0, 0, 1e7);
     p.tickets = int(d.tickets, 0, 0, 1e5);
     p.pulls = int(d.pulls, 0, 0, 1e8);
@@ -426,7 +432,8 @@
     if (!(n >= 1 && n <= MAX_PULL && n === Math.floor(n))) throw PetError('BAD_COUNT', '1~' + MAX_PULL + '회만');
     if (typeof rng !== 'function') throw PetError('BAD_RNG', 'rng 는 함수');
     opts = opts || {};
-    var p = P(save), c, pk = opts.day ? pickup(opts.day).id : '';
+    var p = P(save), c, pk = opts.day ? pickup(opts.day).id : '', lim = !!opts.limited;
+    if (lim && pay !== 'gems') throw PetError('BAD_PAY', '한정 뽑기는 배지로만');
     if (pay === 'free') {
       if (n !== 1 || !opts.day) throw PetError('BAD_COUNT', '무료 뽑기는 하루 정해진 만큼 1회씩');
       if (freeLeft(save, opts.day, opts.freeExtra) < 1) throw PetError('NOT_ENOUGH', '오늘 무료 뽑기를 다 썼다');
@@ -443,6 +450,13 @@
     } else throw PetError('BAD_PAY', '뽑기권, 배지, 무료');
     var out = [];
     for (var i = 0; i < n; i++) {
+      if (lim) {   // 0.13.19 한정: 먼저 한정 파트너인지 본다(확정 횟수 또는 확률)
+        if (rng() * 100 < limRate(p.lpity + 1)) {
+          var lr = grant(save, LIM_PULL.id, 'l'); lr.limited = true; lr.forced = p.lpity >= LIM_PULL.pity - 1;
+          p.lpity = 0; p.pulls += 1; p.pity += (p.pity < PITY - 1 ? 1 : 0); out.push(lr); continue;
+        }
+        p.lpity += 1;
+      }
       var g, forced = false;
       if (p.pity >= PITY - 1) { g = 'l'; forced = true; }   // 천장
       else g = rollGrade(rng);
@@ -675,6 +689,7 @@
     codename: codename, CODENAME: CODENAME,
     UPCOMING: UPCOMING, BGS: BGS, BG_BY: BG_BY, buyBg: buyBg, useBg: useBg, bgNow: bgNow,
     LIMITED: LIMITED, grantLimited: grantLimited,
+    LIM_PULL: LIM_PULL, limRate: limRate,
     LOOKS: LOOKS, LOOK_COST: LOOK_COST, ownLook: ownLook, looksOf: looksOf, buyLook: buyLook,
     FX_GEMS: FX_GEMS, fxOn: fxOn, buyFx: buyFx, canNoir: canNoir, noirOn: noirOn, noirScene: noirScene, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,

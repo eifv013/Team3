@@ -79,12 +79,11 @@ def main():
         need(pg.locator('.ad-stub').count() == 0, '매점: 광고 자리가 안 닫힘')
         need('1 / 5' in pg.text_content('#shop-body'), '매점: 광고 받은 횟수가 안 보임')
         need(t0 != pg.text_content('#shop-wallet'), '매점: 뽑기권이 늘지 않음')
-        # 0.9.0 정식 출시 전: 결제 상품은 배지로 산다 → 한정 늑대를 배지로 데려오기
-        g0 = pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}')).gems")
-        pg.click('[data-buy=wolf]'); pg.clock.run_for(300); pg.click('.cf-back [data-cf=ok]'); pg.clock.run_for(500)   # 0.10.5 사기 전 확인창
-        sv = pg.evaluate(f"() => JSON.parse(localStorage.getItem('{KEY}'))")
-        need(sv['gems'] == g0 - 99 and sv['pets']['own'].get('wolf:l') == 5, f"매점: 배지로 한정 늑대 사기 실패 ({g0} → {sv['gems']}, {sv['pets']['own'].get('wolf:l')})")
-        need(pg.locator('.lim-card').count() == 0, '매점: 산 뒤에도 한정 칸이 남음')
+        # 0.13.19 한정 파트너는 매점에서 바로 사지 않고 한정 뽑기로: 매점 카드 → 파트너 창의 한정 뽑기
+        need(pg.locator('.lim-card [data-limgo]').count() == 1 and pg.locator('[data-buy=wolf]').count() == 0, '매점: 한정 뽑기로 가는 카드가 없음(또는 바로 사기가 남음)')
+        pg.click('.lim-card [data-limgo]'); pg.clock.run_for(500)
+        need(not pg.locator('#pets-sheet').is_hidden() and pg.locator('#pets-mode .lim.on').count() == 1 and '확정까지' in pg.text_content('#pets-pity'), '매점: 한정 뽑기 화면이 안 열림')
+        pg.evaluate("() => { Team3PetsUI.close(); Team3ShopUI.open('shop'); }"); pg.clock.run_for(300)
         no_hscroll(pg, '매점')
         pg.screenshot(path=SHOT + 's_shop.png')
         pg.click('#shop-tabs [data-tab=pass]'); pg.clock.run_for(200)
