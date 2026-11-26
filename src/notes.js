@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.11', date: '2026-11-26', title: '킹의 사무실',
+      items: [
+        '킹의 사무실 그림 간판과 머그컵, 명찰이 수사3팀으로 바뀌었어요.'
+      ] },
     { ver: '0.13.10', date: '2026-11-26', title: '특수수사팀',
       items: [
         '한정 파트너는 이제 특수수사팀 소속으로 표시돼요.',
