@@ -67,7 +67,7 @@
     } else {
       html += titleSelect('ach-title', s.ach.title, '팀장 칭호') +
         '<p class="muted" style="font-size:12px;margin:4px 0 0">칭호는 사무실 팀장 이름 앞에 붙어요. 동물 칭호는 동물 창의 자세히에서 달아요.</p>' +
-        '<span class="label ach-g">배지로 사는 칭호, 꾸미기 전용</span><div class="ach-shop">' + H.SHOP.map(function (t) {
+        '<span class="label ach-g">배지로 사는 칭호</span><div class="ach-shop">' + H.SHOP.map(function (t) {
           var have = H.has(s, t.id);
           return '<button class="ach-chip' + (have ? ' have' : '') + '" data-buy="' + t.id + '"' + (have || s.gems < t.gems ? ' disabled' : '') + '>「' + esc(t.title) + '」<small>' + (have ? '보유' : ic('gem') + t.gems) + '</small></button>';
         }).join('') + '</div>' +

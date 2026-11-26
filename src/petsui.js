@@ -15,6 +15,8 @@
   var P = root.Team3Pets, A = root.Team3PetArt;
   /* 0.8.4 누아르 각성 그림. 켜진 동물이면 초상(파트너 카드 · 도감 자세히)을 누아르로. 표정·의상은 귀여운 그림에만 있다 */
   function noirArt() { return root.Team3NoirArt; }
+  /* 0.13.15 도감 칸의 강화 단계: '3★' 작은 글씨 대신 별 다섯 칸(채운 별 금색, 빈 별 흐리게) */
+  function starRow(st) { var m = P.STAR_MAX, n = Math.max(0, Math.min(m, st)); return '<i class="pet-cstars" aria-label="★' + n + '">' + new Array(n + 1).join('★') + '<s>' + new Array(m - n + 1).join('★') + '</s></i>'; }
   function isNoir(k) { return !!(noirArt() && k && P.noirOn(S(), k)); }
   // 0.13.0 코드네임 그림은 기본이 멈춘 그림. 연출을 산 동물만 큰 그림(anim)에서 움직인다(data-fx + 그림판)
   function portrait(k, x, o) {
@@ -500,14 +502,14 @@
   function closetNoir(p, x) {
     var N = noirArt();
     if (!N || !p.eq) return '';
-    var can = P.canNoir(S(), p.eq), on = isNoir(p.eq), st = p.own[p.eq] || 1;
+    var own = P.looksOf(S(), p.eq), buyable = P.canNoir(S(), p.eq), can = own.length > 0, on = isNoir(p.eq), st = p.own[p.eq] || 1;
     return '<div class="pet-noircard' + (can ? '' : ' locked') + (on ? ' on' : '') + '"><span class="pnc-art' + (can ? ' noir-anim' : '') + '">' + N.draw(x.id, { grade: x.g, size: 84 }) + (can ? '' : '<i>' + LOCK + '</i>') + '</span>' +
-      '<span class="pnc-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (can ? '비밀 요원 모습의 반신 초상, 파트너 카드와 도감에서 보여요' : (x.g === 'l' ? '전설은 데려오면 바로 받아요' : '이 파트너가 ★5가 되면 받아요, 현재 ★' + st)) + '</small>' +
-      (can ? '<button class="' + (on ? 'ghost' : 'primary') + '" data-noircl="' + (on ? 0 : 1) + '">' + (on ? '본명으로' : '코드네임으로') + '</button>' : '<button class="primary" data-noirprev="' + x.id + '">미리 보기</button>') + '</span></div>';
+      '<span class="pnc-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (can ? '비밀 요원 모습의 반신 초상, 파트너 카드와 도감에서 보여요' : buyable ? '★5가 돼서 코드네임 그림을 살 수 있어요' : '이 파트너가 ★5가 되면 살 수 있어요, 현재 ★' + st) + '</small>' +
+      (can ? '<button class="' + (on ? 'ghost' : 'primary') + '" data-noircl="' + (on ? 0 : 1) + '">' + (on ? '본명으로' : '코드네임으로') + '</button>' : buyable ? '<button class="primary" data-noirgo="1">그림 고르러 가기</button>' : '<button class="primary" data-noirprev="' + x.id + '">미리 보기</button>') + '</span></div>';
   }
   function drawCloset() {
     var p = pets(), x = P.parse(p.eq) || { id: 'corgi', g: 'c' }, cur = p.eq ? P.wearing(S(), p.eq) : '';
-    var html = closetNoir(p, x) + '<p class="muted" style="font-size:12px;margin:0">한 번 사면 모든 파트너가 함께 입어요. 꾸미기 전용이에요(효과 없음). 파트너마다 다른 옷은 도감의 자세히에서 골라요.</p><div class="pet-closet-g">';
+    var html = closetNoir(p, x) + '<p class="muted" style="font-size:12px;margin:0">모든 파트너가 함께 입어요. 파트너마다 다른 옷은 도감의 자세히에서 골라요.</p><div class="pet-closet-g">';
     P.OUTFITS.forEach(function (o) {
       var have = !!p.closet[o.id], open = P.outfitOpen(S(), o.id);
       var btns = have
@@ -543,7 +545,7 @@
       html += '<div class="pet-dex-row lim"><span class="pet-dex-name"><b>' + esc(sp.name) + '</b><small>' + esc(sp.kind) + ', 한정</small><i class="siu">특수수사팀</i></span>' +
         '<span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span><span class="pet-cell none" aria-hidden="true"></span>' +
         '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE.l.color + '" aria-label="한정 전설 ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
-        (st && isNoir(k) ? portrait(k, { id: sp.id, g: 'l' }, {}) : A.draw(sp.id, { grade: 'l' })) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button></div>';
+        (st && isNoir(k) ? portrait(k, { id: sp.id, g: 'l' }, {}) : A.draw(sp.id, { grade: 'l' })) + (st ? starRow(st) : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button></div>';
     });
     // 0.9.2 새로 들어온 동물(since 가 큰 것)이 한정 줄 바로 아래 맨 위로
     P.SPECIES.map(function (sp, i) { return { sp: sp, i: i }; }).sort(function (a, b) { return (b.sp.since || 0) - (a.sp.since || 0) || a.i - b.i; }).forEach(function (o) {
@@ -552,7 +554,7 @@
         P.GRADES.map(function (g) {
           var k = P.key(sp.id, g), st = p.own[k];
           return '<button class="pet-cell' + (st ? ' have' : '') + (p.eq === k ? ' eq' : '') + '" data-k="' + k + '" style="--gc:' + P.GRADE[g].color + '" aria-label="' + P.GRADE[g].name + ' ' + esc(sp.name) + (st ? ' ★' + st : ' 없음') + '">' +
-            (st && isNoir(k) ? portrait(k, { id: sp.id, g: g }, {}) : A.draw(sp.id, { grade: g })) + (st ? '<i>' + st + '★</i>' : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button>';
+            (st && isNoir(k) ? portrait(k, { id: sp.id, g: g }, {}) : A.draw(sp.id, { grade: g })) + (st ? starRow(st) : '') + (p.fresh && p.fresh[k] ? '<b class="pet-new">NEW</b>' : '') + '</button>';
         }).join('') + '</div>';
     });
     // 0.12.4 나올 예정인 파트너: 이름도 그림도 "???" (눌러도 아무 일 없음)
@@ -577,8 +579,9 @@
     var zapLocked = sp.zap && x.g !== 'h' && x.g !== 'l' ? '<small class="muted">⚡ ' + esc(P.describe(sp.zap).join(', ').replace(/⚡ /g, '')) + ' — 영웅, 전설 등급에서 열려요</small>' : '';
     var swapCost = g.swap, canSwap = st < P.STAR_MAX && !sp.limited;   // 한정 파트너는 간식·선택권으로 못 데려와요
     box.style.setProperty('--gc', g.color);
+    box.classList.toggle('nz', !!(st && isNoir(detailKey)));   // 0.13.15 코드네임이면 그림을 창 너비로 크게
     box.innerHTML = '<button class="pet-x" id="pets-detail-x" aria-label="자세히 닫기">×</button>' +
-      '<div class="pet-big' + (st ? '' : ' locked') + (st && isNoir(detailKey) ? ' noir' : '') + '">' + (st ? portrait(detailKey, x, { grade: x.g, anim: true, outfit: P.wearing(S(), detailKey) }) : A.draw(x.id, { grade: x.g })) + '</div>' +
+      '<div class="pet-big' + (st ? '' : ' locked') + (st && isNoir(detailKey) ? ' noir" data-zoom="' + noirKey(detailKey, x) : '') + '">' + (st ? portrait(detailKey, x, { grade: x.g, anim: true, outfit: P.wearing(S(), detailKey) }) : A.draw(x.id, { grade: x.g })) + (st && isNoir(detailKey) ? ZOOM_I : '') + '</div>' +
       '<div class="pet-info"><span class="label" style="color:' + g.color + '">' + g.name + ' ' + esc(sp.kind) + (sp.limited ? '<i class="siu">특수수사팀</i>' : '') + '</span><h3>' + (st ? ttl(detailKey) : '') + esc(st ? P.nameOf(S(), detailKey) : sp.name) + ' ' + (st ? stars(st) : '<span class="muted" style="font-size:13px">아직 없음</span>') + '</h3>' +
         (st && isNoir(detailKey) ? '<small class="pet-cn">코드네임 ' + esc(P.codename(x.id)) + '</small>' : '') +
         '<small class="muted">' + esc(sp.line) + '</small></div>' +
@@ -597,21 +600,36 @@
   }
   /* 0.8.4 각성 줄(자세히): 열렸으면 "귀여운 모습 / 누아르 각성" 고르기, 아직이면 어두운 맛보기 그림 + 여는 조건 */
   var LOCK = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="#FFD23F"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="#FFD23F" stroke-width="2.2" fill="none"/></svg>';
+  /* 0.13.15 코드네임 그림은 ★5가 되면 장면(사무실 · 현장)마다 산다. 잠긴 장면을 누르면(lookSel) 아래에 그림과 값이 나온다 */
+  var lookSel = '';
+  var ZOOM_I = '<i class="nz-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"><circle cx="10.5" cy="10.5" r="6" stroke="#fff" stroke-width="2.4" fill="none"/><path d="M15 15l5 5M10.5 7.5v6M7.5 10.5h6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></i>';
+  var LOCK_S = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" class="lk"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="2.4" fill="none"/></svg>';
+  function lookScenes(id) { var N = noirArt(), l = P.LOOKS.filter(function (q) { return N && N.has(id, q.id); }); return l.length ? l : [P.LOOKS[0]]; }
   function noirRow(x, st) {
     var N = noirArt();
     if (!N) return '';
-    if (P.canNoir(S(), detailKey)) {
-      var on = isNoir(detailKey);
-      return '<div class="pet-noir"><span class="label">코드네임, ' + esc(P.codename(x.id)) + '</span><div class="pn-seg">' +
-        (N.has && N.has(x.id, 'b')
-          ? '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on && P.noirScene(S(), detailKey) === 'a' ? 'on' : '') + '" data-noir="1">사무실</button><button class="' + (on && P.noirScene(S(), detailKey) === 'b' ? 'on' : '') + '" data-noir="b">현장</button></div>'
-          : '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button><button class="' + (on ? 'on' : '') + '" data-noir="1">코드네임</button></div>') +
-        (on ? '<small class="muted"><span class="ln">코드네임일 땐 의상이 안 보여요</span><span class="ln">상황실 안에서는 본명 모습 그대로예요</span></small>' : '') +
-        (P.fxOn(S(), x.id) ? '<div class="pn-fx own"><b>움직이는 연출</b><span>보유</span></div>' : '<div class="pn-fx"><b>움직이는 연출</b><small>비, 불빛, 카메라가 움직여요</small><button class="primary" data-fxbuy="' + x.id + '">' + ic('gem') + P.FX_GEMS + '</button></div>') + '</div>';
+    var k = detailKey, can = P.canNoir(S(), k), own = P.looksOf(S(), k), on = isNoir(k), sc = on ? P.noirScene(S(), k) : '';
+    if (!can && !own.length) {
+      return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, scene: 'a', size: 64 }) + '</span>' + (N.has(x.id, 'b') ? '<span class="pn-thumb">' + N.draw(x.id, { grade: x.g, scene: 'b', size: 64 }) + '</span>' : '') +
+        '<span class="pn-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (st ? '★5가 되면 살 수 있어요' : '데려와서 ★5가 되면 살 수 있어요') + '</small>' + (st ? '<span class="pn-prog">현재 ★' + st + ' / ' + P.STAR_MAX + '</span>' : '') + '</span>' +
+        '<button class="primary pn-prev" data-noirprev="' + x.id + '">미리 보기</button></div>';
     }
-    return '<div class="pet-noir locked"><span class="pn-thumb">' + N.draw(x.id, { grade: x.g, scene: 'a', size: 64 }) + '</span>' + (N.has(x.id, 'b') ? '<span class="pn-thumb">' + N.draw(x.id, { grade: x.g, scene: 'b', size: 64 }) + '</span>' : '') +
-      '<span class="pn-tx"><b>코드네임 <em>' + esc(P.codename(x.id)) + '</em></b><small>' + (x.g === 'l' ? '데려오면 바로 받아요' : st ? '★5가 되면 받아요' : '데려와서 ★5가 되면 받아요') + '</small>' + (x.g === 'l' || !st ? '' : '<span class="pn-prog">현재 ★' + st + ' / ' + P.STAR_MAX + '</span>') + '</span>' +
-      '<button class="primary pn-prev" data-noirprev="' + x.id + '">미리 보기</button></div>';
+    var scenes = lookScenes(x.id), C = P.LOOK_COST, p = pets();
+    var seg = '<button class="' + (on ? '' : 'on') + '" data-noir="0">본명</button>' + scenes.map(function (l) {
+      var have = own.indexOf(l.id) >= 0;
+      return have ? '<button class="' + (sc === l.id ? 'on' : '') + '" data-noir="' + (l.id === 'b' ? 'b' : '1') + '">' + esc(l.name) + '</button>'
+        : '<button class="lkb' + (lookSel === l.id ? ' sel' : '') + '" data-lookpick="' + l.id + '">' + LOCK_S + esc(l.name) + '</button>';
+    }).join('');
+    var buy = '';
+    if (lookSel && own.indexOf(lookSel) < 0) {
+      var ln = (P.LOOKS.filter(function (l) { return l.id === lookSel; })[0] || {}).name || '';
+      buy = '<div class="pn-buy"><span class="pn-buy-pic">' + N.draw(x.id, { grade: x.g, scene: lookSel, size: 96 }) + '</span><span class="pn-buy-tx"><b>' + esc(ln) + ' 그림</b></span><span class="pn-buy-btns">' +
+        '<button class="ghost" data-lookbuy="' + lookSel + '" data-pay="treats"' + (p.treats < C.treats ? ' disabled' : '') + '>' + ic('treat') + C.treats + '</button>' +
+        '<button class="primary" data-lookbuy="' + lookSel + '" data-pay="gems"' + (S().gems < C.gems ? ' disabled' : '') + '>' + ic('gem') + C.gems + '</button></span></div>';
+    }
+    return '<div class="pet-noir"><span class="label">코드네임, ' + esc(P.codename(x.id)) + '</span><div class="pn-seg">' + seg + '</div>' + buy +
+      (on ? '<small class="muted"><span class="ln">코드네임일 땐 의상이 안 보여요</span><span class="ln">상황실 안에서는 본명 모습 그대로예요</span></small>' : '') +
+      (!own.length ? '' : P.fxOn(S(), x.id) ? '<div class="pn-fx own"><b>움직이는 연출</b><span>보유</span></div>' : '<div class="pn-fx"><b>움직이는 연출</b><small>비, 불빛, 카메라가 움직여요</small><button class="primary" data-fxbuy="' + x.id + '">' + ic('gem') + P.FX_GEMS + '</button></div>') + '</div>';
   }
   function outfitSelect() {
     var p = pets(), have = P.OUTFITS.filter(function (o) { return p.closet[o.id]; }), cur = P.wearing(S(), detailKey);
@@ -642,11 +660,11 @@
     catch (e) { toast({ EMPTY: '이름을 적어 주세요', SAME: '같은 이름이에요', NOT_ENOUGH: '배지가 모자라요' }[e.code] || '바꿀 수 없어요'); return; }
     ctx.persist(); naming = false;
     try { ctx.UI.sfx.coin(); } catch (e2) { /* 무시 */ }
-    toast('이제 이름은 "' + r.name + '"' + (r.paid ? ', ◆' + r.paid : r.tag ? ', 이름표 1장' : ''));
+    toast('이제 이름은 "' + r.name + '"' + (r.paid ? ', 배지 ' + r.paid + '개' : r.tag ? ', 이름표 1장' : ''));
     renderPartner(); draw(); ctx.render();
   }
   function showDetail(k) {
-    naming = false;
+    naming = false; lookSel = '';
     detailKey = k;
     if (P.seeFresh && pets().fresh && pets().fresh[k]) { P.seeFresh(S(), k); ctx.persist(); draw(); return; }   // 0.10.6 본 파트너는 NEW 끔(draw 가 자세히도 그린다)
     drawDetail();
@@ -706,15 +724,41 @@
     var N = noirArt(); if (!N) return;
     var sc = 'a', two = N.has(id, 'a') && N.has(id, 'b');
     openGd(function () {
-      var leg = g === 'l', can = leg ? st > 0 : st >= P.STAR_MAX;
+      var k = id + ':' + g, own = P.looksOf(S(), k), can = P.canNoir(S(), k), C = P.LOOK_COST;
       return '<div class="bgp-head"><b>코드네임 ' + esc(P.codename(id)) + '</b><button class="bgp-x" data-gdx aria-label="닫기">×</button></div>' +
-        '<div class="gd-pic">' + N.draw(id, { grade: g, scene: sc, size: 300 }) + '</div>' +
+        '<div class="gd-pic" data-zoom="' + (N.has(id, sc) ? id + '_' + sc : id) + '">' + N.draw(id, { grade: g, scene: sc, size: 300 }) + ZOOM_I + '</div>' +
         (two ? '<div class="pn-seg"><button class="' + (sc === 'a' ? 'on' : '') + '" data-gdsc="a">사무실</button><button class="' + (sc === 'b' ? 'on' : '') + '" data-gdsc="b">현장</button></div>' : '') +
-        '<div class="gd-sec"><span class="label">받는 법</span><div class="gd-chips g-get">' +
-          (can ? '<span>받았어요</span>' : leg ? '<span>전설은 데려오면 바로</span>' : '<span>이 파트너 ★5</span><span>현재 ★' + st + ' / ' + P.STAR_MAX + '</span>') + '</div></div>' +
-        '<div class="gd-sec"><span class="label">바꾸는 곳</span><div class="gd-chips g-use"><span>도감에서 파트너 누르기</span><span>본명, 사무실, 현장 중 고르기</span></div></div>' +
-        '<div class="gd-sec"><span class="label">움직이는 연출</span><div class="gd-chips g-buy"><span>코드네임을 받은 뒤 ' + ic('gem') + P.FX_GEMS + '</span></div></div>';
-    }, function (e) { var b = e.target.closest('[data-gdsc]'); if (b) { sc = b.getAttribute('data-gdsc'); gdRedraw(); } });
+        '<div class="gd-sec"><span class="label">사는 법</span><div class="gd-chips g-get">' +
+          (own.length ? '<span>가진 장면 ' + own.length + ' / ' + lookScenes(id).length + '</span>' : can ? '<span>★5 달성, 바로 살 수 있어요</span>' : '<span>이 파트너 ★5</span><span>현재 ★' + st + ' / ' + P.STAR_MAX + '</span>') + '</div></div>' +
+        '<div class="gd-sec"><span class="label">장면 하나 값</span><div class="gd-chips g-buy"><span>' + ic('treat') + C.treats + '</span><span>' + ic('gem') + C.gems + '</span></div></div>' +
+        '<div class="gd-sec"><span class="label">바꾸는 곳</span><div class="gd-chips g-use"><span>도감에서 파트너 누르기</span><span>사무실, 현장 중 사서 고르기</span></div></div>' +
+        '<div class="gd-sec"><span class="label">움직이는 연출</span><div class="gd-chips g-buy"><span>코드네임 그림을 산 뒤 ' + ic('gem') + P.FX_GEMS + '</span></div></div>';
+    }, function (e) { var zb = e.target.closest('[data-zoom]'); if (zb) { openZoom(zb.getAttribute('data-zoom')); return; } var b = e.target.closest('[data-gdsc]'); if (b) { sc = b.getAttribute('data-gdsc'); gdRedraw(); } });
+  }
+  /* ---------- 0.13.15 크게 보기(확대 컷): 코드네임 그림을 화면 가득, 누르면 2.5배로 확대해 손가락으로 훑어 본다 ---------- */
+  var zEl = null;
+  function noirKey(k, x) { var N = noirArt(), sc = P.noirScene(S(), k); return N && N.has(x.id, sc) ? x.id + '_' + sc : N && N.has(x.id, 'a') ? x.id + '_a' : x.id; }
+  function closeZoom() { var was = !!zEl; if (zEl && zEl.parentNode) zEl.parentNode.removeChild(zEl); zEl = null; return was; }
+  function openZoom(fk) {
+    var NP = root.Team3NoirPics || {}, NB = root.Team3NoirBig || {}, small = NP[fk];
+    if (!small) return;
+    closeZoom(); zEl = document.createElement('div'); zEl.className = 'nz-view';
+    zEl.innerHTML = '<div class="nz-sc"><img alt="" src="' + small + '"></div><button class="nz-x" aria-label="닫기">×</button>';
+    $('toast').parentNode.appendChild(zEl);
+    var el = zEl, img = el.querySelector('img'), sc = el.querySelector('.nz-sc'), zoomed = false;
+    // 큰 그림은 볼 때만 받는다. 다 받으면 바꿔 끼우고, 못 받으면(오프라인) 작은 그림 그대로
+    if (NB[fk]) { var hi = new Image(); hi.onload = function () { if (zEl === el) img.src = NB[fk]; }; hi.src = NB[fk]; }
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (e.target.closest('.nz-x')) { closeZoom(); return; }
+      if (e.target === img) {
+        var r = img.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+        zoomed = !zoomed; el.classList.toggle('on', zoomed);
+        if (zoomed) { sc.scrollLeft = fx * img.offsetWidth - sc.clientWidth / 2; sc.scrollTop = fy * img.offsetHeight - sc.clientHeight / 2; }
+        return;
+      }
+      if (!zoomed) closeZoom();
+    });
   }
   function openBg() {
     if (bgEl) return;
@@ -729,7 +773,7 @@
       if (act === 'use') { try { P.useBg(s, bgSel); ctx.persist(); toast(b.name + ' 배경으로 바꿨어요'); } catch (e2) { toast('바꿀 수 없어요'); } renderPartner(); drawBg(); return; }
       var need = act === 'gems' ? b.gems : b.treats, have = act === 'gems' ? s.gems : pets().treats;
       if (have < need) { toast((act === 'gems' ? '배지가' : '간식이') + ' 모자라요'); return; }
-      ctx.UI.confirmBuy({ title: b.name + ' 배경을 살까요?', body: '한 번 사면 계속 쓸 수 있어요.', cost: ic(act === 'gems' ? 'gem' : 'treat') + need, onOk: function () {
+      ctx.UI.confirmBuy({ title: b.name + ' 배경을 살까요?', body: '', cost: ic(act === 'gems' ? 'gem' : 'treat') + need, onOk: function () {
         try { P.buyBg(S(), b.id, act); ctx.persist(); toast(b.name + ' 배경을 샀어요'); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } } catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '재화가 모자라요' : '살 수 없어요'); }
         if (ctx.render) ctx.render(); renderPartner(); drawBg();
       } });
@@ -761,6 +805,7 @@
     $('pets-pop-back').addEventListener('click', function (e) { e.stopPropagation(); detailKey = ''; naming = false; drawDetail(); });
     $('pets-sheet').addEventListener('click', function (e) {
       if (e.target === this) { close(); return; }
+      var zb = e.target.closest('[data-zoom]'); if (zb) { openZoom(zb.getAttribute('data-zoom')); return; }   // 0.13.15 크게 보기
       var t = e.target.closest('button');
       if (!t) return;
       if (t.hasAttribute('data-cur')) { openCur(t.getAttribute('data-cur')); return; }
@@ -792,12 +837,25 @@
       }
       else if (t.hasAttribute('data-noircl')) {
         var onC = t.getAttribute('data-noircl') === '1';
-        if (P.setNoir(S(), pets().eq, onC)) { ctx.persist(); renderPartner(); draw(); ctx.render(); if (onC) toast('코드네임 ' + P.codename(P.parse(pets().eq).id) + ', 임무 시작'); }
+        var ownC = P.looksOf(S(), pets().eq);
+        if (P.setNoir(S(), pets().eq, onC ? (ownC.indexOf('a') >= 0 ? true : 'b') : false)) { ctx.persist(); renderPartner(); draw(); ctx.render(); if (onC) toast('코드네임 ' + P.codename(P.parse(pets().eq).id) + ', 임무 시작'); }
+      }
+      else if (t.hasAttribute('data-noirgo')) { tab = 'dex'; draw(); showDetail(pets().eq); }
+      else if (t.hasAttribute('data-lookpick')) { lookSel = t.getAttribute('data-lookpick'); drawDetail(); }
+      else if (t.hasAttribute('data-lookbuy')) {   // 0.13.15 코드네임 장면 사기(확인 창)
+        var lsc = t.getAttribute('data-lookbuy'), lpay = t.getAttribute('data-pay') === 'gems' ? 'gems' : 'treats', lk = detailKey, LC = P.LOOK_COST;
+        var lnm = (P.LOOKS.filter(function (l) { return l.id === lsc; })[0] || {}).name || '';
+        ctx.UI.confirmBuy({ title: lnm + ' 그림을 살까요?', body: '',
+          cost: ic(lpay === 'gems' ? 'gem' : 'treat') + (lpay === 'gems' ? LC.gems : LC.treats), onOk: function () {
+            try { P.buyLook(S(), lk, lsc, lpay); P.setNoir(S(), lk, lsc === 'b' ? 'b' : true); lookSel = ''; ctx.persist(); toast(lnm + ' 그림을 샀어요'); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } }
+            catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? (lpay === 'gems' ? '배지가 모자라요' : '간식이 모자라요') : '살 수 없어요'); }
+            renderPartner(); drawDetail(); drawDex(); ctx.render();
+          } });
       }
       else if (t.hasAttribute('data-fxbuy')) {   // 0.13.0 연출 사기(확인 창)
         var fid = t.getAttribute('data-fxbuy');
         if (!(S().gems >= P.FX_GEMS)) { toast('배지가 모자라요'); return; }
-        ctx.UI.confirmBuy({ title: '움직이는 연출을 살까요?', body: '<span class="ln">이 파트너의 코드네임 그림이 움직여요.</span><span class="ln">한 번 사면 계속 써요.</span>', cost: ic('gem') + P.FX_GEMS, onOk: function () {
+        ctx.UI.confirmBuy({ title: '움직이는 연출을 살까요?', body: '이 파트너의 코드네임 그림이 움직여요.', cost: ic('gem') + P.FX_GEMS, onOk: function () {
           try { P.buyFx(S(), fid); ctx.persist(); toast('연출을 샀어요'); try { ctx.UI.sfx.coin(); } catch (e4) { /* 무시 */ } } catch (e3) { toast(e3.code === 'NOT_ENOUGH' ? '배지가 모자라요' : '살 수 없어요'); }
           renderPartner(); drawDetail(); ctx.render();
         } });
@@ -858,12 +916,13 @@
     var k = ks.indexOf(pets().eq) >= 0 ? pets().eq : ks[0], x = P.parse(k);   // 지금 파트너가 열렸으면 그 동물부터
     ks.forEach(function (q) { P.noirSeen(S(), q); });
     ctx.persist();
-    openInfo({ label: '코드네임', title: P.nameOf(S(), k) + '에게 코드네임이 생겼어요',
-      body: '<div class="noir-reveal noir-anim">' + N.draw(x.id, { grade: x.g, size: 220 }) + '</div><p class="cn-big">코드네임 <b>' + esc(P.codename(x.id)) + '</b></p><p style="text-align:center;margin:6px 0 0">' + (x.g === 'l' ? '전설 등급' : '★5') + '에 닿아 비밀 요원 모습이 열렸어요.<br>파트너 카드와 도감에서 이 모습으로 보여 줄 수 있어요.</p>' +
-        (ks.length > 1 ? '<p class="muted" style="text-align:center;font-size:12px">그 밖에 ' + (ks.length - 1) + '마리도 받았어요, 도감 자세히에서 골라요</p>' : ''),
-      ok: '코드네임으로', cancel: '나중에',
-      onOk: function () { P.setNoir(S(), k, true); ctx.persist(); renderPartner(); ctx.render(); toast('코드네임 ' + P.codename(x.id) + ', 임무 시작'); } });
+    openInfo({ label: '코드네임', title: P.nameOf(S(), k) + '의 코드네임 그림을 살 수 있어요',
+      body: '<div class="noir-reveal noir-anim">' + N.draw(x.id, { grade: x.g, size: 220 }) + '</div><p class="cn-big">코드네임 <b>' + esc(P.codename(x.id)) + '</b></p>' +
+        '<p style="text-align:center;margin:6px 0 0"><span class="ln">★5에 닿았어요.</span><span class="ln">사무실, 현장 그림을 장면마다 살 수 있어요.</span></p>' +
+        (ks.length > 1 ? '<p class="muted" style="text-align:center;font-size:12px">그 밖에 ' + (ks.length - 1) + '마리도 살 수 있어요, 도감 자세히에서 골라요</p>' : ''),
+      ok: '보러 가기', cancel: '나중에',
+      onOk: function () { open('dex'); showDetail(k); } });
     return true;
   }
-  root.Team3PetsUI = { closeGd: closeGd, openCur: openCur, closeBg: closeBg, noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
+  root.Team3PetsUI = { closeZoom: closeZoom, closeGd: closeGd, openCur: openCur, closeBg: closeBg, noirAnnounce: noirAnnounce, mount: mount, open: open, close: close, isOpen: isOpen, renderPartner: renderPartner, pat: pat, isBusy: function () { return busy; } };
 })(typeof self !== 'undefined' ? self : this);

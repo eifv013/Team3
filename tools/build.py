@@ -23,6 +23,18 @@ def latest_note():
         sys.exit('notes.js 맨 위 ver 형식이 틀렸다(숫자와 점만): ' + repr(note.get('ver')))
     return note
 
+def copy_noir_big(dest):
+    """0.13.15 코드네임 큰 그림(assets/noirbig/*.webp, tools/noir_pics.py 결과)을 dest/noir/ 로. 크게 보기에서만 받는다."""
+    src = ROOT / 'assets' / 'noirbig'
+    d = dest / 'noir'
+    if d.exists():
+        shutil.rmtree(d)
+    d.mkdir(parents=True)
+    if src.exists():
+        for f in src.iterdir():
+            shutil.copy(f, d / f.name)
+
+
 def copy_music(dest):
     """배경 음악(assets/music/*.mp3, tools/make_music.py 결과)을 dest/music/ 로. music.js 가 가리키는 파일이 다 있어야 한다."""
     out = subprocess.run(['node', '-e', "process.stdout.write(JSON.stringify(require('./src/music.js')))"],
@@ -62,6 +74,7 @@ def build():
     DIST.mkdir(exist_ok=True)
     (DIST / 'index.html').write_text(tpl, encoding='utf-8')
     copy_music(DIST)
+    copy_noir_big(DIST)
     # 출동 전환 미리보기: 게임과 같은 transit.js 를 넣은 단독 페이지(배포 폴더에는 넣지 않는다)
     prev = (ROOT / 'src/transit-preview.html').read_text(encoding='utf-8')
     if prev.count('/*TRANSIT*/') != 1:
@@ -75,6 +88,7 @@ def build():
     pwa.mkdir()
     (pwa / 'index.html').write_text(tpl, encoding='utf-8')
     copy_music(pwa)
+    copy_noir_big(pwa)
     for f in ('manifest.webmanifest', '설치방법.txt'):
         shutil.copy(ROOT / 'pwa-src' / f, pwa / f)
     sw = (ROOT / 'pwa-src/sw.js').read_text(encoding='utf-8')

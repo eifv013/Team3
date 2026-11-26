@@ -155,7 +155,7 @@
     var m = /^([a-z0-9]+):([crhl])$/.exec(k || '');
     return m && BY_ID[m[1]] ? { id: m[1], g: m[2] } : null;
   }
-  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, bgs: { office: true }, bg: 'office', fx: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
+  function empty() { return { own: {}, eq: '', pity: 0, treats: 0, tickets: 0, pulls: 0, welcome: false, gifts: {}, names: {}, freeName: false, closet: {}, wear: {}, bgs: { office: true }, bg: 'office', fx: {}, free: null, picks: { l: 0 }, bond: {}, noir: {}, noirSeen: {}, nlook: {}, fresh: {} }; }   // 0.10.6 fresh: 새로 얻고 아직 도감에서 안 본 파트너
   function int(v, def, min, max) {
     if (typeof v !== 'number' || !isFinite(v)) return def;
     v = Math.floor(v);
@@ -194,9 +194,18 @@
     var wr = d.wear && typeof d.wear === 'object' ? d.wear : {};
     Object.keys(wr).forEach(function (k) { if (parse(k) && p.own[k] && p.closet[wr[k]]) p.wear[k] = wr[k]; });
     // 0.8.4 누아르 각성: 켠 동물(noir) · 각성이 열린 걸 이미 알려 준 동물(noirSeen). 조건이 안 되는 키는 버린다
+    // 0.13.15 코드네임 그림은 장면(사무실 a · 현장 b)마다 산다(nlook). 이 칸이 없는 옛 저장은 예전 규칙(전설이거나 ★5)으로
+    //   이미 열려 있던 그림을 두 장면 모두 그대로 준다 — 갖고 있던 걸 빼앗지 않는다
+    var nl = d.nlook;
+    if (nl && typeof nl === 'object') Object.keys(nl).forEach(function (k) {
+      if (!parse(k) || !p.own[k] || !nl[k] || typeof nl[k] !== 'object') return;
+      var o = {}; LOOKS.forEach(function (l) { if (nl[k][l.id] === true) o[l.id] = true; });
+      if (Object.keys(o).length) p.nlook[k] = o;
+    });
+    else Object.keys(p.own).forEach(function (k) { if (parse(k).g === 'l' || p.own[k] >= STAR_MAX) p.nlook[k] = { a: true, b: true }; });
     var nr = d.noir && typeof d.noir === 'object' ? d.noir : {}, ns = d.noirSeen && typeof d.noirSeen === 'object' ? d.noirSeen : {};
-    Object.keys(nr).forEach(function (k) { if ((nr[k] === true || nr[k] === 'b') && canNoirP(p, k)) p.noir[k] = nr[k]; });   // 0.12.3 'b' = 현장 장면
-    Object.keys(ns).forEach(function (k) { if (ns[k] === true && canNoirP(p, k)) p.noirSeen[k] = true; });
+    Object.keys(nr).forEach(function (k) { if ((nr[k] === true || nr[k] === 'b') && ownLookP(p, k, nr[k] === 'b' ? 'b' : 'a')) p.noir[k] = nr[k]; });   // 0.12.3 'b' = 현장 장면
+    Object.keys(ns).forEach(function (k) { if (ns[k] === true && p.own[k]) p.noirSeen[k] = true; });
     var fr = d.fresh && typeof d.fresh === 'object' ? d.fresh : {};
     Object.keys(fr).forEach(function (k) { if (fr[k] === true && p.own[k]) p.fresh[k] = true; });
     save.pets = p;
@@ -208,12 +217,32 @@
   function seeAllFresh(save) { var p = P(save), n = p.fresh ? Object.keys(p.fresh).length : 0; p.fresh = {}; return n; }
   function freshCount(save) { var p = P(save); return p.fresh ? Object.keys(p.fresh).length : 0; }
   /* ---------- 코드네임(0.8.4, 안에서는 noir) ----------
-     전설 등급이면 바로, 그 밖의 등급은 ★5(최고)가 되면 열린다. 켜면 파트너 카드 · 도감 자세히 · 출동 머리 사진이 누아르 그림으로.
+     0.13.15부터: 모든 등급이 ★5(최고)가 되면 장면(사무실 · 현장)마다 간식이나 배지로 산다(LOOKS · buyLook). 켜면 파트너 카드 · 도감 자세히 · 출동 머리 사진이 누아르 그림으로.
      상황실(사무실) 안 파트너는 늘 귀여운 모습 그대로. 효과는 없음(꾸미기). */
   // 코드네임(0.8.4): 종마다 하나. 성격 한 줄(line)에서 따왔다. 켜면 초상이 누아르 그림으로, 이름 옆에 코드네임이 붙는다
   var CODENAME = {"corgi": "에코", "shiba": "스톤페이스", "hamster": "포켓", "rabbit": "안테나", "bear": "그리즐리", "hedgehog": "니들", "duck": "패들", "frog": "재즈", "ragdoll": "블루아이", "siamese": "마스크", "fox": "폴리그래프", "penguin": "턱시도", "monkey": "스카이워치", "squirrel": "컬렉터", "koala": "슬리퍼", "raccoon": "밴딧", "owl": "제로쓰리", "otter": "다이버", "panda": "모노크롬", "tiger": "헌터", "sheep": "클라우드", "pig": "트러플", "redpanda": "메이플", "alpaca": "패커", "seal": "하버", "hippo": "부스터", "turtle": "아이언쉘", "mouse": "크랙", "lion": "킹", "deer": "실버벨", "wolf": "고스트"};
   function codename(id) { return CODENAME[id] || ''; }
-  function canNoirP(p, k) { var x = parse(k); return !!(x && p.own[k] && (x.g === 'l' || p.own[k] >= STAR_MAX)); }
+  /* 0.13.15 코드네임 그림: ★5(모든 등급 같은 규칙)가 되면 장면마다 산다. 나중에 사복 장면('c')을 LOOKS 에 더하면 된다 */
+  var LOOKS = [{ id: 'a', name: '사무실' }, { id: 'b', name: '현장' }];
+  var LOOK_COST = { treats: 300, gems: 30 };
+  /** 살 수 있는가(★5) */
+  function canNoirP(p, k) { var x = parse(k); return !!(x && p.own[k] && p.own[k] >= STAR_MAX); }
+  function ownLookP(p, k, sc) { return !!(p.nlook && p.nlook[k] && p.nlook[k][sc]); }
+  function ownLook(save, k, sc) { return ownLookP(P(save), k, sc); }
+  /** 그 파트너가 가진 장면들(['a','b'] 중) */
+  function looksOf(save, k) { var p = P(save); return LOOKS.filter(function (l) { return ownLookP(p, k, l.id); }).map(function (l) { return l.id; }); }
+  /** 장면 하나 사기. pay: 'treats' | 'gems' */
+  function buyLook(save, k, sc, pay) {
+    var p = P(save);
+    if (!LOOKS.some(function (l) { return l.id === sc; })) throw PetError('BAD_LOOK', '모르는 장면');
+    if (!canNoirP(p, k)) throw PetError('LOCKED', '★5가 돼야 산다');
+    if (ownLookP(p, k, sc)) throw PetError('ALREADY', '이미 있다');
+    if (pay === 'gems') { if (!(save.gems >= LOOK_COST.gems)) throw PetError('NOT_ENOUGH', '배지가 모자란다'); save.gems -= LOOK_COST.gems; }
+    else { if (!(p.treats >= LOOK_COST.treats)) throw PetError('NOT_ENOUGH', '간식이 모자란다'); p.treats -= LOOK_COST.treats; }
+    if (!p.nlook[k]) p.nlook[k] = {};
+    p.nlook[k][sc] = true; p.noirSeen[k] = true;
+    return sc;
+  }
   function canNoir(save, k) { return canNoirP(P(save), k); }
   /* 0.13.0 코드네임 그림 연출(움직임)은 따로 판다. 기본 그림은 효과가 없다. 종류마다 한 번 사면 그 동물의 모든 등급 · 장면에 켜진다 */
   var FX_GEMS = 80;
@@ -225,18 +254,20 @@
     if (!(save.gems >= FX_GEMS)) throw PetError('NOT_ENOUGH', '배지가 모자란다');
     save.gems -= FX_GEMS; p.fx[id] = true; return id;
   }
-  function noirOn(save, k) { var p = P(save); return !!(p.noir[k] && canNoirP(p, k)); }
+  function noirOn(save, k) { var p = P(save); return !!(p.noir[k] && ownLookP(p, k, p.noir[k] === 'b' ? 'b' : 'a')); }
   /** 코드네임 그림의 장면: 'a' 사무실, 'b' 현장 */
   function noirScene(save, k) { return P(save).noir[k] === 'b' ? 'b' : 'a'; }
   function setNoir(save, k, on) {
     var p = P(save);
-    if (!canNoirP(p, k)) return false;
+    if (on && !ownLookP(p, k, on === 'b' ? 'b' : 'a')) return false;   // 0.13.15 산 장면만 켤 수 있다(끄기는 언제나)
+    if (!p.own[k]) return false;
     if (on) p.noir[k] = on === 'b' ? 'b' : true; else delete p.noir[k];
     p.noirSeen[k] = true;
     return true;
   }
   // 각성이 새로 열렸는데 아직 안 알려 준 동물들(처음 알릴 때 한 번 깜짝 보여 주려고)
-  function noirNew(save) { var p = P(save); return Object.keys(p.own).filter(function (k) { return canNoirP(p, k) && !p.noirSeen[k]; }); }
+  // 0.13.15 ★5가 돼서 코드네임 그림을 살 수 있게 됐는데(아직 한 장도 없음) 아직 안 알려 준 파트너들
+  function noirNew(save) { var p = P(save); return Object.keys(p.own).filter(function (k) { return canNoirP(p, k) && !p.noirSeen[k] && !p.nlook[k]; }); }
   function noirSeen(save, k) { var p = P(save); if (canNoirP(p, k)) p.noirSeen[k] = true; }
   function P(save) { return save.pets && save.pets.own ? save.pets : clean(save); }
 
@@ -523,6 +554,7 @@
     var isNew = !p.own[k];
     p.own[k] = STAR_MAX;
     if (isNew) { if (!p.fresh) p.fresh = {}; p.fresh[k] = true; }
+    p.nlook[k] = { a: true, b: true };   // 0.13.15 한정 파트너는 코드네임 그림(두 장면)이 함께 온다
     p.noirSeen[k] = true;   // 상점 칸에서 코드네임을 이미 보여 줬다 → 각성 알림은 다시 띄우지 않는다
     return { key: k, isNew: isNew };
   }
@@ -644,6 +676,7 @@
     codename: codename, CODENAME: CODENAME,
     UPCOMING: UPCOMING, BGS: BGS, BG_BY: BG_BY, buyBg: buyBg, useBg: useBg, bgNow: bgNow,
     LIMITED: LIMITED, grantLimited: grantLimited,
+    LOOKS: LOOKS, LOOK_COST: LOOK_COST, ownLook: ownLook, looksOf: looksOf, buyLook: buyLook,
     FX_GEMS: FX_GEMS, fxOn: fxOn, buyFx: buyFx, canNoir: canNoir, noirOn: noirOn, noirScene: noirScene, setNoir: setNoir, noirNew: noirNew, noirSeen: noirSeen,
     GRADES: GRADES, GRADE: GRADE, GRADE_MUL: GRADE_MUL, SPECIES: SPECIES, BY_ID: BY_ID, OWN_KIND: OWN_KIND,
     STAR_MAX: STAR_MAX, PITY: PITY, COST: COST, MAX_PULL: MAX_PULL, gemCost: gemCost, maxPull: maxPull, WELCOME: WELCOME, CAPS: CAPS,

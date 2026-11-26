@@ -236,6 +236,9 @@
     if (M && PT && save.pets) { var pt = M.claimPremTreats(save, dayNow()); if (pt) { save.pets.treats += pt; persist(); UI.toast('👑 프리미엄: 오늘의 간식 +' + pt); } }
     // 0.4.1 재화 아이콘(Team3Icons 가 없으면 ◆ 글자)
     $('h-gems').innerHTML = (window.Team3Icons ? window.Team3Icons.icon('gem') : '◆ ') + fmt(save.gems);
+    // 0.13.15 매점 광고 보상이 남았으면 배지 칸에 빨간 점. 매점을 열면 이번 접속 동안 꺼진다
+    var SU = window.Team3ShopUI;
+    $('h-gems').classList.toggle('ad-dot', !!(M && M.shopAdsLeft && M.shopAdsLeft(save, dayNow()) > 0 && !(SU && SU.adDotSeen && SU.adDotSeen())));
     // 0.9.0 시즌 패스 프리미엄: 머리에 👑 남은 날(3일 이하면 빨갛게) · 금빛 도장/왕관 팀 이름(body.prem-on)
     if (window.Team3Monet) {
       var MO = window.Team3Monet, pOn = MO.premOn(save, dayNow()), pc = $('h-prem');
@@ -1261,6 +1264,7 @@
     if (dispatching) return 'stay';   // 출동 전환 중: 사무실에서 뒤로(=앱 종료)로 오해하지 않게 그냥 둔다
     // 0.12.7 위에 뜬 작은 창(구매 확인 · 파트너 배경)부터 닫는다 — 전에는 뒤의 탭이 넘어갔다
     var cfb = document.querySelector('.cf-back [data-cf="no"]'); if (cfb) { cfb.click(); return 'stay'; }
+    if (PUI && PUI.closeZoom && PUI.closeZoom()) return 'stay';   // 0.13.15 크게 보기
     if (PUI && PUI.closeGd && PUI.closeGd()) return 'stay';   // 0.13.6 재화 안내 · 코드네임 미리 보기
     if (PUI && PUI.closeBg && PUI.closeBg()) return 'stay';
     if (!$('info-sheet').hidden) { closeInfo('cancel'); return 'stay'; }

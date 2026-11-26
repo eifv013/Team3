@@ -164,6 +164,9 @@
     var s = S(save), used = s.ads.day === day ? (s.ads.n[place] || 0) : 0;
     return Math.max(0, adLimit(save, place) - used);
   }
+  /** 0.13.15 매점의 광고 칸들(머리줄 배지 칸 빨간 점이 본다) · 오늘 남은 횟수 합 */
+  var SHOP_ADS = ['ticket', 'treats', 'gems', 'clue', 'party'];
+  function shopAdsLeft(save, day) { return SHOP_ADS.reduce(function (a, k) { return a + adLeft(save, k, day); }, 0); }
   /** 광고를 끝까지 봤다(또는 광고 없이 받기) — 한 번 쓴 것으로 센다. 남은 게 없으면 오류 */
   function adUse(save, place, day) {
     if (!ADS[place]) throw MonetError('BAD_PLACE', '모르는 광고 자리');
@@ -277,6 +280,7 @@
     PRODUCTS: PRODUCTS, BY_ID: BY_ID, SUB: SUB, ADS: ADS, SEASON_DAYS: SEASON_DAYS, seasonOf: seasonOf, TIERS: TIERS, TIER_XP: TIER_XP,
     clean: clean, visible: visible, starterLeft: starterLeft, applyPurchase: applyPurchase,
     subActive: subActive, subDaysLeft: subDaysLeft, claimSub: claimSub, perks: perks,
+    SHOP_ADS: SHOP_ADS, shopAdsLeft: shopAdsLeft,
     adLimit: adLimit, adLeft: adLeft, adUse: adUse, adSeen: adSeen,
     season: season, reward: reward, passOf: passOf, tierOf: tierOf, runXp: runXp, addXp: addXp, claimable: claimable, claimPass: claimPass, EXTRA: EXTRA, EXTRA_XP: EXTRA_XP, EXTRA_MAX: EXTRA_MAX, extraEarned: extraEarned
   };

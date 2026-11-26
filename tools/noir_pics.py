@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """art/noir/<id>.png(코드네임 초상, 정사각형) → src/noirpics.js(320×320 webp 를 base64 로 넣은 모듈).
 새 그림을 받으면: art/noir/ 에 영어 id 이름으로 넣고 `python3 tools/noir_pics.py` 후 빌드."""
-import base64, io, json, os, sys
+import base64, hashlib, io, json, os, shutil, sys
 from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'art', 'noir')
-out = {}; hot = {}
+out = {}; hot = {}; big = {}
+# 0.13.15 크게 보기(확대 컷)용 큰 그림: 게임 파일 밖(dist/noir/)에 따로 두고 볼 때만 받는다. 이름에 내용 해시
+BIG = os.path.join(ROOT, 'assets', 'noirbig')
+if os.path.exists(BIG): shutil.rmtree(BIG)
+os.makedirs(BIG)
 SNOW = {'koala_b', 'ragdoll_b'}; RAIN = {'wolf'}   # 날씨: 현장(_b)은 비, 눈 그림은 눈, 나머지는 실내
 names = sorted(os.listdir(SRC))
 for n in names:
@@ -15,7 +19,12 @@ for n in names:
         continue
     im = Image.open(os.path.join(SRC, n)).convert('RGB')
     w, h = im.size; s = min(w, h)
-    im = im.crop(((w - s) // 2, (h - s) // 2, (w - s) // 2 + s, (h - s) // 2 + s)).resize((640, 640), Image.LANCZOS)   # 0.12.6 320 → 640: 휴대폰 화면(3배 밀도)에서 뭉개져 보였다
+    im = im.crop(((w - s) // 2, (h - s) // 2, (w - s) // 2 + s, (h - s) // 2 + s))
+    bs = min(s, 1254); bi = im if s == bs else im.resize((bs, bs), Image.LANCZOS)
+    bb = io.BytesIO(); bi.save(bb, 'WEBP', quality=84, method=6); bd = bb.getvalue()
+    bn = n[:-4] + '.' + hashlib.sha1(bd).hexdigest()[:8] + '.webp'
+    open(os.path.join(BIG, bn), 'wb').write(bd); big[n[:-4]] = 'noir/' + bn
+    im = im.resize((640, 640), Image.LANCZOS)   # 0.12.6 320 → 640: 휴대폰 화면(3배 밀도)에서 뭉개져 보였다
     b = io.BytesIO(); im.save(b, 'WEBP', quality=80, method=6)
     out[n[:-4]] = 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode()
     # 0.13.0 연출(따로 파는 움직임)용: 그림에서 불빛 자리(w 등 · r 빨간 경광등 · b 파란 경광등)를 찾아 둔다
@@ -46,6 +55,8 @@ js = """/*
   return """ + json.dumps(out) + """;
 });
 if (typeof window !== 'undefined') window.Team3NoirHot = """ + json.dumps(hot) + """;
+// 0.13.15 크게 보기용 큰 그림 주소(게임 옆 noir/ 폴더). 못 받으면 위의 작은 그림을 쓴다
+if (typeof window !== 'undefined') window.Team3NoirBig = """ + json.dumps(big) + """;
 """
 open(os.path.join(ROOT, 'src', 'noirpics.js'), 'w').write(js)
 print('코드네임 그림', len(out), '종 ·', len(js) // 1024, 'KB')

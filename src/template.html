@@ -371,6 +371,17 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 .pn-seg{display:flex;gap:6px}
 .pn-seg button{flex:1;height:40px;border-radius:10px;border:1.5px solid #3A4352;background:#171B23;color:var(--muted);font-weight:800;font-size:13.5px}
 .pn-seg button.on{border-color:#FFB347;color:#FFD9A0;background:linear-gradient(180deg,#3A2A14,#221A10)}
+/* 0.13.15 아직 안 산 장면: 자물쇠 + 흐린 글씨, 누르면 금테 */
+.pet-noir .pn-seg button.lkb{display:inline-flex;align-items:center;justify-content:center;gap:4px;color:#8A93A4;background:#12151C;border:1.5px dashed #4A5262;box-shadow:none}
+.pet-noir .pn-seg button.lkb .lk{color:#FFD23F;flex:none}
+.pet-noir .pn-seg button.lkb.sel{border-style:solid;border-color:#FFD23F;color:#FFE7A8;background:#1E1A10}
+.pn-buy{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:8px;border-radius:12px;background:rgba(0,0,0,.28)}
+.pn-buy-pic{flex:none;width:84px;height:84px;border-radius:10px;overflow:hidden}
+.pn-buy-pic>svg,.pn-buy-pic>img{width:100%;height:100%;display:block}
+.pn-buy-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.pn-buy-tx b{color:#FFD9A0;font-size:14px}
+.pn-buy-btns{flex-basis:100%;display:flex;gap:6px}
+.pn-buy-btns button{flex:1;height:42px;display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:15px;white-space:nowrap}
 .pet-noir.locked{flex-direction:row;align-items:center;gap:12px}
 .pn-thumb{position:relative;flex:none;width:56px;height:56px;border-radius:12px;overflow:hidden}
 .pn-thumb>svg{display:block;filter:brightness(.35) saturate(.4)}
@@ -510,6 +521,9 @@ h1,h2{margin:0;font-family:'Black Han Sans',sans-serif;font-weight:400}
 /* ===== 0.7.0 난이도(단순 · 강력 · 미제 사건) ===== */
 .head-chips{display:flex;align-items:center;gap:6px}
 .head-chips .gem-chip{margin:0;align-self:center}
+/* 0.13.15 받을 광고 보상이 남았다는 빨간 점 */
+.gem-chip.ad-dot{position:relative}
+.gem-chip.ad-dot::after{content:'';position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#FF4D4F;box-shadow:0 0 0 2px var(--bg)}
 .go-diff{flex:none;height:26px;display:inline-flex;align-items:center;border:1px solid color-mix(in srgb,var(--c,#FFD23F) 55%,transparent);background:color-mix(in srgb,var(--c,#FFD23F) 10%,var(--panel));color:var(--text);
   border-radius:999px;padding:0 10px;font-weight:700;font-size:13px;line-height:1;font-family:inherit;white-space:nowrap}
 .df-set{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid color-mix(in srgb,var(--c,#FFD23F) 55%,var(--line));background:var(--panel2);color:var(--text);border-radius:14px;padding:10px 12px;font-family:inherit}
@@ -1328,6 +1342,9 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .pet-cell.have svg{filter:none;opacity:1}
 .pet-cell.eq{box-shadow:0 0 0 2px var(--acc)}
 .pet-cell i{position:absolute;right:2px;bottom:1px;font-style:normal;font-size:9px;font-weight:700;color:#7A5A00;background:rgba(255,255,255,.85);border-radius:5px;padding:0 3px}
+/* 0.13.15 별 다섯 칸: 칸 아래쪽에 어두운 띠를 깔고 가운데 정렬 */
+.pet-cell i.pet-cstars{left:2px;right:2px;bottom:2px;padding:1px 0 0;border-radius:0 0 7px 7px;background:rgba(10,12,18,.78);color:#FFC93C;font-size:8px;line-height:1.2;letter-spacing:-1px;overflow:hidden;text-align:center;white-space:nowrap;text-shadow:0 0 3px rgba(255,190,60,.5)}
+.pet-cell i.pet-cstars s{text-decoration:none;color:rgba(255,255,255,.22);text-shadow:none}
 .pet-detail{position:relative;display:grid;grid-template-columns:110px 1fr;gap:10px;padding:12px;border-radius:14px;background:var(--panel2);border:2px solid var(--gc)}
 .pet-detail .pet-x{position:absolute;top:4px;right:6px;width:32px;height:32px;border:0;background:none;color:var(--muted);font-size:22px}
 .pet-big{width:110px;height:110px;border-radius:14px;background:linear-gradient(180deg,#FBF7EE,#EFE6D2);display:flex;align-items:center;justify-content:center}
@@ -1588,7 +1605,7 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 /* 0.10.5 사기 전 확인창(모든 창 위) */
 .pet-bond.need{position:relative}.pet-bond.need::after{content:'';position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#FF5F57;box-shadow:0 0 0 3px rgba(255,95,87,.25)}
 /* 0.10.5 재화 · 작은 탭은 창을 내려도 위에 붙어 있다 */
-.sheet-pin{position:sticky;top:-20px;z-index:1;margin:0 -20px;padding:10px 20px 8px;background:var(--panel);display:flex;flex-direction:column;gap:10px}
+.sheet-pin{position:sticky;top:-20px;z-index:6;margin:0 -20px;padding:10px 20px 8px;background:var(--panel);display:flex;flex-direction:column;gap:10px}
 .sheet:has(.sheet-pin).scrolled>.x-btn::before{display:none}
 .sheet.scrolled .sheet-pin .pet-wallet{margin-right:52px}
 /* 0.10.5 도감 자세히는 창 위 팝업으로(아래에서 눌러도 순간이동 없이) */
@@ -1764,6 +1781,11 @@ details.pn summary{padding-right:40px}   /* 0.10.10 접힌 줄 글이 화살표 
 @keyframes nzcam{0%{transform:scale(1.03) translate(-1%,.6%)}50%{transform:scale(1.08) translate(.8%,-.5%)}100%{transform:scale(1.13) translate(-.3%,-1.2%)}}
 @media (prefers-reduced-motion:reduce){.noir-pic.fxon svg image{animation:none}}
 .pn-fx{display:flex;align-items:center;gap:8px;margin-top:4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+/* 0.13.15 설명을 제목 아래 한 줄로(좁은 칸에서 세 줄로 꺾이지 않게) */
+.pn-fx:not(.own){display:grid;grid-template-columns:1fr auto;column-gap:10px;row-gap:2px;align-items:center}
+.pn-fx:not(.own)>b{grid-column:1;grid-row:1}
+.pn-fx:not(.own)>small{grid-column:1;grid-row:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pn-fx:not(.own)>button{grid-column:2;grid-row:1/3}
 .pn-fx b{font-size:13px;white-space:nowrap}.pn-fx small{flex:1;font-size:11.5px;color:var(--muted)}.pn-fx.own span{margin-left:auto;font-size:12px;font-weight:800;color:#7FE0A0}
 .pn-fx button{flex:none;height:36px;padding:0 12px;border-radius:10px;font-size:14px;font-weight:900;display:inline-flex;align-items:center;gap:3px}
 /* 0.13.1 설명 글 줄 맞춤: 낱말 중간에서 끊지 않고, 줄 길이를 고르게 나눠 마지막 줄에 한두 낱말만 남지 않게. 문장마다 줄을 바꾸는 곳은 .ln */
@@ -1813,6 +1835,21 @@ button.bgp-w{border:0;font-family:inherit;color:var(--text);box-shadow:inset 0 0
 .sheet.scrolled .sheet-pin .pet-wallet{gap:4px}
 .sheet.scrolled .sheet-pin .pet-wallet button{padding:6px 2px;font-size:10.5px;overflow:hidden}
 .sheet.scrolled .sheet-pin .pet-wallet button b{font-size:13px}
+.cf-b:empty{display:none}
+/* 0.13.15 자세히: 코드네임이면 그림을 창 너비로, 오른쪽 아래 확대 표시 */
+.pet-detail.nz .pet-big{grid-column:1/-1;width:100%;height:auto;aspect-ratio:1/1;position:relative;cursor:zoom-in}
+.pet-detail.nz .pet-info{grid-column:1/-1}
+.pet-detail.nz .pet-x{z-index:3;background:rgba(10,12,18,.75)}
+.gd-pic{position:relative;cursor:zoom-in}
+.nz-ic{position:absolute;right:8px;bottom:8px;width:30px;height:30px;border-radius:9px;background:rgba(10,12,18,.72);display:flex;align-items:center;justify-content:center;pointer-events:none}
+.gd-pic .nz-ic{right:calc(50% - 150px + 8px)}
+/* 크게 보기 */
+.nz-view{position:absolute;inset:0;z-index:60;background:#040508;animation:popin .15s ease-out}
+.nz-sc{position:absolute;inset:0;overflow:auto;display:flex;align-items:center;justify-content:center;overscroll-behavior:contain}
+.nz-sc img{display:block;width:100%;max-width:720px;height:auto;cursor:zoom-in;-webkit-user-drag:none;user-select:none}
+.nz-view.on .nz-sc{display:block}
+.nz-view.on .nz-sc img{width:250%;max-width:none;cursor:zoom-out}
+.nz-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;z-index:2;width:44px;height:44px;border:0;border-radius:12px;background:rgba(20,24,32,.85);color:#fff;font-size:26px;line-height:1}   /* 0.13.15 설명이 없는 확인 창은 제목과 값만 */
 .cf-back{position:absolute;inset:0;z-index:50;background:rgba(6,8,12,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .15s}
 .cf-box{width:100%;max-width:340px;background:var(--panel);border:1.5px solid #3A4252;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 16px 40px rgba(0,0,0,.6);animation:up .18s ease-out}
 .cf-t{font-size:19px;font-weight:900}.cf-b{font-size:14px;line-height:1.55;color:#C9CFDA}
@@ -2026,7 +2063,7 @@ body.prem-on #h-station::before{content:'👑 '}
 .at-note{margin:8px 0 0;min-height:1.5em;font-size:12.5px;color:var(--muted)}.at-note b{color:var(--text)}
 .at-c{cursor:pointer}.at-c.pick{outline:2px solid #fff;outline-offset:1px}
 /* 한정 파트너 칸 */
-.lim-card{position:relative;border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#2A1E3A,#12101A 60%);box-shadow:inset 0 0 0 1.5px rgba(200,170,255,.45),0 10px 26px rgba(0,0,0,.5)}
+.lim-card{position:relative;isolation:isolate;border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#2A1E3A,#12101A 60%);box-shadow:inset 0 0 0 1.5px rgba(200,170,255,.45),0 10px 26px rgba(0,0,0,.5)}
 .lim-card::after{content:'';position:absolute;top:0;left:-60%;width:35%;height:100%;background:linear-gradient(100deg,transparent,rgba(220,200,255,.16),transparent);transform:skewX(-18deg);animation:buyshine 4s ease-in-out infinite;pointer-events:none}
 .lim-rib{position:absolute;top:12px;left:12px;z-index:2;padding:4px 10px;border-radius:999px;background:linear-gradient(90deg,#B07CF0,#7A4AD8);font-size:12px;font-weight:900;color:#fff}
 .lim-time{position:absolute;top:12px;right:12px;z-index:2;padding:4px 10px;border-radius:999px;background:rgba(10,8,16,.8);font-size:12px;font-weight:800;color:#D8C8FF}

@@ -96,7 +96,9 @@
 
   /* ---------- 창 ---------- */
   function isOpen() { return !$('shop-sheet').hidden; }
-  function open(which) { tab = which || tab; $('shop-sheet').hidden = false; draw(); $('shop-sheet').querySelector('.sheet').scrollTop = 0; }
+  // 0.13.15 매점을 한 번 열면 이번 접속 동안은 배지 칸 빨간 점을 끈다(다시 접속하면 다시 켜짐 — 저장하지 않는다)
+  var adDotSeen = false;
+  function open(which) { adDotSeen = true; tab = which || tab; $('shop-sheet').hidden = false; draw(); $('shop-sheet').querySelector('.sheet').scrollTop = 0; }
   function close() { $('shop-sheet').hidden = true; ctx.render(); }
   function won(n) { return '₩' + fmt(n); }
   function payBtn(id, label) {
@@ -117,7 +119,8 @@
     // 0.9.0 한정 파트너(정식 출시 전까지 계속)
     if (M.limitedOpen(s, 'wolf', ctx.day())) {
       var limLeft = M.limitedLeft('wolf', ctx.day());
-      var pic = root.Team3NoirPics && root.Team3NoirPics.wolf;
+      // 0.13.14 그림이 사무실(_a) · 현장(_b) 두 장으로 나뉘면서 예전 이름(wolf)이 없어졌다 → 현장 그림, 없으면 사무실, 그다음 예전 이름
+      var NP = root.Team3NoirPics || {}, pic = NP.wolf_b || NP.wolf_a || NP.wolf;
       html += '<div class="lim-card"><span class="lim-rib">한정 파트너</span><span class="lim-time' + (limLeft <= 3 ? ' soon' : '') + '">' + (limLeft === Infinity ? '정식 출시 전까지' : limLeft === 1 ? '오늘까지' : limLeft + '일 남음') + '</span>' +
         (pic ? '<div class="lim-pic"><img src="' + pic + '" alt="한정 파트너 늑대"></div>' : '') +
         '<div class="lim-body"><div class="lim-nm">특수수사팀, 늑대, 한정<b>백랑, 코드네임 고스트</b></div>' +
@@ -274,5 +277,5 @@
     if (chip) chip.addEventListener('click', function () { open('shop'); });
   }
 
-  root.Team3ShopUI = { mount: mount, open: open, close: close, isOpen: isOpen, watch: watch, isTest: function () { return !!Ads.test; } };
+  root.Team3ShopUI = { adDotSeen: function () { return adDotSeen; }, mount: mount, open: open, close: close, isOpen: isOpen, watch: watch, isTest: function () { return !!Ads.test; } };
 })(typeof self !== 'undefined' ? self : this);
