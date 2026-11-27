@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>수사 3팀 사건 5 시안</title>
 <!--
-  사건 5 후보를 직접 해 보는 시안. 카드는 게임과 같은 용의자 카드(시간대, 모자, 얼굴, 흔적)를 그대로 쓴다(ui.js 그리기 함수).
-    ① 몽타주 맞히기 — 용의자를 대조하면 특징마다 맞음/틀림이 나온다. 적게 대조하고 범인을 맞힌다(참고: Wordle, 숫자야구). 사건 4 시안에서 이어 옴
-    ② 배치표        — 3×3 잠복 배치표의 빈자리에 들어갈 사람 고르기. 줄과 칸마다 같은 특징이 한 번씩(참고: 스도쿠). 사건 4 시안에서 이어 옴
-    ③ 출입 순서     — 출입 기록 단서로 네다섯 명이 들어온 순서를 맞힌다(참고: 보드게임 타임라인, 논리 퍼즐 줄 세우기)
-  공통: 60초, 맞히면 점수와 시간 +, 틀리면 −5초. 4번 맞힐 때마다 단계 1→2→3.
-  makeOrder 는 단서에 맞는 순서가 늘 하나뿐인지(모든 순서를 다 대 봄), 단서 하나만 빼도 답이 하나가 아닌지 확인한다.
+  사건 5 후보를 직접 해 보는 시안(2차). 카드는 게임과 같은 용의자 카드(시간대, 모자, 얼굴, 흔적)를 그대로 쓴다(ui.js 그리기 함수).
+    ① 군중 속 범인 — 수십 명 속에서 수배 특징에 딱 맞는 한 명 찾기(참고: 월리를 찾아라)
+    ② 공범 잇기     — 똑같은 두 명을 두 번 이하로 꺾인 빈 길로 이어 지우기(참고: 사천성)
+    ③ 유치장 정리   — 맨 위 사람을 옮겨 칸마다 한 종류만 모으기(참고: 볼 소트, 물 정렬 퍼즐)
+  1차(몽타주 맞히기, 배치표, 출입 순서)는 뺐다.
+  공통: 60초, 맞히면 점수와 시간 +, 틀리면 −초. 4번 맞힐 때마다 단계 1→2→3.
+  selfTest: 군중 속 맞는 사람은 늘 한 명, 사천성 판은 장마다 짝이 맞음, 유치장은 종류마다 칸 하나를 꼭 채움.
 -->
 <style>
 :root{--ink:#12151C;--panel:#1C212B;--panel2:#232937;--line:#2E3542;--text:#F3F0E8;--muted:#A3ACBA;--acc:#FFD23F;--miss:#FF7A59;--ok:#7BD88F}
@@ -86,6 +87,32 @@ h1{margin:0;font-size:22px}
 @keyframes pop{50%{transform:scale(1.18);filter:brightness(1.6)}100%{transform:scale(0);opacity:0}}
 #combo{color:var(--acc)}
 
+/* ① 군중 */
+.wantd{display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:#EFE7D4;color:#2A2118;border-radius:10px;padding:8px 10px;font-weight:900;font-size:14px}
+.wantd b{background:#C0392B;color:#fff;border-radius:6px;padding:2px 7px;font-size:12px}
+.wantd span{background:#2A2118;color:#EFE7D4;border-radius:999px;padding:3px 10px;font-size:13px}
+.crowd{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.crowd .card{aspect-ratio:1/1;border-radius:8px}.crowd .card .fig{width:82%}
+.crowd .card .t,.crowd .card .m{width:16px;height:16px;top:2px;left:2px}.crowd .card .m{left:auto;top:auto;right:2px;bottom:2px}.crowd .card .t svg,.crowd .card .m svg{width:11px;height:11px}
+.crowd .card.wrong{opacity:.3}
+/* ② 공범 잇기 */
+.shw{position:relative;padding:12px}
+.sh{display:grid;gap:4px}
+.sh .card{aspect-ratio:1/1;border-radius:8px}.sh .card .fig{width:80%}
+.sh .card .t,.sh .card .m{width:17px;height:17px}.sh .card .t svg,.sh .card .m svg{width:11px;height:11px}
+.sh .card.sel{box-shadow:inset 0 0 0 3px var(--acc),0 0 0 2px var(--acc)}
+.sh-gap{aspect-ratio:1/1}
+.shline{position:absolute;left:12px;top:12px;width:calc(100% - 24px);height:calc(100% - 24px);overflow:visible;pointer-events:none}
+/* ③ 유치장 */
+.jail{display:grid;grid-template-columns:repeat(auto-fit,minmax(48px,1fr));gap:5px}
+.cell{position:relative;display:flex;flex-direction:column;gap:3px;padding:4px 4px 6px;border:2px solid #4A5677;border-radius:10px;background:linear-gradient(180deg,#1A1F2A,#242B39);font:inherit;color:inherit}
+.cell.sel{border-color:var(--acc)}.cell.done{border-color:var(--ok);background:linear-gradient(180deg,#183024,#20392B)}
+.cell .bars{position:absolute;inset:0;border-radius:8px;background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(160,170,190,.18) 9px 11px);pointer-events:none;z-index:2}
+.slotp{position:relative;aspect-ratio:1/1;border-radius:7px;background:rgba(255,255,255,.04)}
+.slotp .card.mini{position:absolute;inset:0;display:block;width:auto;border-radius:7px}
+.jail .card .t,.jail .card .m{display:none}
+.slotp .card.lift{transform:translateY(-6px);box-shadow:0 0 0 2px var(--acc)}
+
 /* ③ 출입 순서 */
 .log{background:#EFE7D4;color:#2A2118;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
 .log-hd{display:flex;justify-content:space-between;font-size:11px;font-weight:900;letter-spacing:1px;color:#6B5A40;border-bottom:1.5px dashed #B9AA8A;padding-bottom:4px}
@@ -124,7 +151,7 @@ body.playing h1{display:none}
 </head>
 <body>
 <h1>사건 5 시안</h1>
-<div class="tabs" id="tabs"><button data-k="guess" class="on">몽타주</button><button data-k="seat">배치표</button><button data-k="order">출입 순서</button></div>
+<div class="tabs" id="tabs"><button data-k="crowd" class="on">군중</button><button data-k="shisen">공범 잇기</button><button data-k="sort">유치장</button></div>
 <div class="box" id="intro"></div>
 <div id="play" class="hide" style="display:flex;flex-direction:column;gap:10px">
   <div class="hud"><span class="t" id="time">60</span><span class="st" id="stage">단계 1</span><span class="s" id="score">0</span></div>
@@ -901,6 +928,11 @@ function pangFall(q) {   // 빈칸(-1)을 위에서 채운다
 }
 
 function selfTest() {
+  for (var s0 = 1; s0 <= 3; s0++) for (var k0 = 0; k0 < 60; k0++) {
+    var cr = makeCrowd(s0); if (cr.crowd.filter(function (x) { return dist(x, cr.want, cr.act) === 0; }).length !== 1 || cr.crowd[cr.ans] !== cr.want) throw new Error('crowd');
+    var sh = makeShisen(s0), ct = {}; sh.b.forEach(function (t) { var kk = key(t, sh.act); ct[kk] = (ct[kk] || 0) + 1; }); if (Object.keys(ct).some(function (kk) { return ct[kk] % 2; }) || !shMoves(sh).length) throw new Error('shisen');
+    var so = makeSort(s0), cs = {}; so.cells.forEach(function (c) { c.forEach(function (x) { var kk = key(x, so.act); cs[kk] = (cs[kk] || 0) + 1; }); }); if (Object.keys(cs).some(function (kk) { return cs[kk] !== 4; }) || so.cells.length !== Object.keys(cs).length + 2) throw new Error('sort');
+  }
   for (var so = 1; so <= 3; so++) for (var ko = 0; ko < 40; ko++) {
     var o = makeOrder(so), n = o.P.length, ss = sols(o.clues, n);
     if (ss.length !== 1 || ss[0].join() !== o.ans.join()) throw new Error('order 답이 하나가 아님');
@@ -980,8 +1012,85 @@ function makeOrder(st) {
   throw new Error('order gen');
 }
 
+/* ---------- ① 군중 속 범인(월리를 찾아라) ----------
+ *   수배 특징(보는 특징 전부)에 맞는 사람은 군중 속에 딱 한 명. 나머지는 하나 이상 다르다(단계 3은 대부분 하나만 다르다). */
+function makeCrowd(st) {
+  var act = ACT[st], n = st === 1 ? 30 : st === 2 ? 36 : 42, ans = rndId(), out = [], g = 0;
+  while (out.length < n - 1 && g++ < 5000) {
+    var id = rndId(), d = dist(id, ans, act);
+    if (d === 0) continue;
+    if (st === 3 && d > 1 && Math.random() < 0.7) continue;   // 단계 3: 닮은 사람(하나만 다름)이 대부분
+    out.push(id);
+  }
+  out.splice(ri(n), 0, ans);
+  return { act: act, crowd: out, ans: out.indexOf(ans), want: ans };
+}
+/* ---------- ② 공범 잇기(사천성) ----------
+ *   똑같은 두 명을 골라, 빈칸(판 바깥 한 줄 포함)으로 두 번 이하로 꺾여 이을 수 있으면 둘 다 지운다. 다 지우면 다음 판.
+ *   더 지울 짝이 없으면 남은 사람을 섞는다. */
+function makeShisen(st) {
+  var w = 6, h = st === 1 ? 4 : st === 2 ? 5 : 6, act = st === 1 ? [1, 2] : st === 2 ? [0, 1, 2] : [0, 1, 2, 3];
+  var kinds = st === 1 ? 6 : st === 2 ? 8 : 9, types = distinct(kinds, act), tiles = [];
+  for (var i = 0; i < w * h / 2; i++) { var t = types[i % kinds]; tiles.push(t, t); }
+  shuffle(tiles);
+  var q = { act: act, w: w, h: h, b: tiles, sel: -1, line: null };
+  if (!shMoves(q).length) shShuffle(q);
+  return q;
+}
+function shCell(q, x, y) { if (x < 0 || y < 0 || x >= q.w || y >= q.h) return -1; return q.b[y * q.w + x]; }   // -1: 빈칸(바깥도 빈칸)
+function shPath(q, a, c) {   // 두 번 이하로 꺾인 길(점 목록) 또는 null. 바깥 한 줄까지 다닌다
+  var ax = a % q.w, ay = Math.floor(a / q.w), cx = c % q.w, cy = Math.floor(c / q.w), D = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  var best = null, seen = {};
+  var qu = [[ax, ay, -1, 0, [[ax, ay]]]];
+  while (qu.length) {
+    var cur = qu.shift(), x = cur[0], y = cur[1], dir = cur[2], turns = cur[3], path = cur[4];
+    for (var d = 0; d < 4; d++) {
+      var nt = turns + (dir >= 0 && dir !== d ? 1 : 0); if (nt > 2) continue;
+      var nx = x + D[d][0], ny = y + D[d][1];
+      if (nx < -1 || ny < -1 || nx > q.w || ny > q.h) continue;
+      if (nx === cx && ny === cy) return path.concat([[nx, ny]]);
+      if (shCell(q, nx, ny) !== -1) continue;
+      var k = nx + ',' + ny + ',' + d; if (seen[k] != null && seen[k] <= nt) continue; seen[k] = nt;
+      qu.push([nx, ny, d, nt, path.concat([[nx, ny]])]);
+    }
+  }
+  return best;
+}
+function shMoves(q) {
+  var out = [];
+  for (var a = 0; a < q.b.length; a++) for (var c = a + 1; c < q.b.length; c++)
+    if (q.b[a] !== -1 && q.b[c] !== -1 && key(q.b[a], q.act) === key(q.b[c], q.act) && shPath(q, a, c)) out.push([a, c]);
+  return out;
+}
+function shShuffle(q) {
+  for (var g = 0; g < 50; g++) {
+    var idx = [], vals = [];
+    q.b.forEach(function (t, i) { if (t !== -1) { idx.push(i); vals.push(t); } });
+    shuffle(vals); idx.forEach(function (i, k) { q.b[i] = vals[k]; });
+    if (shMoves(q).length) return;
+  }
+}
+/* ---------- ③ 유치장 정리(볼 소트) ----------
+ *   칸(유치장)마다 사람이 쌓여 있다. 맨 위 사람을 빈칸이나 맨 위가 같은 사람인 칸으로 옮긴다(칸마다 4명까지).
+ *   모든 칸이 한 종류 4명씩이거나 비면 정리 끝. 빈칸 둘로 시작한다. */
+function makeSort(st) {
+  var kinds = st === 1 ? 3 : st === 2 ? 4 : 5, act = st === 1 ? [1, 2] : st === 2 ? [0, 1, 2] : [0, 1, 2, 3], types = distinct(kinds, act), all = [];
+  types.forEach(function (t) { for (var i = 0; i < 4; i++) all.push(t); });
+  for (var g = 0; g < 50; g++) {
+    shuffle(all);
+    var cells = []; for (var c = 0; c < kinds; c++) cells.push(all.slice(c * 4, c * 4 + 4));
+    cells.push([], []);
+    if (!sortDone(cells, act) && cells.every(function (cc) { return !cc.length || !cc.every(function (x) { return x === cc[0]; }); })) return { act: act, cells: cells, sel: -1, moves: 0 };
+  }
+  return { act: act, cells: cells, sel: -1, moves: 0 };
+}
+function sortDone(cells, act) { return cells.every(function (c) { return !c.length || (c.length === 4 && c.every(function (x) { return key(x, act) === key(c[0], act); })); }); }
+
 /* ---------- 공통 판 ---------- */
 var INFO = {
+  crowd: { t: '① 군중 속 범인', rule: ['위 수배 쪽지에 적힌 특징이 모두 맞는 사람은 군중 속에 딱 한 명이에요.', '찾아서 누르면 검거. 엉뚱한 사람을 누르면 −5초.', '단계가 오를수록 군중이 늘고, 하나만 다른 닮은 사람이 많아져요.'], ref: '참고: 월리를 찾아라' },
+  shisen: { t: '② 공범 잇기', rule: ['똑같은 두 명을 차례로 눌러요.', '빈칸으로 두 번 이하로 꺾어 이을 수 있으면 둘 다 지워져요(판 바깥 한 줄도 길이에요).', '다 지우면 다음 판. 더 지울 짝이 없으면 남은 사람을 섞어요.'], ref: '참고: 사천성' },
+  sort: { t: '③ 유치장 정리', rule: ['칸마다 맨 위 사람만 옮길 수 있어요. 옮길 칸을 누르고, 놓을 칸을 눌러요.', '빈칸이나 맨 위가 같은 사람인 칸에만 놓을 수 있어요(4명까지).', '칸마다 같은 사람 4명씩 모으면 정리 끝. 적게 옮길수록 점수가 커요.'], ref: '참고: 볼 소트, 물 정렬 퍼즐' },
   guess: { t: '① 몽타주 맞히기', rule: ['용의자 중 한 명이 범인이에요. 카드를 누르면 범인 몽타주와 대조해요.', '특징마다 맞으면 초록, 틀리면 회색으로 알려 줘요.', '적게 대조하고 맞힐수록 점수가 커요. 단계 3은 "몇 개 맞음"만 알려 줘요.'], ref: '참고: Wordle, 숫자야구' },
   id: { t: '② 신분증 검사', rule: ['한 명씩 사진과 신분증이 와요.', '하나라도 다르면 위조, 체포. 모두 같으면 통과.', '단계 3부터는 수배 조건에 걸리면 신분증이 맞아도 체포해요.'], ref: '참고: Papers, Please' },
   pair: { t: '③ 짝 맞추기', rule: ['카드가 뒤집혀 있어요. 두 장씩 뒤집어 봐요.', '보이는 특징이 똑같은 두 명이면 공범 검거, 아니면 다시 덮여요.', '짝을 다 찾으면 다음 판. 단계 3은 하나만 다른 닮은 사람이 섞여요.'], ref: '참고: 같은 그림 찾기' },
@@ -989,7 +1098,7 @@ var INFO = {
   seat: { t: '② 배치표', rule: ['3×3 잠복 배치표예요. 줄마다, 칸마다 같은 특징이 한 번씩만 나와요.', '빈자리(노란 칸)에 들어갈 사람을 아래에서 골라요.', '단계 3은 빈자리가 둘이에요.'], ref: '참고: 스도쿠' },
   pang: { t: '⑤ 검거팡', rule: ['옆 사람을 차례로 두 번 눌러 자리를 바꿔요(밀어도 돼요).', '같은 사람이 가로나 세로로 셋 이상 서면 검거.', '연달아 터지면 점수가 커져요. 단계가 오르면 사람 종류가 늘어요.'], ref: '참고: 애니팡' }
 };
-var mode = 'guess', startSt = 1, G = null, timer = 0;
+var mode = 'crowd', startSt = 1, G = null, timer = 0;
 function intro() {
   var I = INFO[mode];
   $('intro').innerHTML = '<h2>' + I.t + '</h2><ul class="rule">' + I.rule.map(function (r) { return '<li>' + r + '</li>'; }).join('') + '</ul><div class="ref">' + I.ref + '</div>' +
@@ -1035,7 +1144,7 @@ function finish() {
   $('end').classList.remove('hide');
 }
 $('end').addEventListener('click', function (e) { if (e.target.id === 'again') start(); if (e.target.id === 'back') intro(); });
-function next() { G.busy = false; msg(''); ({ guess: nextGuess, id: nextId, pair: nextPair, seat: nextSeat, pang: nextPang, order: nextOrder })[mode](); }
+function next() { G.busy = false; msg(''); ({ guess: nextGuess, id: nextId, pair: nextPair, seat: nextSeat, pang: nextPang, order: nextOrder, crowd: nextCrowd, shisen: nextShisen, sort: nextSort })[mode](); }
 function later(f, ms) { setTimeout(function () { if (G) f(); }, ms); }
 
 /* ① 몽타주 화면 */
@@ -1061,6 +1170,39 @@ function nextId() {
     q.act.map(function (i) { return '<div class="row"><span>' + NAMES[i] + '</span>' + VALS[i][v[i]] + '</div>'; }).join('') + '</div></div>' +
     '<div class="btns"><button class="btn-pass" data-a="pass">통과</button><button class="btn-arrest" data-a="arrest">체포</button></div></div>';
 }
+/* ① 군중 화면 */
+function nextCrowd() { G.q = makeCrowd(G.st); drawCrowd(); }
+function drawCrowd() {
+  var q = G.q, v = C.decode(q.want);
+  $('stagebox').innerHTML = '<div class="room"><div class="wantd"><b>수배</b>' + q.act.map(function (a) { return '<span>' + VALS[a][v[a]] + '</span>'; }).join('') + '</div>' +
+    '<div class="crowd">' + q.crowd.map(function (id, j) { return cardHtml(id, q.act, 'data-c="' + j + '"'); }).join('') + '</div></div>';
+}
+/* ② 사천성 화면 */
+function nextShisen() { G.q = makeShisen(G.st); drawShisen(); }
+function drawShisen() {
+  var q = G.q;
+  var cells = q.b.map(function (t, i) { return t === -1 ? '<span class="sh-gap"></span>' : cardHtml(t, q.act, 'data-t="' + i + '"', i === q.sel ? 'sel' : ''); }).join('');
+  var left = q.b.filter(function (t) { return t !== -1; }).length;
+  $('stagebox').innerHTML = '<div class="room"><div class="phd"><span>남은 사람 ' + left + '</span><span>' + q.w + ' × ' + q.h + '</span></div><div class="shw"><div class="sh" style="grid-template-columns:repeat(' + q.w + ',1fr)">' + cells + '</div><svg class="shline" id="shline"></svg></div></div>';
+}
+function shDraw(path) {   // 이은 길을 선으로(칸 가운데 기준, 바깥 줄은 반 칸 밖)
+  var q = G.q, svg = $('shline'), box = document.querySelector('.sh'); if (!svg || !box) return;
+  var r = box.getBoundingClientRect(), cw = r.width / q.w, chh = r.height / q.h;
+  svg.setAttribute('viewBox', '0 0 ' + r.width + ' ' + r.height);
+  var pts = path.map(function (p) { var x = (p[0] + 0.5) * cw, y = (p[1] + 0.5) * chh; x = Math.max(-cw * 0.25, Math.min(r.width + cw * 0.25, x)); y = Math.max(-chh * 0.25, Math.min(r.height + chh * 0.25, y)); return x.toFixed(1) + ',' + y.toFixed(1); }).join(' ');
+  svg.innerHTML = '<polyline points="' + pts + '" fill="none" stroke="#FFD23F" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>';
+}
+/* ③ 유치장 화면 */
+function nextSort() { G.q = makeSort(G.st); drawSort(); }
+function drawSort() {
+  var q = G.q;
+  $('stagebox').innerHTML = '<div class="room"><div class="phd"><span>옮김 ' + q.moves + '</span><span>칸마다 4명</span></div><div class="jail">' + q.cells.map(function (c, i) {
+    var full = c.length === 4 && c.every(function (x) { return key(x, q.act) === key(c[0], q.act); });
+    return '<button class="cell' + (i === q.sel ? ' sel' : '') + (full ? ' done' : '') + '" data-j="' + i + '"><span class="bars"></span>' +
+      [0, 1, 2, 3].map(function (k) { var id = c[k]; return '<span class="slotp">' + (id != null ? cardHtml(id, q.act, 'tabindex="-1"', 'mini' + (i === q.sel && k === c.length - 1 ? ' lift' : '')).replace('<button', '<span').replace('</button>', '</span>') : '') + '</span>'; }).reverse().join('') + '</button>';
+  }).join('') + '</div></div>';
+}
+
 /* ③ 출입 순서 화면 */
 function nextOrder() { G.q = makeOrder(G.st); drawOrder(); }
 function drawOrder(broke, wrongSlots) {
@@ -1150,6 +1292,34 @@ $('stagebox').addEventListener('click', function (e) {
     s.className = 'stamp'; s.textContent = q.arrest ? '체포' : '통과'; s.style.color = q.arrest ? '#C0392B' : '#2E7D4F'; pr.appendChild(s);
     if (ok) good(80, 1, (q.arrest ? '체포 ' + q.why : '통과') + ' +80'); else bad(q.arrest ? '놓쳤어요: ' + q.why : '죄 없는 사람이에요');
     G.busy = true; later(next, ok ? 450 : 1100);
+  } else if (mode === 'crowd') {
+    if (b.dataset.c == null) return;
+    if (+b.dataset.c === q.ans) { b.classList.add('right'); good(120, 3, '찾았어요 +120'); G.busy = true; later(next, 600); }
+    else { b.classList.add('wrong'); b.disabled = true; var dd = dist(q.crowd[+b.dataset.c], q.want, q.act); bad(dd === 1 ? '닮았지만 하나가 달라요' : '아니에요'); }
+  } else if (mode === 'shisen') {
+    if (b.dataset.t == null) return;
+    var ti = +b.dataset.t;
+    if (q.sel < 0 || q.sel === ti) { q.sel = q.sel === ti ? -1 : ti; drawShisen(); return; }
+    var a0 = q.sel;
+    if (key(q.b[a0], q.act) !== key(q.b[ti], q.act)) { q.sel = ti; drawShisen(); msg('똑같은 사람끼리만 이어요', 'bad'); return; }
+    var path = shPath(q, a0, ti);
+    if (!path) { q.sel = -1; drawShisen(); addTime(-2); msg('길이 막혔어요 −2초', 'bad'); buzz(30); return; }
+    G.busy = true; shDraw(path); buzz(15);
+    later(function () {
+      q.b[a0] = q.b[ti] = -1; q.sel = -1; G.score += 30; msg('공범 검거 +30', 'ok');
+      if (q.b.every(function (t) { return t === -1; })) { drawShisen(); good(150, 5, '판을 다 치웠어요 +150'); later(next, 600); return; }
+      if (!shMoves(q).length) { shShuffle(q); msg('이을 짝이 없어 섞었어요', ''); }
+      G.busy = false; drawShisen();
+    }, 260);
+  } else if (mode === 'sort') {
+    if (b.dataset.j == null) return;
+    var cj = +b.dataset.j;
+    if (q.sel < 0) { if (q.cells[cj].length) { q.sel = cj; drawSort(); } return; }
+    if (q.sel === cj) { q.sel = -1; drawSort(); return; }
+    var from = q.cells[q.sel], to = q.cells[cj], top = from[from.length - 1];
+    if (to.length >= 4 || (to.length && key(to[to.length - 1], q.act) !== key(top, q.act))) { msg('맨 위가 같은 사람이거나 빈칸에만 놓아요', 'bad'); buzz(30); q.sel = -1; drawSort(); return; }
+    to.push(from.pop()); q.moves++; q.sel = -1; buzz(8); msg(''); drawSort();
+    if (sortDone(q.cells, q.act)) { var pts = Math.max(80, 260 - q.moves * 6); good(pts, 6, '정리 끝 +' + pts); G.busy = true; later(next, 700); }
   } else if (mode === 'order') {
     if (b.dataset.s != null) { var si = +b.dataset.s; if (q.slots[si] != null) { q.slots.splice(si, 1); drawOrder(); } return; }
     if (b.dataset.p == null) return;
