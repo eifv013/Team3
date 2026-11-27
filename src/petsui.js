@@ -503,7 +503,7 @@
         '<div class="lc-tx"><span class="lc-tag">한정 전설</span><div class="lc-nm">특수수사팀 ' + esc(sp.kind) + ', ' + esc(sp.name) + '</div><div class="lc-cnl">CODENAME</div><div class="lc-cn">' + esc(P.codename(limR.id)) + '</div>' +
         '<div class="lc-sr">' + '★'.repeat(st) + '<s>' + '★'.repeat(P.STAR_MAX - st) + '</s></div></div>';
       el.appendChild(cut); el.classList.add('lc-on');
-      function hit(ms, v) { later(function () { cut.classList.remove('lc-shake'); void cut.offsetWidth; cut.classList.add('lc-shake'); ctx.UI.buzz(v); }, ms); }
+      function hit(ms, v) { later(function () { if (reduce) { ctx.UI.buzz(v); return; } cut.classList.remove('lc-shake'); void cut.offsetWidth; cut.classList.add('lc-shake'); ctx.UI.buzz(v); }, ms); }
       [60, 220, 380, 540].forEach(function (t) { hit(t, 25); snd(function (s) { later(function () { s.pick(2); }, t); }); });
       hit(1080, 60); later(function () { snd(function (s) { s.none(); }); }, 1080);
       hit(2200, 40); hit(2850, 30); later(function () { snd(function (s) { s.coin(); }); }, 2850);
@@ -521,7 +521,7 @@
       if (best === 'h' || best === 'l') snd(function (s) { s.none(); });
       if (best === 'l') { el.classList.add('legend'); ctx.UI.buzz([30, 60, 30, 60, 90]); }
       else ctx.UI.buzz(20);
-      later(showCards, reduce ? 0 : best === 'l' ? 1100 : 650);
+      later(showCards, best === 'l' ? 1100 : 650);
     }
     function showCards() {
       clear(); phase = 'cards';
@@ -537,11 +537,11 @@
           snd(function (s) { if (g === 'l' || g === 'h') s.none(); else s.pick(3 + (i % 5)); });
           if (g === 'l') ctx.UI.buzz([40, 40, 80]); else if (g === 'h') ctx.UI.buzz(25);
           // 0.9.2 여러 번 뽑기: 영웅 · 전설 카드가 뒤집힐 때 화면도 번쩍(한 번 뽑기는 상자 연출로 이미 보여 준다)
-          if (n > 1 && (g === 'l' || g === 'h')) { el.classList.remove('hit-l', 'hit-h'); void el.offsetWidth; el.classList.add('hit-' + g); }
+          if (n > 1 && !reduce && (g === 'l' || g === 'h')) { el.classList.remove('hit-l', 'hit-h'); void el.offsetWidth; el.classList.add('hit-' + g); }
           if (limR && results[i] === limR && !limShown) later(showLim, 450);
-        }, reduce ? 0 : at[i]);
+        }, at[i]);
       });
-      later(function () { if (phase === 'cards') finish(); }, reduce ? 0 : at[n - 1] + 700);
+      later(function () { if (phase === 'cards') finish(); }, at[n - 1] + 700);
     }
     function finish() {
       clear(); phase = 'done';
@@ -565,12 +565,14 @@
       else close();   // 다 보여 준 뒤에는 어디를 눌러도 닫힌다
     });
 
-    if (reduce) { limR = null; openBox(); showCards(); finish(); return; }
+    // 0.13.23 휴대폰 '동작 줄이기'(삼성 절전 모드도 켠다)에서도 뽑기 순서와 고스트 등장 컷은 그대로 보여 준다.
+    //        예전엔 결과로 바로 건너뛰어 연출이 통째로 사라졌다. 이제 흔들기·비·테이프·번쩍임만 뺀다(.gx.calm)
+    if (reduce) el.classList.add('calm');
     // 상자 흔들기: 틱 소리가 점점 높게. 영웅·전설은 마지막에 색이 바뀐다(승급)
-    later(function () { el.classList.add('shake'); }, 520);
+    if (!reduce) later(function () { el.classList.add('shake'); }, 520);
     [0, 1, 2, 3].forEach(function (k) { later(function () { snd(function (s) { s.pick(1 + k * 2); }); }, 560 + k * 230); });
     if (best === 'h' || best === 'l') later(function () { el.style.setProperty('--gx', GX_COLOR[best]); el.classList.add('upgrade'); snd(function (s) { s.pick(9); }); }, 1250);
-    if (limR) later(function () { el.style.setProperty('--gx', '#B07CF0'); el.classList.add('lim'); rainOn(); ctx.UI.buzz([30, 60, 30, 60, 90]); }, 1300);
+    if (limR) later(function () { el.style.setProperty('--gx', '#B07CF0'); el.classList.add('lim'); if (!reduce) rainOn(); ctx.UI.buzz([30, 60, 30, 60, 90]); }, 1300);
     later(openBox, limR ? 2600 : best === 'l' ? 1800 : 1550);
   }
 

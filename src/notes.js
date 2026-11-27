@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.23', date: '2026-11-27', title: '뽑기 연출',
+      items: [
+        '휴대폰의 동작 줄이기, 절전 모드를 켜 둬도 뽑기 연출과 고스트 등장 컷이 나와요.'
+      ] },
     { ver: '0.13.22', date: '2026-11-27', title: '고스트 등장 컷',
       items: [
         '고스트 등장 컷이 폰 화면을 꽉 채워요.'

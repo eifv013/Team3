@@ -1494,7 +1494,9 @@ body.case-3 #s-hub{background-image:linear-gradient(180deg,rgba(235,244,255,.05)
 .gx-foot{position:absolute;left:0;right:0;bottom:calc(28px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:3}
 .gx-hint{font-size:13px;color:rgba(255,255,255,.55)}
 .gx-ok{min-width:180px;height:52px;font-size:17px}
-@media (prefers-reduced-motion:reduce){.gx,.gx *{animation:none !important;transition:none !important}}
+/* 0.13.23 동작 줄이기: 예전엔 뽑기 창 애니메이션을 전부 껐더니 서서히 나타나는 것(등장 컷 글씨·그림)이 안 보였다.
+   이제 흔들림·회전·번쩍임만 끈다 */
+@media (prefers-reduced-motion:reduce){.gx.shake .gx-box,.gx.legend,.gx.hit-l,.gx.opened .gx-rays,.gx .gx-flash,.gx-card.g-l .gx-back,.lc.lc-shake{animation:none !important}}
 
 /* ---------- 0.4.0 픽업 · 무료 뽑기 · 세트 · 동물 효과 표시 ---------- */
 .pet-pk{display:flex;gap:10px;align-items:center;padding:10px;border-radius:14px;background:linear-gradient(120deg,rgba(255,210,63,.18),rgba(255,210,63,.04));border:1.5px solid rgba(255,210,63,.55)}
@@ -1896,6 +1898,10 @@ button.bgp-w{border:0;font-family:inherit;color:var(--text);box-shadow:inset 0 0
 .gx.lim .gx-box,.gx.lim .gx-cards{z-index:2}
 .gx-siren{position:absolute;inset:0;pointer-events:none;opacity:0}
 .gx.lim .gx-siren{opacity:1;animation:gxsir 1.8s ease-in-out infinite}
+/* 0.13.23 휴대폰 '동작 줄이기': 순서는 그대로, 흔들림·번쩍임·날아드는 테이프만 뺀다 */
+.gx.calm .gx-siren,.gx.calm .lc-tapes,.gx.calm .lc-flash{display:none}
+.gx.calm .lc img{animation:lcfadein .6s .15s forwards}
+.gx.calm .lc-tag,.gx.calm .lc-nm,.gx.calm .lc-cnl,.gx.calm .lc-cn,.gx.calm .lc-sr,.gx.calm .lc-stamp,.gx.calm .lc-grad,.gx.calm .lc-bgb{animation-name:lcfadein}
 @keyframes gxsir{0%,100%{box-shadow:inset 40px 0 70px -40px rgba(80,120,255,0),inset -40px 0 70px -40px rgba(255,60,80,0)}50%{box-shadow:inset 50px 0 70px -40px rgba(80,120,255,.22),inset -50px 0 70px -40px rgba(255,60,80,.18)}}
 .gx-limtag{position:absolute;left:50%;top:calc(50% + 110px);transform:translateX(-50%) rotate(-6deg) scale(1.8);padding:5px 14px;border-radius:8px;border:2.5px solid #E2C8FF;color:#E2C8FF;background:rgba(40,20,70,.6);font-weight:900;font-size:15px;letter-spacing:1px;opacity:0;z-index:3;transition:opacity .25s,transform .3s cubic-bezier(.4,1.8,.6,1);white-space:nowrap}
 .gx.lim .gx-limtag{opacity:1;transform:translateX(-50%) rotate(-6deg) scale(1)}
