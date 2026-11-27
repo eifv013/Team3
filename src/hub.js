@@ -461,10 +461,10 @@
   function openInfo(o) {
     $('info-label').textContent = o.label || '';
     $('info-title').textContent = o.title || '';
-    $('info-body').innerHTML = o.body || '';
+    $('info-body').innerHTML = UI.gemify ? UI.gemify(o.body || '') : o.body || '';   // 0.14.1 글 속 ◆ 도 배지 아이콘으로
     $('info-ok').hidden = !!o.readOnly;
     // 0.6.0: 단추 글자의 ◆ 는 배지 아이콘으로(글자는 내부 문구뿐이라 이스케이프 뒤 바꾼다)
-    $('info-ok').innerHTML = esc(o.ok || '확인').replace(/◆/g, window.Team3Icons ? window.Team3Icons.icon('gem') : '◆');
+    $('info-ok').innerHTML = esc(o.ok || '확인').replace(/◆\s?/g, window.Team3Icons ? window.Team3Icons.icon('gem') : '◆');
     var c = $('info-cancel');
     c.hidden = !o.cancel;
     c.textContent = o.cancel || '취소';

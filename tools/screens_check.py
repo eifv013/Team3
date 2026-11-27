@@ -227,6 +227,29 @@ def main():
         pg.screenshot(path=SHOT + 's_idcheck.png')
         pg.clock.run_for(400000)
 
+        # 0.14.1 특별 출동 검거팡: 6×6, 맞으면 점수 · 맞춘 수, 안 맞으면 그대로 / 공범 짝 찾기: 짝이면 남고, 판을 다 치우면 새 판
+        pg.evaluate("() => { SuspectsUI.goHome(); SuspectsUI.startRun({ duration: 300, freeHints: 0, mode: 'pang', mods: {} }); }")
+        pg.clock.run_for(800)
+        need(pg.locator('#board.pgboard .pg-c').count() == 36, '검거팡: 6×6 판이 아님')
+        mv = pg.evaluate("() => Team3Pang.findMove(SuspectsUI._peek().q.b)")
+        pg.locator('.pg-c[data-p="%d"]' % mv[0]).click(); pg.locator('.pg-c[data-p="%d"]' % mv[1]).click(); pg.clock.run_for(3000)
+        need(pg.evaluate("() => SuspectsUI._peek().hits") == 1 and pg.evaluate("() => SuspectsUI._peek().score") > 0, '검거팡: 맞췄는데 점수 · 맞춘 수가 안 늘어남')
+        need(pg.locator('#board .pg-c').count() == 36, '검거팡: 연쇄 뒤 판이 36칸이 아님')
+        no_hscroll(pg, '검거팡')
+        pg.screenshot(path=SHOT + 's_pang.png')
+        pg.evaluate("() => { SuspectsUI.goHome(); SuspectsUI.startRun({ duration: 300, freeHints: 0, mode: 'pairs', mods: {} }); }")
+        pg.clock.run_for(800)
+        need(pg.locator('#board.prboard .pr-back').count() == 8, '짝 찾기: 처음 판이 8장이 아님')
+        groups = pg.evaluate("() => { const q = SuspectsUI._peek().q, g = {}; q.cards.forEach((x, j) => { const k = SuspectsCore.project(x, q.attrs).join(''); (g[k] = g[k] || []).push(j); }); return Object.values(g); }")
+        for a, c in groups:
+            pg.locator('.pr-back[data-i="%d"]' % a).click(); pg.locator('.pr-back[data-i="%d"]' % c).click(); pg.clock.run_for(200)
+        pg.clock.run_for(1000)
+        need(pg.evaluate("() => SuspectsUI._peek().boards") == 1, '짝 찾기: 판을 다 치웠는데 새 판이 안 됨')
+        need(pg.locator('#board .pr-back').count() == 8, '짝 찾기: 새 판이 안 그려짐')
+        no_hscroll(pg, '짝 찾기')
+        pg.screenshot(path=SHOT + 's_pairs.png')
+        pg.clock.run_for(400000)
+
         # 0.5.0 특별 출동 몽타주 수배: 특징이 시간에 따라 하나씩 그려지고, 맞히면 그때 배수
         pg.evaluate("() => { SuspectsUI.goHome(); SuspectsUI.startRun({ duration: 90, freeHints: 0, mode: 'montage' }); }")
         pg.clock.run_for(300)

@@ -333,8 +333,12 @@
   // 0.14.0 사건 4: 신분증 검사(game.mode === 'idcheck', idcheck.js) — 판 = 창구 하나(사진 + 신분증), 통과 · 체포 단추로 판정
   var IC = window.Team3IdCheck;
   function IM() { return !!(game && game.mode === 'idcheck'); }
-  function boardIds() { return WM() ? game.q.board : LM() ? game.q.line : MM() ? game.q.cards : IM() ? [game.q.id] : FM() ? [].concat.apply([], game.q.rows) : game.board; }
-  function actNow() { return WM() || MM() ? [0, 1, 2, 3] : LM() || IM() ? game.q.attrs : C.active(game); }
+  // 0.14.1 특별 출동: 검거팡(game.mode === 'pang', pang.js) · 공범 짝 찾기(game.mode === 'pairs', pairs.js)
+  var PG_ = window.Team3Pang, PR_ = window.Team3Pairs;
+  function PG() { return !!(game && game.mode === 'pang'); }
+  function PR() { return !!(game && game.mode === 'pairs'); }
+  function boardIds() { return WM() ? game.q.board : LM() ? game.q.line : MM() ? game.q.cards : IM() ? [game.q.id] : PG() ? game.q.b.map(function (t) { return game.q.types[t]; }) : PR() ? game.q.cards : FM() ? [].concat.apply([], game.q.rows) : game.board; }
+  function actNow() { return WM() || MM() ? [0, 1, 2, 3] : LM() || IM() || PR() ? game.q.attrs : PG() ? game.q.act : C.active(game); }
   // 멈춤 · 재개: 몽타주는 그림 시각도 함께 민다
   function gPause(g, t) { if (g.mode === 'montage') MT.pause(g, t); else C.pause(g, t); }
   function gResume(g, t) { if (g.mode === 'montage') MT.resume(g, t); else C.resume(g, t); }
@@ -361,8 +365,12 @@
     board.classList.toggle('luboard', LM());
     board.classList.toggle('mtg', MM());
     board.classList.toggle('idboard', IM());
+    board.classList.toggle('pgboard', PG());
+    board.classList.toggle('prboard', PR());
     if (LM()) { renderLineup(entering, act); return; }
     if (IM()) { renderIdcheck(!!entering); return; }
+    if (PG()) { renderPang(); return; }
+    if (PR()) { renderPairs(!!entering); return; }
     board.classList.toggle('forge', FM());
     if (FM()) {
       var fa = game.q.active;
@@ -463,6 +471,138 @@
     }, r.ok ? 520 : 1100);
   }
 
+  /* ---------- 특별 출동 검거팡(0.14.1) ---------- */
+  // 6×6 칸. 종류마다 바탕색을 달리해 작은 칸에서도 한눈에. 두 번 누르거나 밀어서 옆 사람과 바꾼다
+  var PANG_BG = ['#FFD3A1', '#B9DEFF', '#FFC0CF', '#C3EDB8', '#DCCBFF', '#FFEE9A', '#AEEBE3'];
+  var pgSel = -1, pgTypes = null;   // pgTypes: 연쇄를 보여 주는 동안의 사람 종류(단계가 올라 새 판이 되어도 끝날 때까지 옛 종류로)
+  function pangCells(b, pop) {
+    var q = game.q, clue = q.clue || [], ty = pgTypes || q.types;
+    return b.map(function (t, i) {
+      var id = ty[t];
+      return '<button class="pg-c' + (i === pgSel ? ' sel' : '') + (pop && pop.indexOf(i) >= 0 ? ' pop' : '') + (clue.indexOf(i) >= 0 ? ' clue' : '') + '" data-p="' + i + '" style="background:' + PANG_BG[t] + '" aria-label="' + (Math.floor(i / 6) + 1) + '줄 ' + (i % 6 + 1) + '번: ' + describe(id, q.act) + '">' +
+        '<svg class="fig" viewBox="0 0 100 100" aria-hidden="true">' + figure(C.decode(id)[1], C.decode(id)[2], '#1B1E24', PANG_BG[t]) + '</svg></button>';
+    }).join('');
+  }
+  function renderPang(b, pop) {
+    var board = $('board'), grid = board.querySelector('.pg-grid');
+    board.classList.remove('wit', 'w12', 'forge', 'dim');
+    if (!grid) {
+      var stamp = $('stamp'); keepStamp(stamp);
+      board.innerHTML = '<div class="pg-grid"></div>'; board.appendChild(stamp);
+      grid = board.querySelector('.pg-grid');
+    }
+    grid.innerHTML = pangCells(b || game.q.b, pop);
+    board.setAttribute('data-level', String(game.level));
+  }
+  function pangTap(i) {
+    if (!game || game.over || lock || sheetOpen()) return;
+    if (pgSel < 0) { pgSel = i; sfx.pick(1); buzz(5); renderPang(); return; }
+    if (pgSel === i) { pgSel = -1; renderPang(); return; }
+    if (!PG_.adjacent(pgSel, i)) { pgSel = i; sfx.pick(1); renderPang(); return; }
+    var a = pgSel; pgSel = -1; pangSwap(a, i);
+  }
+  function pangSwap(a, c) {
+    var r, tyOld = game.q.types;
+    try { r = PG_.swap(game, a, c, now()); }
+    catch (e) { if (e.code === 'GAME_OVER') finish(); else if (e.code !== 'NOT_ADJACENT') setHint('판정 오류: ' + e.message, 'bad', 2000); return; }
+    if (!r.ok) {
+      renderPang();
+      [a, c].forEach(function (k) { var el = $('board').querySelector('[data-p="' + k + '"]'); if (el) el.classList.add('nope'); });
+      sfx.miss(); buzz(40); updateHud(); return;
+    }
+    lock = true;
+    // 연쇄를 차례로: 바꾼 판 → 터짐(0.26초) → 떨어진 판 → 다음 터짐…
+    var k = 0;
+    pgTypes = tyOld;
+    renderPang(r.before);
+    function stepAt() {
+      var st = r.steps[k];
+      $('board').querySelectorAll('.pg-c').forEach(function (el) { if (st.pop.indexOf(+el.getAttribute('data-p')) >= 0) el.classList.add('pop'); });
+      sfx.hit(k + 1); buzz(10 + k * 8);
+      if (k === 0) popStamp(r.chain > 1 ? r.chain + '연쇄!' : '검거!', '+' + r.gain + (r.combo > 1 ? ' ,  연속 ' + r.combo : ''));
+      setTimeout(function () {
+        if (!game) return;
+        k++;
+        if (k < r.steps.length) { renderPang(r.steps[k - 1].board); setTimeout(stepAt, 120); return; }
+        lock = false; pgTypes = null;
+        if (game.over) { finish(); return; }
+        renderPang();
+        updateHud(); bumpCombo();
+        if (r.levelUp) { sfx.none(); buzz([30, 60, 30]); popStamp(PG_.LEVEL_NAME[r.levelUp], '사람 종류가 늘어요'); setHint('새 판이에요. 종류가 하나 늘었어요', 'good', 2500); }
+        else if (r.shuffled) setHint('바꿀 곳이 없어서 판을 새로 섞었어요', 'good', 2000);
+      }, 260);
+    }
+    setTimeout(stepAt, 90);
+    updateHud();
+  }
+  // 밀어서 바꾸기(손가락을 옆 칸 쪽으로 밀면 바로 바꾼다)
+  var pgDown = null;
+  function pangDown(e) { if (!PG() || lock) return; var c = e.target.closest('.pg-c'); if (!c) return; pgDown = { i: +c.getAttribute('data-p'), x: e.clientX, y: e.clientY, moved: false }; }
+  function pangMove(e) {
+    if (!pgDown || pgDown.moved || !PG()) return;
+    var dx = e.clientX - pgDown.x, dy = e.clientY - pgDown.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    pgDown.moved = true;
+    var i = pgDown.i, x = i % 6, y = Math.floor(i / 6), to = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? (x < 5 ? i + 1 : -1) : (x > 0 ? i - 1 : -1)) : (dy > 0 ? (y < 5 ? i + 6 : -1) : (y > 0 ? i - 6 : -1));
+    if (to >= 0 && game && !game.over && !lock) { pgSel = -1; pangSwap(i, to); }
+  }
+
+  /* ---------- 특별 출동 공범 짝 찾기(0.14.1) ---------- */
+  function renderPairs(entering, qq) {
+    var board = $('board'), grid = board.querySelector('.pr-grid'), q = qq || game.q, act = q.attrs, clue = q.clue || [];
+    board.classList.remove('wit', 'w12', 'forge', 'dim');
+    if (!grid) {
+      var stamp = $('stamp'); keepStamp(stamp);
+      board.innerHTML = '<div class="pr-hd"></div><div class="pr-grid"></div>'; board.appendChild(stamp);
+      grid = board.querySelector('.pr-grid');
+    }
+    board.querySelector('.pr-hd').innerHTML = '<span>짝 ' + q.done.length / 2 + ' / ' + q.cards.length / 2 + '</span><span>뒤집기 ' + q.flips + '</span>';
+    grid.className = 'pr-grid n' + q.cards.length;
+    grid.innerHTML = q.cards.map(function (id, i) {
+      var open = q.done.indexOf(i) >= 0 || q.up.indexOf(i) >= 0;
+      if (!open) return '<button class="pr-back' + (entering ? ' enter' : '') + (clue.indexOf(i) >= 0 ? ' clue' : '') + '" data-i="' + i + '" style="--d:' + (i * 25) + 'ms" aria-label="' + (i + 1) + '번 카드, 뒤집기"><span>3</span></button>';
+      return cardButton(id, q.done.indexOf(i) >= 0 ? 'pr-done' : 'pr-up', 'data-i="' + i + '" aria-label="' + (i + 1) + '번: ' + describe(id, act) + '" disabled', null, act);
+    }).join('');
+    board.setAttribute('data-level', String(game.level));
+  }
+  function pairsFlip(i) {
+    if (!game || game.over || lock || sheetOpen()) return;
+    var r, oldQ = game.q;
+    try { r = PR_.flip(game, i, now()); }
+    catch (e) { if (e.code === 'GAME_OVER') finish(); else if (e.code !== 'ALREADY_OPEN') setHint('판정 오류: ' + e.message, 'bad', 2000); return; }
+    if (r.match === undefined) { sfx.pick(1); buzz(5); renderPairs(); return; }
+    if (r.match) {
+      sfx.hit(r.combo); buzz([10, 30, 15]);
+      if (r.cleared) {
+        lock = true;
+        // 판을 다 치웠다: 마지막 짝을 잠깐 보여 준 뒤 새 판
+        var g0 = game;
+        popStamp('전원 검거!', '+' + (r.gain + r.bonus) + '  +' + PR_.RULES.clearTime + '초');
+        setHint('판을 다 치웠어요. 뒤집기가 적을수록 보너스가 커요', 'good', 1800);
+        updateHud(); bumpCombo();
+        setTimeout(function () {
+          lock = false;
+          if (!game || game !== g0) return;
+          if (game.over) { finish(); return; }
+          renderPairs(true);
+          if (r.levelUp) { sfx.none(); buzz([30, 60, 30]); popStamp(PR_.LEVEL_NAME[r.levelUp], r.levelUp === 3 ? '하나만 다른 닮은 사람이 섞여요' : '특징이 하나 늘어요'); }
+        }, 700);
+        renderPairs(false, oldQ);   // 다 열린 지난 판을 잠깐(상태는 이미 새 판)
+        return;
+      }
+      setHint('공범 검거 +' + r.gain, 'good', 900);
+      renderPairs(); updateHud(); bumpCombo();
+      return;
+    }
+    // 아님: 둘 다 보여 주고 잠깐 뒤 덮는다
+    lock = true; renderPairs();
+    var grid2 = $('board').querySelector('.pr-grid');
+    r.pair.forEach(function (k) { var el = grid2 && grid2.querySelector('[data-i="' + k + '"]'); if (el) el.classList.add('wrong'); });
+    sfx.miss(); buzz(30);
+    if (r.near) setHint('닮았지만 하나가 달라요', 'bad', 1200);
+    updateHud();
+    setTimeout(function () { lock = false; if (!game || game.over) { if (game) finish(); return; } PR_.cover(game); renderPairs(); }, 750);
+  }
   /* ---------- 사건 3 면통 라인업(0.5.0) ---------- */
   // 유리 너머 한 줄: 키 눈금 벽 · 번호판 · 지워진 자리(X). entering 이면 왼쪽부터 걸어 들어오고 진술을 새로 친다
   function renderLineup(entering, act) {
@@ -629,7 +769,7 @@
     h.className = 'hint' + (kind ? ' ' + kind : '');
     clearTimeout(hintTimer);
     if (ms) hintTimer = setTimeout(function () {
-      h.textContent = IM() ? '사진과 신분증이 다르면 체포, 같으면 통과' : LM() ? '진술에 모두 맞는 자리를 지목하세요' : MM() ? '몽타주와 같은 사람을 고르세요, 일찍 고를수록 배수 ↑' : FM() ? '가짜 줄을 찾으세요' : WM() ? '진술 넷 중 딱 셋과 맞는 사람이 범인' : '한 패인 세 명을 고르세요'; h.className = 'hint';
+      h.textContent = PG() ? '옆 사람과 바꿔 같은 사람 셋을 한 줄로' : PR() ? '두 장씩 뒤집어 똑같은 공범 둘을 찾으세요' : IM() ? '사진과 신분증이 다르면 체포, 같으면 통과' : LM() ? '진술에 모두 맞는 자리를 지목하세요' : MM() ? '몽타주와 같은 사람을 고르세요, 일찍 고를수록 배수 ↑' : FM() ? '가짜 줄을 찾으세요' : WM() ? '진술 넷 중 딱 셋과 맞는 사람이 범인' : '한 패인 세 명을 고르세요'; h.className = 'hint';
       renderNeeds();
     }, ms);
   }
@@ -660,7 +800,11 @@
     combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ', ×' + C.multiplierFor(game.combo, game.mods && game.mods.comboMax) : '연속 ' + game.combo;
     combo.classList.toggle('live', game.combo > 1);
     var lv = $('level');
-    if (IM()) {
+    if (PG() || PR()) {
+      var MOD = PG() ? PG_ : PR_, pnx = MOD.RULES.levelAt[game.level + 1];
+      lv.textContent = (PG() ? '검거팡, ' : '짝 찾기, ') + MOD.LEVEL_NAME[game.level] + (pnx != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, pnx) - game.hits) + (PG() ? '번' : '짝') : '');
+      lv.classList.toggle('up', game.level === 3);
+    } else if (IM()) {
       var inx = IC.RULES.levelAt[game.level + 1];
       lv.textContent = '검문 ' + game.level + '단계, ' + IC.LEVEL_NAME[game.level] + (inx != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, inx) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 4);
@@ -689,7 +833,9 @@
     f.hidden = !(game.freeHints > 0);
     f.textContent = String(game.freeHints);
     $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (무료 ' + game.freeHints + '번)' : '단서 보기 (' + (game.mods && game.mods.hintPenalty != null ? game.mods.hintPenalty : 3) + '초 줄어듦)');
-    $('stat-line').textContent = IM() ? '체포 ' + game.arrests + ', 통과 ' + game.passes + ', 오판 ' + game.misses
+    $('stat-line').textContent = PG() ? '맞춤 ' + game.hits + ', 검거 ' + game.cleared + '명, 최대 연쇄 ' + game.bestChain
+      : PR() ? '짝 ' + game.hits + ', 치운 판 ' + game.boards + ', 빗나감 ' + game.misses
+      : IM() ? '체포 ' + game.arrests + ', 통과 ' + game.passes + ', 오판 ' + game.misses
       : LM() ? '지목 ' + game.hits + ', 오인 ' + game.misses
       : MM() ? '검거 ' + game.hits + ', 빠른 검거(×3 이상) ' + game.early + ', 틀림 ' + game.misses
       : FM()
@@ -738,7 +884,9 @@
     cfg = config || defaultConfig();
     try {
       // mods(0.1.19): 특별 출동 규칙 · 준비물 "변호사 대기"(shield)
-      if (cfg.mode === 'idcheck' && IC) game = IC.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, missPenalty: cfg.idMissPenalty, hitBonus: cfg.idHitBonus, preCheck: cfg.preCheck });
+      if (cfg.mode === 'pang' && PG_) game = PG_.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods });
+      else if (cfg.mode === 'pairs' && PR_) game = PR_.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods });
+      else if (cfg.mode === 'idcheck' && IC) game = IC.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, missPenalty: cfg.idMissPenalty, hitBonus: cfg.idHitBonus, preCheck: cfg.preCheck });
       else if (cfg.mode === 'lineup' && LU) game = LU.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, missPenalty: cfg.missPenalty, hitBonus: cfg.lineupHitBonus, preOut: cfg.preOut });
       else if (cfg.mode === 'montage' && MT) game = MT.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods });
       else if (cfg.mode === 'forgery' && F) game = F.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods });
@@ -755,7 +903,10 @@
     st.innerHTML = '';
     show('s-play');
     paperShown = 0;
-    if (IM()) setHint('사진과 신분증을 대조해요. 한 군데라도 다르면 체포, 모두 같으면 통과', 'good', 4000);
+    pgSel = -1;
+    if (PG()) setHint('옆 사람과 자리를 바꿔요(두 번 누르거나 밀기). 같은 사람 셋이 한 줄이면 검거', 'good', 4000);
+    else if (PR()) setHint('두 장씩 뒤집어 똑같은 공범 둘을 찾으세요', 'good', 4000);
+    else if (IM()) setHint('사진과 신분증을 대조해요. 한 군데라도 다르면 체포, 모두 같으면 통과', 'good', 4000);
     else if (LM()) setHint('목격자 진술에 모두 맞는 자리를 지목하세요', 'good', 4000);
     else if (MM()) setHint('특징이 하나씩 그려져요. 일찍 찾을수록 점수 ×4', 'good', 4000);
     else if (FM()) setHint('세 명씩 지은 줄 중 하나는 가짜예요. 한 특징만 둘이 같은 줄을 찾으세요', 'good', 4500);
@@ -765,11 +916,11 @@
     var wm = WM();
     $('says').className = 'says';
     $('says').hidden = !(wm || LM() || MM());
-    $('btn-none').hidden = wm || FM() || LM() || MM() || IM();
+    $('btn-none').hidden = wm || FM() || LM() || MM() || IM() || PG() || PR();
     $('btn-none').textContent = FM() ? '위조 없음' : '검거 불가';
     $('needs').hidden = true;
     // 사건별 화면 연출(fx.js): 목격자 모드 = 사건 2 해무항, 한 패 모드 = 사건 1 CCTV
-    if (FX) FX.mount(wm ? 2 : LM() ? 3 : MM() || IM() ? 0 : 1, { board: $('board'), screen: $('s-play'), boss: !!cfg.boss, beamLie: !!cfg.beamLie,
+    if (FX) FX.mount(wm ? 2 : LM() ? 3 : MM() || IM() || PG() || PR() ? 0 : 1, { board: $('board'), screen: $('s-play'), boss: !!cfg.boss, beamLie: !!cfg.beamLie,
       getLieEl: function () { return WM() ? $('says').querySelector('div[data-k="' + game.q.lie + '"]') : null; } });
     // 준비물 "제보 전화"(0.1.19): 첫 판의 한 패 하나를 단서처럼 미리 표시한다(판이 바뀌면 사라진다)
     //   목격자 모드에서는 첫 문제의 거짓 진술을 미리 짚어 준다
@@ -777,7 +928,7 @@
     else if (cfg.tip && IM()) { try { IC.hint(Object.assign(game, { freeHints: game.freeHints + 1 }), now()); } catch (e) { /* 무시 */ } }
     else if (cfg.tip && LM()) { try { LU.hint(Object.assign(game, { freeHints: game.freeHints + 1 }), now()); } catch (e) { /* 무시 */ } }
     else if (cfg.tip && MM()) { /* 몽타주: 제보 전화는 쓰지 않는다 */ }
-    else if (cfg.tip && !FM() && !LM() && !MM() && !IM()) {
+    else if (cfg.tip && !FM() && !LM() && !MM() && !IM() && !PG() && !PR()) {
       try {
         var first = C.findSets(game.board, C.active(game));
         if (first.length) game.clue = { set: first[0], shown: 3 };
@@ -792,7 +943,7 @@
     updateHud();
     // 0.7.0 난이도: 단순 · 미제 사건이면 도장 아래 글 앞에 붙인다(강력 사건은 기본이라 생략)
     var DfI = window.Team3Diff && cfg.diff && cfg.diff !== 'normal' ? window.Team3Diff.info(cfg.diff).name + ' ' : '';
-    popStamp(cfg.daily ? '특별 출동!' : '출동!', DfI + (cfg.daily && cfg.ruleName ? cfg.ruleName + ' ' + cfg.duration + '초' : cfg.duration + '초, ' + (IM() ? '위조를 가려라' : LM() ? '범인을 지목하라' : '한 패를 찾아라')));
+    popStamp(cfg.daily ? '특별 출동!' : '출동!', DfI + (cfg.daily && cfg.ruleName ? cfg.ruleName + ' ' + cfg.duration + '초' : cfg.duration + '초, ' + (PG() ? '셋을 맞춰라' : PR() ? '공범 짝을 찾아라' : IM() ? '위조를 가려라' : LM() ? '범인을 지목하라' : '한 패를 찾아라')));
     if (cfg.used && cfg.used.length) setHint('준비물: ' + cfg.used.join(', '), 'good', 3000);
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
@@ -1002,6 +1153,20 @@
    */
   function onHint() {
     if (!game || game.over || lock || sheetOpen()) return;
+    if (PG() || PR()) {
+      var pr;
+      try { pr = PG() ? PG_.hint(game, now()) : PR_.hint(game, now()); }
+      catch (e) { if (e.code === 'GAME_OVER') finish(); else if (e.code === 'NO_HINTS') setHint('이번 출동은 단서를 쓸 수 없어요', 'bad', 2000); else setHint('단서 오류: ' + e.message, 'bad', 2000); return; }
+      if (pr.penalty) flashTimer();
+      sfx.pick(0); updateHud();
+      if (PG()) { renderPang(); setHint('반짝이는 두 칸을 바꿔 보세요' + (pr.penalty ? ' (−' + pr.penalty + '초)' : ''), 'good', 2500); }
+      else {
+        renderPairs();
+        setHint('반짝이는 두 장이 짝이에요' + (pr.penalty ? ' (−' + pr.penalty + '초)' : ''), 'good', 2500);
+        var gq = game.q; setTimeout(function () { if (game && game.q === gq) { gq.clue = null; renderPairs(); } }, 1600);   // 잠깐만 보여 준다
+      }
+      return;
+    }
     if (IM()) {
       var ir;
       try { ir = IC.hint(game, now()); }
@@ -1093,11 +1258,17 @@
     $('r-miss').textContent = g.misses + ' ' + g.noneMisses;
     if (FX) FX.unmount();
     // 결과 칸 이름: 목격자 모드는 "함정 체포 · 오인 체포"
-    var wmode = g.mode === 'witness', fmode = g.mode === 'forgery', lmode = g.mode === 'lineup', mmode = g.mode === 'montage', imode = g.mode === 'idcheck';
+    var wmode = g.mode === 'witness', fmode = g.mode === 'forgery', lmode = g.mode === 'lineup', mmode = g.mode === 'montage', imode = g.mode === 'idcheck', pgmode = g.mode === 'pang', prmode = g.mode === 'pairs';
     $('r-none').parentNode.querySelector('.label').textContent = wmode ? '함정 체포' : fmode ? '위조 없음 적중' : '검거 불가 적중';
     $('r-miss').parentNode.querySelector('.label').textContent = wmode ? '오인 체포' : fmode ? '틀림' : '오인 체포·오판';
     if (wmode) { $('r-none').textContent = g.traps; $('r-miss').textContent = String(g.misses); }
     if (fmode) { $('r-none').textContent = g.noneHits; $('r-miss').textContent = String(g.misses + g.noneMisses); }
+    if (pgmode || prmode) {
+      $('r-none').parentNode.querySelector('.label').textContent = pgmode ? '최대 연쇄' : '치운 판';
+      $('r-none').textContent = pgmode ? g.bestChain : g.boards;
+      $('r-miss').parentNode.querySelector('.label').textContent = '빗나감';
+      $('r-miss').textContent = String(g.misses);
+    }
     if (imode) {
       $('r-none').parentNode.querySelector('.label').textContent = '수배 적발';
       $('r-none').textContent = g.wantedHits;
@@ -1110,7 +1281,9 @@
       $('r-miss').parentNode.querySelector('.label').textContent = '오인 지목';
       $('r-miss').textContent = String(g.misses);
     }
-    var tip = imode ? (g.misses > g.hits ? '사진의 모자부터 신분증 줄을 하나씩 대 보세요. 위조는 늘 딱 한 군데만 달라요.' : g.level >= 4 ? '수배 조건은 신분증이 맞아도 걸려요. 사진을 수배 줄과 먼저 대 보면 빨라요.' : '연속으로 맞히면 점수가 올라가요. 망설여지면 돋보기로 맞는 줄을 지워 보세요.')
+    var tip = pgmode ? (g.bestChain >= 3 ? '아래쪽에서 맞추면 위에서 떨어지며 연쇄가 잘 나요.' : '판 아래쪽부터 맞춰 보세요. 떨어지면서 연쇄가 나면 점수가 크게 올라요.')
+      : prmode ? (g.misses > g.hits * 2 ? '한 장을 열면 위치를 꼭 기억해 두세요. 같은 모습이 나오면 바로 짝을 지을 수 있어요.' : '열린 적 있는 카드부터 맞추면 뒤집기가 줄어 판 보너스가 커져요.')
+      : imode ? (g.misses > g.hits ? '사진의 모자부터 신분증 줄을 하나씩 대 보세요. 위조는 늘 딱 한 군데만 달라요.' : g.level >= 4 ? '수배 조건은 신분증이 맞아도 걸려요. 사진을 수배 줄과 먼저 대 보면 빨라요.' : '연속으로 맞히면 점수가 올라가요. 망설여지면 돋보기로 맞는 줄을 지워 보세요.')
       : lmode ? (g.misses > g.hits ? '진술 하나씩 대 보며 아닌 자리를 먼저 지우세요. "바로 왼쪽"은 그 자리의 왼쪽 사람을 보는 거예요.' : '면통 4단계는 진술이 셋이에요. 자리 관계 진술부터 보면 빨라요.')
       : mmode ? (g.misses > g.hits ? '특징이 둘만 보일 땐 맞는 사람이 여럿일 수 있어요. 셋째가 그려질 때까지 기다려도 ×2예요.' : '처음 두 특징에 맞는 사람이 하나뿐이면 바로 고르세요. ×3, ×4 가 크게 남아요.')
       : fmode ? '진짜 줄은 특징마다 셋 다 같거나 셋 다 달라요. 한 특징씩 줄을 훑어 "둘만 같은" 곳을 찾으세요.'
@@ -1131,7 +1304,7 @@
       // 방치형: 수사비·사건 진척은 사무실이 정리해 돌려준다
       $('r-label').textContent = '출동 종료';
       var box = $('r-idle');
-      try { box.innerHTML = hooks.onRunEnd(g); box.hidden = false; }
+      try { box.innerHTML = gemify(hooks.onRunEnd(g)); box.hidden = false; }
       catch (e) { box.textContent = '결과를 반영하지 못했어요: ' + e.message; box.hidden = false; }
       $('r-best').innerHTML = '';
     }
@@ -1268,9 +1441,11 @@
     try { el.querySelector('[data-cf="ok"]').focus(); } catch (e) { /* 무시 */ }
     return shut;
   }
+  // 0.14.1 글 속 ◆ 는 배지 아이콘으로(알림 · 정보 창 · 결과 칸이 모두 여기를 거친다). html 은 이미 안전한 문구만
+  function gemify(html) { var IC0 = window.Team3Icons; return IC0 ? String(html).replace(/◆\s?/g, IC0.icon('gem')) : String(html); }
   function toast(text) {
     var t = $('toast');
-    t.textContent = text;
+    t.innerHTML = gemify(String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }));
     t.classList.toggle('warn', /모자라|없어요|못 |할 수 없|이미/.test(text));   // 0.10.4 안 되는 알림은 빨갛게 · 진동
     if (t.classList.contains('warn')) { try { buzz([20, 40, 20]); } catch (e) { /* 무시 */ } }
     t.hidden = false;
@@ -1384,6 +1559,11 @@
         '<p>유리 너머 한 줄로 선 5~6명 중 목격자 진술에 <b>모두 맞는 자리</b>를 지목해요. 맞는 자리는 늘 하나예요.</p>' +
         '<p>진술은 범인 자신의 특징이거나 "범인 <b>바로 왼쪽</b>은…"처럼 둘레 사람 이야기예요.</p>' +
         '<p>지목 +' + LU.RULES.hitTime + '초, 오인 지목 −' + LU.RULES.missPenalty + '초. 돋보기(<b>단서</b>)는 아닌 자리 절반을 지워 줘요(−' + LU.RULES.hintPenalty + '초).</p>');
+    }
+    if (PG_ && PR_) {
+      out += item('검거팡, 공범 짝 찾기 (특별 출동)',
+        '<p><b>검거팡</b>: 옆 사람과 자리를 바꿔(두 번 누르거나 밀기) 같은 사람 셋 이상을 한 줄로 세우면 검거. 떨어지며 또 셋이 되면 연쇄로 점수가 커져요.</p>' +
+        '<p><b>공범 짝 찾기</b>: 뒤집힌 카드를 두 장씩 열어 똑같은 공범 둘을 찾아요. 판을 다 치우면 보너스 +' + PR_.RULES.clearTime + '초, 뒤집기가 적을수록 보너스가 커요.</p>');
     }
     if (IC) {
       out += item('신분증 검사 (사건 4)',
@@ -1578,9 +1758,13 @@
   $('board').addEventListener('click', function (e) {
     if (FM()) { var rb = e.target.closest('.rowbtn'); if (rb) onRow(parseInt(rb.getAttribute('data-r'), 10)); return; }
     if (IM()) { var db = e.target.closest('[data-dec]'); if (db) judgeIdcheck(db.getAttribute('data-dec') === 'arrest'); return; }
+    if (PG()) { var pc = e.target.closest('.pg-c'); if (pc && !(pgDown && pgDown.moved)) pangTap(+pc.getAttribute('data-p')); pgDown = null; return; }
+    if (PR()) { var pb = e.target.closest('.pr-back'); if (pb) pairsFlip(+pb.getAttribute('data-i')); return; }
     var card = e.target.closest('.card');
     if (card && card.hasAttribute('data-i')) onCard(parseInt(card.getAttribute('data-i'), 10));
   });
+  $('board').addEventListener('pointerdown', pangDown);
+  $('board').addEventListener('pointermove', pangMove);
   $('tut-opts').addEventListener('click', function (e) {
     var card = e.target.closest('.card');
     if (card) onOption(parseInt(card.getAttribute('data-o'), 10));
@@ -1702,6 +1886,7 @@
     openTutorial: openTutorial, toast: toast, confirmBuy: confirmBuy, sfx: sfx, buzz: buzz, store: store, renderSound: renderSound, music: music,
     openSettings: openSettings, closeSettings: closeSettings, openHelp: openHelp, closeHelp: closeHelp, settings: function () { return settings; },
     sheetOpen: sheetOpen, playing: playing,
+    gemify: gemify,
     _peek: function () { return game; }   // 화면 시험용(지금 판 읽기). 게임 진행에는 쓰지 않는다
   };
 

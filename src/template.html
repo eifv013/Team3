@@ -894,6 +894,35 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 @media (prefers-reduced-motion:reduce){.float,.money.pop{animation-duration:.01s}.next-bar i{transition:none}}
 @media (prefers-reduced-motion:reduce){.card,.card.hit,.card.miss,.card.enter,.card.clue,.stamp.go{animation-duration:.01s}}
 
+/* ---------- 0.14.1 특별 출동: 검거팡 · 공범 짝 찾기 ---------- */
+/* 0.14.1 출동 화면은 옆으로 밀리지 않게: 판이 양옆으로 6px 나가는 사건(라인업 · 검문소)에서 가장자리 칸을 누르면
+   브라우저가 그 칸을 보이려고 화면을 옆으로 굴렸다(점수 글이 잘려 보임). 넘친 만큼은 잘라 내고 굴리지 않는다 */
+#s-play{overflow-x:hidden;overflow-x:clip}
+.board.pgboard,.board.prboard{display:block;margin:0;padding:8px;border-radius:16px;background:linear-gradient(180deg,#232A38,#191E28);border:4px solid #20252F}
+.pg-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;touch-action:none}
+.pg-c{position:relative;aspect-ratio:1/1;border:0;border-radius:9px;padding:0;overflow:hidden;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.12);transition:transform .1s}
+.pg-c .fig{position:absolute;left:50%;bottom:0;width:88%;transform:translateX(-50%)}
+.pg-c.sel{box-shadow:inset 0 0 0 3px var(--acc),0 0 0 2px var(--acc);transform:scale(1.07);z-index:2}
+.pg-c.clue{animation:pgclue .8s ease-in-out infinite alternate}
+@keyframes pgclue{to{box-shadow:inset 0 0 0 3px #fff,0 0 14px #fff}}
+.pg-c.pop{animation:pgpop .26s ease-in forwards;z-index:3}
+@keyframes pgpop{40%{transform:scale(1.2);filter:brightness(1.6)}100%{transform:scale(0);opacity:0}}
+.pg-c.nope{animation:shake .3s}
+.pr-hd{display:flex;justify-content:space-between;margin:0 2px 8px;font-weight:800;font-size:13px;color:var(--muted)}.pr-hd span:first-child{color:var(--text)}
+.pr-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.pr-grid .card,.pr-back{aspect-ratio:1/1}
+.pr-grid.n8 .card,.pr-grid.n8 .pr-back{aspect-ratio:4/5}
+.pr-grid .card .fig{width:72%}.pr-grid .card .t,.pr-grid .card .m{width:22px;height:22px}.pr-grid .card .t svg,.pr-grid .card .m svg{width:15px;height:15px}
+.pr-back{position:relative;border:0;border-radius:12px;padding:0;background:linear-gradient(135deg,#3B4560,#2A3146);box-shadow:inset 0 0 0 2px #4A5677;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pr-back span{font-family:'Black Han Sans',sans-serif;font-size:26px;color:#7E8CB0}
+.pr-back.enter{animation:enter .32s cubic-bezier(.2,1.4,.4,1) both;animation-delay:var(--d)}
+.pr-back.clue{animation:pgclue .5s ease-in-out infinite alternate}
+.pr-grid .card.pr-up{box-shadow:inset 0 0 0 3px var(--acc);animation:prflip .18s ease-out}
+@keyframes prflip{from{transform:scaleX(.15)}to{transform:none}}
+.pr-grid .card.pr-done{opacity:.5}
+.pr-grid .card.wrong{box-shadow:inset 0 0 0 3px var(--miss);animation:shake .35s}
+@media (max-height:700px){.pr-grid{gap:5px}.pg-grid{gap:3px}}
+@media (prefers-reduced-motion:reduce){.pg-c.pop{animation:none;opacity:0}.pg-c.clue,.pr-back.clue{animation:none;box-shadow:inset 0 0 0 3px #fff}.pr-back.enter,.pr-grid .card.pr-up{animation:none}}
 /* ---------- 0.14.0 사건 4: 신분증 검사(검문소 창구) ---------- */
 body.case-4{--ink:#16130F;--panel:#221D17;--panel2:#2B251E;--line:#3E352A}
 body.case-4 .city-chip{color:#F0B860}
@@ -2697,6 +2726,8 @@ body.prem-on #h-station::before{content:'👑 '}
 /*LINEUP*/
 /*MONTAGE*/
 /*IDCHECK*/
+/*PANG*/
+/*PAIRS*/
 </script>
 <script>
 /*FX*/
