@@ -1902,6 +1902,34 @@ button.bgp-w{border:0;font-family:inherit;color:var(--text);box-shadow:inset 0 0
 .gx.calm .gx-siren,.gx.calm .lc-tapes,.gx.calm .lc-flash{display:none}
 .gx.calm .lc img{animation:lcfadein .6s .15s forwards}
 .gx.calm .lc-tag,.gx.calm .lc-nm,.gx.calm .lc-cnl,.gx.calm .lc-cn,.gx.calm .lc-sr,.gx.calm .lc-stamp,.gx.calm .lc-grad,.gx.calm .lc-bgb{animation-name:lcfadein}
+/* 0.13.24 고스트 등장 컷 되풀이 효과(noirFx) */
+.lfx{position:absolute;inset:0;pointer-events:none;opacity:0;animation:lfxin 1.2s 2.4s forwards}
+.gx.calm .lfx{animation-delay:.9s}
+.lfx canvas{position:absolute;inset:0;width:100%;height:100%}
+.lfx i{position:absolute;display:block;width:0;height:0}
+.lfx .lfx-bolt{inset:0;width:auto;height:auto;mix-blend-mode:screen;animation:lfxbolt 11s 5s infinite}
+.gx.calm .lfx .lfx-bolt{display:none}
+@keyframes lfxbolt{0%,90%,93.5%,100%{background:transparent}91%{background:rgba(190,205,255,.3)}92%{background:transparent}92.6%{background:rgba(190,205,255,.16)}}
+.lfx-fl:before{content:'';position:absolute;left:-80px;top:-80px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,244,210,.9),rgba(255,214,140,.3) 30%,transparent 68%);mix-blend-mode:screen;animation:lfxfl 3s ease-in-out infinite}
+@keyframes lfxfl{0%,100%{opacity:.55;scale:.92}45%{opacity:1;scale:1.06}48%{opacity:.6}51%{opacity:1}}
+.lfx-car:before,.lfx-car:after{content:'';position:absolute;top:-90px;width:180px;height:180px;border-radius:50%;mix-blend-mode:screen;opacity:.1;animation:lfxsr 1.2s ease-in-out infinite}
+.lfx-car:before{left:-140px;background:radial-gradient(circle,rgba(255,40,80,.75),transparent 62%)}
+.lfx-car:after{left:-50px;background:radial-gradient(circle,rgba(70,120,255,.8),transparent 62%);animation-delay:.6s}
+@keyframes lfxsr{0%,100%{opacity:.06}30%{opacity:.7}60%{opacity:.1}}
+.lfx-eye:before,.lfx-eye:after{content:'';position:absolute;left:-20px;top:-1.5px;width:40px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#FFF6D8,transparent);opacity:0;animation:lfxgl 5s 1s infinite}
+.lfx-eye:after{rotate:90deg}
+@keyframes lfxgl{0%,84%,100%{opacity:0;scale:.2}90%{opacity:1;scale:1}}
+@keyframes lfxin{to{opacity:1}}
+.lfx-kb{opacity:1!important;animation:lfxkb 14s ease-in-out infinite alternate!important}
+@keyframes lfxkb{from{scale:1}to{scale:1.08}}
+@keyframes lfxglow{0%,100%{text-shadow:0 0 18px rgba(176,124,240,.7),3px 3px 0 #3A1F6A}50%{text-shadow:0 0 34px rgba(205,160,255,1),0 0 64px rgba(176,124,240,.65),3px 3px 0 #3A1F6A}}
+@keyframes lfxstar{0%,100%{text-shadow:0 0 3px rgba(255,201,60,.35)}50%{text-shadow:0 0 14px rgba(255,201,60,1)}}
+@keyframes lfxstamp{0%,100%{box-shadow:0 0 16px rgba(176,124,240,.4)}50%{box-shadow:0 0 36px rgba(205,160,255,.95)}}
+@keyframes lfxsheen{0%{background-position:120% 0}18%,100%{background-position:-60% 0}}
+.gx .lc.idle .lc-cn{opacity:1;transform:none;filter:none;animation:lfxglow 2.6s ease-in-out infinite}
+.gx .lc.idle .lc-sr{opacity:1;transform:none;animation:lfxstar 2.2s ease-in-out infinite}.gx .lc.idle .lc-sr s{text-shadow:none}
+.gx .lc.idle .lc-stamp{opacity:1;transform:rotate(-14deg);animation:lfxstamp 2.6s ease-in-out infinite}
+.gx .lc.idle .lc-sheen{animation:lfxsheen 6s 1s ease-in-out infinite}
 @keyframes gxsir{0%,100%{box-shadow:inset 40px 0 70px -40px rgba(80,120,255,0),inset -40px 0 70px -40px rgba(255,60,80,0)}50%{box-shadow:inset 50px 0 70px -40px rgba(80,120,255,.22),inset -50px 0 70px -40px rgba(255,60,80,.18)}}
 .gx-limtag{position:absolute;left:50%;top:calc(50% + 110px);transform:translateX(-50%) rotate(-6deg) scale(1.8);padding:5px 14px;border-radius:8px;border:2.5px solid #E2C8FF;color:#E2C8FF;background:rgba(40,20,70,.6);font-weight:900;font-size:15px;letter-spacing:1px;opacity:0;z-index:3;transition:opacity .25s,transform .3s cubic-bezier(.4,1.8,.6,1);white-space:nowrap}
 .gx.lim .gx-limtag{opacity:1;transform:translateX(-50%) rotate(-6deg) scale(1)}

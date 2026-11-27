@@ -119,6 +119,34 @@ h1{font-size:18px;margin:4px 0 2px}.sub{margin:0 0 12px;color:var(--muted);font-
 .gx.calm .cut .cn{animation:fadein .5s .9s forwards}
 .gx.calm .cut .sr{animation:fadein .4s 1.2s forwards}
 .gx.calm .cut .stamp{animation:fadein .4s 1.4s forwards;transform:rotate(-14deg)}
+/* 0.13.24 고스트 등장 컷 되풀이 효과(noirFx) */
+.lfx{position:absolute;inset:0;pointer-events:none;opacity:0;animation:lfxin 1.2s 2.4s forwards}
+.gx.calm .lfx{animation-delay:.9s}
+.lfx canvas{position:absolute;inset:0;width:100%;height:100%}
+.lfx i{position:absolute;display:block;width:0;height:0}
+.lfx .lfx-bolt{inset:0;width:auto;height:auto;mix-blend-mode:screen;animation:lfxbolt 11s 5s infinite}
+.gx.calm .lfx .lfx-bolt{display:none}
+@keyframes lfxbolt{0%,90%,93.5%,100%{background:transparent}91%{background:rgba(190,205,255,.3)}92%{background:transparent}92.6%{background:rgba(190,205,255,.16)}}
+.lfx-fl:before{content:'';position:absolute;left:-80px;top:-80px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,244,210,.9),rgba(255,214,140,.3) 30%,transparent 68%);mix-blend-mode:screen;animation:lfxfl 3s ease-in-out infinite}
+@keyframes lfxfl{0%,100%{opacity:.55;scale:.92}45%{opacity:1;scale:1.06}48%{opacity:.6}51%{opacity:1}}
+.lfx-car:before,.lfx-car:after{content:'';position:absolute;top:-90px;width:180px;height:180px;border-radius:50%;mix-blend-mode:screen;opacity:.1;animation:lfxsr 1.2s ease-in-out infinite}
+.lfx-car:before{left:-140px;background:radial-gradient(circle,rgba(255,40,80,.75),transparent 62%)}
+.lfx-car:after{left:-50px;background:radial-gradient(circle,rgba(70,120,255,.8),transparent 62%);animation-delay:.6s}
+@keyframes lfxsr{0%,100%{opacity:.06}30%{opacity:.7}60%{opacity:.1}}
+.lfx-eye:before,.lfx-eye:after{content:'';position:absolute;left:-20px;top:-1.5px;width:40px;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#FFF6D8,transparent);opacity:0;animation:lfxgl 5s 1s infinite}
+.lfx-eye:after{rotate:90deg}
+@keyframes lfxgl{0%,84%,100%{opacity:0;scale:.2}90%{opacity:1;scale:1}}
+@keyframes lfxin{to{opacity:1}}
+.lfx-kb{opacity:1!important;animation:lfxkb 14s ease-in-out infinite alternate!important}
+@keyframes lfxkb{from{scale:1}to{scale:1.08}}
+@keyframes lfxglow{0%,100%{text-shadow:0 0 18px rgba(176,124,240,.7),3px 3px 0 #3A1F6A}50%{text-shadow:0 0 34px rgba(205,160,255,1),0 0 64px rgba(176,124,240,.65),3px 3px 0 #3A1F6A}}
+@keyframes lfxstar{0%,100%{text-shadow:0 0 3px rgba(255,201,60,.35)}50%{text-shadow:0 0 14px rgba(255,201,60,1)}}
+@keyframes lfxstamp{0%,100%{box-shadow:0 0 16px rgba(176,124,240,.4)}50%{box-shadow:0 0 36px rgba(205,160,255,.95)}}
+@keyframes lfxsheen{0%{background-position:120% 0}18%,100%{background-position:-60% 0}}
+.gx .cut.idle .cn{opacity:1;transform:none;filter:none;animation:lfxglow 2.6s ease-in-out infinite}
+.gx .cut.idle .sr{opacity:1;transform:none;animation:lfxstar 2.2s ease-in-out infinite}.gx .cut.idle .sr s{text-shadow:none}
+.gx .cut.idle .stamp{opacity:1;transform:rotate(-14deg);animation:lfxstamp 2.6s ease-in-out infinite}
+.gx .cut.idle .sheen{animation:lfxsheen 6s 1s ease-in-out infinite}
 .hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);z-index:6;text-align:center;font-size:12px;color:rgba(255,255,255,.55)}
 .okb{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:6;height:50px;border:0;border-radius:14px;background:var(--acc);color:#1B1E24;font-weight:900;font-size:16px}
 .okb[hidden]{display:none}
@@ -1591,6 +1619,69 @@ function rainFrame(t){raf=requestAnimationFrame(rainFrame);var dt=lastT?Math.min
     rx.strokeStyle='rgba(210,200,255,'+d.a+')';rx.lineWidth=d.w;rx.beginPath();rx.moveTo(d.x,d.y);rx.lineTo(d.x-d.l*wind,d.y-d.l);rx.stroke()}
   for(var j=splash.length-1;j>=0;j--){var p=splash[j];p.r+=60*dt;p.a-=1.6*dt;if(p.a<=0){splash.splice(j,1);continue}
     rx.strokeStyle='rgba(210,200,255,'+p.a+')';rx.lineWidth=1;rx.beginPath();rx.ellipse(p.x,p.y,p.r,p.r*.3,0,Math.PI,2*Math.PI);rx.stroke()}}
+  // 0.13.24 고스트 등장 컷이 다 나온 뒤에도 화면이 살아 있게 하는 효과.
+  //   비(캔버스), 손전등 빛 번짐과 빛 속 먼지, 경찰차 경광등, 눈빛 반짝, 가끔 번개, 천천히 다가가는 화면.
+  //   글자는 .idle 이 붙으면 코드네임 빛, 별 반짝, 도장 빛, 그림 위 반짝이 줄이 되풀이된다.
+  //   동작 줄이기(calm)면 비, 번개, 다가가기는 빼고 빛만 은은하게 남긴다.
+  //   cut: 등장 컷 상자, img: 세로 그림. 돌려주는 함수를 부르면 멈춘다(상자가 화면에서 빠져도 스스로 멈춘다).
+  function noirFx(cut, img, o) {
+    o = o || {};
+    var PT = { fl: [0.765, 0.478], car: [0.882, 0.31], eye: [0.529, 0.299] };   // 그림 속 손전등, 경찰차, 눈 위치(그림 비율)
+    var IW = img.naturalWidth || 941, IH = img.naturalHeight || 1672, alive = true, raf = 0, last = 0;
+    var fx = document.createElement('div'); fx.className = 'lfx';
+    fx.innerHTML = '<canvas></canvas><i class="lfx-bolt"></i><i class="lfx-car"></i><i class="lfx-fl"></i><i class="lfx-eye"></i>';
+    img.parentNode.insertBefore(fx, img.nextSibling);
+    var cv = fx.querySelector('canvas'), g = cv.getContext && cv.getContext('2d'), W = 0, H = 0, R = 1, drops = [], motes = [], fl = [0, 0];
+    // object-fit:cover, object-position:32% 50% 로 놓인 그림에서 그림 비율 좌표를 화면 좌표로
+    function at(p) { var s = Math.max(W / IW, H / IH), dw = IW * s, dh = IH * s; return [(W - dw) * 0.32 + p[0] * dw, (H - dh) * 0.5 + p[1] * dh]; }
+    function drop(any) { return { x: Math.random() * (W + 60) - 30, y: any ? Math.random() * H : -30, l: 12 + Math.random() * 18, v: 900 + Math.random() * 700, a: 0.1 + Math.random() * 0.22 }; }
+    function mote() {   // 손전등에서 오른쪽 아래로 퍼지는 빛 속 먼지
+      var ang = 0.35 + Math.random() * 1.0, d = 18 + Math.random() * R;
+      return { x: fl[0] + Math.cos(ang) * d, y: fl[1] + Math.sin(ang) * d, vx: (Math.random() - 0.5) * 10, vy: -3 - Math.random() * 9, r: 0.8 + Math.random() * 1.5, ph: Math.random() * 6.28 };
+    }
+    function place() {
+      W = cut.clientWidth; H = cut.clientHeight; if (!W || !H || !g) return;
+      var dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ['fl', 'car', 'eye'].forEach(function (k) { var p = at(PT[k]), e = fx.querySelector('.lfx-' + k); e.style.left = p[0] + 'px'; e.style.top = p[1] + 'px'; });
+      fl = at(PT.fl); R = Math.min(W, H) * 0.38;
+      var org = fl[0] + 'px ' + fl[1] + 'px'; img.style.transformOrigin = org; fx.style.transformOrigin = org;   // 손전등 쪽으로 다가간다
+      drops = []; for (var i = 0, n = Math.round(W * H / 5200); i < n; i++) drops.push(drop(true));
+      motes = []; for (i = 0; i < 16; i++) motes.push(mote());
+    }
+    function frame(ts) {
+      if (!alive) return;
+      if (!cut.isConnected || !cut.offsetWidth) { stop(); return; }   // 컷이 닫히면 스스로 멈춤
+      var dt = last ? Math.min(0.05, (ts - last) / 1000) : 0, i, d, m; last = ts;
+      g.clearRect(0, 0, W, H);
+      if (!o.calm) {
+        g.lineCap = 'round'; g.lineWidth = 1;
+        for (i = 0; i < drops.length; i++) {
+          d = drops[i]; d.y += d.v * dt; d.x += d.v * dt * 0.08;
+          if (d.y > H + 30) d = drops[i] = drop(false);
+          g.strokeStyle = 'rgba(205,215,255,' + d.a + ')'; g.beginPath(); g.moveTo(d.x, d.y); g.lineTo(d.x - d.l * 0.08, d.y - d.l); g.stroke();
+        }
+      }
+      for (i = 0; i < motes.length; i++) {
+        m = motes[i]; if (!o.calm) { m.x += m.vx * dt; m.y += m.vy * dt; } m.ph += dt * 2.2;
+        var dx = m.x - fl[0], dy = m.y - fl[1], dd = Math.sqrt(dx * dx + dy * dy);
+        if (dd > R || dy < -8) { motes[i] = mote(); continue; }
+        g.fillStyle = 'rgba(255,236,190,' + ((0.4 + 0.4 * Math.sin(m.ph)) * (1 - dd / R)).toFixed(3) + ')';
+        g.beginPath(); g.arc(m.x, m.y, m.r, 0, 6.283); g.fill();
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    function stop() {
+      if (!alive) return; alive = false;
+      cancelAnimationFrame(raf); clearTimeout(tid); window.removeEventListener('resize', place);
+      img.classList.remove('lfx-kb'); if (fx.parentNode) fx.parentNode.removeChild(fx);
+    }
+    place(); if (g) raf = requestAnimationFrame(frame);
+    window.addEventListener('resize', place);
+    // 등장이 끝나면 되풀이 효과로 넘어간다
+    var tid = setTimeout(function () { if (!alive) return; cut.classList.add('idle'); if (!o.calm) { img.classList.add('lfx-kb'); fx.classList.add('lfx-kb'); } }, o.calm ? 1900 : 3200);
+    return stop;
+  }
+var stopFx=null;
 function clear(){timers.forEach(clearTimeout);timers=[]}
 function rnd(){var r=Math.random()*100,g=r<1?'l':r<6?'h':r<34?'r':'c';var sp=P.SPECIES[Math.floor(Math.random()*P.SPECIES.length)];return {g:g,id:sp.id,name:sp.name}}
 function start(list){
@@ -1616,6 +1707,7 @@ function showCut(x){clear();phase='cut';cutShown=true;
   star=Math.min(5,star+1); n.querySelector('#csr').innerHTML='★'.repeat(star)+'<s>'+'★'.repeat(5-star)+'</s>';
   n.querySelector('#stamp').innerHTML=star===1?'<b>NEW</b>특수<br>수사팀':'<b>★'+star+'</b>특수<br>수사팀';
   gx.classList.add('cut-on');
+  if(stopFx)stopFx(); stopFx=noirFx(n,n.querySelector('#cutimg'),{calm:calm});   // 다 나온 뒤에도 움직이는 효과
   function hit(ms,v){if(calm)return;later(function(){n.classList.remove('shake');void n.offsetWidth;n.classList.add('shake');try{navigator.vibrate&&navigator.vibrate(v)}catch(e){}},ms)}
   [60,220,380,540].forEach(function(t){hit(t,25)});   // 테이프가 박힐 때마다
   hit(1080,60);   // 찢어질 때
