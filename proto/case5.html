@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수사 3팀 사건 5 시안</title>
+<!--
+  사건 5 후보를 직접 해 보는 시안. 카드는 게임과 같은 용의자 카드(시간대, 모자, 얼굴, 흔적)를 그대로 쓴다(ui.js 그리기 함수).
+    ① 몽타주 맞히기 — 용의자를 대조하면 특징마다 맞음/틀림이 나온다. 적게 대조하고 범인을 맞힌다(참고: Wordle, 숫자야구). 사건 4 시안에서 이어 옴
+    ② 배치표        — 3×3 잠복 배치표의 빈자리에 들어갈 사람 고르기. 줄과 칸마다 같은 특징이 한 번씩(참고: 스도쿠). 사건 4 시안에서 이어 옴
+    ③ 출입 순서     — 출입 기록 단서로 네다섯 명이 들어온 순서를 맞힌다(참고: 보드게임 타임라인, 논리 퍼즐 줄 세우기)
+  공통: 60초, 맞히면 점수와 시간 +, 틀리면 −5초. 4번 맞힐 때마다 단계 1→2→3.
+  makeOrder 는 단서에 맞는 순서가 늘 하나뿐인지(모든 순서를 다 대 봄), 단서 하나만 빼도 답이 하나가 아닌지 확인한다.
+-->
+<style>
+:root{--ink:#12151C;--panel:#1C212B;--panel2:#232937;--line:#2E3542;--text:#F3F0E8;--muted:#A3ACBA;--acc:#FFD23F;--miss:#FF7A59;--ok:#7BD88F}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--ink);color:var(--text);font-family:'IBM Plex Sans KR','Apple SD Gothic Neo','Noto Sans KR',sans-serif;word-break:keep-all}
+body{max-width:460px;margin:0 auto;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 40px);display:flex;flex-direction:column;gap:12px;overflow-x:hidden}
+h1{margin:0;font-size:22px}
+.tabs{display:flex;gap:6px}.tabs button{white-space:nowrap;padding:0 4px}.tabs button{flex:1;height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:800;font-size:14px}
+.tabs button.on{border-color:var(--acc);color:var(--acc)}
+.box{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.box h2{margin:0;font-size:19px}
+.rule{margin:0;padding-left:18px;font-size:13.5px;line-height:1.6;color:#C9D0DC}
+.ref{font-size:12px;color:var(--muted)}
+.lv{display:flex;gap:6px}.lv button{flex:1;height:38px;border-radius:10px;border:1.5px solid var(--line);background:none;color:var(--muted);font:inherit;font-weight:800;font-size:13px}.lv button.on{border-color:var(--acc);color:var(--acc)}
+.go{height:54px;border-radius:14px;border:0;background:var(--acc);color:#1B1E24;font:inherit;font-weight:900;font-size:17px}
+.hud{display:flex;justify-content:space-between;align-items:center;font-weight:800}
+.hud .t{font-size:24px;font-variant-numeric:tabular-nums}.hud .t.low{color:var(--miss)}
+.hud .s{color:var(--acc);font-size:19px;font-variant-numeric:tabular-nums}
+.hud .st{font-size:12px;color:var(--muted);border:1.5px solid var(--line);border-radius:999px;padding:3px 10px}
+.msg{min-height:22px;text-align:center;font-weight:800;font-size:14px}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--miss)}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-10px);z-index:20;background:var(--acc);color:#1B1E24;font-weight:900;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.end{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px;text-align:center}
+.end b{font-size:42px;color:var(--acc)}
+/* 게임 카드(template.html 과 같은 모양) */
+.card{position:relative;aspect-ratio:4/5;padding:0;border:0;border-radius:12px;overflow:hidden;transition:transform .12s,opacity .2s,filter .2s;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);font:inherit;color:inherit}
+.card svg{display:block}
+.card .t{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.card .m{position:absolute;bottom:6px;right:6px;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;z-index:1}
+.card .fig{position:absolute;left:50%;bottom:0;width:84%;transform:translateX(-50%)}
+.card .pick,.card .no{display:none}
+.card.out{opacity:.22;filter:grayscale(1)}
+.card.right{box-shadow:0 0 0 4px var(--ok)}
+.card.wrong{box-shadow:0 0 0 4px var(--miss);animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.grid{display:grid;gap:8px}
+.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.g4 .card .t,.g4 .card .m{width:22px;height:22px}.g4 .card .t svg,.g4 .card .m svg{width:15px;height:15px}
+
+/* ① 몽타주 맞히기 */
+.room{background:linear-gradient(180deg,#232A38,#191E28);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px}
+.room .card{aspect-ratio:1/1}.room .card .fig{width:70%}
+.mtg{display:flex;align-items:center;gap:10px;background:#EFE7D4;color:#2A2118;border-radius:10px;padding:8px 10px}
+.mtg-q{width:40px;height:40px;border-radius:8px;background:#2A2118;color:#EFE7D4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px}
+.mtg-t{font-weight:900;font-size:15px;flex:1}.mtg-n{font-size:12px;font-weight:800;color:#6B5A40}
+.hist{display:flex;flex-direction:column;gap:5px;min-height:44px}
+.trow{display:flex;gap:5px;align-items:center}
+.card.mini{width:40px;flex:0 0 auto;aspect-ratio:1/1;border-radius:8px}.card.mini .t,.card.mini .m{display:none}.card.mini .fig{width:80%}
+.tile{flex:1;min-width:0;border-radius:8px;padding:3px 4px;text-align:center;font-size:10px;font-weight:800;line-height:1.25}
+.tile b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.g{background:#2E7D4F;color:#E8FFEF}.tile.x{background:#3A4150;color:#B8C0CC}
+.cnt{flex:1;height:40px;border-radius:8px;background:#3A4150;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px}
+/* ③ 짝 맞추기 */
+.phd{display:flex;justify-content:space-between;font-weight:900;font-size:13px;color:var(--muted)}.phd span:first-child{color:var(--text)}
+.card.back{background:linear-gradient(135deg,#3B4560,#2A3146);box-shadow:inset 0 0 0 2px #4A5677;display:flex;align-items:center;justify-content:center}
+.card.back span{font-size:26px;font-weight:900;color:#7E8CB0}
+.card.flipped{box-shadow:inset 0 0 0 3px var(--acc);animation:flipin .2s ease-out}
+.card.matched{opacity:.5}
+@keyframes flipin{from{transform:scaleX(.2)}to{transform:none}}
+/* ④ 배치표 */
+.seat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#EFE7D4;padding:6px;border-radius:12px}
+.seat .card{aspect-ratio:1/1}
+.hole{aspect-ratio:1/1;border-radius:12px;border:2.5px dashed #B9AA8A;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#B9AA8A}
+.hole.now{border-color:#E0A91A;color:#E0A91A;background:rgba(255,210,63,.18);animation:holep 1s ease-in-out infinite alternate}
+@keyframes holep{to{background:rgba(255,210,63,.34)}}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+/* ⑤ 검거팡 */
+.pang{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;touch-action:none}
+.pang .card{aspect-ratio:1/1;border-radius:9px}.pang .card .fig{width:86%}
+.pang .card.sel{box-shadow:inset 0 0 0 3px var(--acc);transform:scale(1.06)}
+.pang .card.pop{animation:pop .3s ease-in forwards}
+@keyframes pop{50%{transform:scale(1.18);filter:brightness(1.6)}100%{transform:scale(0);opacity:0}}
+#combo{color:var(--acc)}
+
+/* ③ 출입 순서 */
+.log{background:#EFE7D4;color:#2A2118;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
+.log-hd{display:flex;justify-content:space-between;font-size:11px;font-weight:900;letter-spacing:1px;color:#6B5A40;border-bottom:1.5px dashed #B9AA8A;padding-bottom:4px}
+.lg{display:flex;gap:7px;align-items:flex-start;font-size:13.5px;font-weight:700;line-height:1.4}
+.lg i{font-style:normal;flex:none;width:18px;height:18px;margin-top:1px;border-radius:9px;background:#2A2118;color:#EFE7D4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900}
+.lg.broke{color:#B3261E}.lg.broke i{background:#C0392B}
+.slots{display:grid;gap:6px}.slots.n4{grid-template-columns:repeat(4,1fr)}.slots.n5{grid-template-columns:repeat(5,1fr)}
+.slot{position:relative;aspect-ratio:1/1;border-radius:10px;border:2px dashed #4A5677;background:rgba(255,255,255,.03);padding:0;color:var(--muted);font:inherit;overflow:hidden}
+.slot b{position:absolute;left:5px;top:3px;font-size:12px;z-index:2}
+.slot.full{border-style:solid;border-color:var(--acc)}.slot.bad{border-color:var(--miss);animation:shake .35s}
+.slot .card.mini{position:absolute;inset:0;width:auto;border-radius:8px}
+.g5{grid-template-columns:repeat(5,1fr)}.g5 .card .t,.g5 .card .m{width:20px;height:20px}.g5 .card .t svg,.g5 .card .m svg{width:13px;height:13px}
+.pool .card{aspect-ratio:1/1}.pool .card .fig{width:72%}
+
+/* ② 신분증 */
+.desk{background:linear-gradient(180deg,#3A2E24,#2A211A);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.pair{display:flex;gap:10px;align-items:stretch;animation:slidein .28s cubic-bezier(.2,1.2,.4,1)}
+@keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+.pair .card{width:42%;flex:0 0 auto;align-self:center}
+.idc{flex:1;background:#EFE7D4;color:#2A2118;border-radius:10px;padding:10px 10px 8px;box-shadow:0 4px 0 #B9AA8A;display:flex;flex-direction:column;gap:6px}
+.idc .hd{display:flex;justify-content:space-between;font-size:11px;font-weight:900;letter-spacing:1px;color:#6B5A40;border-bottom:1.5px dashed #B9AA8A;padding-bottom:5px}
+.idc .row{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;gap:6px}
+.idc .row span{color:#8A7A60;font-weight:700;font-size:12px;flex:0 0 auto}
+.wanted{background:#5A1F1F;color:#FFD9D0;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center}
+.wanted b{background:#FF7A59;color:#2A0E0E;border-radius:6px;padding:2px 6px;font-size:11px}
+.btns{display:flex;gap:8px}
+.btns button{flex:1;height:56px;border-radius:14px;border:0;font:inherit;font-weight:900;font-size:18px}
+.btn-pass{background:#2E7D4F;color:#fff}.btn-arrest{background:#C0392B;color:#fff}
+.stamp{position:absolute;right:12px;top:40%;transform:rotate(-14deg);font-size:26px;font-weight:900;border:4px solid;padding:2px 10px;border-radius:8px;opacity:.9}
+
+.hide{display:none!important}
+/* 판이 돌 때는 제목을 숨겨 작은 폰(SE)에서도 한 화면에 들어오게 */
+body.playing h1{display:none}
+@media (max-height:700px){.room{padding:8px;gap:8px}.room .grid{gap:6px}.seat{gap:4px}.opts{gap:6px}}
+</style>
+</head>
+<body>
+<h1>사건 5 시안</h1>
+<div class="tabs" id="tabs"><button data-k="guess" class="on">몽타주</button><button data-k="seat">배치표</button><button data-k="order">출입 순서</button></div>
+<div class="box" id="intro"></div>
+<div id="play" class="hide" style="display:flex;flex-direction:column;gap:10px">
+  <div class="hud"><span class="t" id="time">60</span><span class="st" id="stage">단계 1</span><span class="s" id="score">0</span></div>
+  <div id="stagebox"></div>
+  <div class="msg" id="msg"></div>
+</div>
+<div class="box end hide" id="end"></div>
+<div class="toast" id="toast"></div>
+<script>
+/*
+ * SuspectsCore — "수사 3팀" 퍼즐(현장 출동 한 판)의 규칙 계산. 화면과 무관한 순수 로직.
+ *
+ * 구조
+ *   카드(용의자) = 0~80 정수 id. 3진수 네 자리가 곧 네 속성(시간대·모자·얼굴·흔적)의 값이다.
+ *   검거 규칙   = 보는 속성마다 "두 명만 같으면 안 된다" ⇔ 세 값의 합이 3의 배수(모두 같음 또는 모두 다름).
+ *   단계(level) = 보는 속성의 수(1~4). 처음 하는 사람을 위해 모자 → 얼굴 → 시간대 → 흔적 순으로 하나씩 늘린다.
+ *                 안 보는 속성은 화면에 그리지 않고 판정에서도 뺀다(active 목록).
+ *   판(board)   = 서로 다른 카드 9장. 검거하면 그 세 자리만 새 카드로 채운다.
+ *   게임 상태   = 점수·연속·남은 시간(종료 시각)·단계·단서. submit / declareNone / hint 가 바꾼다.
+ *   튜토리얼    = makeLesson: 두 명을 주고 "셋째는 누구?"를 고르는 문제를 만든다.
+ *
+ * 화면(ui.js)은 이 모듈의 결과만 읽는다. 무작위는 rng 인자로 받아 테스트가 결과를 고정할 수 있다.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.SuspectsCore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var ATTRS = [
+    { key: 'time', name: '시간대', values: ['낮', '저녁', '밤'] },
+    { key: 'hat',  name: '모자',   values: ['맨머리', '비니', '중절모'] },   // 1.6: 캡 모자 → 비니(작게 보면 헬멧 같아서, 아이콘과 통일)
+    { key: 'face', name: '얼굴',   values: ['맨얼굴', '안경', '마스크'] },
+    { key: 'mark', name: '흔적',   values: ['지문', '유리 조각', '타이어 자국'] }
+  ];
+  var ALL = [0, 1, 2, 3];
+  // 단계마다 하나씩 늘어나는 속성 순서: 모자 → 얼굴 → 시간대 → 흔적 (눈에 잘 띄는 것부터)
+  var ORDER = [1, 2, 0, 3];
+  var DECK_SIZE = 81;   // 3^4
+  var BOARD_SIZE = 9;
+
+  // 한 판의 수치. 밸런스는 여기만 고치면 된다.
+  var RULES = {
+    duration: 90,          // 시작 시간(초)
+    base: 100,             // 검거 1건 기본 점수
+    noneBonus: 300,        // "검거 불가" 적중 기본 점수
+    hitTime: 2,            // 검거 성공 시 늘어나는 시간(초)
+    noneTime: 5,           // 검거 불가 적중 시 늘어나는 시간(초)
+    missPenalty: 5,        // 오인 체포 시 줄어드는 시간(초)
+    wrongNonePenalty: 10,  // 검거 불가 오판 시 줄어드는 시간(초)
+    comboStep: 0.5,        // 연속 검거 1회당 배수 증가
+    comboMax: 3,           // 배수 상한
+    hintPenalty: 3,        // 단서 한 번에 줄어드는 시간(초)
+    // 이 단계에 오르는 데 필요한 누적 검거 수(단계 1은 0). 2명→얼굴, 4명→시간대, 7명→흔적
+    levelAt: { 1: 0, 2: 2, 3: 4, 4: 7 }
+  };
+
+  /* ---------- 오류 ---------- */
+  // 화면이 code 로 분기할 수 있게 오류에 종류를 붙인다.
+  function GameError(code, message) {
+    var e = new Error(message);
+    e.name = 'GameError';
+    e.code = code;
+    return e;
+  }
+
+  /* ---------- 단계 ---------- */
+  function assertLevel(level) {
+    if (level !== 1 && level !== 2 && level !== 3 && level !== 4) throw GameError('BAD_LEVEL', '단계는 1~4: ' + level);
+  }
+  // 단계 → 보는 속성 번호 목록(ATTRS 순서로 정렬해서 화면 표시 순서가 늘 같게)
+  function activeFor(level) {
+    assertLevel(level);
+    return ORDER.slice(0, level).sort(function (a, b) { return a - b; });
+  }
+
+  /* ---------- 카드 ---------- */
+  function assertId(id) {
+    if (typeof id !== 'number' || !isFinite(id) || Math.floor(id) !== id || id < 0 || id >= DECK_SIZE) {
+      throw GameError('BAD_CARD', '카드 id 는 0~80 정수여야 한다: ' + id);
+    }
+  }
+
+  // id → [시간대, 모자, 얼굴, 흔적] 각 0~2
+  function decode(id) {
+    assertId(id);
+    return [id % 3, Math.floor(id / 3) % 3, Math.floor(id / 9) % 3, Math.floor(id / 27) % 3];
+  }
+
+  function encode(v) {
+    if (!Array.isArray(v) || v.length !== ATTRS.length) throw GameError('BAD_CARD', '속성은 4개여야 한다');
+    for (var i = 0; i < v.length; i++) {
+      if (v[i] !== 0 && v[i] !== 1 && v[i] !== 2) throw GameError('BAD_CARD', '속성 값은 0~2: ' + v[i]);
+    }
+    return v[0] + v[1] * 3 + v[2] * 9 + v[3] * 27;
+  }
+
+  // 보는 속성만 남긴 모양(안 보는 속성은 0). 화면은 이 값으로 그린다.
+  function project(id, active) {
+    var v = decode(id), a = active || ALL, out = [0, 0, 0, 0];
+    for (var i = 0; i < a.length; i++) out[a[i]] = v[a[i]];
+    return out;
+  }
+  function projKey(id, active) { return project(id, active).join(''); }
+
+  /*
+   * 세 장이 한 패인가(보는 속성만 따진다).
+   * 속성마다 (x+y+z) % 3 === 0 이면 "모두 같음" 또는 "모두 다름"이다(둘만 같으면 합이 3의 배수가 될 수 없다).
+   * 같은 카드를 두 번 고른 경우는 판 위 자리가 다르면 생기지 않지만, 방어적으로 막는다.
+   */
+  function isSet(a, b, c, active) {
+    if (a === b || b === c || a === c) return false;
+    var x = decode(a), y = decode(b), z = decode(c), act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n];
+      if ((x[i] + y[i] + z[i]) % 3 !== 0) return false;
+    }
+    return true;
+  }
+
+  /*
+   * 왜 틀렸는지: 규칙을 어긴 속성(= 둘만 같은 속성)과 그 값.
+   * 오인 체포 때 "모자: 비니 둘만 같아요"처럼 보여 줘서 규칙을 몸으로 익히게 한다.
+   */
+  function explain(a, b, c, active) {
+    var x = decode(a), y = decode(b), z = decode(c), out = [], act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n];
+      if ((x[i] + y[i] + z[i]) % 3 !== 0) {
+        var same = x[i] === y[i] ? x[i] : (y[i] === z[i] ? y[i] : x[i]);
+        out.push({ index: i, key: ATTRS[i].key, name: ATTRS[i].name, value: ATTRS[i].values[same] });
+      }
+    }
+    return out;
+  }
+
+  // 두 장이 정해지면 셋째 장은 하나로 정해진다(속성마다 (3 - (x+y)%3) % 3).
+  function thirdCard(a, b) {
+    if (a === b) throw GameError('SAME_CARD', '서로 다른 두 장이어야 한다');
+    var x = decode(a), y = decode(b), v = [];
+    for (var i = 0; i < ATTRS.length; i++) v.push((3 - (x[i] + y[i]) % 3) % 3);
+    return encode(v);
+  }
+
+  /*
+   * 두 장을 골랐을 때 셋째가 갖춰야 할 조건(보조 줄·튜토리얼 해설에 쓴다).
+   * 반환: [{ index, name, same, value }] — same=true 면 "둘이 같으니 셋째도 같게", false 면 "둘이 다르니 남은 하나로"
+   */
+  function needs(a, b, active) {
+    var x = decode(a), y = decode(b), out = [], act = active || ALL;
+    for (var n = 0; n < act.length; n++) {
+      var i = act[n], same = x[i] === y[i];
+      var v = same ? x[i] : (3 - (x[i] + y[i]) % 3) % 3;
+      out.push({ index: i, key: ATTRS[i].key, name: ATTRS[i].name, same: same, value: ATTRS[i].values[v] });
+    }
+    return out;
+  }
+
+  // 판 위의 한 패를 모두 찾는다(9장 → 84개 조합, 충분히 가볍다).
+  function findSets(board, active) {
+    var out = [];
+    for (var i = 0; i < board.length; i++)
+      for (var j = i + 1; j < board.length; j++)
+        for (var k = j + 1; k < board.length; k++)
+          if (isSet(board[i], board[j], board[k], active)) out.push([i, j, k]);
+    return out;
+  }
+
+  /* ---------- 무작위 ---------- */
+  // 시드 고정 난수(mulberry32). 테스트와 공통 판에 쓴다.
+  function makeRng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () {
+      s = (s + 0x6D2B79F5) >>> 0;
+      var t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function assertRng(rng) {
+    if (typeof rng !== 'function') throw GameError('BAD_RNG', 'rng 는 0 이상 1 미만을 돌려주는 함수여야 한다');
+  }
+  // rng 가 범위를 벗어나도 판이 깨지지 않게 0~n-1 로 맞춘다
+  function pickIndex(rng, n) {
+    var r = rng();
+    if (!(r >= 0 && r < 1)) r = 0;
+    return Math.floor(r * n);
+  }
+
+  // exclude 에 없는 카드를 0 ~ limit-1 에서 count 장 뽑는다(서로 겹치지 않게). limit 기본 81.
+  function drawDistinct(rng, exclude, count, limit) {
+    assertRng(rng);
+    limit = limit == null ? DECK_SIZE : limit;
+    var used = {}, pool = [];
+    for (var i = 0; i < exclude.length; i++) used[exclude[i]] = true;
+    for (var id = 0; id < limit; id++) if (!used[id]) pool.push(id);
+    if (pool.length < count) throw GameError('DECK_EMPTY', '뽑을 카드가 모자란다');
+    var out = [];
+    for (var n = 0; n < count; n++) {
+      var pick = pickIndex(rng, pool.length);
+      out.push(pool[pick]);
+      pool.splice(pick, 1);
+    }
+    return out;
+  }
+
+  function newBoard(rng, limit) {
+    return drawDistinct(rng, [], BOARD_SIZE, limit);
+  }
+
+  // 검거한 세 자리만 새 카드로 바꾼 판(원본은 그대로). 판 전체를 제외해 방금 잡힌 카드가 바로 다시 나오지 않게 한다.
+  function refill(board, idxs, rng, limit) {
+    var fresh = drawDistinct(rng, board, idxs.length, limit);
+    var next = board.slice();
+    for (var i = 0; i < idxs.length; i++) next[idxs[i]] = fresh[i];
+    return next;
+  }
+
+  /*
+   * 단계에 맞춰 카드를 뽑는다: 화면에 보이는 모양(project)이 판 위에서 겹치지 않는 카드를 먼저 고른다.
+   * 모양 가짓수가 모자라면(1단계는 3가지뿐) 겹침을 허용한다. 1단계는 "같은 모자 셋"이 곧 한 패라 괜찮다.
+   */
+  function drawForLevel(rng, excludeIds, keepProj, count, level) {
+    assertRng(rng);
+    var active = activeFor(level), used = {}, seen = {}, out = [];
+    for (var i = 0; i < excludeIds.length; i++) used[excludeIds[i]] = true;
+    for (var j = 0; j < keepProj.length; j++) seen[keepProj[j]] = true;
+    var pool = [];
+    for (var id = 0; id < DECK_SIZE; id++) if (!used[id]) pool.push(id);
+    for (var n = 0; n < count; n++) {
+      var fresh = pool.filter(function (c) { return !seen[projKey(c, active)]; });
+      var from = fresh.length ? fresh : pool;
+      if (!from.length) throw GameError('DECK_EMPTY', '뽑을 카드가 모자란다');
+      var pick = from[pickIndex(rng, from.length)];
+      out.push(pick);
+      seen[projKey(pick, active)] = true;
+      pool.splice(pool.indexOf(pick), 1);
+    }
+    return out;
+  }
+
+  function dealBoard(rng, level) {
+    return drawForLevel(rng, [], [], BOARD_SIZE, level);
+  }
+
+  function refillBoard(board, idxs, rng, level) {
+    var active = activeFor(level), keep = [];
+    for (var i = 0; i < board.length; i++) if (idxs.indexOf(i) < 0) keep.push(projKey(board[i], active));
+    var fresh = drawForLevel(rng, board, keep, idxs.length, level);
+    var next = board.slice();
+    for (var k = 0; k < idxs.length; k++) next[idxs[k]] = fresh[k];
+    return next;
+  }
+
+  /* ---------- 게임 ---------- */
+  // 연속 검거 n 번째의 점수 배수: 1, 1.5, 2, 2.5, 3, 3, ...
+  // 연속 검거 배수(평소 규칙). 판의 상한이 다르면 multiplierFor 를 쓴다
+  //   (인자를 하나만 받는다: [..].map(multiplier) 처럼 써도 두 번째 인자가 끼어들지 않게)
+  function multiplier(combo) { return multiplierFor(combo, RULES.comboMax); }
+  function multiplierFor(combo, max) {
+    if (combo < 1) return 1;
+    return Math.min(max == null ? RULES.comboMax : max, 1 + RULES.comboStep * (combo - 1));
+  }
+
+  /*
+   * 판마다 바꿀 수 있는 규칙(0.1.19: 하루 한 번 특별 출동 · 출동 준비물).
+   *   scoreMult  점수 배수(기본 1)          comboMax  연속 배수 상한(기본 RULES.comboMax)
+   *   hitTime    검거 때 늘어나는 초          missPenalty 오인 체포 때 줄어드는 초
+   *   noneMult   검거 불가 적중 점수 배수      noHints   단서 못 씀
+   *   shield     오인 체포 벌점을 면제하는 횟수(준비물 "변호사 대기")
+   * 모르는 키는 버리고, 값이 이상하면 BAD_OPTION 을 던진다(판을 만들 때 한 번만 검사).
+   */
+  /*   0.7.0 난이도(단순·강력·미제 사건):
+   *   missMul    벌점(오인·함정·검거 불가 오판) 배수(단순 0.5 · 미제 1.5)
+   *   hintPenalty 단서 한 번에 줄어드는 초(미제 5). null 이면 모드 기본
+   *   lvSpeed    단계가 오르는 속도. 단계 계산에 쓰는 검거 수 = floor(검거 수 × lvSpeed)(단순 0.67 · 미제 1.5)
+   */
+  var MOD_DEFAULTS = { scoreMult: 1, comboMax: null, hitTime: null, missPenalty: null, noneMult: 1, noHints: false, shield: 0, missMul: 1, hintPenalty: null, lvSpeed: 1 };
+  function readMods(m) {
+    m = m && typeof m === 'object' ? m : {};
+    var out = {};
+    Object.keys(MOD_DEFAULTS).forEach(function (k) { out[k] = m[k] == null ? MOD_DEFAULTS[k] : m[k]; });
+    var num = function (v, min, max) { return typeof v === 'number' && isFinite(v) && v >= min && v <= max; };
+    if (!num(out.scoreMult, 0.1, 10) || !num(out.noneMult, 0.1, 10)) throw GameError('BAD_OPTION', '점수 배수는 0.1~10');
+    if (out.comboMax != null && !num(out.comboMax, 1, 20)) throw GameError('BAD_OPTION', '연속 배수 상한은 1~20');
+    if (out.hitTime != null && !num(out.hitTime, 0, 30)) throw GameError('BAD_OPTION', '검거 시간은 0~30초');
+    if (out.missPenalty != null && !num(out.missPenalty, 0, 60)) throw GameError('BAD_OPTION', '오인 벌점은 0~60초');
+    if (!num(out.shield, 0, 10) || Math.floor(out.shield) !== out.shield) throw GameError('BAD_OPTION', '면제 횟수는 0~10 정수');
+    if (!num(out.missMul, 0, 5)) throw GameError('BAD_OPTION', '벌점 배수는 0~5');
+    if (out.hintPenalty != null && !num(out.hintPenalty, 0, 30)) throw GameError('BAD_OPTION', '단서 벌점은 0~30초');
+    if (!num(out.lvSpeed, 0.2, 5)) throw GameError('BAD_OPTION', '단계 속도는 0.2~5');
+    out.noHints = out.noHints === true;
+    return out;
+  }
+
+  /* ---------- 난이도 도우미(0.7.0) — 다섯 모드가 같이 쓴다 ---------- */
+  // 벌점 초에 난이도 배수를 곱한다(0.5초 단위 반올림, 0 이상)
+  function missPen(state, pen) {
+    var m = state && state.mods && state.mods.missMul != null ? state.mods.missMul : 1;
+    return Math.max(0, Math.round(pen * m * 2) / 2);
+  }
+  // 단서 한 번 값(초): 난이도가 정해 두었으면 그것, 아니면 모드 기본
+  function hintCost(state, base) {
+    var h = state && state.mods ? state.mods.hintPenalty : null;
+    return h == null ? base : h;
+  }
+  // 단계 계산에 쓰는 검거 수
+  function lvHits(state) {
+    var s = state && state.mods && state.mods.lvSpeed != null ? state.mods.lvSpeed : 1;
+    return Math.floor((state.hits || 0) * s + 1e-9);
+  }
+  // 단계 문턱(need, 평소 검거 수)에 닿으려면 실제로 몇 명을 잡아야 하나(화면의 "다음까지 N명")
+  function hitsFor(state, need) {
+    var s = state && state.mods && state.mods.lvSpeed != null ? state.mods.lvSpeed : 1;
+    return Math.ceil(need / s - 1e-9);
+  }
+
+  function assertNow(now) {
+    if (typeof now !== 'number' || !isFinite(now)) throw GameError('BAD_TIME', 'now 는 밀리초 숫자여야 한다');
+  }
+
+  /*
+   * 새 게임. opts:
+   *   rng, now(ms)        — 필수
+   *   duration(초)        — 기본 90 (사무실 장비 "수사 기간 연장"이 늘린다)
+   *   level               — 시작 단계 1~4, 기본 1. 노말은 4.
+   *   freeHints           — 시간이 줄지 않는 단서 횟수(장비 "베테랑 형사")
+   *   nonePenalty(초)     — 검거 불가 오판 벌점(장비 "증거 보관실"이 줄인다)
+   *   mods                — 판마다 바꾸는 규칙(readMods 참고). 없으면 평소 규칙
+   * 남은 시간은 "종료 시각(endAt)"으로 들고 있다. 매 프레임 깎지 않아도 되고, 탭을 떠나도 정확하다.
+   */
+  function createGame(opts) {
+    opts = opts || {};
+    assertRng(opts.rng);
+    assertNow(opts.now);
+    var duration = opts.duration == null ? RULES.duration : opts.duration;
+    if (!(duration > 0)) throw GameError('BAD_DURATION', '시간은 0보다 커야 한다');
+    var level = opts.level == null ? 1 : opts.level;
+    assertLevel(level);
+    var freeHints = opts.freeHints == null ? 0 : opts.freeHints;
+    var nonePenalty = opts.nonePenalty == null ? RULES.wrongNonePenalty : opts.nonePenalty;
+    if (!(freeHints >= 0) || !(nonePenalty >= 0)) throw GameError('BAD_OPTION', '단서·벌점 값은 0 이상');
+    var mods = readMods(opts.mods);
+    return {
+      mods: mods, shield: mods.shield, shieldUsed: 0,
+      rng: opts.rng,
+      level: level,
+      startLevel: level,
+      board: dealBoard(opts.rng, level),
+      clue: null,       // 단서: { set:[i,j,k], shown:n } — 판이 바뀌면 null
+      hints: 0, freeHints: freeHints, nonePenalty: nonePenalty,
+      score: 0, combo: 0, bestCombo: 0,
+      hits: 0, misses: 0, noneHits: 0, noneMisses: 0,
+      endAt: opts.now + duration * 1000,
+      pausedAt: null,   // 일시정지 중이면 멈춘 시각(ms), 아니면 null
+      over: false
+    };
+  }
+
+  function active(state) { return activeFor(state.level); }
+
+  // 일시정지 중에는 멈춘 시각 기준으로 남은 시간을 센다(시간이 흐르지 않는다)
+  function timeLeft(state, now) {
+    assertNow(now);
+    var at = state.pausedAt != null ? state.pausedAt : now;
+    return Math.max(0, (state.endAt - at) / 1000);
+  }
+
+  // "처음으로" 확인 창이 떠 있는 동안 시간을 멈춘다. 재개하면 멈춘 만큼 종료 시각을 뒤로 민다.
+  function pause(state, now) {
+    assertNow(now);
+    if (state.over) throw GameError('GAME_OVER', '이미 끝난 판이다');
+    if (state.pausedAt == null) state.pausedAt = now;
+  }
+
+  function resume(state, now) {
+    assertNow(now);
+    if (state.pausedAt == null) return;
+    state.endAt += Math.max(0, now - state.pausedAt);
+    state.pausedAt = null;
+  }
+
+  // 시간이 다 됐으면 끝낸다. 끝났는지 돌려준다.
+  function tick(state, now) {
+    if (state.pausedAt != null) return state.over;
+    if (!state.over && timeLeft(state, now) <= 0) state.over = true;
+    return state.over;
+  }
+
+  function guard(state, now, what) {
+    if (state.pausedAt != null) throw GameError('PAUSED', '멈춘 판에서는 ' + what + ' 수 없다');
+    if (tick(state, now)) throw GameError('GAME_OVER', '이미 끝난 판이다');
+  }
+
+  function addCombo(state) {
+    state.combo += 1;
+    if (state.combo > state.bestCombo) state.bestCombo = state.combo;
+    return multiplierFor(state.combo, state.mods ? state.mods.comboMax : null);
+  }
+
+  // 누적 검거 수로 다음 단계를 정한다(올라가기만 한다)
+  function levelForHits(startLevel, hits) {
+    var lv = startLevel;
+    for (var l = startLevel + 1; l <= 4; l++) if (hits >= RULES.levelAt[l]) lv = l;
+    return lv;
+  }
+
+  /*
+   * 검거 시도. idxs = 판 위의 자리 세 개(0~8, 서로 다름). state 를 직접 바꾼다.
+   * 반환: 성공 { ok:true, gain, combo, mult, replaced, levelUp? }, 실패 { ok:false, reasons, penalty }
+   */
+  function submit(state, idxs, now) {
+    guard(state, now, '고를');
+    if (!Array.isArray(idxs) || idxs.length !== 3) throw GameError('BAD_PICK', '세 명을 골라야 한다');
+    for (var i = 0; i < 3; i++) {
+      var v = idxs[i];
+      if (typeof v !== 'number' || Math.floor(v) !== v || v < 0 || v >= state.board.length) {
+        throw GameError('BAD_PICK', '판에 없는 자리: ' + v);
+      }
+    }
+    if (idxs[0] === idxs[1] || idxs[1] === idxs[2] || idxs[0] === idxs[2]) throw GameError('BAD_PICK', '같은 자리를 두 번 골랐다');
+
+    var act = active(state);
+    var a = state.board[idxs[0]], b = state.board[idxs[1]], c = state.board[idxs[2]];
+    if (isSet(a, b, c, act)) {
+      var mult = addCombo(state);
+      var md = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.base * mult * md.scoreMult);
+      state.score += gain;
+      state.hits += 1;
+      state.endAt += (md.hitTime == null ? RULES.hitTime : md.hitTime) * 1000;
+      state.clue = null;
+      var next = levelForHits(state.startLevel, lvHits(state));
+      if (next !== state.level) {
+        // 새 속성이 열리는 순간: 판 전체를 새 단계에 맞춰 깐다
+        state.level = next;
+        state.board = dealBoard(state.rng, next);
+        return { ok: true, gain: gain, combo: state.combo, mult: mult, levelUp: next, replaced: [0, 1, 2, 3, 4, 5, 6, 7, 8] };
+      }
+      state.board = refillBoard(state.board, idxs, state.rng, state.level);
+      return { ok: true, gain: gain, combo: state.combo, mult: mult, replaced: idxs.slice() };
+    }
+    state.combo = 0;
+    state.misses += 1;
+    // 변호사 대기(준비물): 남은 면제 횟수가 있으면 시간을 깎지 않는다(연속은 끊긴다)
+    var md2 = state.mods || MOD_DEFAULTS, pen = md2.missPenalty == null ? RULES.missPenalty : md2.missPenalty, shielded = false;
+    pen = missPen(state, pen);
+    if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
+    state.endAt -= pen * 1000;
+    tick(state, now);
+    return { ok: false, reasons: explain(a, b, c, act), penalty: pen, shielded: shielded };
+  }
+
+  /*
+   * "검거 불가" 선언. 판에 한 패가 없으면 적중: 큰 점수 + 판 전체를 새로 깐다.
+   * 하나라도 있으면 오판: 시간이 크게 줄고 연속이 끊긴다(몇 패 남았는지만 알려 준다).
+   */
+  function declareNone(state, now) {
+    guard(state, now, '선언할');
+    var sets = findSets(state.board, active(state));
+    if (sets.length === 0) {
+      var mult = addCombo(state);
+      var mdn = state.mods || MOD_DEFAULTS;
+      var gain = Math.round(RULES.noneBonus * mult * mdn.scoreMult * mdn.noneMult);
+      state.score += gain;
+      state.noneHits += 1;
+      state.endAt += RULES.noneTime * 1000;
+      state.board = dealBoard(state.rng, state.level);
+      state.clue = null;
+      return { ok: true, gain: gain, combo: state.combo, mult: mult };
+    }
+    state.combo = 0;
+    state.noneMisses += 1;
+    var np = missPen(state, state.nonePenalty);
+    state.endAt -= np * 1000;
+    tick(state, now);
+    return { ok: false, remaining: sets.length, penalty: np };
+  }
+
+  // 단서 한 번의 값: 무료 단서가 남았으면 0초, 아니면 hintPenalty 초
+  function chargeHint(state, now) {
+    var p = 0;
+    if (state.freeHints > 0) state.freeHints -= 1;
+    else { p = hintCost(state, RULES.hintPenalty); state.endAt -= p * 1000; }
+    state.hints += 1;
+    tick(state, now);
+    return p;
+  }
+
+  /*
+   * 단서: 누를 때마다 한 패의 한 명씩, 최대 두 명까지 짚어 준다.
+   *   두 명이 보이면 셋째는 하나로 정해지므로 직접 찾게 둔다(규칙을 익히는 연습).
+   *   판에 한 패가 없으면 그 사실을 알려 준다(검거 불가를 누르라는 뜻).
+   *   이미 두 명을 보여 줬으면 다시 눌러도 깎지 않고 같은 두 명을 돌려준다.
+   * 반환: { none:true, penalty } 또는 { indices:[...], penalty }
+   */
+  function hint(state, now) {
+    guard(state, now, '단서를 볼');
+    if (state.mods && state.mods.noHints) throw GameError('NO_HINTS', '이 출동은 단서를 쓸 수 없다');
+    if (!state.clue) {
+      var sets = findSets(state.board, active(state));
+      if (sets.length === 0) return { none: true, penalty: chargeHint(state, now) };
+      state.clue = { set: sets[pickIndex(state.rng, sets.length)], shown: 0 };
+    }
+    var penalty = 0;
+    if (state.clue.shown < 2) {
+      state.clue.shown += 1;
+      penalty = chargeHint(state, now);
+    }
+    return { indices: state.clue.set.slice(0, state.clue.shown), penalty: penalty };
+  }
+
+  /* ---------- 튜토리얼 ---------- */
+  function shuffle(rng, arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = pickIndex(rng, i + 1), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /*
+   * "두 명의 한 패, 셋째는 누구?" 문제 하나.
+   *   a, b       : 주어진 두 명(안 보는 속성은 0 으로 맞춰 그림이 단순하다)
+   *   answer     : 정답(셋째)
+   *   options    : 정답 + 오답들을 섞은 것. 오답은 정답에서 속성 하나만 바꾼 "아깝게 틀린" 사람이라
+   *                고르면 explain() 으로 정확히 한 가지 이유가 나온다.
+   *   2단계 이상은 "같은 속성"과 "다른 속성"이 적어도 하나씩 섞이게 만들어 두 요령을 다 보게 한다.
+   */
+  function makeLesson(rng, level) {
+    assertRng(rng);
+    var act = activeFor(level);
+    var a, b, x, y, sameN, diffN;
+    for (var guardN = 0; guardN < 500; guardN++) {
+      x = [0, 0, 0, 0]; y = [0, 0, 0, 0];
+      for (var n = 0; n < act.length; n++) { x[act[n]] = pickIndex(rng, 3); y[act[n]] = pickIndex(rng, 3); }
+      sameN = 0; diffN = 0;
+      for (var m = 0; m < act.length; m++) { if (x[act[m]] === y[act[m]]) sameN++; else diffN++; }
+      if (diffN === 0) continue;                    // 두 명이 똑같으면 문제가 아니다
+      if (act.length >= 2 && sameN === 0) continue;  // 같은 것도 하나는 있게
+      break;
+    }
+    a = encode(x); b = encode(y);
+    var answer = thirdCard(a, b);
+    var ans = decode(answer), wrong = [];
+    for (var k = 0; k < act.length; k++) {
+      var i = act[k];
+      for (var v = 0; v < 3; v++) {
+        if (v === ans[i]) continue;
+        var d = ans.slice(); d[i] = v;
+        var id = encode(d);
+        // 1단계는 모자 3가지뿐이라 오답이 주어진 두 명과 똑같은 카드가 된다.
+        // 안 보는 흔적 자리만 바꿔 다른 id 로 만든다(그림은 같고 "둘만 같다"는 이유로 틀린다).
+        if (id === a || id === b) {
+          if (act.indexOf(3) >= 0) continue;
+          d[3] = id === a ? 1 : 2;
+          id = encode(d);
+        }
+        wrong.push(id);
+      }
+    }
+    wrong = shuffle(rng, wrong).slice(0, act.length === 1 ? 2 : 3);
+    return { level: level, active: act, a: a, b: b, answer: answer, options: shuffle(rng, [answer].concat(wrong)) };
+  }
+
+  return {
+    ATTRS: ATTRS, ORDER: ORDER, DECK_SIZE: DECK_SIZE, BOARD_SIZE: BOARD_SIZE, RULES: RULES,
+    activeFor: activeFor, decode: decode, encode: encode, project: project,
+    isSet: isSet, explain: explain, thirdCard: thirdCard, needs: needs, findSets: findSets,
+    makeRng: makeRng, drawDistinct: drawDistinct, newBoard: newBoard, refill: refill,
+    dealBoard: dealBoard, refillBoard: refillBoard,
+    multiplier: multiplier, multiplierFor: multiplierFor, readMods: readMods, MOD_DEFAULTS: MOD_DEFAULTS, createGame: createGame, active: active, timeLeft: timeLeft, tick: tick,
+    missPen: missPen, hintCost: hintCost, lvHits: lvHits, hitsFor: hitsFor,
+    pause: pause, resume: resume, submit: submit, declareNone: declareNone, hint: hint,
+    makeLesson: makeLesson
+  };
+});
+
+</script>
+<script>
+(function () {
+'use strict';
+var C = window.SuspectsCore;
+  var BG = ['#F4EFE2', '#E4A97C', '#2F3646'], FG = ['#1B1E24', '#1B1E24', '#EDE7D9'];
+  var PLAIN_BG = '#D9D6CE';
+  var TIME_CHIP = ['rgba(255,255,255,.7)', 'rgba(255,255,255,.45)', 'rgba(255,255,255,.1)'];
+  var TIME_INK = ['#C46A00', '#9A2E12', '#F3E2A0'];
+  var SKY = '#9CD3F2', SKY_DARK = '#4F86A8';
+
+  function timeIcon(t) {
+    if (t === 0) {
+      var rays = '';
+      for (var a = 0; a < 360; a += 45) rays += '<line x1="12" y1="1.8" x2="12" y2="4.6" transform="rotate(' + a + ' 12 12)"/>';
+      return '<circle cx="12" cy="12" r="4.4" fill="currentColor"/>' + rays;
+    }
+    if (t === 1) {
+      return '<path d="M5.5 16a6.5 6.5 0 0 1 13 0z" fill="currentColor"/><line x1="2" y1="16" x2="22" y2="16"/>' +
+        '<line x1="12" y1="5" x2="12" y2="7.2"/><line x1="4.6" y1="8.6" x2="6.2" y2="10.2"/><line x1="19.4" y1="8.6" x2="17.8" y2="10.2"/>' +
+        '<line x1="6" y1="19.5" x2="18" y2="19.5" opacity=".55"/>';
+    }
+    return '<path d="M16.5 15.5A7 7 0 1 1 10 4.5a5.5 5.5 0 0 0 6.5 11z" fill="currentColor"/>' +
+      '<path d="M18.5 4.5l.7 1.5 1.5.7-1.5.7-.7 1.5-.7-1.5-1.5-.7 1.5-.7z" fill="currentColor" stroke="none"/>';
+  }
+  function markIcon(m) {
+    if (m === 0) return '<path d="M7 17c-1-1.6-1.5-3.3-1.5-5a6.5 6.5 0 0 1 13 0c0 1.3-.2 2.6-.6 3.8"/><path d="M9.5 18.5c-.9-1.9-1.4-3.8-1.4-6a3.9 3.9 0 0 1 7.8 0c0 2.6-.5 4.6-1.4 6.6"/><path d="M12 12.3v1.2c0 2.2.5 4 1.3 5.5"/>';
+    if (m === 1) return '<path d="M5 19L9.5 4l3 7.5-2.5 1z" fill="currentColor"/><path d="M13.5 20l2-8 4 3.5z" fill="currentColor"/>';
+    return '<path d="M5 8l3.5-3 3.5 3 3.5-3L19 8"/><path d="M5 13.5l3.5-3 3.5 3 3.5-3 3.5 3"/><path d="M5 19l3.5-3 3.5 3 3.5-3 3.5 3"/>';
+  }
+  // 사람 실루엣(100×100). fg = 실루엣 색, bg = 카드 바탕(파낸 부분)
+  function figure(h, f, fg, bg) {
+    var s = '<path d="M14 100c0-21 15-31 36-31s36 10 36 31z" fill="' + fg + '"/>' +
+            '<circle cx="50" cy="48" r="19" fill="' + fg + '"/>';
+    if (f !== 1) s += '<circle cx="43" cy="46.5" r="2.8" fill="' + bg + '"/><circle cx="57" cy="46.5" r="2.8" fill="' + bg + '"/>';
+    if (f === 0) s += '<path d="M44.5 56q5.5 3.5 11 0" fill="none" stroke="' + bg + '" stroke-width="2.4" stroke-linecap="round"/>';
+    if (f === 1) {
+      s += '<circle cx="42" cy="47" r="7" fill="' + SKY + '" stroke="' + bg + '" stroke-width="3"/>' +
+           '<circle cx="58" cy="47" r="7" fill="' + SKY + '" stroke="' + bg + '" stroke-width="3"/>' +
+           '<line x1="49" y1="47" x2="51" y2="47" stroke="' + bg + '" stroke-width="3"/>' +
+           '<path d="M45 57q5 2.5 10 0" fill="none" stroke="' + bg + '" stroke-width="2.4" stroke-linecap="round"/>';
+    }
+    if (f === 2) {
+      s += '<path d="M34 52.5l-4.5-5.5M66 52.5l4.5-5.5" stroke="' + SKY + '" stroke-width="2.4" stroke-linecap="round"/>' +
+           '<path d="M33.5 51h33v6.5c0 6.5-7.5 10-16.5 10s-16.5-3.5-16.5-10z" fill="' + SKY + '" stroke="#1B1E24" stroke-width="1.4"/>' +
+           '<path d="M37 56h26M38 60.5h24" stroke="' + SKY_DARK + '" stroke-width="1.6" stroke-linecap="round"/>';
+    }
+    // 모자: 아래끝이 y≈40 을 넘지 않게 해서 안경(위끝 y=40)을 가리지 않는다
+    if (h === 1) {
+      // 비니(1.6, 예전 캡 모자): 둥근 몸통 + 골지 단 + 방울. 맨머리·중절모와 윤곽이 확실히 다르다
+      s += '<path d="M31 38c0-13 8.5-21 19-21s19 8 19 21z" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>' +
+           '<rect x="29.5" y="33" width="41" height="7.5" rx="3" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>';
+      for (var r = 35; r <= 65; r += 6) s += '<line x1="' + r + '" y1="34.6" x2="' + r + '" y2="38.9" stroke="' + bg + '" stroke-width="1.4"/>';
+      s += '<circle cx="50" cy="15" r="5" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.4"/>';
+    }
+    if (h === 2) {
+      s += '<path d="M33.5 36l3.5-17.5q6.5-3 13 0q6.5-3 13 0L66.5 36z" fill="' + fg + '" stroke="' + bg + '" stroke-width="2.5"/>' +
+           '<path d="M35 31.5h30" stroke="' + bg + '" stroke-width="3"/>' +
+           '<path d="M16 37h68" stroke="' + fg + '" stroke-width="6.5" stroke-linecap="round"/>';
+    }
+    return s;
+  }
+
+  var ALL = [0, 1, 2, 3];
+  // 그릴 때 필요한 것: 보는 속성만 남긴 값과 바탕·글자 색
+  function look(id, active) {
+    var act = active || ALL, v = C.project(id, act);
+    var showTime = act.indexOf(0) >= 0, showMark = act.indexOf(3) >= 0;
+    return { v: v, showTime: showTime, showMark: showMark, bg: showTime ? BG[v[0]] : PLAIN_BG, fg: showTime ? FG[v[0]] : FG[0] };
+  }
+  function describe(id, active) {
+    var act = active || ALL, v = C.decode(id);
+    return act.map(function (i) { return C.ATTRS[i].values[v[i]]; }).join(', ');
+  }
+  // 카드 한 장의 속 내용(번호는 판 위에서만)
+  function cardInner(id, no, active) {
+    var L = look(id, active), v = L.v;
+    var stroke = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+    return (L.showTime ? '<span class="t" style="background:' + TIME_CHIP[v[0]] + ';color:' + TIME_INK[v[0]] + '"><svg width="20" height="20" viewBox="0 0 24 24" ' + stroke + '>' + timeIcon(v[0]) + '</svg></span>' : '') +
+      (no ? '<span class="no" style="color:' + L.fg + '">' + no + '</span>' : '') +
+      '<svg class="fig" viewBox="0 0 100 100" aria-hidden="true">' + figure(v[1], v[2], L.fg, L.bg) + '</svg>' +
+      (L.showMark ? '<span class="m" style="background:' + L.fg + ';color:' + L.bg + ';box-shadow:0 0 0 2px ' + L.bg + '"><svg width="19" height="19" viewBox="0 0 24 24" ' + stroke + '>' + markIcon(v[3]) + '</svg></span>' : '') +
+      '<span class="pick"></span>';
+  }
+  // 버튼으로 쓰는 카드 한 장(판·튜토리얼 공용)
+
+function cardHtml(id, act, attrs, cls) { return '<button class="card' + (cls ? ' ' + cls : '') + '" ' + (attrs || '') + ' style="background:' + look(id, act).bg + '">' + cardInner(id, null, act) + '</button>'; }
+
+var $ = function (id) { return document.getElementById(id); };
+function ri(n) { return Math.floor(Math.random() * n); }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = ri(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+var NAMES = C.ATTRS.map(function (a) { return a.name; }), VALS = C.ATTRS.map(function (a) { return a.values; });
+// 단계마다 보는 특징: 1 = 모자, 얼굴 / 2 = + 시간대 / 3 = 넷 다
+var ACT = { 1: [1, 2], 2: [0, 1, 2], 3: [0, 1, 2, 3] };
+var NEW = { 2: '새 단서: 시간대', 3: '새 단서: 흔적' };
+function key(id, act) { var v = C.decode(id); return act.map(function (i) { return v[i]; }).join(''); }
+function dist(a, b, act) { var x = C.decode(a), y = C.decode(b); return act.filter(function (i) { return x[i] !== y[i]; }).length; }
+function rndId() { return ri(81); }
+// 보는 특징이 서로 다른 카드 n 장
+function distinct(n, act) {
+  var out = [], seen = {}, g = 0;
+  while (out.length < n && g++ < 3000) { var id = rndId(), k = key(id, act); if (!seen[k]) { seen[k] = 1; out.push(id); } }
+  return out;
+}
+
+/* ---------- ① 몽타주 맞히기(Wordle) ----------
+ *   판의 용의자 중 하나가 범인. 카드를 눌러 대조하면 특징마다 맞음(초록)/틀림(회색)이 나온다.
+ *   단계 3은 어느 특징인지 안 알려 주고 "몇 개 맞음"만(숫자야구). 맞히면 대조 횟수가 적을수록 점수가 크다. */
+function makeGuess(st) {
+  var act = ACT[st], n = st === 1 ? 9 : 12, board = distinct(n, act);
+  return { act: act, board: board, ans: board[ri(n)], tries: [], countOnly: st === 3 };
+}
+/* ---------- ② 신분증(1차 그대로) ---------- */
+var WANTED = [[1, 2], [2, 2], [1, 1], [2, 1], [3, 0], [3, 2]];
+function makeId(st) {
+  var act = ACT[st], id = rndId(), doc = C.decode(id).slice(), forged = Math.random() < 0.5, diff = -1;
+  if (forged) { diff = act[ri(act.length)]; doc[diff] = (doc[diff] + 1 + ri(2)) % 3; }
+  var w = null;
+  if (st === 3) { w = WANTED[ri(WANTED.length)]; if (!forged && Math.random() < 0.3) { var v = C.decode(id).slice(); v[w[0]] = w[1]; id = C.encode(v); doc = v.slice(); } }
+  var wantedHit = !!(w && C.decode(id)[w[0]] === w[1]);
+  return { act: act, id: id, doc: doc, forged: forged, diff: diff, wanted: w, arrest: forged || wantedHit, why: forged ? NAMES[diff] + '이 달라요' : wantedHit ? '수배 조건' : '' };
+}
+/* ---------- ③ 짝 맞추기(같은 그림 찾기) ----------
+ *   카드가 뒤집혀 있다. 두 장씩 뒤집어 보는 특징이 똑같은 공범 둘을 찾으면 검거. 짝을 다 찾으면 다음 판.
+ *   단계 3은 하나만 다른 "닮은 사람"이 짝 사이에 섞인다. */
+function makePair(st) {
+  var act = ACT[st], np = st === 1 ? 4 : 6, base = distinct(np, act), cards = [];
+  base.forEach(function (id) { var v = C.decode(id).slice(); cards.push(id, id); });
+  if (st === 3) {   // 닮은 사람: 짝마다 한 장을 다른 특징 하나만 바꾼 사람으로 바꾸는 게 아니라, 비슷한 짝을 둘 더 넣는다
+    var extra = [], g = 0;
+    while (extra.length < 2 && g++ < 200) {
+      var b0 = base[ri(base.length)], c = C.decode(b0).slice(), a = act[ri(act.length)]; c[a] = (c[a] + 1 + ri(2)) % 3; var id2 = C.encode(c);
+      if (base.concat(extra).some(function (x) { return key(x, act) === key(id2, act); })) continue;
+      extra.push(id2);
+    }
+    extra.forEach(function (id) { cards.push(id, id); });
+  }
+  return { act: act, cards: shuffle(cards), up: [], done: {}, flips: 0 };
+}
+/* ---------- ④ 배치표(스도쿠) ----------
+ *   3×3 잠복 배치표. 줄마다, 칸마다 같은 특징 값이 한 번씩만 나온다(모자 셋이 한 줄에 다 다름).
+ *   빈자리에 들어갈 사람을 아래 후보에서 고른다. 단계 3은 빈자리 둘(첫 자리를 채우면 둘째 자리). */
+function latin() {   // 3×3 라틴 방진 하나(줄 · 칸 섞기)
+  var r = shuffle([0, 1, 2]), c = shuffle([0, 1, 2]), sym = shuffle([0, 1, 2]), g = [];
+  for (var y = 0; y < 3; y++) { g.push([]); for (var x = 0; x < 3; x++) g[y].push(sym[(r[y] + c[x]) % 3]); }
+  return g;
+}
+function makeSeat(st) {
+  var act = st === 1 ? [1] : st === 2 ? [1, 2] : [0, 1, 2], sq = {};
+  act.forEach(function (i) { sq[i] = latin(); });
+  var grid = [];
+  for (var y = 0; y < 3; y++) for (var x = 0; x < 3; x++) {
+    var v = [ri(3), ri(3), ri(3), ri(3)]; act.forEach(function (i) { v[i] = sq[i][y][x]; }); grid.push(C.encode(v));
+  }
+  var holes = st === 3 ? (function () { var y = ri(3), a = ri(3), b = (a + 1 + ri(2)) % 3; return [y * 3 + a, y * 3 + b]; })() : [ri(9)];
+  return { act: act, grid: grid, holes: holes, at: 0, opts: seatOpts(grid[holes[0]], act) };
+}
+function seatOpts(ans, act) {   // 정답 + 특징 하나만 다른 후보 셋(보는 특징이 다 다르게)
+  var out = [ans], g = 0;
+  while (out.length < 4 && g++ < 200) {
+    var v = C.decode(ans).slice(), a = act[ri(act.length)]; v[a] = (v[a] + 1 + ri(2)) % 3;
+    if (act.length > 1 && Math.random() < 0.4) { var b = act[ri(act.length)]; if (b !== a) v[b] = (v[b] + 1 + ri(2)) % 3; }
+    var id = C.encode(v);
+    if (out.some(function (o) { return key(o, act) === key(id, act); })) continue;
+    out.push(id);
+  }
+  if (act.length === 1) out = out.slice(0, 3);
+  return shuffle(out);
+}
+/* ---------- ⑤ 검거팡(애니팡) ----------
+ *   6×6 판. 옆 사람과 자리를 바꿔 같은 사람이 가로나 세로로 셋 이상 서면 검거(사라지고 위에서 새로 내려온다).
+ *   단계마다 사람 종류가 늘어난다(5 → 6 → 7). 맞추기 실패면 자리가 되돌아간다. */
+function makePang(st) {
+  var kinds = st === 1 ? 5 : st === 2 ? 6 : 7, act = [1, 2], types = distinct(kinds, act), b = [];
+  for (var i = 0; i < 36; i++) { var t; do { t = ri(kinds); } while ((i % 6 >= 2 && b[i - 1] === t && b[i - 2] === t) || (i >= 12 && b[i - 6] === t && b[i - 12] === t)); b.push(t); }
+  return { act: act, types: types, kinds: kinds, b: b, sel: -1, combo: 0 };
+}
+function pangLines(b) {   // 셋 이상 같은 줄의 칸 목록
+  var hit = {};
+  for (var y = 0; y < 6; y++) for (var x = 0; x < 6; x++) {
+    var i = y * 6 + x, t = b[i];
+    if (t < 0) continue;
+    if (x <= 3 && b[i + 1] === t && b[i + 2] === t) { var k = x; while (k < 6 && b[y * 6 + k] === t) hit[y * 6 + k++] = 1; }
+    if (y <= 3 && b[i + 6] === t && b[i + 12] === t) { var m = y; while (m < 6 && b[m * 6 + x] === t) hit[m++ * 6 + x] = 1; }
+  }
+  return Object.keys(hit).map(Number);
+}
+function pangFall(q) {   // 빈칸(-1)을 위에서 채운다
+  for (var x = 0; x < 6; x++) {
+    var col = []; for (var y = 5; y >= 0; y--) if (q.b[y * 6 + x] >= 0) col.push(q.b[y * 6 + x]);
+    while (col.length < 6) col.push(ri(q.kinds));
+    for (var yy = 5, k = 0; yy >= 0; yy--, k++) q.b[yy * 6 + x] = col[k];
+  }
+}
+
+function selfTest() {
+  for (var so = 1; so <= 3; so++) for (var ko = 0; ko < 40; ko++) {
+    var o = makeOrder(so), n = o.P.length, ss = sols(o.clues, n);
+    if (ss.length !== 1 || ss[0].join() !== o.ans.join()) throw new Error('order 답이 하나가 아님');
+    o.clues.forEach(function (_, i) { if (sols(o.clues.filter(function (__, j) { return j !== i; }), n).length === 1) throw new Error('order 쓸모없는 단서'); });
+  }
+  for (var s = 1; s <= 3; s++) for (var k = 0; k < 120; k++) {
+    var a = makeGuess(s); if (a.board.indexOf(a.ans) < 0 || new Set(a.board.map(function (x) { return key(x, a.act); })).size !== a.board.length) throw new Error('guess');
+    var d = makeId(s), v = C.decode(d.id), mism = d.act.filter(function (i) { return v[i] !== d.doc[i]; }).length; if (mism !== (d.forged ? 1 : 0)) throw new Error('id');
+    var pr = makePair(s), cnt = {}; pr.cards.forEach(function (x) { var kk = key(x, pr.act); cnt[kk] = (cnt[kk] || 0) + 1; }); if (Object.keys(cnt).some(function (kk) { return cnt[kk] !== 2; })) throw new Error('pair');
+    var se = makeSeat(s); se.holes.forEach(function (h) { var y = Math.floor(h / 3), x = h % 3; se.act.forEach(function (i) { var row = [0, 1, 2].map(function (xx) { return C.decode(se.grid[y * 3 + xx])[i]; }), col = [0, 1, 2].map(function (yy) { return C.decode(se.grid[yy * 3 + x])[i]; }); if (new Set(row).size !== 3 || new Set(col).size !== 3) throw new Error('seat'); }); });
+    if (se.opts.filter(function (o) { return key(o, se.act) === key(se.grid[se.holes[0]], se.act); }).length !== 1) throw new Error('seat opts');
+    var pg = makePang(s); if (pangLines(pg.b).length) throw new Error('pang start');
+  }
+  return true;
+}
+
+/* ---------- ③ 출입 순서(타임라인) ----------
+ *   네다섯 명이 차례로 들어왔다. 출입 기록 단서(가장 먼저 · 가장 늦게 · 누구보다 먼저 · 바로 다음)로 순서를 맞힌다.
+ *   단서는 그 판에서 딱 한 사람만 가진 특징으로 사람을 가리킨다. 답이 되는 순서는 늘 하나, 단서는 모두 쓸모 있다. */
+function who(p, a) {   // 특징 말(“비니를 쓴 사람”)
+  var v = C.decode(p)[a];
+  if (a === 0) return VALS[0][v] + '에 찍힌 사람';
+  if (a === 1) return v === 0 ? '모자를 안 쓴 사람' : VALS[1][v] + '를 쓴 사람';
+  if (a === 2) return v === 0 ? '얼굴을 안 가린 사람' : VALS[2][v] + (v === 1 ? '을 쓴 사람' : '를 한 사람');
+  return VALS[3][v] + '을 남긴 사람';
+}
+function perms(n) { var out = []; (function go(a, rest) { if (!rest.length) { out.push(a); return; } rest.forEach(function (x, i) { go(a.concat([x]), rest.slice(0, i).concat(rest.slice(i + 1))); }); })([], Array.from({ length: n }, function (_, i) { return i; })); return out; }
+var PERMS = { 4: perms(4), 5: perms(5) };
+function okClue(c, pos) {   // pos[사람] = 몇 번째(0부터)
+  var n = pos.length;
+  if (c.k === 'first') return pos[c.p] === 0;
+  if (c.k === 'last') return pos[c.p] === n - 1;
+  if (c.k === 'nofirst') return pos[c.p] !== 0;
+  if (c.k === 'before') return pos[c.p] < pos[c.q];
+  if (c.k === 'next') return pos[c.q] === pos[c.p] + 1;
+  return false;
+}
+function sols(clues, n) { return PERMS[n].filter(function (ord) { var pos = []; ord.forEach(function (p, i) { pos[p] = i; }); return clues.every(function (c) { return okClue(c, pos); }); }); }
+function clueText(c, P) {
+  var a = c.pa, b = c.qa;
+  if (c.k === 'first') return who(P[c.p], a) + '이 가장 먼저 들어왔어요';
+  if (c.k === 'last') return who(P[c.p], a) + '이 가장 늦게 들어왔어요';
+  if (c.k === 'nofirst') return who(P[c.p], a) + '은 처음으로 들어오지 않았어요';
+  if (c.k === 'before') return who(P[c.p], a) + '은 ' + who(P[c.q], b) + '보다 먼저 들어왔어요';
+  return who(P[c.p], a) + ' 바로 다음에 ' + who(P[c.q], b) + '이 들어왔어요';
+}
+function makeOrder(st) {
+  var n = st === 3 ? 5 : 4, act = ACT[st];
+  for (var g = 0; g < 400; g++) {
+    var P = distinct(n, act), ord = shuffle(P.map(function (_, i) { return i; })), pos = [];
+    ord.forEach(function (p, i) { pos[p] = i; });
+    // 사람마다 그 판에서 그 사람만 가진 특징(가리킬 말)
+    var tag = P.map(function (id, i) { return act.filter(function (a) { return P.every(function (o, j) { return j === i || C.decode(o)[a] !== C.decode(id)[a]; }); }); });
+    if (tag.some(function (t) { return !t.length; })) continue;
+    var cand = [];
+    P.forEach(function (_, p) {
+      var pa = tag[p][ri(tag[p].length)];
+      cand.push({ k: 'first', p: p, pa: pa }, { k: 'last', p: p, pa: pa }, { k: 'nofirst', p: p, pa: pa });
+      P.forEach(function (_, q) { if (q !== p) { var qa = tag[q][ri(tag[q].length)]; cand.push({ k: 'before', p: p, q: q, pa: pa, qa: qa }, { k: 'before', p: p, q: q, pa: pa, qa: qa }, { k: 'next', p: p, q: q, pa: pa, qa: qa }); } });
+    });
+    cand = shuffle(cand.filter(function (c) { return okClue(c, pos); }));
+    // 단계 1은 쉬운 단서(처음 · 마지막) 위주, 단계가 오르면 관계 단서 위주
+    if (st === 1) cand.sort(function (x, y) { return (x.k === 'first' || x.k === 'last' ? 0 : 1) - (y.k === 'first' || y.k === 'last' ? 0 : 1); });
+    var clues = [];
+    for (var i = 0; i < cand.length && sols(clues, n).length > 1; i++) {
+      var c = cand[i];
+      if (clues.some(function (x) { return x.k === c.k && x.p === c.p && x.q === c.q; })) continue;
+      if (sols(clues.concat([c]), n).length < sols(clues, n).length) clues.push(c);
+    }
+    if (sols(clues, n).length !== 1) continue;
+    // 쓸모없는 단서 빼기
+    for (var k = clues.length - 1; k >= 0; k--) { var rest = clues.slice(0, k).concat(clues.slice(k + 1)); if (sols(rest, n).length === 1) clues = rest; }
+    var max = st === 1 ? 3 : st === 2 ? 4 : 5;
+    if (clues.length > max) continue;
+    return { act: act, P: P, ans: ord, clues: shuffle(clues), slots: [] };
+  }
+  throw new Error('order gen');
+}
+
+/* ---------- 공통 판 ---------- */
+var INFO = {
+  guess: { t: '① 몽타주 맞히기', rule: ['용의자 중 한 명이 범인이에요. 카드를 누르면 범인 몽타주와 대조해요.', '특징마다 맞으면 초록, 틀리면 회색으로 알려 줘요.', '적게 대조하고 맞힐수록 점수가 커요. 단계 3은 "몇 개 맞음"만 알려 줘요.'], ref: '참고: Wordle, 숫자야구' },
+  id: { t: '② 신분증 검사', rule: ['한 명씩 사진과 신분증이 와요.', '하나라도 다르면 위조, 체포. 모두 같으면 통과.', '단계 3부터는 수배 조건에 걸리면 신분증이 맞아도 체포해요.'], ref: '참고: Papers, Please' },
+  pair: { t: '③ 짝 맞추기', rule: ['카드가 뒤집혀 있어요. 두 장씩 뒤집어 봐요.', '보이는 특징이 똑같은 두 명이면 공범 검거, 아니면 다시 덮여요.', '짝을 다 찾으면 다음 판. 단계 3은 하나만 다른 닮은 사람이 섞여요.'], ref: '참고: 같은 그림 찾기' },
+  order: { t: '③ 출입 순서', rule: ['네다섯 명이 차례로 들어왔어요. 위 출입 기록 단서를 읽어요.', '카드를 들어온 순서대로 눌러 칸을 채워요. 칸을 누르면 빼요.', '다 채우면 판정해요. 틀리면 어긋난 단서가 빨갛게 표시돼요.'], ref: '참고: 보드게임 타임라인, 논리 퍼즐 줄 세우기' },
+  seat: { t: '② 배치표', rule: ['3×3 잠복 배치표예요. 줄마다, 칸마다 같은 특징이 한 번씩만 나와요.', '빈자리(노란 칸)에 들어갈 사람을 아래에서 골라요.', '단계 3은 빈자리가 둘이에요.'], ref: '참고: 스도쿠' },
+  pang: { t: '⑤ 검거팡', rule: ['옆 사람을 차례로 두 번 눌러 자리를 바꿔요(밀어도 돼요).', '같은 사람이 가로나 세로로 셋 이상 서면 검거.', '연달아 터지면 점수가 커져요. 단계가 오르면 사람 종류가 늘어요.'], ref: '참고: 애니팡' }
+};
+var mode = 'guess', startSt = 1, G = null, timer = 0;
+function intro() {
+  var I = INFO[mode];
+  $('intro').innerHTML = '<h2>' + I.t + '</h2><ul class="rule">' + I.rule.map(function (r) { return '<li>' + r + '</li>'; }).join('') + '</ul><div class="ref">' + I.ref + '</div>' +
+    '<div class="lv">' + [1, 2, 3].map(function (s) { return '<button data-s="' + s + '"' + (s === startSt ? ' class="on"' : '') + '>단계 ' + s + '부터</button>'; }).join('') + '</div>' +
+    '<button class="go" id="go">출동</button>';
+  $('intro').classList.remove('hide'); $('play').classList.add('hide'); $('end').classList.add('hide');
+}
+$('intro').addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'go') start();
+  else if (b.dataset.s) { startSt = +b.dataset.s; intro(); }
+});
+$('tabs').addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return; stop();
+  mode = b.dataset.k; [].forEach.call($('tabs').children, function (x) { x.classList.toggle('on', x === b); }); intro();
+});
+function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('on'); }, 1300); }
+function msg(t, c) { var m = $('msg'); m.textContent = t || ''; m.className = 'msg' + (c ? ' ' + c : ''); }
+function buzz(v) { try { navigator.vibrate && navigator.vibrate(v); } catch (e) {} }
+function start() {
+  G = { t: 60, score: 0, st: startSt, hits: 0, end: Date.now() + 60000, busy: false };
+  $('intro').classList.add('hide'); $('end').classList.add('hide'); $('play').classList.remove('hide'); document.body.classList.add('playing');
+  clearInterval(timer); timer = setInterval(tick, 100); next(); tick();
+}
+function stop() { document.body.classList.remove('playing'); clearInterval(timer); G = null; }
+function tick() {
+  if (!G) return;
+  var left = Math.max(0, (G.end - Date.now()) / 1000);
+  $('time').textContent = Math.ceil(left); $('time').classList.toggle('low', left < 10);
+  $('score').textContent = G.score.toLocaleString(); $('stage').textContent = '단계 ' + G.st;
+  if (left <= 0) finish();
+}
+function addTime(s) { G.end += s * 1000; }
+function good(pts, sec, text) {
+  G.score += pts; addTime(sec); G.hits++; msg(text || ('검거 +' + pts), 'ok'); buzz(20);
+  if (G.hits % 4 === 0 && G.st < 3) { G.st++; toast(NEW[G.st]); }
+}
+function bad(text) { addTime(-5); msg((text ? text + ' ' : '') + '−5초', 'bad'); buzz([40, 40, 40]); }
+function finish() {
+  var s = G.score, h = G.hits; stop();
+  $('play').classList.add('hide');
+  $('end').innerHTML = '<div>검거 ' + h + '명</div><b>' + s.toLocaleString() + '</b><div class="ref">점수</div><button class="go" id="again" style="width:100%;margin-top:8px">다시</button><button class="go" id="back" style="width:100%;background:var(--panel2);color:var(--text)">규칙 보기</button>';
+  $('end').classList.remove('hide');
+}
+$('end').addEventListener('click', function (e) { if (e.target.id === 'again') start(); if (e.target.id === 'back') intro(); });
+function next() { G.busy = false; msg(''); ({ guess: nextGuess, id: nextId, pair: nextPair, seat: nextSeat, pang: nextPang, order: nextOrder })[mode](); }
+function later(f, ms) { setTimeout(function () { if (G) f(); }, ms); }
+
+/* ① 몽타주 화면 */
+function nextGuess() { G.q = makeGuess(G.st); drawGuess(); }
+function drawGuess() {
+  var q = G.q, cols = q.board.length === 9 ? 'g3' : 'g4';
+  var tried = {}; q.tries.forEach(function (t) { tried[t.j] = t; });
+  var hist = q.tries.slice(-3).map(function (t) {
+    return '<div class="trow">' + cardHtml(q.board[t.j], q.act, 'disabled', 'mini') + (q.countOnly
+      ? '<span class="cnt">' + t.hit + ' / ' + q.act.length + ' 맞음</span>'
+      : q.act.map(function (i) { var ok = C.decode(q.board[t.j])[i] === C.decode(q.ans)[i]; return '<span class="tile ' + (ok ? 'g' : 'x') + '">' + NAMES[i] + '<b>' + VALS[i][C.decode(q.board[t.j])[i]] + '</b></span>'; }).join('')) + '</div>';
+  }).join('');
+  $('stagebox').innerHTML = '<div class="room"><div class="mtg"><span class="mtg-q">?</span><div class="mtg-t">범인 몽타주</div><div class="mtg-n">대조 ' + q.tries.length + '번</div></div>' +
+    '<div class="hist">' + (hist || '<div class="ref" style="text-align:center;padding:10px 0">카드를 눌러 대조해요</div>') + '</div>' +
+    '<div class="grid ' + cols + '">' + q.board.map(function (id, j) { return cardHtml(id, q.act, 'data-j="' + j + '"' + (tried[j] ? ' disabled' : ''), tried[j] ? 'out' : ''); }).join('') + '</div></div>';
+}
+/* ② 신분증 화면 */
+function nextId() {
+  var q = G.q = makeId(G.st), v = q.doc;
+  $('stagebox').innerHTML = '<div class="desk">' + (q.wanted ? '<div class="wanted"><b>수배</b>' + NAMES[q.wanted[0]] + ' ' + VALS[q.wanted[0]][q.wanted[1]] + '</div>' : '') +
+    '<div class="pair" style="position:relative">' + cardHtml(q.id, q.act, 'disabled').replace('<button', '<div').replace('</button>', '</div>') +
+    '<div class="idc"><div class="hd"><span>신분증</span><span>No.' + (1000 + ri(9000)) + '</span></div>' +
+    q.act.map(function (i) { return '<div class="row"><span>' + NAMES[i] + '</span>' + VALS[i][v[i]] + '</div>'; }).join('') + '</div></div>' +
+    '<div class="btns"><button class="btn-pass" data-a="pass">통과</button><button class="btn-arrest" data-a="arrest">체포</button></div></div>';
+}
+/* ③ 출입 순서 화면 */
+function nextOrder() { G.q = makeOrder(G.st); drawOrder(); }
+function drawOrder(broke, wrongSlots) {
+  var q = G.q, n = q.P.length;
+  $('stagebox').innerHTML = '<div class="room"><div class="log"><div class="log-hd"><span>출입 기록</span><span>' + n + '명</span></div>' +
+    q.clues.map(function (c, i) { return '<div class="lg' + (broke && broke.indexOf(i) >= 0 ? ' broke' : '') + '"><i>' + (i + 1) + '</i>' + clueText(c, q.P) + '</div>'; }).join('') + '</div>' +
+    '<div class="slots n' + n + '">' + Array.from({ length: n }, function (_, i) {
+      var p = q.slots[i];
+      return '<button class="slot' + (p != null ? ' full' : '') + (wrongSlots && wrongSlots.indexOf(i) >= 0 ? ' bad' : '') + '" data-s="' + i + '"><b>' + (i + 1) + '</b>' + (p != null ? cardHtml(q.P[p], q.act, 'tabindex="-1"', 'mini').replace('<button', '<span').replace('</button>', '</span>') : '') + '</button>';
+    }).join('') + '</div>' +
+    '<div class="grid g' + (n === 4 ? 4 : 5) + ' pool">' + q.P.map(function (id, j) { var used = q.slots.indexOf(j) >= 0; return cardHtml(id, q.act, 'data-p="' + j + '"' + (used ? ' disabled' : ''), used ? 'out' : ''); }).join('') + '</div></div>';
+}
+
+/* ③ 짝 맞추기 화면 */
+function nextPair() { G.q = makePair(G.st); drawPair(); }
+function drawPair() {
+  var q = G.q, cols = q.cards.length <= 8 ? 'g4' : q.cards.length <= 12 ? 'g4' : 'g4';
+  $('stagebox').innerHTML = '<div class="room"><div class="phd"><span>짝 ' + Object.keys(q.done).length / 2 + ' / ' + q.cards.length / 2 + '</span><span>뒤집기 ' + q.flips + '번</span></div><div class="grid ' + cols + '">' +
+    q.cards.map(function (id, j) {
+      var open = q.done[j] || q.up.indexOf(j) >= 0;
+      return open ? cardHtml(id, q.act, 'data-j="' + j + '" disabled', q.done[j] ? 'matched' : 'flipped') : '<button class="card back" data-j="' + j + '"><span>3</span></button>';
+    }).join('') + '</div></div>';
+}
+/* ④ 배치표 화면 */
+function nextSeat() { G.q = makeSeat(G.st); drawSeat(); }
+function drawSeat() {
+  var q = G.q, hole = q.holes[q.at];
+  $('stagebox').innerHTML = '<div class="room"><div class="phd"><span>잠복 배치표</span><span>' + q.act.map(function (i) { return NAMES[i]; }).join(', ') + ' 한 번씩</span></div>' +
+    '<div class="seat">' + q.grid.map(function (id, j) {
+      if (q.holes.indexOf(j) >= q.at) return '<div class="hole' + (j === hole ? ' now' : '') + '">?</div>';
+      return cardHtml(id, q.act, 'disabled');
+    }).join('') + '</div><div class="opts">' + q.opts.map(function (id, j) { return cardHtml(id, q.act, 'data-o="' + j + '"'); }).join('') + '</div></div>';
+}
+/* ⑤ 검거팡 화면 */
+function nextPang() { G.q = makePang(G.st); drawPang(); }
+function drawPang(pop) {
+  var q = G.q;
+  $('stagebox').innerHTML = '<div class="room"><div class="phd"><span>검거팡</span><span id="combo">' + (q.combo > 1 ? q.combo + '연속!' : '') + '</span></div><div class="pang" id="pang">' + q.b.map(function (t, i) {
+    var id = q.types[t];
+    return '<button class="card pc' + (i === q.sel ? ' sel' : '') + (pop && pop[i] ? ' pop' : '') + '" data-p="' + i + '" style="background:' + PANG_BG[t] + '">' + cardInner(id, null, q.act) + '</button>';
+  }).join('') + '</div></div>';
+}
+var PANG_BG = ['#FFD3A1', '#B9DEFF', '#FFC0CF', '#C3EDB8', '#DCCBFF', '#FFEE9A', '#AEEBE3'];   // 사람 종류마다 바탕색(작은 칸에서도 한눈에)
+function pangSwap(a, c) {
+  var q = G.q, b = q.b, t = b[a]; b[a] = b[c]; b[c] = t;
+  var lines = pangLines(b);
+  if (!lines.length) { b[c] = b[a]; b[a] = t; q.sel = -1; drawPang(); var e = document.querySelector('[data-p="' + a + '"]'); if (e) e.classList.add('wrong'); buzz(30); return; }
+  q.sel = -1; q.combo = 0; G.busy = true; pangResolve(lines);
+}
+function pangResolve(lines) {
+  var q = G.q; q.combo++;
+  var pop = {}; lines.forEach(function (i) { pop[i] = 1; });
+  drawPang(pop);
+  var pts = lines.length * 20 * q.combo;
+  G.score += pts; msg((q.combo > 1 ? q.combo + '연속 ' : '') + lines.length + '명 검거 +' + pts, 'ok'); buzz(15 + q.combo * 10);
+  setTimeout(function () {
+    if (!G) return;
+    lines.forEach(function (i) { q.b[i] = -1; }); pangFall(q);
+    var more = pangLines(q.b);
+    if (more.length) { drawPang(); setTimeout(function () { if (G) pangResolve(more); }, 180); }
+    else {
+      drawPang(); G.busy = false;
+      G.hits += 1; addTime(1);   // 한 번 맞출 때마다 +1초, 네 번마다 단계(종류 늘어남)
+      if (G.hits % 4 === 0 && G.st < 3) { G.st++; toast('사람 종류가 늘어요'); var keep = q.combo; G.q = makePang(G.st); drawPang(); }
+    }
+  }, 320);
+}
+
+$('stagebox').addEventListener('click', function (e) {
+  if (!G || G.busy || swiped) return;
+  var b = e.target.closest('button'); if (!b) return;
+  var q = G.q;
+  if (mode === 'guess') {
+    if (b.dataset.j == null) return;
+    var j = +b.dataset.j, id = q.board[j];
+    if (id === q.ans) {
+      var n = q.tries.length + 1, pts = [0, 300, 220, 160, 120][n] || 80;
+      b.classList.add('right'); good(pts, 3, n === 1 ? '한 번에! +' + pts : '검거 +' + pts); G.busy = true; later(next, 700);
+    } else {
+      var hit = q.act.filter(function (i) { return C.decode(id)[i] === C.decode(q.ans)[i]; }).length;
+      q.tries.push({ j: j, hit: hit }); addTime(-1); drawGuess(); msg('');
+    }
+  } else if (mode === 'id') {
+    if (!b.dataset.a) return;
+    var ok = (b.dataset.a === 'arrest') === q.arrest;
+    var pr = document.querySelector('.pair'), s = document.createElement('div');
+    s.className = 'stamp'; s.textContent = q.arrest ? '체포' : '통과'; s.style.color = q.arrest ? '#C0392B' : '#2E7D4F'; pr.appendChild(s);
+    if (ok) good(80, 1, (q.arrest ? '체포 ' + q.why : '통과') + ' +80'); else bad(q.arrest ? '놓쳤어요: ' + q.why : '죄 없는 사람이에요');
+    G.busy = true; later(next, ok ? 450 : 1100);
+  } else if (mode === 'order') {
+    if (b.dataset.s != null) { var si = +b.dataset.s; if (q.slots[si] != null) { q.slots.splice(si, 1); drawOrder(); } return; }
+    if (b.dataset.p == null) return;
+    q.slots.push(+b.dataset.p); buzz(8);
+    if (q.slots.length < q.P.length) { drawOrder(); return; }
+    var pos = []; q.slots.forEach(function (p, i) { pos[p] = i; });
+    var broke = q.clues.map(function (c, i) { return okClue(c, pos) ? -1 : i; }).filter(function (i) { return i >= 0; });
+    if (!broke.length) { drawOrder(); good(100 + q.clues.length * 30, 3, '순서가 맞아요 +' + (100 + q.clues.length * 30)); G.busy = true; later(next, 650); }
+    else {
+      var wr = q.slots.map(function (p, i) { return q.ans[i] === p ? -1 : i; }).filter(function (i) { return i >= 0; });
+      drawOrder(broke, wr); bad('단서 ' + broke.map(function (i) { return i + 1; }).join(', ') + '번과 안 맞아요');
+      G.busy = true; later(function () { q.slots = []; G.busy = false; drawOrder(broke); }, 1100);
+    }
+  } else if (mode === 'pair') {
+    if (b.dataset.j == null || b.disabled) return;
+    var j3 = +b.dataset.j; if (q.up.length >= 2) return;
+    q.up.push(j3); q.flips++; drawPair();
+    if (q.up.length === 2) {
+      var x1 = q.cards[q.up[0]], x2 = q.cards[q.up[1]];
+      if (key(x1, q.act) === key(x2, q.act)) {
+        q.done[q.up[0]] = q.done[q.up[1]] = 1; q.up = []; G.score += 40; msg('공범 검거 +40', 'ok'); buzz(20);
+        drawPair();
+        if (Object.keys(q.done).length === q.cards.length) { var bonus = Math.max(40, 240 - (q.flips - q.cards.length) * 15); good(bonus, 4, '전원 검거 +' + bonus); G.busy = true; later(next, 700); }
+      } else {
+        G.busy = true; msg(dist(x1, x2, q.act) === 1 ? '닮았지만 하나가 달라요' : '');
+        later(function () { q.up = []; G.busy = false; drawPair(); }, 750);
+      }
+    }
+  } else if (mode === 'seat') {
+    if (b.dataset.o == null) return;
+    var pick = q.opts[+b.dataset.o], ansS = q.grid[q.holes[q.at]];
+    if (key(pick, q.act) === key(ansS, q.act)) {
+      q.at++;
+      if (q.at < q.holes.length) { q.opts = seatOpts(q.grid[q.holes[q.at]], q.act); drawSeat(); msg('한 자리 더', 'ok'); buzz(15); }
+      else { drawSeat(); good(100 + q.act.length * 30, 3, '배치 완료 +' + (100 + q.act.length * 30)); G.busy = true; later(next, 650); }
+    } else {
+      var wrongAt = q.act.filter(function (i) { return C.decode(pick)[i] !== C.decode(ansS)[i]; }).map(function (i) { return NAMES[i]; });
+      b.classList.add('wrong'); bad(wrongAt.join(', ') + '이 겹쳐요');
+    }
+  } else if (mode === 'pang') {
+    if (b.dataset.p == null) return;
+    var pi = +b.dataset.p;
+    if (q.sel < 0) { q.sel = pi; drawPang(); return; }
+    var sx = q.sel % 6, sy = Math.floor(q.sel / 6), px = pi % 6, py = Math.floor(pi / 6);
+    if (Math.abs(sx - px) + Math.abs(sy - py) === 1) pangSwap(q.sel, pi);
+    else { q.sel = pi === q.sel ? -1 : pi; drawPang(); }
+  }
+});
+// 검거팡: 밀어서 바꾸기
+(function () {
+  var sx = 0, sy = 0, from = -1;
+  $('stagebox').addEventListener('pointerdown', function (e) { if (mode !== 'pang' || !G || G.busy) return; var c = e.target.closest('[data-p]'); if (!c) return; from = +c.dataset.p; sx = e.clientX; sy = e.clientY; });
+  $('stagebox').addEventListener('pointerup', function (e) {
+    if (from < 0 || !G || G.busy) { from = -1; return; }
+    var dx = e.clientX - sx, dy = e.clientY - sy, f = from; from = -1;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    var x = f % 6, y = Math.floor(f / 6), to = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? (x < 5 ? f + 1 : -1) : (x > 0 ? f - 1 : -1)) : (dy > 0 ? (y < 5 ? f + 6 : -1) : (y > 0 ? f - 6 : -1));
+    if (to >= 0) { G.q.sel = -1; pangSwap(f, to); e.preventDefault(); }
+    swiped = true; setTimeout(function () { swiped = false; }, 50);
+  });
+})();
+var swiped = false;
+window.__selfTest = selfTest; window.__G = function () { return G; };   // 검수용
+selfTest(); intro();
+})();
+</script>
+</body>
+</html>
