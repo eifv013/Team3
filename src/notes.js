@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.25', date: '2026-11-27', title: '고스트 등장',
+      items: [
+        '고스트 등장 화면을 조금 차분하게 다듬었어요.'
+      ] },
     { ver: '0.13.24', date: '2026-11-27', title: '고스트 등장',
       items: [
         '고스트가 나온 뒤에도 비, 손전등 빛, 경광등, 번개가 계속 움직여요.'

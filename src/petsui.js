@@ -453,16 +453,16 @@
     '<g class="gx-lid"><rect x="14" y="40" width="172" height="26" rx="7" fill="url(#gxLid)" stroke="#5E3C1C" stroke-width="4"/><rect x="88" y="40" width="24" height="26" fill="#FFD23F" stroke="#5E3C1C" stroke-width="3"/></g></svg>';
 
   // 0.13.24 고스트 등장 컷이 다 나온 뒤에도 화면이 살아 있게 하는 효과.
-  //   비(캔버스), 손전등 빛 번짐과 빛 속 먼지, 경찰차 경광등, 눈빛 반짝, 가끔 번개, 천천히 다가가는 화면.
+  //   비(캔버스), 손전등 빛 번짐과 빛 속 먼지, 경찰차 경광등, 가끔 번개, 천천히 다가가는 화면.
   //   글자는 .idle 이 붙으면 코드네임 빛, 별 반짝, 도장 빛, 그림 위 반짝이 줄이 되풀이된다.
   //   동작 줄이기(calm)면 비, 번개, 다가가기는 빼고 빛만 은은하게 남긴다.
   //   cut: 등장 컷 상자, img: 세로 그림. 돌려주는 함수를 부르면 멈춘다(상자가 화면에서 빠져도 스스로 멈춘다).
   function noirFx(cut, img, o) {
     o = o || {};
-    var PT = { fl: [0.765, 0.478], car: [0.882, 0.31], eye: [0.529, 0.299] };   // 그림 속 손전등, 경찰차, 눈 위치(그림 비율)
+    var PT = { fl: [0.765, 0.478], car: [0.882, 0.31] };   // 그림 속 손전등, 경찰차 위치(그림 비율)
     var IW = img.naturalWidth || 941, IH = img.naturalHeight || 1672, alive = true, raf = 0, last = 0;
     var fx = document.createElement('div'); fx.className = 'lfx';
-    fx.innerHTML = '<canvas></canvas><i class="lfx-bolt"></i><i class="lfx-car"></i><i class="lfx-fl"></i><i class="lfx-eye"></i>';
+    fx.innerHTML = '<canvas></canvas><i class="lfx-bolt"></i><i class="lfx-car"></i><i class="lfx-fl"></i>';
     img.parentNode.insertBefore(fx, img.nextSibling);
     var cv = fx.querySelector('canvas'), g = cv.getContext && cv.getContext('2d'), W = 0, H = 0, R = 1, drops = [], motes = [], fl = [0, 0];
     // object-fit:cover, object-position:32% 50% 로 놓인 그림에서 그림 비율 좌표를 화면 좌표로
@@ -475,7 +475,7 @@
     function place() {
       W = cut.clientWidth; H = cut.clientHeight; if (!W || !H || !g) return;
       var dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ['fl', 'car', 'eye'].forEach(function (k) { var p = at(PT[k]), e = fx.querySelector('.lfx-' + k); e.style.left = p[0] + 'px'; e.style.top = p[1] + 'px'; });
+      ['fl', 'car'].forEach(function (k) { var p = at(PT[k]), e = fx.querySelector('.lfx-' + k); e.style.left = p[0] + 'px'; e.style.top = p[1] + 'px'; });
       fl = at(PT.fl); R = Math.min(W, H) * 0.38;
       var org = fl[0] + 'px ' + fl[1] + 'px'; img.style.transformOrigin = org; fx.style.transformOrigin = org;   // 손전등 쪽으로 다가간다
       drops = []; for (var i = 0, n = Math.round(W * H / 5200); i < n; i++) drops.push(drop(true));
