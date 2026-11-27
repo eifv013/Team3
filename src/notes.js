@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.26', date: '2026-11-27', title: '코드네임 옷',
+      items: [
+        '코드네임을 켠 파트너는 사무실에서 그 장면 옷을 입어요.'
+      ] },
     { ver: '0.13.25', date: '2026-11-27', title: '고스트 등장',
       items: [
         '고스트 등장 화면을 조금 차분하게 다듬었어요.'

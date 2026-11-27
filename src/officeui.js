@@ -368,8 +368,10 @@
     if (!x || !ctx.art) { p.hidden = true; return; }
     p.hidden = false;
     // 조는 중이면 눈을 감은 그림(mood:'sleep'). 같은 그림이면 다시 그리지 않는다(깜빡임 애니메이션이 끊기지 않게)
-    var sleep = pet.state === 'sleep', key = x.id + x.g + (ctx.pets.wearing ? ctx.pets.wearing(s, eq) : '') + (sleep ? 'z' : '');
-    if (pet.drawn !== key) { pet.drawn = key; $('of-pet-in').innerHTML = ctx.art.draw(x.id, { grade: x.g, anim: !sleep, mood: sleep ? 'sleep' : null, outfit: ctx.pets.wearing ? ctx.pets.wearing(s, eq) : null }); }
+    // 0.13.26 코드네임(누아르)을 켠 파트너는 그 장면 옷을 입는다: 'a' 사무실 트렌치코트, 'b' 현장 코트
+    var nz = ctx.pets.noirOn && ctx.pets.noirOn(s, eq) ? ctx.pets.noirScene(s, eq) : '';
+    var sleep = pet.state === 'sleep', key = x.id + x.g + (ctx.pets.wearing ? ctx.pets.wearing(s, eq) : '') + nz + (sleep ? 'z' : '');
+    if (pet.drawn !== key) { pet.drawn = key; $('of-pet-in').innerHTML = ctx.art.draw(x.id, { grade: x.g, anim: !sleep, mood: sleep ? 'sleep' : null, outfit: ctx.pets.wearing ? ctx.pets.wearing(s, eq) : null, noir: nz || null }); }
     if (!drag) { p.style.left = pet.x + 'px'; p.style.bottom = pet.y + 'px'; }
   }
   function setPet(state, ms) {
