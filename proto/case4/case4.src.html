@@ -8,11 +8,12 @@
   사건 4 후보를 직접 해 보는 시안(2차). 카드는 게임과 같은 용의자 카드(시간대, 모자, 얼굴, 흔적)를 그대로 쓴다(ui.js 그리기 함수).
     ① 몽타주 맞히기 — 용의자를 대조하면 특징마다 맞음/틀림이 나온다. 적게 대조하고 범인을 맞힌다(참고: Wordle, 숫자야구)
     ② 신분증 검사   — 1차에서 남긴 후보. 사진과 신분증을 대조해 통과/체포(참고: Papers, Please)
-    ③ 변장 추적     — 범인은 한 번에 하나씩만 바꿔 입었다. 첫 모습에서 하나만 다른 사람을 따라가 지금 모습까지(참고: 단어 사다리)
-    ④ 잠복 수색     — 문을 열면 둘레 문 뒤에 숨은 범인 수가 나온다. 범인 문은 모두 체포(참고: 지뢰찾기)
-  1차의 심문, CCTV 비교는 뺐다.
+    ③ 짝 맞추기     — 뒤집힌 카드를 두 장씩 열어 똑같은 공범 둘을 찾기(참고: 같은 그림 찾기)
+    ④ 배치표        — 3×3 잠복 배치표의 빈자리에 들어갈 사람 고르기. 줄과 칸마다 같은 특징이 한 번씩(참고: 스도쿠)
+    ⑤ 검거팡        — 옆 사람과 자리를 바꿔 같은 사람 셋을 한 줄로(참고: 애니팡)
+  1차의 심문, CCTV 비교와 2차의 변장 추적, 잠복 수색은 뺐다.
   공통: 60초, 맞히면 점수와 시간 +, 틀리면 −5초. 4번 맞힐 때마다 단계 1→2→3.
-  문제 만들기 makeGuess / makeId / makeLadder / makeMine 은 정답이 늘 하나인지 selfTest() 로 확인한다.
+  문제 만들기 makeGuess / makeId / makePair / makeSeat / makePang 은 정답이 늘 하나인지 selfTest() 로 확인한다.
 -->
 <style>
 :root{--ink:#12151C;--panel:#1C212B;--panel2:#232937;--line:#2E3542;--text:#F3F0E8;--muted:#A3ACBA;--acc:#FFD23F;--miss:#FF7A59;--ok:#7BD88F}
@@ -66,28 +67,27 @@ h1{margin:0;font-size:22px}
 .tile b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile.g{background:#2E7D4F;color:#E8FFEF}.tile.x{background:#3A4150;color:#B8C0CC}
 .cnt{flex:1;height:40px;border-radius:8px;background:#3A4150;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px}
-/* ③ 변장 추적 */
-.trail{display:flex;align-items:center;gap:3px;min-height:44px;flex-wrap:nowrap;overflow:hidden}
-.trail .arr{font-style:normal;color:var(--muted);font-weight:900}
-.trail .card.mini.now{box-shadow:0 0 0 3px var(--acc)}
-.trail .left{margin-left:auto;font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
-.card.cur{box-shadow:inset 0 0 0 4px var(--acc);opacity:1;filter:none}
-/* ④ 잠복 수색 */
-.apt{background:linear-gradient(180deg,#2A2F3C,#1B1F28);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px}
-.apt-hd{display:flex;justify-content:space-between;font-weight:900;font-size:14px}.apt-hd span:last-child{color:var(--acc)}
-.doors{display:grid;gap:6px}
-.door{position:relative;aspect-ratio:1/1;border:0;border-radius:8px;background:linear-gradient(180deg,#6B4C38,#553A2A);box-shadow:inset 0 0 0 2px #3A2618,inset -10px 0 0 rgba(0,0,0,.12);font:inherit;color:#fff;padding:0;overflow:hidden}
-.door:after{content:'';position:absolute;right:16%;top:52%;width:6px;height:6px;border-radius:50%;background:#E2B44A}
-.door.open{background:#E9E3D6;box-shadow:inset 0 0 0 1px #C9C0AE}.door.open:after,.door.got:after,.door.lost:after{display:none}
-.door b{font-size:20px;font-weight:900}
-.door.n1 b{color:#2F6FD0}.door.n2 b{color:#2E8B4F}.door.n3 b{color:#C0392B}.door.n4 b,.door.n5 b{color:#6A2C91}
-.door.got{background:#F4EFE2;box-shadow:0 0 0 3px var(--ok)}.door.lost{background:#F4EFE2;box-shadow:0 0 0 3px var(--miss);opacity:.55}
-.door .fig{position:absolute;left:50%;bottom:0;width:84%;transform:translateX(-50%)}.door .t,.door .m,.door .pick,.door .no{display:none}
-.door em{position:absolute;left:0;right:0;top:2px;font-style:normal;font-size:10px;font-weight:900;color:#2E7D4F}
-.modes{display:flex;gap:8px}
-.modes button{flex:1;height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel2);color:var(--muted);font:inherit;font-weight:900;font-size:16px}
-.modes button.on{border-color:var(--acc);color:#1B1E24;background:var(--acc)}
-.modes button.arrest.on{background:#C0392B;border-color:#C0392B;color:#fff}
+/* ③ 짝 맞추기 */
+.phd{display:flex;justify-content:space-between;font-weight:900;font-size:13px;color:var(--muted)}.phd span:first-child{color:var(--text)}
+.card.back{background:linear-gradient(135deg,#3B4560,#2A3146);box-shadow:inset 0 0 0 2px #4A5677;display:flex;align-items:center;justify-content:center}
+.card.back span{font-size:26px;font-weight:900;color:#7E8CB0}
+.card.flipped{box-shadow:inset 0 0 0 3px var(--acc);animation:flipin .2s ease-out}
+.card.matched{opacity:.5}
+@keyframes flipin{from{transform:scaleX(.2)}to{transform:none}}
+/* ④ 배치표 */
+.seat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#EFE7D4;padding:6px;border-radius:12px}
+.seat .card{aspect-ratio:1/1}
+.hole{aspect-ratio:1/1;border-radius:12px;border:2.5px dashed #B9AA8A;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#B9AA8A}
+.hole.now{border-color:#E0A91A;color:#E0A91A;background:rgba(255,210,63,.18);animation:holep 1s ease-in-out infinite alternate}
+@keyframes holep{to{background:rgba(255,210,63,.34)}}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+/* ⑤ 검거팡 */
+.pang{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;touch-action:none}
+.pang .card{aspect-ratio:1/1;border-radius:9px}.pang .card .fig{width:86%}
+.pang .card.sel{box-shadow:inset 0 0 0 3px var(--acc);transform:scale(1.06)}
+.pang .card.pop{animation:pop .3s ease-in forwards}
+@keyframes pop{50%{transform:scale(1.18);filter:brightness(1.6)}100%{transform:scale(0);opacity:0}}
+#combo{color:var(--acc)}
 
 /* ② 신분증 */
 .desk{background:linear-gradient(180deg,#3A2E24,#2A211A);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
@@ -108,12 +108,12 @@ h1{margin:0;font-size:22px}
 .hide{display:none!important}
 /* 판이 돌 때는 제목을 숨겨 작은 폰(SE)에서도 한 화면에 들어오게 */
 body.playing h1{display:none}
-@media (max-height:700px){.room,.apt{padding:8px;gap:8px}.room .grid{gap:6px}.doors{gap:5px}.modes button{height:42px}}
+@media (max-height:700px){.room{padding:8px;gap:8px}.room .grid{gap:6px}.seat{gap:4px}.opts{gap:6px}}
 </style>
 </head>
 <body>
 <h1>사건 4 시안</h1>
-<div class="tabs" id="tabs"><button data-k="guess" class="on">몽타주</button><button data-k="id">신분증</button><button data-k="ladder">변장</button><button data-k="mine">잠복</button></div>
+<div class="tabs" id="tabs"><button data-k="guess" class="on">몽타주</button><button data-k="id">신분증</button><button data-k="pair">짝</button><button data-k="seat">배치표</button><button data-k="pang">검거팡</button></div>
 <div class="box" id="intro"></div>
 <div id="play" class="hide" style="display:flex;flex-direction:column;gap:10px">
   <div class="hud"><span class="t" id="time">60</span><span class="st" id="stage">단계 1</span><span class="s" id="score">0</span></div>
@@ -166,65 +166,87 @@ function makeId(st) {
   var wantedHit = !!(w && C.decode(id)[w[0]] === w[1]);
   return { act: act, id: id, doc: doc, forged: forged, diff: diff, wanted: w, arrest: forged || wantedHit, why: forged ? NAMES[diff] + '이 달라요' : wantedHit ? '수배 조건' : '' };
 }
-/* ---------- ③ 변장 추적(단어 사다리) ----------
- *   범인은 한 번에 하나씩만 바꿔 입었다. 첫 모습(c0)에서 시작해 "하나만 다른" 사람을 따라가면 지금 모습(마지막)에 닿는다.
- *   어느 걸음에서든 하나만 다른 사람은 판에 딱 한 명(아직 안 지나간 사람 중) → 길은 늘 하나. */
-function makeLadder(st) {
-  var act = st === 1 ? [0, 1, 2] : [0, 1, 2, 3], L = st === 1 ? 3 : st === 2 ? 4 : 5, n = st === 1 ? 9 : 12;
-  for (var tries = 0; tries < 4000; tries++) {
-    var chain = [rndId()], ok = true;
-    for (var i = 0; i < L && ok; i++) {   // 하나씩 바꿔 가며 길 만들기(지난 모습과는 둘 이상 달라야 길이 갈리지 않는다)
-      var cur = chain[chain.length - 1], cand = [];
-      for (var k = 0; k < 81; k++) if (dist(k, cur, act) === 1 && key(k, act) !== key(cur, act) &&
-          chain.every(function (c, j) { return j === chain.length - 1 || dist(k, c, act) >= 2; })) cand.push(k);
-      if (!cand.length) ok = false; else chain.push(cand[ri(cand.length)]);
+/* ---------- ③ 짝 맞추기(같은 그림 찾기) ----------
+ *   카드가 뒤집혀 있다. 두 장씩 뒤집어 보는 특징이 똑같은 공범 둘을 찾으면 검거. 짝을 다 찾으면 다음 판.
+ *   단계 3은 하나만 다른 "닮은 사람"이 짝 사이에 섞인다. */
+function makePair(st) {
+  var act = ACT[st], np = st === 1 ? 4 : 6, base = distinct(np, act), cards = [];
+  base.forEach(function (id) { var v = C.decode(id).slice(); cards.push(id, id); });
+  if (st === 3) {   // 닮은 사람: 짝마다 한 장을 다른 특징 하나만 바꾼 사람으로 바꾸는 게 아니라, 비슷한 짝을 둘 더 넣는다
+    var extra = [], g = 0;
+    while (extra.length < 2 && g++ < 200) {
+      var b0 = base[ri(base.length)], c = C.decode(b0).slice(), a = act[ri(act.length)]; c[a] = (c[a] + 1 + ri(2)) % 3; var id2 = C.encode(c);
+      if (base.concat(extra).some(function (x) { return key(x, act) === key(id2, act); })) continue;
+      extra.push(id2);
     }
-    if (!ok) continue;
-    var board = chain.slice(), g = 0;
-    while (board.length < n && g++ < 600) {   // 섞을 사람: 길 위 누구와도 하나만 다르면 안 된다(길이 갈림) — 단계 3은 둘 다른 "닮은 사람"을 일부러
-      var x = rndId();
-      if (board.some(function (b) { return key(b, act) === key(x, act); })) continue;
-      if (chain.some(function (c) { return dist(x, c, act) <= 1; })) continue;
-      board.push(x);
-    }
-    if (board.length < n) continue;
-    if (!ladderUnique(chain, board, act)) continue;
-    return { act: act, chain: chain, board: shuffle(board), at: 0, L: L };
+    extra.forEach(function (id) { cards.push(id, id); });
   }
-  throw new Error('ladder gen');
+  return { act: act, cards: shuffle(cards), up: [], done: {}, flips: 0 };
 }
-function ladderUnique(chain, board, act) {
-  for (var i = 0; i < chain.length - 1; i++) {
-    var used = chain.slice(0, i + 1), nb = board.filter(function (b) { return used.indexOf(b) < 0 && dist(b, chain[i], act) === 1; });
-    if (nb.length !== 1 || nb[0] !== chain[i + 1]) return false;
+/* ---------- ④ 배치표(스도쿠) ----------
+ *   3×3 잠복 배치표. 줄마다, 칸마다 같은 특징 값이 한 번씩만 나온다(모자 셋이 한 줄에 다 다름).
+ *   빈자리에 들어갈 사람을 아래 후보에서 고른다. 단계 3은 빈자리 둘(첫 자리를 채우면 둘째 자리). */
+function latin() {   // 3×3 라틴 방진 하나(줄 · 칸 섞기)
+  var r = shuffle([0, 1, 2]), c = shuffle([0, 1, 2]), sym = shuffle([0, 1, 2]), g = [];
+  for (var y = 0; y < 3; y++) { g.push([]); for (var x = 0; x < 3; x++) g[y].push(sym[(r[y] + c[x]) % 3]); }
+  return g;
+}
+function makeSeat(st) {
+  var act = st === 1 ? [1] : st === 2 ? [1, 2] : [0, 1, 2], sq = {};
+  act.forEach(function (i) { sq[i] = latin(); });
+  var grid = [];
+  for (var y = 0; y < 3; y++) for (var x = 0; x < 3; x++) {
+    var v = [ri(3), ri(3), ri(3), ri(3)]; act.forEach(function (i) { v[i] = sq[i][y][x]; }); grid.push(C.encode(v));
   }
-  return true;
+  var holes = st === 3 ? (function () { var y = ri(3), a = ri(3), b = (a + 1 + ri(2)) % 3; return [y * 3 + a, y * 3 + b]; })() : [ri(9)];
+  return { act: act, grid: grid, holes: holes, at: 0, opts: seatOpts(grid[holes[0]], act) };
 }
-/* ---------- ④ 잠복 수색(지뢰찾기) ----------
- *   아파트 문 칸. 열면 둘레 8칸 문 뒤 범인 수가 나온다. 범인 문은 체포 모드로 눌러 잡는다.
- *   범인 문을 열면 놓친다(−5초). 범인을 다 잡으면 다음 동. 첫 칸은 늘 안전(0이 나와 둘레가 같이 열린다). */
-function makeMine(st) {
-  var w = st === 1 ? 4 : 5, h = st === 1 ? 4 : 5, m = st === 1 ? 2 : st === 2 ? 4 : 5;
-  return { w: w, h: h, m: m, mines: null, open: {}, flag: {}, lost: {}, faces: {} };
+function seatOpts(ans, act) {   // 정답 + 특징 하나만 다른 후보 셋(보는 특징이 다 다르게)
+  var out = [ans], g = 0;
+  while (out.length < 4 && g++ < 200) {
+    var v = C.decode(ans).slice(), a = act[ri(act.length)]; v[a] = (v[a] + 1 + ri(2)) % 3;
+    if (act.length > 1 && Math.random() < 0.4) { var b = act[ri(act.length)]; if (b !== a) v[b] = (v[b] + 1 + ri(2)) % 3; }
+    var id = C.encode(v);
+    if (out.some(function (o) { return key(o, act) === key(id, act); })) continue;
+    out.push(id);
+  }
+  if (act.length === 1) out = out.slice(0, 3);
+  return shuffle(out);
 }
-function placeMines(q, safe) {
-  var cells = [], sx = safe % q.w, sy = Math.floor(safe / q.w);
-  for (var i = 0; i < q.w * q.h; i++) { var x = i % q.w, y = Math.floor(i / q.w); if (Math.abs(x - sx) > 1 || Math.abs(y - sy) > 1) cells.push(i); }
-  shuffle(cells); q.mines = {}; cells.slice(0, q.m).forEach(function (i) { q.mines[i] = 1; q.faces[i] = rndId(); });
+/* ---------- ⑤ 검거팡(애니팡) ----------
+ *   6×6 판. 옆 사람과 자리를 바꿔 같은 사람이 가로나 세로로 셋 이상 서면 검거(사라지고 위에서 새로 내려온다).
+ *   단계마다 사람 종류가 늘어난다(5 → 6 → 7). 맞추기 실패면 자리가 되돌아간다. */
+function makePang(st) {
+  var kinds = st === 1 ? 5 : st === 2 ? 6 : 7, act = [1, 2], types = distinct(kinds, act), b = [];
+  for (var i = 0; i < 36; i++) { var t; do { t = ri(kinds); } while ((i % 6 >= 2 && b[i - 1] === t && b[i - 2] === t) || (i >= 12 && b[i - 6] === t && b[i - 12] === t)); b.push(t); }
+  return { act: act, types: types, kinds: kinds, b: b, sel: -1, combo: 0 };
 }
-function around(q, i) { var x = i % q.w, y = Math.floor(i / q.w), out = []; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; var nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < q.w && ny < q.h) out.push(ny * q.w + nx); } return out; }
-function count(q, i) { return around(q, i).filter(function (j) { return q.mines[j]; }).length; }
-function openCell(q, i) {   // 0 이면 둘레도 연다
-  if (q.open[i] || q.flag[i]) return; q.open[i] = 1;
-  if (!q.mines[i] && count(q, i) === 0) around(q, i).forEach(function (j) { if (!q.mines[j]) openCell(q, j); });
+function pangLines(b) {   // 셋 이상 같은 줄의 칸 목록
+  var hit = {};
+  for (var y = 0; y < 6; y++) for (var x = 0; x < 6; x++) {
+    var i = y * 6 + x, t = b[i];
+    if (t < 0) continue;
+    if (x <= 3 && b[i + 1] === t && b[i + 2] === t) { var k = x; while (k < 6 && b[y * 6 + k] === t) hit[y * 6 + k++] = 1; }
+    if (y <= 3 && b[i + 6] === t && b[i + 12] === t) { var m = y; while (m < 6 && b[m * 6 + x] === t) hit[m++ * 6 + x] = 1; }
+  }
+  return Object.keys(hit).map(Number);
+}
+function pangFall(q) {   // 빈칸(-1)을 위에서 채운다
+  for (var x = 0; x < 6; x++) {
+    var col = []; for (var y = 5; y >= 0; y--) if (q.b[y * 6 + x] >= 0) col.push(q.b[y * 6 + x]);
+    while (col.length < 6) col.push(ri(q.kinds));
+    for (var yy = 5, k = 0; yy >= 0; yy--, k++) q.b[yy * 6 + x] = col[k];
+  }
 }
 
 function selfTest() {
   for (var s = 1; s <= 3; s++) for (var k = 0; k < 120; k++) {
     var a = makeGuess(s); if (a.board.indexOf(a.ans) < 0 || new Set(a.board.map(function (x) { return key(x, a.act); })).size !== a.board.length) throw new Error('guess');
     var d = makeId(s), v = C.decode(d.id), mism = d.act.filter(function (i) { return v[i] !== d.doc[i]; }).length; if (mism !== (d.forged ? 1 : 0)) throw new Error('id');
-    var l = makeLadder(s); if (l.chain.length !== l.L + 1 || !ladderUnique(l.chain, l.board, l.act)) throw new Error('ladder');
-    var m = makeMine(s); placeMines(m, 0); if (Object.keys(m.mines).length !== m.m || m.mines[0] || count(m, 0) !== 0) throw new Error('mine');
+    var pr = makePair(s), cnt = {}; pr.cards.forEach(function (x) { var kk = key(x, pr.act); cnt[kk] = (cnt[kk] || 0) + 1; }); if (Object.keys(cnt).some(function (kk) { return cnt[kk] !== 2; })) throw new Error('pair');
+    var se = makeSeat(s); se.holes.forEach(function (h) { var y = Math.floor(h / 3), x = h % 3; se.act.forEach(function (i) { var row = [0, 1, 2].map(function (xx) { return C.decode(se.grid[y * 3 + xx])[i]; }), col = [0, 1, 2].map(function (yy) { return C.decode(se.grid[yy * 3 + x])[i]; }); if (new Set(row).size !== 3 || new Set(col).size !== 3) throw new Error('seat'); }); });
+    if (se.opts.filter(function (o) { return key(o, se.act) === key(se.grid[se.holes[0]], se.act); }).length !== 1) throw new Error('seat opts');
+    var pg = makePang(s); if (pangLines(pg.b).length) throw new Error('pang start');
   }
   return true;
 }
@@ -233,8 +255,9 @@ function selfTest() {
 var INFO = {
   guess: { t: '① 몽타주 맞히기', rule: ['용의자 중 한 명이 범인이에요. 카드를 누르면 범인 몽타주와 대조해요.', '특징마다 맞으면 초록, 틀리면 회색으로 알려 줘요.', '적게 대조하고 맞힐수록 점수가 커요. 단계 3은 "몇 개 맞음"만 알려 줘요.'], ref: '참고: Wordle, 숫자야구' },
   id: { t: '② 신분증 검사', rule: ['한 명씩 사진과 신분증이 와요.', '하나라도 다르면 위조, 체포. 모두 같으면 통과.', '단계 3부터는 수배 조건에 걸리면 신분증이 맞아도 체포해요.'], ref: '참고: Papers, Please' },
-  ladder: { t: '③ 변장 추적', rule: ['범인은 한 번에 하나씩만 바꿔 입었어요.', '노란 테두리(첫 모습)에서 시작해, 하나만 다른 사람을 차례로 눌러요.', '더 갈 곳이 없는 사람이 지금 모습이에요. 끝까지 가면 검거.'], ref: '참고: 단어 사다리' },
-  mine: { t: '④ 잠복 수색', rule: ['문을 열면 둘레 여덟 문 뒤에 숨은 범인 수가 나와요.', '범인이 있는 문은 체포로 바꿔 눌러요. 범인 문을 열면 놓쳐요.', '범인을 다 잡으면 다음 동으로 가요.'], ref: '참고: 지뢰찾기' }
+  pair: { t: '③ 짝 맞추기', rule: ['카드가 뒤집혀 있어요. 두 장씩 뒤집어 봐요.', '보이는 특징이 똑같은 두 명이면 공범 검거, 아니면 다시 덮여요.', '짝을 다 찾으면 다음 판. 단계 3은 하나만 다른 닮은 사람이 섞여요.'], ref: '참고: 같은 그림 찾기' },
+  seat: { t: '④ 배치표', rule: ['3×3 잠복 배치표예요. 줄마다, 칸마다 같은 특징이 한 번씩만 나와요.', '빈자리(노란 칸)에 들어갈 사람을 아래에서 골라요.', '단계 3은 빈자리가 둘이에요.'], ref: '참고: 스도쿠' },
+  pang: { t: '⑤ 검거팡', rule: ['옆 사람을 차례로 두 번 눌러 자리를 바꿔요(밀어도 돼요).', '같은 사람이 가로나 세로로 셋 이상 서면 검거.', '연달아 터지면 점수가 커져요. 단계가 오르면 사람 종류가 늘어요.'], ref: '참고: 애니팡' }
 };
 var mode = 'guess', startSt = 1, G = null, timer = 0;
 function intro() {
@@ -282,7 +305,7 @@ function finish() {
   $('end').classList.remove('hide');
 }
 $('end').addEventListener('click', function (e) { if (e.target.id === 'again') start(); if (e.target.id === 'back') intro(); });
-function next() { G.busy = false; msg(''); ({ guess: nextGuess, id: nextId, ladder: nextLadder, mine: nextMine })[mode](); }
+function next() { G.busy = false; msg(''); ({ guess: nextGuess, id: nextId, pair: nextPair, seat: nextSeat, pang: nextPang })[mode](); }
 function later(f, ms) { setTimeout(function () { if (G) f(); }, ms); }
 
 /* ① 몽타주 화면 */
@@ -308,36 +331,63 @@ function nextId() {
     q.act.map(function (i) { return '<div class="row"><span>' + NAMES[i] + '</span>' + VALS[i][v[i]] + '</div>'; }).join('') + '</div></div>' +
     '<div class="btns"><button class="btn-pass" data-a="pass">통과</button><button class="btn-arrest" data-a="arrest">체포</button></div></div>';
 }
-/* ③ 변장 추적 화면 */
-function nextLadder() { G.q = makeLadder(G.st); drawLadder(); }
-function drawLadder() {
-  var q = G.q, cols = q.board.length === 9 ? 'g3' : 'g4', cur = q.chain[q.at], passed = q.chain.slice(0, q.at);
-  var trail = q.chain.slice(0, q.at + 1).map(function (id, k) { return (k ? '<i class="arr">›</i>' : '') + cardHtml(id, q.act, 'disabled', 'mini' + (k === q.at ? ' now' : '')); }).join('');
-  $('stagebox').innerHTML = '<div class="room"><div class="trail">' + trail + '<span class="left">' + (q.L - q.at) + '걸음 남음</span></div>' +
-    '<div class="grid ' + cols + '">' + q.board.map(function (id, j) {
-      var c = id === cur ? 'cur' : passed.indexOf(id) >= 0 ? 'out' : '';
-      return cardHtml(id, q.act, 'data-j="' + j + '"' + (c ? ' disabled' : ''), c);
+/* ③ 짝 맞추기 화면 */
+function nextPair() { G.q = makePair(G.st); drawPair(); }
+function drawPair() {
+  var q = G.q, cols = q.cards.length <= 8 ? 'g4' : q.cards.length <= 12 ? 'g4' : 'g4';
+  $('stagebox').innerHTML = '<div class="room"><div class="phd"><span>짝 ' + Object.keys(q.done).length / 2 + ' / ' + q.cards.length / 2 + '</span><span>뒤집기 ' + q.flips + '번</span></div><div class="grid ' + cols + '">' +
+    q.cards.map(function (id, j) {
+      var open = q.done[j] || q.up.indexOf(j) >= 0;
+      return open ? cardHtml(id, q.act, 'data-j="' + j + '" disabled', q.done[j] ? 'matched' : 'flipped') : '<button class="card back" data-j="' + j + '"><span>3</span></button>';
     }).join('') + '</div></div>';
 }
-/* ④ 잠복 수색 화면 */
-function nextMine() { G.q = makeMine(G.st); G.flagMode = false; drawMine(); }
-function drawMine() {
-  var q = G.q, cells = '';
-  for (var i = 0; i < q.w * q.h; i++) {
-    var c = 'door', t = '';
-    if (q.lost[i]) { c += ' lost'; t = cardInner(q.faces[i], null, [1, 2]); }
-    else if (q.flag[i]) { c += ' got'; t = cardInner(q.faces[i], null, [1, 2]) + '<em>체포</em>'; }
-    else if (q.open[i]) { var n = count(q, i); c += ' open n' + n; t = n ? '<b>' + n + '</b>' : ''; }
-    cells += '<button class="' + c + '" data-c="' + i + '">' + t + '</button>';
-  }
-  var left = q.m - Object.keys(q.flag).length - Object.keys(q.lost).length;
-  $('stagebox').innerHTML = '<div class="apt"><div class="apt-hd"><span>' + (101 + G.hits) + '동</span><span>남은 범인 ' + left + '</span></div>' +
-    '<div class="doors" style="grid-template-columns:repeat(' + q.w + ',1fr)">' + cells + '</div>' +
-    '<div class="modes"><button data-m="0" class="' + (G.flagMode ? '' : 'on') + '">문 열기</button><button data-m="1" class="arrest' + (G.flagMode ? ' on' : '') + '">체포</button></div></div>';
+/* ④ 배치표 화면 */
+function nextSeat() { G.q = makeSeat(G.st); drawSeat(); }
+function drawSeat() {
+  var q = G.q, hole = q.holes[q.at];
+  $('stagebox').innerHTML = '<div class="room"><div class="phd"><span>잠복 배치표</span><span>' + q.act.map(function (i) { return NAMES[i]; }).join(', ') + ' 한 번씩</span></div>' +
+    '<div class="seat">' + q.grid.map(function (id, j) {
+      if (q.holes.indexOf(j) >= q.at) return '<div class="hole' + (j === hole ? ' now' : '') + '">?</div>';
+      return cardHtml(id, q.act, 'disabled');
+    }).join('') + '</div><div class="opts">' + q.opts.map(function (id, j) { return cardHtml(id, q.act, 'data-o="' + j + '"'); }).join('') + '</div></div>';
+}
+/* ⑤ 검거팡 화면 */
+function nextPang() { G.q = makePang(G.st); drawPang(); }
+function drawPang(pop) {
+  var q = G.q;
+  $('stagebox').innerHTML = '<div class="room"><div class="phd"><span>검거팡</span><span id="combo">' + (q.combo > 1 ? q.combo + '연속!' : '') + '</span></div><div class="pang" id="pang">' + q.b.map(function (t, i) {
+    var id = q.types[t];
+    return '<button class="card pc' + (i === q.sel ? ' sel' : '') + (pop && pop[i] ? ' pop' : '') + '" data-p="' + i + '" style="background:' + PANG_BG[t] + '">' + cardInner(id, null, q.act) + '</button>';
+  }).join('') + '</div></div>';
+}
+var PANG_BG = ['#FFD3A1', '#B9DEFF', '#FFC0CF', '#C3EDB8', '#DCCBFF', '#FFEE9A', '#AEEBE3'];   // 사람 종류마다 바탕색(작은 칸에서도 한눈에)
+function pangSwap(a, c) {
+  var q = G.q, b = q.b, t = b[a]; b[a] = b[c]; b[c] = t;
+  var lines = pangLines(b);
+  if (!lines.length) { b[c] = b[a]; b[a] = t; q.sel = -1; drawPang(); var e = document.querySelector('[data-p="' + a + '"]'); if (e) e.classList.add('wrong'); buzz(30); return; }
+  q.sel = -1; q.combo = 0; G.busy = true; pangResolve(lines);
+}
+function pangResolve(lines) {
+  var q = G.q; q.combo++;
+  var pop = {}; lines.forEach(function (i) { pop[i] = 1; });
+  drawPang(pop);
+  var pts = lines.length * 20 * q.combo;
+  G.score += pts; msg((q.combo > 1 ? q.combo + '연속 ' : '') + lines.length + '명 검거 +' + pts, 'ok'); buzz(15 + q.combo * 10);
+  setTimeout(function () {
+    if (!G) return;
+    lines.forEach(function (i) { q.b[i] = -1; }); pangFall(q);
+    var more = pangLines(q.b);
+    if (more.length) { drawPang(); setTimeout(function () { if (G) pangResolve(more); }, 180); }
+    else {
+      drawPang(); G.busy = false;
+      G.hits += 1; addTime(1);   // 한 번 맞출 때마다 +1초, 네 번마다 단계(종류 늘어남)
+      if (G.hits % 4 === 0 && G.st < 3) { G.st++; toast('사람 종류가 늘어요'); var keep = q.combo; G.q = makePang(G.st); drawPang(); }
+    }
+  }, 320);
 }
 
 $('stagebox').addEventListener('click', function (e) {
-  if (!G || G.busy) return;
+  if (!G || G.busy || swiped) return;
   var b = e.target.closest('button'); if (!b) return;
   var q = G.q;
   if (mode === 'guess') {
@@ -357,35 +407,55 @@ $('stagebox').addEventListener('click', function (e) {
     s.className = 'stamp'; s.textContent = q.arrest ? '체포' : '통과'; s.style.color = q.arrest ? '#C0392B' : '#2E7D4F'; pr.appendChild(s);
     if (ok) good(80, 1, (q.arrest ? '체포 ' + q.why : '통과') + ' +80'); else bad(q.arrest ? '놓쳤어요: ' + q.why : '죄 없는 사람이에요');
     G.busy = true; later(next, ok ? 450 : 1100);
-  } else if (mode === 'ladder') {
-    if (b.dataset.j == null) return;
-    var id2 = q.board[+b.dataset.j];
-    if (id2 === q.chain[q.at + 1]) {
-      q.at++; buzz(10);
-      if (q.at === q.L) { drawLadder(); var nw = document.querySelector('#stagebox .card.cur'); if (nw) nw.classList.add('right'); good(90 + q.L * 30, 3, '지금 모습 찾음 +' + (90 + q.L * 30)); G.busy = true; later(next, 750); }
-      else { drawLadder(); msg(''); }
-    } else {
-      var d2 = dist(id2, q.chain[q.at], q.act);
-      b.classList.add('wrong'); bad(d2 >= 2 ? d2 + '개가 달라요' : '그 길은 막혀요');
+  } else if (mode === 'pair') {
+    if (b.dataset.j == null || b.disabled) return;
+    var j3 = +b.dataset.j; if (q.up.length >= 2) return;
+    q.up.push(j3); q.flips++; drawPair();
+    if (q.up.length === 2) {
+      var x1 = q.cards[q.up[0]], x2 = q.cards[q.up[1]];
+      if (key(x1, q.act) === key(x2, q.act)) {
+        q.done[q.up[0]] = q.done[q.up[1]] = 1; q.up = []; G.score += 40; msg('공범 검거 +40', 'ok'); buzz(20);
+        drawPair();
+        if (Object.keys(q.done).length === q.cards.length) { var bonus = Math.max(40, 240 - (q.flips - q.cards.length) * 15); good(bonus, 4, '전원 검거 +' + bonus); G.busy = true; later(next, 700); }
+      } else {
+        G.busy = true; msg(dist(x1, x2, q.act) === 1 ? '닮았지만 하나가 달라요' : '');
+        later(function () { q.up = []; G.busy = false; drawPair(); }, 750);
+      }
     }
-  } else if (mode === 'mine') {
-    if (b.dataset.m != null) { G.flagMode = b.dataset.m === '1'; drawMine(); return; }
-    if (b.dataset.c == null) return;
-    var c = +b.dataset.c;
-    if (q.open[c] || q.flag[c] || q.lost[c]) return;
-    if (!q.mines) placeMines(q, c);
-    if (G.flagMode) {
-      if (q.mines[c]) { q.flag[c] = 1; G.score += 40; msg('체포 +40', 'ok'); buzz(20); }
-      else { openCell(q, c); bad('빈집이에요'); }
+  } else if (mode === 'seat') {
+    if (b.dataset.o == null) return;
+    var pick = q.opts[+b.dataset.o], ansS = q.grid[q.holes[q.at]];
+    if (key(pick, q.act) === key(ansS, q.act)) {
+      q.at++;
+      if (q.at < q.holes.length) { q.opts = seatOpts(q.grid[q.holes[q.at]], q.act); drawSeat(); msg('한 자리 더', 'ok'); buzz(15); }
+      else { drawSeat(); good(100 + q.act.length * 30, 3, '배치 완료 +' + (100 + q.act.length * 30)); G.busy = true; later(next, 650); }
     } else {
-      if (q.mines[c]) { q.lost[c] = 1; bad('놓쳤어요'); }
-      else openCell(q, c);
+      var wrongAt = q.act.filter(function (i) { return C.decode(pick)[i] !== C.decode(ansS)[i]; }).map(function (i) { return NAMES[i]; });
+      b.classList.add('wrong'); bad(wrongAt.join(', ') + '이 겹쳐요');
     }
-    drawMine();
-    var done = Object.keys(q.mines).every(function (k) { return q.flag[k] || q.lost[k]; });
-    if (done) { var got = Object.keys(q.flag).length; good(60 + got * 40, 4, got + '명 검거 +' + (60 + got * 40)); G.busy = true; later(next, 900); }
+  } else if (mode === 'pang') {
+    if (b.dataset.p == null) return;
+    var pi = +b.dataset.p;
+    if (q.sel < 0) { q.sel = pi; drawPang(); return; }
+    var sx = q.sel % 6, sy = Math.floor(q.sel / 6), px = pi % 6, py = Math.floor(pi / 6);
+    if (Math.abs(sx - px) + Math.abs(sy - py) === 1) pangSwap(q.sel, pi);
+    else { q.sel = pi === q.sel ? -1 : pi; drawPang(); }
   }
 });
+// 검거팡: 밀어서 바꾸기
+(function () {
+  var sx = 0, sy = 0, from = -1;
+  $('stagebox').addEventListener('pointerdown', function (e) { if (mode !== 'pang' || !G || G.busy) return; var c = e.target.closest('[data-p]'); if (!c) return; from = +c.dataset.p; sx = e.clientX; sy = e.clientY; });
+  $('stagebox').addEventListener('pointerup', function (e) {
+    if (from < 0 || !G || G.busy) { from = -1; return; }
+    var dx = e.clientX - sx, dy = e.clientY - sy, f = from; from = -1;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    var x = f % 6, y = Math.floor(f / 6), to = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? (x < 5 ? f + 1 : -1) : (x > 0 ? f - 1 : -1)) : (dy > 0 ? (y < 5 ? f + 6 : -1) : (y > 0 ? f - 6 : -1));
+    if (to >= 0) { G.q.sel = -1; pangSwap(f, to); e.preventDefault(); }
+    swiped = true; setTimeout(function () { swiped = false; }, 50);
+  });
+})();
+var swiped = false;
 window.__selfTest = selfTest; window.__G = function () { return G; };   // 검수용
 selfTest(); intro();
 })();
