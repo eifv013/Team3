@@ -12,6 +12,16 @@ if os.path.exists(BIG): shutil.rmtree(BIG)
 os.makedirs(BIG)
 SNOW = {'koala_b', 'ragdoll_b'}; RAIN = {'wolf'}   # 날씨: 현장(_b)은 비, 눈 그림은 눈, 나머지는 실내
 names = sorted(os.listdir(SRC))
+# 0.13.22 세로 그림(<id>_t.png, 9:16): 한정 뽑기 등장 컷이 폰 화면을 꽉 채우게. 자르지 않고 720px 너비로 줄여서 따로 둔다
+tall = {}
+for n in names:
+    if not n.endswith('_t.png'):
+        continue
+    ti = Image.open(os.path.join(SRC, n)).convert('RGB')
+    tw = 720; ti = ti.resize((tw, round(ti.height * tw / ti.width)), Image.LANCZOS)
+    tb = io.BytesIO(); ti.save(tb, 'WEBP', quality=80, method=6)
+    tall[n[:-6]] = 'data:image/webp;base64,' + base64.b64encode(tb.getvalue()).decode()
+names = [n for n in names if not n.endswith('_t.png')]
 for n in names:
     if not n.endswith('.png'):
         continue
@@ -57,6 +67,8 @@ js = """/*
 if (typeof window !== 'undefined') window.Team3NoirHot = """ + json.dumps(hot) + """;
 // 0.13.15 크게 보기용 큰 그림 주소(게임 옆 noir/ 폴더). 못 받으면 위의 작은 그림을 쓴다
 if (typeof window !== 'undefined') window.Team3NoirBig = """ + json.dumps(big) + """;
+// 0.13.22 한정 뽑기 등장 컷용 세로 그림(9:16)
+if (typeof window !== 'undefined') window.Team3NoirTall = """ + json.dumps(tall) + """;
 """
 open(os.path.join(ROOT, 'src', 'noirpics.js'), 'w').write(js)
 print('코드네임 그림', len(out), '종 ·', len(js) // 1024, 'KB')

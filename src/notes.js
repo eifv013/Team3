@@ -9,6 +9,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.13.22', date: '2026-11-27', title: '고스트 등장 컷',
+      items: [
+        '고스트 등장 컷이 폰 화면을 꽉 채워요.'
+      ] },
     { ver: '0.13.21', date: '2026-11-27', title: '한정 뽑기 연출',
       items: [
         '한정 뽑기에서 고스트가 나오면 특별한 등장 연출이 나와요.'

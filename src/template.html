@@ -1884,6 +1884,12 @@ button.bgp-w{border:0;font-family:inherit;color:var(--text);box-shadow:inset 0 0
 @keyframes lcup{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes lcslam{0%{opacity:0;transform:scale(2.6) translateY(-10px);filter:blur(4px)}60%{opacity:1;filter:none}100%{opacity:1;transform:none}}
 @keyframes lcstp{from{opacity:0;transform:rotate(-14deg) scale(2.6)}to{opacity:1;transform:rotate(-14deg) scale(1)}}
+/* 0.13.22 세로 그림(9:16): 폰 화면을 꽉 채운다. 폰이 그림보다 길면 양옆만 조금 덜어 내고, 인물 쪽(왼쪽)을 남긴다 */
+.lc.tall img{inset:0;top:0;width:100%;height:100%;max-width:none;margin:0;aspect-ratio:auto;object-fit:cover;object-position:32% 50%}
+.lc.tall .lc-sheen{top:0;bottom:0;max-width:none;aspect-ratio:auto}
+.lc.tall .lc-grad{top:52%;bottom:0;height:auto;background:linear-gradient(180deg,transparent,rgba(5,4,10,.55) 45%,rgba(5,4,10,.9))}
+.lc.tall .lc-tx{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 7%)}
+.lc.tall .lc-stamp{top:calc(env(safe-area-inset-top,0px) + 6%)}
 /* 한정 예고: 보라 상자, 진짜 비(캔버스), 약한 경광등 */
 .gx-rain{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .6s;pointer-events:none;z-index:0}
 .gx.lim .gx-rain{opacity:.7}.gx.lc-on .gx-rain{opacity:0}

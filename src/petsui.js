@@ -495,9 +495,9 @@
     /* ---- 0.13.21 한정: 등장 컷(폴리스 라인 → 그림 → 코드네임) ---- */
     function showLim() {
       clear(); phase = 'lim'; limShown = true;
-      var sp = P.BY_ID[limR.id], st = limR.star || 1, cut = document.createElement('div');
-      cut.className = 'lc';
-      cut.innerHTML = '<div class="lc-bgb" style="background-image:url(' + limPic + ')"></div><img alt="" src="' + limPic + '"><div class="lc-sheen"></div><div class="lc-grad"></div>' +
+      var sp = P.BY_ID[limR.id], st = limR.star || 1, cut = document.createElement('div'), tall = (root.Team3NoirTall || {})[limR.id];
+      cut.className = 'lc' + (tall ? ' tall' : '');   // 0.13.22 세로 그림이 있으면 화면을 꽉 채운다
+      cut.innerHTML = (tall ? '' : '<div class="lc-bgb" style="background-image:url(' + limPic + ')"></div>') + '<img alt="" src="' + (tall || limPic) + '"><div class="lc-sheen"></div><div class="lc-grad"></div>' +
         '<div class="lc-tapes"><div class="lc-tape lc-t1"><i></i></div><div class="lc-tape lc-t2"><i></i></div><div class="lc-tape lc-t3"><i></i></div><div class="lc-tape lc-t4"><i></i></div></div><div class="lc-flash"></div>' +
         '<div class="lc-stamp"><b>' + (limR.isNew ? 'NEW' : limR.treats ? '★5' : '★' + st) + '</b>특수<br>수사팀</div>' +
         '<div class="lc-tx"><span class="lc-tag">한정 전설</span><div class="lc-nm">특수수사팀 ' + esc(sp.kind) + ', ' + esc(sp.name) + '</div><div class="lc-cnl">CODENAME</div><div class="lc-cn">' + esc(P.codename(limR.id)) + '</div>' +
