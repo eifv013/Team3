@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>수사 3팀 사건 4 시안</title>
 <!--
-  사건 4 후보 세 가지를 직접 해 보는 시안. 카드는 게임과 같은 용의자 카드(시간대, 모자, 얼굴, 흔적)를 그대로 쓴다(ui.js 그리기 함수).
-    ① 심문      — 예/아니요 질문으로 용의자를 좁혀 지목(참고: 보드게임 "Guess Who?", 질문 적게 할수록 점수가 크다)
-    ② 신분증 검사 — 한 명씩 사진과 신분증을 대조해 통과/체포(참고: "Papers, Please")
-    ③ CCTV 비교 — 잠깐 본 화면과 몇 분 뒤 화면에서 옷차림이 바뀐 한 명 찾기(참고: 틀린 그림 찾기)
-  공통: 60초, 맞히면 점수와 시간 +, 틀리면 −5초. 4번 맞힐 때마다 단계 1→2→3(보는 특징이 늘어난다).
-  문제 만들기 makeAsk / makeId / makeCctv 는 정답이 늘 하나인지 selfTest() 로 확인한다.
+  사건 4 후보를 직접 해 보는 시안(2차). 카드는 게임과 같은 용의자 카드(시간대, 모자, 얼굴, 흔적)를 그대로 쓴다(ui.js 그리기 함수).
+    ① 몽타주 맞히기 — 용의자를 대조하면 특징마다 맞음/틀림이 나온다. 적게 대조하고 범인을 맞힌다(참고: Wordle, 숫자야구)
+    ② 신분증 검사   — 1차에서 남긴 후보. 사진과 신분증을 대조해 통과/체포(참고: Papers, Please)
+    ③ 변장 추적     — 범인은 한 번에 하나씩만 바꿔 입었다. 첫 모습에서 하나만 다른 사람을 따라가 지금 모습까지(참고: 단어 사다리)
+    ④ 잠복 수색     — 문을 열면 둘레 문 뒤에 숨은 범인 수가 나온다. 범인 문은 모두 체포(참고: 지뢰찾기)
+  1차의 심문, CCTV 비교는 뺐다.
+  공통: 60초, 맞히면 점수와 시간 +, 틀리면 −5초. 4번 맞힐 때마다 단계 1→2→3.
+  문제 만들기 makeGuess / makeId / makeLadder / makeMine 은 정답이 늘 하나인지 selfTest() 로 확인한다.
 -->
 <style>
 :root{--ink:#12151C;--panel:#1C212B;--panel2:#232937;--line:#2E3542;--text:#F3F0E8;--muted:#A3ACBA;--acc:#FFD23F;--miss:#FF7A59;--ok:#7BD88F}
@@ -18,7 +20,7 @@
 html,body{margin:0;background:var(--ink);color:var(--text);font-family:'IBM Plex Sans KR','Apple SD Gothic Neo','Noto Sans KR',sans-serif;word-break:keep-all}
 body{max-width:460px;margin:0 auto;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 40px);display:flex;flex-direction:column;gap:12px;overflow-x:hidden}
 h1{margin:0;font-size:22px}
-.tabs{display:flex;gap:6px}.tabs button{flex:1;height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:800;font-size:14px}
+.tabs{display:flex;gap:6px}.tabs button{white-space:nowrap;padding:0 4px}.tabs button{flex:1;height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:800;font-size:14px}
 .tabs button.on{border-color:var(--acc);color:var(--acc)}
 .box{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .box h2{margin:0;font-size:19px}
@@ -51,18 +53,41 @@ h1{margin:0;font-size:22px}
 .g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
 .g4 .card .t,.g4 .card .m{width:22px;height:22px}.g4 .card .t svg,.g4 .card .m svg{width:15px;height:15px}
 
-/* ① 심문 */
-.ask-room{background:linear-gradient(180deg,#232A38,#191E28);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px}
-.qs{display:flex;flex-direction:column;gap:6px}
-.qrow{display:flex;gap:6px;align-items:center}
-.qrow > span{width:44px;flex:0 0 auto;font-size:12px;font-weight:800;color:var(--muted)}
-.qrow button{flex:1;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-weight:800;font-size:13px}
-.qrow button.used{opacity:.35}
-.qrow button.yes{border-color:var(--ok);color:var(--ok);opacity:1}.qrow button.no{border-color:var(--miss);color:var(--miss);opacity:1}
-.ans{min-height:40px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:16px}
-.ans i{font-style:normal;padding:6px 14px;border-radius:999px;background:var(--panel2)}
-.ans i.y{background:rgba(123,216,143,.18);color:var(--ok)}.ans i.n{background:rgba(255,122,89,.18);color:var(--miss)}
-.qcount{font-size:12px;color:var(--muted);text-align:center}
+/* ① 몽타주 맞히기 */
+.room{background:linear-gradient(180deg,#232A38,#191E28);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px}
+.room .card{aspect-ratio:1/1}.room .card .fig{width:70%}
+.mtg{display:flex;align-items:center;gap:10px;background:#EFE7D4;color:#2A2118;border-radius:10px;padding:8px 10px}
+.mtg-q{width:40px;height:40px;border-radius:8px;background:#2A2118;color:#EFE7D4;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px}
+.mtg-t{font-weight:900;font-size:15px;flex:1}.mtg-n{font-size:12px;font-weight:800;color:#6B5A40}
+.hist{display:flex;flex-direction:column;gap:5px;min-height:44px}
+.trow{display:flex;gap:5px;align-items:center}
+.card.mini{width:40px;flex:0 0 auto;aspect-ratio:1/1;border-radius:8px}.card.mini .t,.card.mini .m{display:none}.card.mini .fig{width:80%}
+.tile{flex:1;min-width:0;border-radius:8px;padding:3px 4px;text-align:center;font-size:10px;font-weight:800;line-height:1.25}
+.tile b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.g{background:#2E7D4F;color:#E8FFEF}.tile.x{background:#3A4150;color:#B8C0CC}
+.cnt{flex:1;height:40px;border-radius:8px;background:#3A4150;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px}
+/* ③ 변장 추적 */
+.trail{display:flex;align-items:center;gap:3px;min-height:44px;flex-wrap:nowrap;overflow:hidden}
+.trail .arr{font-style:normal;color:var(--muted);font-weight:900}
+.trail .card.mini.now{box-shadow:0 0 0 3px var(--acc)}
+.trail .left{margin-left:auto;font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
+.card.cur{box-shadow:inset 0 0 0 4px var(--acc);opacity:1;filter:none}
+/* ④ 잠복 수색 */
+.apt{background:linear-gradient(180deg,#2A2F3C,#1B1F28);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px}
+.apt-hd{display:flex;justify-content:space-between;font-weight:900;font-size:14px}.apt-hd span:last-child{color:var(--acc)}
+.doors{display:grid;gap:6px}
+.door{position:relative;aspect-ratio:1/1;border:0;border-radius:8px;background:linear-gradient(180deg,#6B4C38,#553A2A);box-shadow:inset 0 0 0 2px #3A2618,inset -10px 0 0 rgba(0,0,0,.12);font:inherit;color:#fff;padding:0;overflow:hidden}
+.door:after{content:'';position:absolute;right:16%;top:52%;width:6px;height:6px;border-radius:50%;background:#E2B44A}
+.door.open{background:#E9E3D6;box-shadow:inset 0 0 0 1px #C9C0AE}.door.open:after,.door.got:after,.door.lost:after{display:none}
+.door b{font-size:20px;font-weight:900}
+.door.n1 b{color:#2F6FD0}.door.n2 b{color:#2E8B4F}.door.n3 b{color:#C0392B}.door.n4 b,.door.n5 b{color:#6A2C91}
+.door.got{background:#F4EFE2;box-shadow:0 0 0 3px var(--ok)}.door.lost{background:#F4EFE2;box-shadow:0 0 0 3px var(--miss);opacity:.55}
+.door .fig{position:absolute;left:50%;bottom:0;width:84%;transform:translateX(-50%)}.door .t,.door .m,.door .pick,.door .no{display:none}
+.door em{position:absolute;left:0;right:0;top:2px;font-style:normal;font-size:10px;font-weight:900;color:#2E7D4F}
+.modes{display:flex;gap:8px}
+.modes button{flex:1;height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel2);color:var(--muted);font:inherit;font-weight:900;font-size:16px}
+.modes button.on{border-color:var(--acc);color:#1B1E24;background:var(--acc)}
+.modes button.arrest.on{background:#C0392B;border-color:#C0392B;color:#fff}
 
 /* ② 신분증 */
 .desk{background:linear-gradient(180deg,#3A2E24,#2A211A);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
@@ -80,29 +105,15 @@ h1{margin:0;font-size:22px}
 .btn-pass{background:#2E7D4F;color:#fff}.btn-arrest{background:#C0392B;color:#fff}
 .stamp{position:absolute;right:12px;top:40%;transform:rotate(-14deg);font-size:26px;font-weight:900;border:4px solid;padding:2px 10px;border-radius:8px;opacity:.9}
 
-/* ③ CCTV */
-.cctv{position:relative;background:#0C1016;border-radius:16px;padding:10px;overflow:hidden}
-.cctv:before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 2px,transparent 2px 4px)}
-.cctv .bar{display:flex;justify-content:space-between;align-items:center;font-family:ui-monospace,monospace;font-size:13px;color:#9FE8A9;margin-bottom:8px}
-.cctv .bar .rec{color:#FF5A5A}
-.cctv .bar .rec:before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF5A5A;margin-right:5px;animation:blink 1s steps(2) infinite}
-@keyframes blink{50%{opacity:0}}
-.cctv .grid .card{filter:saturate(.75) contrast(1.05)}
-.cctv .grid .card.out{filter:grayscale(1)}
-.mem{height:6px;border-radius:3px;background:#243040;overflow:hidden;margin-top:8px}
-.mem i{display:block;height:100%;background:#9FE8A9;width:100%}
-.cctv.flash:after{content:'';position:absolute;inset:0;z-index:4;background:#fff;animation:fl .35s ease-out forwards;pointer-events:none}
-@keyframes fl{from{opacity:.8}to{opacity:0}}
 .hide{display:none!important}
 /* 판이 돌 때는 제목을 숨겨 작은 폰(SE)에서도 한 화면에 들어오게 */
 body.playing h1{display:none}
-.ask-room .card{aspect-ratio:1/1}.ask-room .card .fig{width:70%}
-@media (max-height:700px){.ask-room{padding:8px;gap:8px}.ask-room .grid{gap:6px}.qrow button{height:34px}.ans{min-height:32px}}
+@media (max-height:700px){.room,.apt{padding:8px;gap:8px}.room .grid{gap:6px}.doors{gap:5px}.modes button{height:42px}}
 </style>
 </head>
 <body>
 <h1>사건 4 시안</h1>
-<div class="tabs" id="tabs"><button data-k="ask" class="on">① 심문</button><button data-k="id">② 신분증</button><button data-k="cctv">③ CCTV</button></div>
+<div class="tabs" id="tabs"><button data-k="guess" class="on">몽타주</button><button data-k="id">신분증</button><button data-k="ladder">변장</button><button data-k="mine">잠복</button></div>
 <div class="box" id="intro"></div>
 <div id="play" class="hide" style="display:flex;flex-direction:column;gap:10px">
   <div class="hud"><span class="t" id="time">60</span><span class="st" id="stage">단계 1</span><span class="s" id="score">0</span></div>
@@ -769,7 +780,7 @@ var C = window.SuspectsCore;
   }
   // 버튼으로 쓰는 카드 한 장(판·튜토리얼 공용)
 
-function cardHtml(id, act, attrs) { return '<button class="card" ' + (attrs || '') + ' style="background:' + look(id, act).bg + '">' + cardInner(id, null, act) + '</button>'; }
+function cardHtml(id, act, attrs, cls) { return '<button class="card' + (cls ? ' ' + cls : '') + '" ' + (attrs || '') + ' style="background:' + look(id, act).bg + '">' + cardInner(id, null, act) + '</button>'; }
 
 var $ = function (id) { return document.getElementById(id); };
 function ri(n) { return Math.floor(Math.random() * n); }
@@ -779,25 +790,24 @@ var NAMES = C.ATTRS.map(function (a) { return a.name; }), VALS = C.ATTRS.map(fun
 var ACT = { 1: [1, 2], 2: [0, 1, 2], 3: [0, 1, 2, 3] };
 var NEW = { 2: '새 단서: 시간대', 3: '새 단서: 흔적' };
 function key(id, act) { var v = C.decode(id); return act.map(function (i) { return v[i]; }).join(''); }
+function dist(a, b, act) { var x = C.decode(a), y = C.decode(b); return act.filter(function (i) { return x[i] !== y[i]; }).length; }
 function rndId() { return ri(81); }
 // 보는 특징이 서로 다른 카드 n 장
-function distinct(n, act, must) {
-  var out = must ? [must] : [], seen = {}; if (must) seen[key(must, act)] = 1;
-  var g = 0;
-  while (out.length < n && g++ < 2000) { var id = rndId(), k = key(id, act); if (!seen[k]) { seen[k] = 1; out.push(id); } }
+function distinct(n, act) {
+  var out = [], seen = {}, g = 0;
+  while (out.length < n && g++ < 3000) { var id = rndId(), k = key(id, act); if (!seen[k]) { seen[k] = 1; out.push(id); } }
   return out;
 }
-// 특징 i 하나만 바꾼 카드
-function change(id, i) { var v = C.decode(id).slice(); v[i] = (v[i] + 1 + ri(2)) % 3; return C.encode(v); }
 
-/* ---------- ① 심문: 예/아니요 질문으로 좁히기 ---------- */
-function makeAsk(st) {
-  var act = ACT[st], n = st === 1 ? 9 : 12;
-  var board = distinct(n, act), ans = board[ri(n)];
-  return { act: act, board: board, ans: ans, asked: {}, out: {}, q: 0 };
+/* ---------- ① 몽타주 맞히기(Wordle) ----------
+ *   판의 용의자 중 하나가 범인. 카드를 눌러 대조하면 특징마다 맞음(초록)/틀림(회색)이 나온다.
+ *   단계 3은 어느 특징인지 안 알려 주고 "몇 개 맞음"만(숫자야구). 맞히면 대조 횟수가 적을수록 점수가 크다. */
+function makeGuess(st) {
+  var act = ACT[st], n = st === 1 ? 9 : 12, board = distinct(n, act);
+  return { act: act, board: board, ans: board[ri(n)], tries: [], countOnly: st === 3 };
 }
-/* ---------- ② 신분증: 사진과 신분증이 다르면 위조 ---------- */
-var WANTED = [[1, 2], [2, 2], [1, 1], [2, 1], [3, 0], [3, 2]];   // [특징, 값] 수배 조건 하나
+/* ---------- ② 신분증(1차 그대로) ---------- */
+var WANTED = [[1, 2], [2, 2], [1, 1], [2, 1], [3, 0], [3, 2]];
 function makeId(st) {
   var act = ACT[st], id = rndId(), doc = C.decode(id).slice(), forged = Math.random() < 0.5, diff = -1;
   if (forged) { diff = act[ri(act.length)]; doc[diff] = (doc[diff] + 1 + ri(2)) % 3; }
@@ -806,34 +816,77 @@ function makeId(st) {
   var wantedHit = !!(w && C.decode(id)[w[0]] === w[1]);
   return { act: act, id: id, doc: doc, forged: forged, diff: diff, wanted: w, arrest: forged || wantedHit, why: forged ? NAMES[diff] + '이 달라요' : wantedHit ? '수배 조건' : '' };
 }
-/* ---------- ③ CCTV: 바뀐 한 명 ---------- */
-function makeCctv(st) {
-  var act = ACT[st], n = st === 1 ? 4 : 6, before = distinct(n, act), who = ri(n), i = act[ri(act.length)];
-  var after = before.slice(), c = change(before[who], i), g = 0;
-  // 바뀐 모습이 다른 사람과 똑같아지지 않게
-  while (before.some(function (b, k) { return k !== who && key(b, act) === key(c, act); }) && g++ < 50) { i = act[ri(act.length)]; c = change(before[who], i); }
-  after[who] = c;
-  var order = before.map(function (_, k) { return k; });
-  if (st === 3) shuffle(order);   // 단계 3: 다음 화면에서 자리가 섞인다
-  return { act: act, before: before, after: after, who: who, attr: i, order: order, show: st === 1 ? 3000 : st === 2 ? 2600 : 2200 };
+/* ---------- ③ 변장 추적(단어 사다리) ----------
+ *   범인은 한 번에 하나씩만 바꿔 입었다. 첫 모습(c0)에서 시작해 "하나만 다른" 사람을 따라가면 지금 모습(마지막)에 닿는다.
+ *   어느 걸음에서든 하나만 다른 사람은 판에 딱 한 명(아직 안 지나간 사람 중) → 길은 늘 하나. */
+function makeLadder(st) {
+  var act = st === 1 ? [0, 1, 2] : [0, 1, 2, 3], L = st === 1 ? 3 : st === 2 ? 4 : 5, n = st === 1 ? 9 : 12;
+  for (var tries = 0; tries < 4000; tries++) {
+    var chain = [rndId()], ok = true;
+    for (var i = 0; i < L && ok; i++) {   // 하나씩 바꿔 가며 길 만들기(지난 모습과는 둘 이상 달라야 길이 갈리지 않는다)
+      var cur = chain[chain.length - 1], cand = [];
+      for (var k = 0; k < 81; k++) if (dist(k, cur, act) === 1 && key(k, act) !== key(cur, act) &&
+          chain.every(function (c, j) { return j === chain.length - 1 || dist(k, c, act) >= 2; })) cand.push(k);
+      if (!cand.length) ok = false; else chain.push(cand[ri(cand.length)]);
+    }
+    if (!ok) continue;
+    var board = chain.slice(), g = 0;
+    while (board.length < n && g++ < 600) {   // 섞을 사람: 길 위 누구와도 하나만 다르면 안 된다(길이 갈림) — 단계 3은 둘 다른 "닮은 사람"을 일부러
+      var x = rndId();
+      if (board.some(function (b) { return key(b, act) === key(x, act); })) continue;
+      if (chain.some(function (c) { return dist(x, c, act) <= 1; })) continue;
+      board.push(x);
+    }
+    if (board.length < n) continue;
+    if (!ladderUnique(chain, board, act)) continue;
+    return { act: act, chain: chain, board: shuffle(board), at: 0, L: L };
+  }
+  throw new Error('ladder gen');
+}
+function ladderUnique(chain, board, act) {
+  for (var i = 0; i < chain.length - 1; i++) {
+    var used = chain.slice(0, i + 1), nb = board.filter(function (b) { return used.indexOf(b) < 0 && dist(b, chain[i], act) === 1; });
+    if (nb.length !== 1 || nb[0] !== chain[i + 1]) return false;
+  }
+  return true;
+}
+/* ---------- ④ 잠복 수색(지뢰찾기) ----------
+ *   아파트 문 칸. 열면 둘레 8칸 문 뒤 범인 수가 나온다. 범인 문은 체포 모드로 눌러 잡는다.
+ *   범인 문을 열면 놓친다(−5초). 범인을 다 잡으면 다음 동. 첫 칸은 늘 안전(0이 나와 둘레가 같이 열린다). */
+function makeMine(st) {
+  var w = st === 1 ? 4 : 5, h = st === 1 ? 4 : 5, m = st === 1 ? 2 : st === 2 ? 4 : 5;
+  return { w: w, h: h, m: m, mines: null, open: {}, flag: {}, lost: {}, faces: {} };
+}
+function placeMines(q, safe) {
+  var cells = [], sx = safe % q.w, sy = Math.floor(safe / q.w);
+  for (var i = 0; i < q.w * q.h; i++) { var x = i % q.w, y = Math.floor(i / q.w); if (Math.abs(x - sx) > 1 || Math.abs(y - sy) > 1) cells.push(i); }
+  shuffle(cells); q.mines = {}; cells.slice(0, q.m).forEach(function (i) { q.mines[i] = 1; q.faces[i] = rndId(); });
+}
+function around(q, i) { var x = i % q.w, y = Math.floor(i / q.w), out = []; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; var nx = x + dx, ny = y + dy; if (nx >= 0 && ny >= 0 && nx < q.w && ny < q.h) out.push(ny * q.w + nx); } return out; }
+function count(q, i) { return around(q, i).filter(function (j) { return q.mines[j]; }).length; }
+function openCell(q, i) {   // 0 이면 둘레도 연다
+  if (q.open[i] || q.flag[i]) return; q.open[i] = 1;
+  if (!q.mines[i] && count(q, i) === 0) around(q, i).forEach(function (j) { if (!q.mines[j]) openCell(q, j); });
 }
 
 function selfTest() {
-  for (var s = 1; s <= 3; s++) for (var k = 0; k < 300; k++) {
-    var a = makeAsk(s); if (a.board.indexOf(a.ans) < 0 || new Set(a.board.map(function (x) { return key(x, a.act); })).size !== a.board.length) throw new Error('ask');
+  for (var s = 1; s <= 3; s++) for (var k = 0; k < 120; k++) {
+    var a = makeGuess(s); if (a.board.indexOf(a.ans) < 0 || new Set(a.board.map(function (x) { return key(x, a.act); })).size !== a.board.length) throw new Error('guess');
     var d = makeId(s), v = C.decode(d.id), mism = d.act.filter(function (i) { return v[i] !== d.doc[i]; }).length; if (mism !== (d.forged ? 1 : 0)) throw new Error('id');
-    var c = makeCctv(s), dif = c.before.filter(function (b, j) { return key(b, c.act) !== key(c.after[j], c.act); }).length; if (dif !== 1) throw new Error('cctv');
+    var l = makeLadder(s); if (l.chain.length !== l.L + 1 || !ladderUnique(l.chain, l.board, l.act)) throw new Error('ladder');
+    var m = makeMine(s); placeMines(m, 0); if (Object.keys(m.mines).length !== m.m || m.mines[0] || count(m, 0) !== 0) throw new Error('mine');
   }
   return true;
 }
 
 /* ---------- 공통 판 ---------- */
 var INFO = {
-  ask: { t: '① 심문', rule: ['용의자 중 한 명이 범인이에요.', '아래 질문을 누르면 "예/아니요"로 답해요. 안 맞는 사람은 흐려져요.', '범인이라 생각되면 카드를 눌러 지목해요. 질문을 적게 할수록 점수가 커요.'], ref: '참고: 보드게임 Guess Who?, 스무고개' },
+  guess: { t: '① 몽타주 맞히기', rule: ['용의자 중 한 명이 범인이에요. 카드를 누르면 범인 몽타주와 대조해요.', '특징마다 맞으면 초록, 틀리면 회색으로 알려 줘요.', '적게 대조하고 맞힐수록 점수가 커요. 단계 3은 "몇 개 맞음"만 알려 줘요.'], ref: '참고: Wordle, 숫자야구' },
   id: { t: '② 신분증 검사', rule: ['한 명씩 사진과 신분증이 와요.', '하나라도 다르면 위조, 체포. 모두 같으면 통과.', '단계 3부터는 수배 조건에 걸리면 신분증이 맞아도 체포해요.'], ref: '참고: Papers, Please' },
-  cctv: { t: '③ CCTV 비교', rule: ['CCTV 화면을 잠깐 보여 줘요. 잘 기억해요.', '몇 분 뒤 화면에서 옷차림이 바뀐 한 명을 찾아 눌러요.', '단계 3부터는 다음 화면에서 자리가 섞여요.'], ref: '참고: 틀린 그림 찾기' }
+  ladder: { t: '③ 변장 추적', rule: ['범인은 한 번에 하나씩만 바꿔 입었어요.', '노란 테두리(첫 모습)에서 시작해, 하나만 다른 사람을 차례로 눌러요.', '더 갈 곳이 없는 사람이 지금 모습이에요. 끝까지 가면 검거.'], ref: '참고: 단어 사다리' },
+  mine: { t: '④ 잠복 수색', rule: ['문을 열면 둘레 여덟 문 뒤에 숨은 범인 수가 나와요.', '범인이 있는 문은 체포로 바꿔 눌러요. 범인 문을 열면 놓쳐요.', '범인을 다 잡으면 다음 동으로 가요.'], ref: '참고: 지뢰찾기' }
 };
-var mode = 'ask', startSt = 1, G = null, timer = 0;
+var mode = 'guess', startSt = 1, G = null, timer = 0;
 function intro() {
   var I = INFO[mode];
   $('intro').innerHTML = '<h2>' + I.t + '</h2><ul class="rule">' + I.rule.map(function (r) { return '<li>' + r + '</li>'; }).join('') + '</ul><div class="ref">' + I.ref + '</div>' +
@@ -858,7 +911,7 @@ function start() {
   $('intro').classList.add('hide'); $('end').classList.add('hide'); $('play').classList.remove('hide'); document.body.classList.add('playing');
   clearInterval(timer); timer = setInterval(tick, 100); next(); tick();
 }
-function stop() { document.body.classList.remove('playing'); clearInterval(timer); clearTimeout(G && G.memT); G = null; }
+function stop() { document.body.classList.remove('playing'); clearInterval(timer); G = null; }
 function tick() {
   if (!G) return;
   var left = Math.max(0, (G.end - Date.now()) / 1000);
@@ -879,23 +932,22 @@ function finish() {
   $('end').classList.remove('hide');
 }
 $('end').addEventListener('click', function (e) { if (e.target.id === 'again') start(); if (e.target.id === 'back') intro(); });
-function next() { G.busy = false; ({ ask: nextAsk, id: nextId, cctv: nextCctv })[mode](); }
+function next() { G.busy = false; msg(''); ({ guess: nextGuess, id: nextId, ladder: nextLadder, mine: nextMine })[mode](); }
+function later(f, ms) { setTimeout(function () { if (G) f(); }, ms); }
 
-/* ① 심문 화면 */
-function nextAsk() {
-  var q = G.q = makeAsk(G.st);
-  drawAsk(); msg('');
-}
-function drawAsk() {
+/* ① 몽타주 화면 */
+function nextGuess() { G.q = makeGuess(G.st); drawGuess(); }
+function drawGuess() {
   var q = G.q, cols = q.board.length === 9 ? 'g3' : 'g4';
-  var rows = q.act.map(function (i) {
-    return '<div class="qrow"><span>' + NAMES[i] + '</span>' + VALS[i].map(function (v, k) {
-      var a = q.asked[i + ':' + k];
-      return '<button data-q="' + i + ':' + k + '" class="' + (a ? 'used ' + a : '') + '">' + v + '?</button>';
-    }).join('') + '</div>';
+  var tried = {}; q.tries.forEach(function (t) { tried[t.j] = t; });
+  var hist = q.tries.slice(-3).map(function (t) {
+    return '<div class="trow">' + cardHtml(q.board[t.j], q.act, 'disabled', 'mini') + (q.countOnly
+      ? '<span class="cnt">' + t.hit + ' / ' + q.act.length + ' 맞음</span>'
+      : q.act.map(function (i) { var ok = C.decode(q.board[t.j])[i] === C.decode(q.ans)[i]; return '<span class="tile ' + (ok ? 'g' : 'x') + '">' + NAMES[i] + '<b>' + VALS[i][C.decode(q.board[t.j])[i]] + '</b></span>'; }).join('')) + '</div>';
   }).join('');
-  $('stagebox').innerHTML = '<div class="ask-room"><div class="grid ' + cols + '">' + q.board.map(function (id, j) { return cardHtml(id, q.act, 'data-j="' + j + '"' + (q.out[j] ? ' disabled' : '')).replace('class="card"', 'class="card' + (q.out[j] ? ' out' : '') + '"'); }).join('') +
-    '</div><div class="ans" id="ans">' + (q.last || '<span class="ref">질문을 골라요</span>') + '</div><div class="qs">' + rows + '</div><div class="qcount">질문 ' + q.q + '번 (질문마다 −2초)</div></div>';
+  $('stagebox').innerHTML = '<div class="room"><div class="mtg"><span class="mtg-q">?</span><div class="mtg-t">범인 몽타주</div><div class="mtg-n">대조 ' + q.tries.length + '번</div></div>' +
+    '<div class="hist">' + (hist || '<div class="ref" style="text-align:center;padding:10px 0">카드를 눌러 대조해요</div>') + '</div>' +
+    '<div class="grid ' + cols + '">' + q.board.map(function (id, j) { return cardHtml(id, q.act, 'data-j="' + j + '"' + (tried[j] ? ' disabled' : ''), tried[j] ? 'out' : ''); }).join('') + '</div></div>';
 }
 /* ② 신분증 화면 */
 function nextId() {
@@ -906,45 +958,47 @@ function nextId() {
     q.act.map(function (i) { return '<div class="row"><span>' + NAMES[i] + '</span>' + VALS[i][v[i]] + '</div>'; }).join('') + '</div></div>' +
     '<div class="btns"><button class="btn-pass" data-a="pass">통과</button><button class="btn-arrest" data-a="arrest">체포</button></div></div>';
 }
-/* ③ CCTV 화면 */
-function nextCctv() {
-  var q = G.q = makeCctv(G.st), cols = q.before.length === 4 ? 'g4' : 'g3', hh = 22 + ri(2), mm = ri(5) * 10;
-  var t0 = pad(hh) + ':' + pad(mm), t1 = pad(hh) + ':' + pad(mm + 5);
-  $('stagebox').innerHTML = '<div class="cctv" id="cam"><div class="bar"><span class="rec">CAM 03</span><span id="clock">' + t0 + '</span></div><div class="grid ' + cols + '" id="cg">' +
-    q.before.map(function (id) { return cardHtml(id, q.act, 'disabled'); }).join('') + '</div><div class="mem"><i id="memb"></i></div></div>';
-  msg('잘 봐 두세요');
-  var b = $('memb'); b.style.transition = 'none'; b.style.width = '100%'; void b.offsetWidth; b.style.transition = 'width ' + q.show + 'ms linear'; b.style.width = '0%';
-  G.busy = true;
-  G.memT = setTimeout(function () {
-    if (!G) return;
-    $('cam').classList.remove('flash'); void $('cam').offsetWidth; $('cam').classList.add('flash');
-    $('clock').textContent = t1;
-    $('cg').innerHTML = q.order.map(function (k) { return cardHtml(q.after[k], q.act, 'data-k="' + k + '"'); }).join('');
-    $('memb').parentNode.style.visibility = 'hidden';
-    msg('바뀐 사람은?'); G.busy = false;
-  }, q.show);
+/* ③ 변장 추적 화면 */
+function nextLadder() { G.q = makeLadder(G.st); drawLadder(); }
+function drawLadder() {
+  var q = G.q, cols = q.board.length === 9 ? 'g3' : 'g4', cur = q.chain[q.at], passed = q.chain.slice(0, q.at);
+  var trail = q.chain.slice(0, q.at + 1).map(function (id, k) { return (k ? '<i class="arr">›</i>' : '') + cardHtml(id, q.act, 'disabled', 'mini' + (k === q.at ? ' now' : '')); }).join('');
+  $('stagebox').innerHTML = '<div class="room"><div class="trail">' + trail + '<span class="left">' + (q.L - q.at) + '걸음 남음</span></div>' +
+    '<div class="grid ' + cols + '">' + q.board.map(function (id, j) {
+      var c = id === cur ? 'cur' : passed.indexOf(id) >= 0 ? 'out' : '';
+      return cardHtml(id, q.act, 'data-j="' + j + '"' + (c ? ' disabled' : ''), c);
+    }).join('') + '</div></div>';
 }
-function pad(n) { return (n < 10 ? '0' : '') + n; }
+/* ④ 잠복 수색 화면 */
+function nextMine() { G.q = makeMine(G.st); G.flagMode = false; drawMine(); }
+function drawMine() {
+  var q = G.q, cells = '';
+  for (var i = 0; i < q.w * q.h; i++) {
+    var c = 'door', t = '';
+    if (q.lost[i]) { c += ' lost'; t = cardInner(q.faces[i], null, [1, 2]); }
+    else if (q.flag[i]) { c += ' got'; t = cardInner(q.faces[i], null, [1, 2]) + '<em>체포</em>'; }
+    else if (q.open[i]) { var n = count(q, i); c += ' open n' + n; t = n ? '<b>' + n + '</b>' : ''; }
+    cells += '<button class="' + c + '" data-c="' + i + '">' + t + '</button>';
+  }
+  var left = q.m - Object.keys(q.flag).length - Object.keys(q.lost).length;
+  $('stagebox').innerHTML = '<div class="apt"><div class="apt-hd"><span>' + (101 + G.hits) + '동</span><span>남은 범인 ' + left + '</span></div>' +
+    '<div class="doors" style="grid-template-columns:repeat(' + q.w + ',1fr)">' + cells + '</div>' +
+    '<div class="modes"><button data-m="0" class="' + (G.flagMode ? '' : 'on') + '">문 열기</button><button data-m="1" class="arrest' + (G.flagMode ? ' on' : '') + '">체포</button></div></div>';
+}
 
 $('stagebox').addEventListener('click', function (e) {
   if (!G || G.busy) return;
   var b = e.target.closest('button'); if (!b) return;
   var q = G.q;
-  if (mode === 'ask') {
-    if (b.dataset.q) {
-      if (q.asked[b.dataset.q]) return;
-      var p = b.dataset.q.split(':'), i = +p[0], k = +p[1], yes = C.decode(q.ans)[i] === k;
-      q.asked[b.dataset.q] = yes ? 'yes' : 'no'; q.q++; addTime(-2);
-      q.board.forEach(function (id, j) { if ((C.decode(id)[i] === k) !== yes) q.out[j] = 1; });
-      q.last = '<i class="' + (yes ? 'y' : 'n') + '">' + NAMES[i] + ' ' + VALS[i][k] + '? ' + (yes ? '예' : '아니요') + '</i>';
-      drawAsk(); return;
-    }
-    if (b.dataset.j != null) {
-      var j = +b.dataset.j;
-      if (q.board[j] === q.ans) {
-        var pts = 100 + Math.max(0, 4 - q.q) * 50;
-        b.classList.add('right'); good(pts, 3, '검거 +' + pts + (q.q <= 2 ? ' 날카로운 심문!' : '')); G.busy = true; setTimeout(function () { if (G) next(); }, 650);
-      } else { q.out[j] = 1; b.classList.add('wrong'); bad('엉뚱한 사람'); setTimeout(function () { if (G) drawAsk(); }, 400); }
+  if (mode === 'guess') {
+    if (b.dataset.j == null) return;
+    var j = +b.dataset.j, id = q.board[j];
+    if (id === q.ans) {
+      var n = q.tries.length + 1, pts = [0, 300, 220, 160, 120][n] || 80;
+      b.classList.add('right'); good(pts, 3, n === 1 ? '한 번에! +' + pts : '검거 +' + pts); G.busy = true; later(next, 700);
+    } else {
+      var hit = q.act.filter(function (i) { return C.decode(id)[i] === C.decode(q.ans)[i]; }).length;
+      q.tries.push({ j: j, hit: hit }); addTime(-1); drawGuess(); msg('');
     }
   } else if (mode === 'id') {
     if (!b.dataset.a) return;
@@ -952,19 +1006,37 @@ $('stagebox').addEventListener('click', function (e) {
     var pr = document.querySelector('.pair'), s = document.createElement('div');
     s.className = 'stamp'; s.textContent = q.arrest ? '체포' : '통과'; s.style.color = q.arrest ? '#C0392B' : '#2E7D4F'; pr.appendChild(s);
     if (ok) good(80, 1, (q.arrest ? '체포 ' + q.why : '통과') + ' +80'); else bad(q.arrest ? '놓쳤어요: ' + q.why : '죄 없는 사람이에요');
-    G.busy = true; setTimeout(function () { if (G) next(); }, ok ? 450 : 1100);
-  } else if (mode === 'cctv') {
-    if (b.dataset.k == null) return;
-    var kk = +b.dataset.k;
-    if (kk === q.who) { b.classList.add('right'); good(150, 3, NAMES[q.attr] + '이 바뀌었어요 +150'); G.busy = true; setTimeout(function () { if (G) next(); }, 700); }
-    else {
-      b.classList.add('wrong'); bad('아니에요');
-      var r = document.querySelector('#cg [data-k="' + q.who + '"]'); if (r) r.classList.add('right');
-      G.busy = true; setTimeout(function () { if (G) next(); }, 1200);
+    G.busy = true; later(next, ok ? 450 : 1100);
+  } else if (mode === 'ladder') {
+    if (b.dataset.j == null) return;
+    var id2 = q.board[+b.dataset.j];
+    if (id2 === q.chain[q.at + 1]) {
+      q.at++; buzz(10);
+      if (q.at === q.L) { drawLadder(); var nw = document.querySelector('#stagebox .card.cur'); if (nw) nw.classList.add('right'); good(90 + q.L * 30, 3, '지금 모습 찾음 +' + (90 + q.L * 30)); G.busy = true; later(next, 750); }
+      else { drawLadder(); msg(''); }
+    } else {
+      var d2 = dist(id2, q.chain[q.at], q.act);
+      b.classList.add('wrong'); bad(d2 >= 2 ? d2 + '개가 달라요' : '그 길은 막혀요');
     }
+  } else if (mode === 'mine') {
+    if (b.dataset.m != null) { G.flagMode = b.dataset.m === '1'; drawMine(); return; }
+    if (b.dataset.c == null) return;
+    var c = +b.dataset.c;
+    if (q.open[c] || q.flag[c] || q.lost[c]) return;
+    if (!q.mines) placeMines(q, c);
+    if (G.flagMode) {
+      if (q.mines[c]) { q.flag[c] = 1; G.score += 40; msg('체포 +40', 'ok'); buzz(20); }
+      else { openCell(q, c); bad('빈집이에요'); }
+    } else {
+      if (q.mines[c]) { q.lost[c] = 1; bad('놓쳤어요'); }
+      else openCell(q, c);
+    }
+    drawMine();
+    var done = Object.keys(q.mines).every(function (k) { return q.flag[k] || q.lost[k]; });
+    if (done) { var got = Object.keys(q.flag).length; good(60 + got * 40, 4, got + '명 검거 +' + (60 + got * 40)); G.busy = true; later(next, 900); }
   }
 });
-window.__selfTest = selfTest;
+window.__selfTest = selfTest; window.__G = function () { return G; };   // 검수용
 selfTest(); intro();
 })();
 </script>
