@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>수사 3팀 사건 4 시안</title>
+<!--
+  사건 4 후보 세 가지를 직접 해 보는 시안. 카드는 게임과 같은 용의자 카드(시간대, 모자, 얼굴, 흔적)를 그대로 쓴다(ui.js 그리기 함수).
+    ① 심문      — 예/아니요 질문으로 용의자를 좁혀 지목(참고: 보드게임 "Guess Who?", 질문 적게 할수록 점수가 크다)
+    ② 신분증 검사 — 한 명씩 사진과 신분증을 대조해 통과/체포(참고: "Papers, Please")
+    ③ CCTV 비교 — 잠깐 본 화면과 몇 분 뒤 화면에서 옷차림이 바뀐 한 명 찾기(참고: 틀린 그림 찾기)
+  공통: 60초, 맞히면 점수와 시간 +, 틀리면 −5초. 4번 맞힐 때마다 단계 1→2→3(보는 특징이 늘어난다).
+  문제 만들기 makeAsk / makeId / makeCctv 는 정답이 늘 하나인지 selfTest() 로 확인한다.
+-->
+<style>
+:root{--ink:#12151C;--panel:#1C212B;--panel2:#232937;--line:#2E3542;--text:#F3F0E8;--muted:#A3ACBA;--acc:#FFD23F;--miss:#FF7A59;--ok:#7BD88F}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--ink);color:var(--text);font-family:'IBM Plex Sans KR','Apple SD Gothic Neo','Noto Sans KR',sans-serif;word-break:keep-all}
+body{max-width:460px;margin:0 auto;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 40px);display:flex;flex-direction:column;gap:12px;overflow-x:hidden}
+h1{margin:0;font-size:22px}
+.tabs{display:flex;gap:6px}.tabs button{flex:1;height:46px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-weight:800;font-size:14px}
+.tabs button.on{border-color:var(--acc);color:var(--acc)}
+.box{background:var(--panel);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.box h2{margin:0;font-size:19px}
+.rule{margin:0;padding-left:18px;font-size:13.5px;line-height:1.6;color:#C9D0DC}
+.ref{font-size:12px;color:var(--muted)}
+.lv{display:flex;gap:6px}.lv button{flex:1;height:38px;border-radius:10px;border:1.5px solid var(--line);background:none;color:var(--muted);font:inherit;font-weight:800;font-size:13px}.lv button.on{border-color:var(--acc);color:var(--acc)}
+.go{height:54px;border-radius:14px;border:0;background:var(--acc);color:#1B1E24;font:inherit;font-weight:900;font-size:17px}
+.hud{display:flex;justify-content:space-between;align-items:center;font-weight:800}
+.hud .t{font-size:24px;font-variant-numeric:tabular-nums}.hud .t.low{color:var(--miss)}
+.hud .s{color:var(--acc);font-size:19px;font-variant-numeric:tabular-nums}
+.hud .st{font-size:12px;color:var(--muted);border:1.5px solid var(--line);border-radius:999px;padding:3px 10px}
+.msg{min-height:22px;text-align:center;font-weight:800;font-size:14px}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--miss)}
+.toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-10px);z-index:20;background:var(--acc);color:#1B1E24;font-weight:900;padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.end{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px;text-align:center}
+.end b{font-size:42px;color:var(--acc)}
+/* 게임 카드(template.html 과 같은 모양) */
+.card{position:relative;aspect-ratio:4/5;padding:0;border:0;border-radius:12px;overflow:hidden;transition:transform .12s,opacity .2s,filter .2s;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);font:inherit;color:inherit}
+.card svg{display:block}
+.card .t{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.card .m{position:absolute;bottom:6px;right:6px;width:28px;height:28px;border-radius:14px;display:flex;align-items:center;justify-content:center;z-index:1}
+.card .fig{position:absolute;left:50%;bottom:0;width:84%;transform:translateX(-50%)}
+.card .pick,.card .no{display:none}
+.card.out{opacity:.22;filter:grayscale(1)}
+.card.right{box-shadow:0 0 0 4px var(--ok)}
+.card.wrong{box-shadow:0 0 0 4px var(--miss);animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.grid{display:grid;gap:8px}
+.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.g4 .card .t,.g4 .card .m{width:22px;height:22px}.g4 .card .t svg,.g4 .card .m svg{width:15px;height:15px}
+
+/* ① 심문 */
+.ask-room{background:linear-gradient(180deg,#232A38,#191E28);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:10px}
+.qs{display:flex;flex-direction:column;gap:6px}
+.qrow{display:flex;gap:6px;align-items:center}
+.qrow > span{width:44px;flex:0 0 auto;font-size:12px;font-weight:800;color:var(--muted)}
+.qrow button{flex:1;height:38px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel2);color:var(--text);font:inherit;font-weight:800;font-size:13px}
+.qrow button.used{opacity:.35}
+.qrow button.yes{border-color:var(--ok);color:var(--ok);opacity:1}.qrow button.no{border-color:var(--miss);color:var(--miss);opacity:1}
+.ans{min-height:40px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;font-size:16px}
+.ans i{font-style:normal;padding:6px 14px;border-radius:999px;background:var(--panel2)}
+.ans i.y{background:rgba(123,216,143,.18);color:var(--ok)}.ans i.n{background:rgba(255,122,89,.18);color:var(--miss)}
+.qcount{font-size:12px;color:var(--muted);text-align:center}
+
+/* ② 신분증 */
+.desk{background:linear-gradient(180deg,#3A2E24,#2A211A);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.pair{display:flex;gap:10px;align-items:stretch;animation:slidein .28s cubic-bezier(.2,1.2,.4,1)}
+@keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+.pair .card{width:42%;flex:0 0 auto;align-self:center}
+.idc{flex:1;background:#EFE7D4;color:#2A2118;border-radius:10px;padding:10px 10px 8px;box-shadow:0 4px 0 #B9AA8A;display:flex;flex-direction:column;gap:6px}
+.idc .hd{display:flex;justify-content:space-between;font-size:11px;font-weight:900;letter-spacing:1px;color:#6B5A40;border-bottom:1.5px dashed #B9AA8A;padding-bottom:5px}
+.idc .row{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;gap:6px}
+.idc .row span{color:#8A7A60;font-weight:700;font-size:12px;flex:0 0 auto}
+.wanted{background:#5A1F1F;color:#FFD9D0;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center}
+.wanted b{background:#FF7A59;color:#2A0E0E;border-radius:6px;padding:2px 6px;font-size:11px}
+.btns{display:flex;gap:8px}
+.btns button{flex:1;height:56px;border-radius:14px;border:0;font:inherit;font-weight:900;font-size:18px}
+.btn-pass{background:#2E7D4F;color:#fff}.btn-arrest{background:#C0392B;color:#fff}
+.stamp{position:absolute;right:12px;top:40%;transform:rotate(-14deg);font-size:26px;font-weight:900;border:4px solid;padding:2px 10px;border-radius:8px;opacity:.9}
+
+/* ③ CCTV */
+.cctv{position:relative;background:#0C1016;border-radius:16px;padding:10px;overflow:hidden}
+.cctv:before{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 2px,transparent 2px 4px)}
+.cctv .bar{display:flex;justify-content:space-between;align-items:center;font-family:ui-monospace,monospace;font-size:13px;color:#9FE8A9;margin-bottom:8px}
+.cctv .bar .rec{color:#FF5A5A}
+.cctv .bar .rec:before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF5A5A;margin-right:5px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.cctv .grid .card{filter:saturate(.75) contrast(1.05)}
+.cctv .grid .card.out{filter:grayscale(1)}
+.mem{height:6px;border-radius:3px;background:#243040;overflow:hidden;margin-top:8px}
+.mem i{display:block;height:100%;background:#9FE8A9;width:100%}
+.cctv.flash:after{content:'';position:absolute;inset:0;z-index:4;background:#fff;animation:fl .35s ease-out forwards;pointer-events:none}
+@keyframes fl{from{opacity:.8}to{opacity:0}}
+.hide{display:none!important}
+/* 판이 돌 때는 제목을 숨겨 작은 폰(SE)에서도 한 화면에 들어오게 */
+body.playing h1{display:none}
+.ask-room .card{aspect-ratio:1/1}.ask-room .card .fig{width:70%}
+@media (max-height:700px){.ask-room{padding:8px;gap:8px}.ask-room .grid{gap:6px}.qrow button{height:34px}.ans{min-height:32px}}
+</style>
+</head>
+<body>
+<h1>사건 4 시안</h1>
+<div class="tabs" id="tabs"><button data-k="ask" class="on">① 심문</button><button data-k="id">② 신분증</button><button data-k="cctv">③ CCTV</button></div>
+<div class="box" id="intro"></div>
+<div id="play" class="hide" style="display:flex;flex-direction:column;gap:10px">
+  <div class="hud"><span class="t" id="time">60</span><span class="st" id="stage">단계 1</span><span class="s" id="score">0</span></div>
+  <div id="stagebox"></div>
+  <div class="msg" id="msg"></div>
+</div>
+<div class="box end hide" id="end"></div>
+<div class="toast" id="toast"></div>
+<script>
+/*CORE*/
+</script>
+<script>
+(function () {
+'use strict';
+var C = window.SuspectsCore;
+/*CARDFNS*/
+function cardHtml(id, act, attrs) { return '<button class="card" ' + (attrs || '') + ' style="background:' + look(id, act).bg + '">' + cardInner(id, null, act) + '</button>'; }
+
+var $ = function (id) { return document.getElementById(id); };
+function ri(n) { return Math.floor(Math.random() * n); }
+function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = ri(i + 1), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+var NAMES = C.ATTRS.map(function (a) { return a.name; }), VALS = C.ATTRS.map(function (a) { return a.values; });
+// 단계마다 보는 특징: 1 = 모자, 얼굴 / 2 = + 시간대 / 3 = 넷 다
+var ACT = { 1: [1, 2], 2: [0, 1, 2], 3: [0, 1, 2, 3] };
+var NEW = { 2: '새 단서: 시간대', 3: '새 단서: 흔적' };
+function key(id, act) { var v = C.decode(id); return act.map(function (i) { return v[i]; }).join(''); }
+function rndId() { return ri(81); }
+// 보는 특징이 서로 다른 카드 n 장
+function distinct(n, act, must) {
+  var out = must ? [must] : [], seen = {}; if (must) seen[key(must, act)] = 1;
+  var g = 0;
+  while (out.length < n && g++ < 2000) { var id = rndId(), k = key(id, act); if (!seen[k]) { seen[k] = 1; out.push(id); } }
+  return out;
+}
+// 특징 i 하나만 바꾼 카드
+function change(id, i) { var v = C.decode(id).slice(); v[i] = (v[i] + 1 + ri(2)) % 3; return C.encode(v); }
+
+/* ---------- ① 심문: 예/아니요 질문으로 좁히기 ---------- */
+function makeAsk(st) {
+  var act = ACT[st], n = st === 1 ? 9 : 12;
+  var board = distinct(n, act), ans = board[ri(n)];
+  return { act: act, board: board, ans: ans, asked: {}, out: {}, q: 0 };
+}
+/* ---------- ② 신분증: 사진과 신분증이 다르면 위조 ---------- */
+var WANTED = [[1, 2], [2, 2], [1, 1], [2, 1], [3, 0], [3, 2]];   // [특징, 값] 수배 조건 하나
+function makeId(st) {
+  var act = ACT[st], id = rndId(), doc = C.decode(id).slice(), forged = Math.random() < 0.5, diff = -1;
+  if (forged) { diff = act[ri(act.length)]; doc[diff] = (doc[diff] + 1 + ri(2)) % 3; }
+  var w = null;
+  if (st === 3) { w = WANTED[ri(WANTED.length)]; if (!forged && Math.random() < 0.3) { var v = C.decode(id).slice(); v[w[0]] = w[1]; id = C.encode(v); doc = v.slice(); } }
+  var wantedHit = !!(w && C.decode(id)[w[0]] === w[1]);
+  return { act: act, id: id, doc: doc, forged: forged, diff: diff, wanted: w, arrest: forged || wantedHit, why: forged ? NAMES[diff] + '이 달라요' : wantedHit ? '수배 조건' : '' };
+}
+/* ---------- ③ CCTV: 바뀐 한 명 ---------- */
+function makeCctv(st) {
+  var act = ACT[st], n = st === 1 ? 4 : 6, before = distinct(n, act), who = ri(n), i = act[ri(act.length)];
+  var after = before.slice(), c = change(before[who], i), g = 0;
+  // 바뀐 모습이 다른 사람과 똑같아지지 않게
+  while (before.some(function (b, k) { return k !== who && key(b, act) === key(c, act); }) && g++ < 50) { i = act[ri(act.length)]; c = change(before[who], i); }
+  after[who] = c;
+  var order = before.map(function (_, k) { return k; });
+  if (st === 3) shuffle(order);   // 단계 3: 다음 화면에서 자리가 섞인다
+  return { act: act, before: before, after: after, who: who, attr: i, order: order, show: st === 1 ? 3000 : st === 2 ? 2600 : 2200 };
+}
+
+function selfTest() {
+  for (var s = 1; s <= 3; s++) for (var k = 0; k < 300; k++) {
+    var a = makeAsk(s); if (a.board.indexOf(a.ans) < 0 || new Set(a.board.map(function (x) { return key(x, a.act); })).size !== a.board.length) throw new Error('ask');
+    var d = makeId(s), v = C.decode(d.id), mism = d.act.filter(function (i) { return v[i] !== d.doc[i]; }).length; if (mism !== (d.forged ? 1 : 0)) throw new Error('id');
+    var c = makeCctv(s), dif = c.before.filter(function (b, j) { return key(b, c.act) !== key(c.after[j], c.act); }).length; if (dif !== 1) throw new Error('cctv');
+  }
+  return true;
+}
+
+/* ---------- 공통 판 ---------- */
+var INFO = {
+  ask: { t: '① 심문', rule: ['용의자 중 한 명이 범인이에요.', '아래 질문을 누르면 "예/아니요"로 답해요. 안 맞는 사람은 흐려져요.', '범인이라 생각되면 카드를 눌러 지목해요. 질문을 적게 할수록 점수가 커요.'], ref: '참고: 보드게임 Guess Who?, 스무고개' },
+  id: { t: '② 신분증 검사', rule: ['한 명씩 사진과 신분증이 와요.', '하나라도 다르면 위조, 체포. 모두 같으면 통과.', '단계 3부터는 수배 조건에 걸리면 신분증이 맞아도 체포해요.'], ref: '참고: Papers, Please' },
+  cctv: { t: '③ CCTV 비교', rule: ['CCTV 화면을 잠깐 보여 줘요. 잘 기억해요.', '몇 분 뒤 화면에서 옷차림이 바뀐 한 명을 찾아 눌러요.', '단계 3부터는 다음 화면에서 자리가 섞여요.'], ref: '참고: 틀린 그림 찾기' }
+};
+var mode = 'ask', startSt = 1, G = null, timer = 0;
+function intro() {
+  var I = INFO[mode];
+  $('intro').innerHTML = '<h2>' + I.t + '</h2><ul class="rule">' + I.rule.map(function (r) { return '<li>' + r + '</li>'; }).join('') + '</ul><div class="ref">' + I.ref + '</div>' +
+    '<div class="lv">' + [1, 2, 3].map(function (s) { return '<button data-s="' + s + '"' + (s === startSt ? ' class="on"' : '') + '>단계 ' + s + '부터</button>'; }).join('') + '</div>' +
+    '<button class="go" id="go">출동</button>';
+  $('intro').classList.remove('hide'); $('play').classList.add('hide'); $('end').classList.add('hide');
+}
+$('intro').addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'go') start();
+  else if (b.dataset.s) { startSt = +b.dataset.s; intro(); }
+});
+$('tabs').addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return; stop();
+  mode = b.dataset.k; [].forEach.call($('tabs').children, function (x) { x.classList.toggle('on', x === b); }); intro();
+});
+function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { el.classList.remove('on'); }, 1300); }
+function msg(t, c) { var m = $('msg'); m.textContent = t || ''; m.className = 'msg' + (c ? ' ' + c : ''); }
+function buzz(v) { try { navigator.vibrate && navigator.vibrate(v); } catch (e) {} }
+function start() {
+  G = { t: 60, score: 0, st: startSt, hits: 0, end: Date.now() + 60000, busy: false };
+  $('intro').classList.add('hide'); $('end').classList.add('hide'); $('play').classList.remove('hide'); document.body.classList.add('playing');
+  clearInterval(timer); timer = setInterval(tick, 100); next(); tick();
+}
+function stop() { document.body.classList.remove('playing'); clearInterval(timer); clearTimeout(G && G.memT); G = null; }
+function tick() {
+  if (!G) return;
+  var left = Math.max(0, (G.end - Date.now()) / 1000);
+  $('time').textContent = Math.ceil(left); $('time').classList.toggle('low', left < 10);
+  $('score').textContent = G.score.toLocaleString(); $('stage').textContent = '단계 ' + G.st;
+  if (left <= 0) finish();
+}
+function addTime(s) { G.end += s * 1000; }
+function good(pts, sec, text) {
+  G.score += pts; addTime(sec); G.hits++; msg(text || ('검거 +' + pts), 'ok'); buzz(20);
+  if (G.hits % 4 === 0 && G.st < 3) { G.st++; toast(NEW[G.st]); }
+}
+function bad(text) { addTime(-5); msg((text ? text + ' ' : '') + '−5초', 'bad'); buzz([40, 40, 40]); }
+function finish() {
+  var s = G.score, h = G.hits; stop();
+  $('play').classList.add('hide');
+  $('end').innerHTML = '<div>검거 ' + h + '명</div><b>' + s.toLocaleString() + '</b><div class="ref">점수</div><button class="go" id="again" style="width:100%;margin-top:8px">다시</button><button class="go" id="back" style="width:100%;background:var(--panel2);color:var(--text)">규칙 보기</button>';
+  $('end').classList.remove('hide');
+}
+$('end').addEventListener('click', function (e) { if (e.target.id === 'again') start(); if (e.target.id === 'back') intro(); });
+function next() { G.busy = false; ({ ask: nextAsk, id: nextId, cctv: nextCctv })[mode](); }
+
+/* ① 심문 화면 */
+function nextAsk() {
+  var q = G.q = makeAsk(G.st);
+  drawAsk(); msg('');
+}
+function drawAsk() {
+  var q = G.q, cols = q.board.length === 9 ? 'g3' : 'g4';
+  var rows = q.act.map(function (i) {
+    return '<div class="qrow"><span>' + NAMES[i] + '</span>' + VALS[i].map(function (v, k) {
+      var a = q.asked[i + ':' + k];
+      return '<button data-q="' + i + ':' + k + '" class="' + (a ? 'used ' + a : '') + '">' + v + '?</button>';
+    }).join('') + '</div>';
+  }).join('');
+  $('stagebox').innerHTML = '<div class="ask-room"><div class="grid ' + cols + '">' + q.board.map(function (id, j) { return cardHtml(id, q.act, 'data-j="' + j + '"' + (q.out[j] ? ' disabled' : '')).replace('class="card"', 'class="card' + (q.out[j] ? ' out' : '') + '"'); }).join('') +
+    '</div><div class="ans" id="ans">' + (q.last || '<span class="ref">질문을 골라요</span>') + '</div><div class="qs">' + rows + '</div><div class="qcount">질문 ' + q.q + '번 (질문마다 −2초)</div></div>';
+}
+/* ② 신분증 화면 */
+function nextId() {
+  var q = G.q = makeId(G.st), v = q.doc;
+  $('stagebox').innerHTML = '<div class="desk">' + (q.wanted ? '<div class="wanted"><b>수배</b>' + NAMES[q.wanted[0]] + ' ' + VALS[q.wanted[0]][q.wanted[1]] + '</div>' : '') +
+    '<div class="pair" style="position:relative">' + cardHtml(q.id, q.act, 'disabled').replace('<button', '<div').replace('</button>', '</div>') +
+    '<div class="idc"><div class="hd"><span>신분증</span><span>No.' + (1000 + ri(9000)) + '</span></div>' +
+    q.act.map(function (i) { return '<div class="row"><span>' + NAMES[i] + '</span>' + VALS[i][v[i]] + '</div>'; }).join('') + '</div></div>' +
+    '<div class="btns"><button class="btn-pass" data-a="pass">통과</button><button class="btn-arrest" data-a="arrest">체포</button></div></div>';
+}
+/* ③ CCTV 화면 */
+function nextCctv() {
+  var q = G.q = makeCctv(G.st), cols = q.before.length === 4 ? 'g4' : 'g3', hh = 22 + ri(2), mm = ri(5) * 10;
+  var t0 = pad(hh) + ':' + pad(mm), t1 = pad(hh) + ':' + pad(mm + 5);
+  $('stagebox').innerHTML = '<div class="cctv" id="cam"><div class="bar"><span class="rec">CAM 03</span><span id="clock">' + t0 + '</span></div><div class="grid ' + cols + '" id="cg">' +
+    q.before.map(function (id) { return cardHtml(id, q.act, 'disabled'); }).join('') + '</div><div class="mem"><i id="memb"></i></div></div>';
+  msg('잘 봐 두세요');
+  var b = $('memb'); b.style.transition = 'none'; b.style.width = '100%'; void b.offsetWidth; b.style.transition = 'width ' + q.show + 'ms linear'; b.style.width = '0%';
+  G.busy = true;
+  G.memT = setTimeout(function () {
+    if (!G) return;
+    $('cam').classList.remove('flash'); void $('cam').offsetWidth; $('cam').classList.add('flash');
+    $('clock').textContent = t1;
+    $('cg').innerHTML = q.order.map(function (k) { return cardHtml(q.after[k], q.act, 'data-k="' + k + '"'); }).join('');
+    $('memb').parentNode.style.visibility = 'hidden';
+    msg('바뀐 사람은?'); G.busy = false;
+  }, q.show);
+}
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+$('stagebox').addEventListener('click', function (e) {
+  if (!G || G.busy) return;
+  var b = e.target.closest('button'); if (!b) return;
+  var q = G.q;
+  if (mode === 'ask') {
+    if (b.dataset.q) {
+      if (q.asked[b.dataset.q]) return;
+      var p = b.dataset.q.split(':'), i = +p[0], k = +p[1], yes = C.decode(q.ans)[i] === k;
+      q.asked[b.dataset.q] = yes ? 'yes' : 'no'; q.q++; addTime(-2);
+      q.board.forEach(function (id, j) { if ((C.decode(id)[i] === k) !== yes) q.out[j] = 1; });
+      q.last = '<i class="' + (yes ? 'y' : 'n') + '">' + NAMES[i] + ' ' + VALS[i][k] + '? ' + (yes ? '예' : '아니요') + '</i>';
+      drawAsk(); return;
+    }
+    if (b.dataset.j != null) {
+      var j = +b.dataset.j;
+      if (q.board[j] === q.ans) {
+        var pts = 100 + Math.max(0, 4 - q.q) * 50;
+        b.classList.add('right'); good(pts, 3, '검거 +' + pts + (q.q <= 2 ? ' 날카로운 심문!' : '')); G.busy = true; setTimeout(function () { if (G) next(); }, 650);
+      } else { q.out[j] = 1; b.classList.add('wrong'); bad('엉뚱한 사람'); setTimeout(function () { if (G) drawAsk(); }, 400); }
+    }
+  } else if (mode === 'id') {
+    if (!b.dataset.a) return;
+    var ok = (b.dataset.a === 'arrest') === q.arrest;
+    var pr = document.querySelector('.pair'), s = document.createElement('div');
+    s.className = 'stamp'; s.textContent = q.arrest ? '체포' : '통과'; s.style.color = q.arrest ? '#C0392B' : '#2E7D4F'; pr.appendChild(s);
+    if (ok) good(80, 1, (q.arrest ? '체포 ' + q.why : '통과') + ' +80'); else bad(q.arrest ? '놓쳤어요: ' + q.why : '죄 없는 사람이에요');
+    G.busy = true; setTimeout(function () { if (G) next(); }, ok ? 450 : 1100);
+  } else if (mode === 'cctv') {
+    if (b.dataset.k == null) return;
+    var kk = +b.dataset.k;
+    if (kk === q.who) { b.classList.add('right'); good(150, 3, NAMES[q.attr] + '이 바뀌었어요 +150'); G.busy = true; setTimeout(function () { if (G) next(); }, 700); }
+    else {
+      b.classList.add('wrong'); bad('아니에요');
+      var r = document.querySelector('#cg [data-k="' + q.who + '"]'); if (r) r.classList.add('right');
+      G.busy = true; setTimeout(function () { if (G) next(); }, 1200);
+    }
+  }
+});
+window.__selfTest = selfTest;
+selfTest(); intro();
+})();
+</script>
+</body>
+</html>
