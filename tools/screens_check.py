@@ -208,6 +208,25 @@ def main():
         pg.screenshot(path=SHOT + 's_lineup.png')
         pg.clock.run_for(400000)
 
+        # 0.14.0 사건 4 신분증 검사: 창구 하나, 맞히면 다음 사람 · 점수, 틀리면 −초, 단서는 맞는 줄에 초록 표시
+        pg.evaluate("() => { SuspectsUI.goHome(); SuspectsUI.startRun({ duration: 300, freeHints: 0, mode: 'idcheck', idMissPenalty: 5, idHitBonus: 0, preCheck: 0 }); }")
+        pg.clock.run_for(1500)
+        need(pg.locator('#board.idboard .id-photo').count() == 1, '신분증: 사진이 안 그려짐')
+        need(pg.locator('#board.idboard .id-row').count() == 2, '신분증: 1단계 신분증 줄이 둘이 아님')
+        need(pg.locator('#board .id-btns button').count() == 2, '신분증: 통과 · 체포 단추가 없음')
+        need(pg.locator('#says').is_hidden() and pg.locator('#btn-none').is_hidden(), '신분증: 진술서 · 검거 불가가 보임')
+        no_hscroll(pg, '신분증')
+        g = pg.evaluate("() => SuspectsUI._peek().q.arrest")
+        pg.locator('#board [data-dec="%s"]' % ('arrest' if g else 'pass')).click(); pg.clock.run_for(900)
+        need(pg.evaluate("() => SuspectsUI._peek().hits") == 1, '신분증: 맞혔는데 맞힌 수가 안 늘어남')
+        g = pg.evaluate("() => SuspectsUI._peek().q.arrest")
+        pg.locator('#board [data-dec="%s"]' % ('pass' if g else 'arrest')).click(); pg.clock.run_for(1400)
+        need(pg.evaluate("() => SuspectsUI._peek().misses") == 1, '신분증: 틀렸는데 오판이 안 늘어남')
+        pg.click('#btn-hint'); pg.clock.run_for(300)
+        need(pg.locator('#board .id-row.ok').count() >= 1, '신분증: 단서가 맞는 줄을 표시하지 않음')
+        pg.screenshot(path=SHOT + 's_idcheck.png')
+        pg.clock.run_for(400000)
+
         # 0.5.0 특별 출동 몽타주 수배: 특징이 시간에 따라 하나씩 그려지고, 맞히면 그때 배수
         pg.evaluate("() => { SuspectsUI.goHome(); SuspectsUI.startRun({ duration: 90, freeHints: 0, mode: 'montage' }); }")
         pg.clock.run_for(300)

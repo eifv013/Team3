@@ -68,6 +68,13 @@
     '.sc-t-intro,.sc-t-c1{--sc-top:#0B1426;--sc-low:#1B2A4A;--sc-glow:rgba(120,80,160,.35);--sc-moon:rgba(160,190,255,.35);--sc-acc:#FFD23F}',
     '.sc-t-c2{--sc-top:#07181C;--sc-low:#15404A;--sc-glow:rgba(120,200,210,.3);--sc-moon:rgba(170,235,240,.4);--sc-acc:#7FE0E8}',
     '.sc-t-c3{--sc-top:#140D07;--sc-low:#2E1F0D;--sc-glow:rgba(255,190,90,.22);--sc-moon:rgba(255,214,140,.4);--sc-acc:#FFC86B}',
+    '.sc-t-c4{--sc-top:#140E08;--sc-low:#3A2614;--sc-glow:rgba(255,170,80,.26);--sc-moon:rgba(255,220,170,.35);--sc-acc:#F0B860}',
+    // 0.14.0 사건 4 북문 검문소: 오가는 탐조등과 차단기
+    '.sc-search{position:absolute;left:50%;top:-6%;width:160%;height:120%;margin-left:-80%;pointer-events:none;transform-origin:50% 0;background:conic-gradient(from 168deg at 50% 0,transparent 0deg,rgba(255,214,150,.15) 8deg,rgba(255,214,150,.15) 18deg,transparent 26deg);animation:scsweep 5.5s ease-in-out infinite alternate}',
+    '@keyframes scsweep{from{transform:rotate(-24deg)}to{transform:rotate(24deg)}}',
+    '.sc-gate{position:absolute;left:10%;bottom:17%;width:58%;height:11px;border-radius:3px;background:repeating-linear-gradient(90deg,#D9413F 0 20px,#F4EFE2 20px 40px);box-shadow:0 3px 10px rgba(0,0,0,.65);transform-origin:0 50%;transform:rotate(-7deg);z-index:1}',
+    '.sc-gate:before{content:"";position:absolute;left:-9px;top:-5px;width:18px;height:64px;border-radius:3px;background:#1E1A16;box-shadow:inset 0 0 0 2px #3A3128}',
+    '.sc-gate:after{content:"";position:absolute;left:-4px;top:-14px;width:8px;height:8px;border-radius:50%;background:#FFB347;box-shadow:0 0 12px 4px rgba(255,170,70,.7);animation:scblink 1.2s steps(2) infinite}',
     '.sc-t-cx{--sc-top:#120C1C;--sc-low:#261A3E;--sc-glow:rgba(170,120,255,.3);--sc-moon:rgba(200,170,255,.4);--sc-acc:#C9B8FF}',
     '@keyframes scin{from{opacity:0}}@keyframes scout{to{opacity:0}}@keyframes scup{from{opacity:0;transform:translateY(10px)}}',
     '@keyframes scslam{from{opacity:0;transform:scale(1.5);filter:blur(6px)}}@keyframes scrule{from{transform:scaleX(0)}}',
@@ -97,6 +104,7 @@
   function fx(tone) {
     if (tone === 'c2') return '<div class="sc-beam"></div>' + many(3, function (i) { return '<div class="sc-fog" style="bottom:' + (8 + i * 15) + '%;animation-duration:' + (18 + i * 7) + 's;animation-delay:-' + (i * 5) + 's"></div>'; });
     if (tone === 'c3') return '<div class="sc-lampc"></div><div class="sc-bulb"></div><div class="sc-blind"></div><div class="sc-dust">' + many(14, function (i) { return '<i style="left:' + ((i * 37) % 90 + 5) + '%;top:' + ((i * 53) % 60 + 12) + '%;animation-duration:' + (4 + i % 5) + 's"></i>'; }) + '</div>';
+    if (tone === 'c4') return '<div class="sc-search"></div><div class="sc-gate"></div><div class="sc-rain">' + many(22, function (i) { return '<i style="left:' + ((i * 29) % 100) + '%;animation-duration:' + (0.6 + (i % 7) * 0.09) + 's;animation-delay:-' + ((i * 13) % 10) / 10 + 's;opacity:' + (0.25 + (i % 4) * 0.12) + '"></i>'; }) + '</div>';
     return '<div class="sc-siren"><i></i><i></i></div><div class="sc-rain">' + many(34, function (i) { return '<i style="left:' + ((i * 29) % 100) + '%;animation-duration:' + (0.55 + (i % 7) * 0.09) + 's;animation-delay:-' + ((i * 13) % 10) / 10 + 's;opacity:' + (0.35 + (i % 4) * 0.15) + '"></i>'; }) + '</div>';
   }
 

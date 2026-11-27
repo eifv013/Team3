@@ -334,12 +334,12 @@
   function dayNow() { return E.dayKey(nowMs(), new Date().getTimezoneOffset()); }
 
   /*
-   * 0.6.0 준비물 효과 글: 지금 사건의 퍼즐(set · witness · lineup)에 맞게. "어디에도 설명이 없음" → ? 단추 · 챙긴 것 줄에서 쓴다
+   * 0.6.0 준비물 효과 글: 지금 사건의 퍼즐(set · witness · lineup · idcheck)에 맞게. "어디에도 설명이 없음" → ? 단추 · 챙긴 것 줄에서 쓴다
    */
   function prepDesc(id) {
     var mode = I.caseOf(save).mode;
-    if (id === 'tip') return mode === 'witness' ? '첫 문제의 거짓 진술을 미리 짚어 줘요' : mode === 'lineup' ? '첫 줄에서 아닌 자리 절반을 미리 지워 줘요' : '출동을 시작할 때 한 패 하나를 미리 표시해 줘요';
-    if (id === 'lawyer') return mode === 'witness' ? '오인, 함정 체포 벌점을 2번 막아 줘요' : mode === 'lineup' ? '오인 지목 벌점을 2번 막아 줘요' : '오인 체포 벌점을 2번 막아 줘요';
+    if (id === 'tip') return mode === 'idcheck' ? '첫 신분증에서 사진과 맞는 줄 절반을 미리 확인해 줘요' : mode === 'witness' ? '첫 문제의 거짓 진술을 미리 짚어 줘요' : mode === 'lineup' ? '첫 줄에서 아닌 자리 절반을 미리 지워 줘요' : '출동을 시작할 때 한 패 하나를 미리 표시해 줘요';
+    if (id === 'lawyer') return mode === 'idcheck' ? '오판 벌점을 2번 막아 줘요' : mode === 'witness' ? '오인, 함정 체포 벌점을 2번 막아 줘요' : mode === 'lineup' ? '오인 지목 벌점을 2번 막아 줘요' : '오인 체포 벌점을 2번 막아 줘요';
     if (id === 'sketch') return '단서(돋보기)를 2번 무료로 써요';
     if (id === 'coffee') return '출동 시간 +15초';
     if (id === 'press') return '이번 출동으로 버는 수사비 1.5배';
@@ -544,7 +544,7 @@
   var PROLOGUE = ['도시의 밤은 조용한 적이 없다.', '신고는 밀려들고, 용의자는 늘 여럿이다.', '그중에서 진짜 범인을 가려내는 일.', '그게 수사 3팀의 일이다.', '오늘부터 당신이 3팀 팀장이다.'];
   function caseScene(cs, hint, onDone, last) {
     if (!SC) { if (onDone) onDone(); return; }
-    SC.play({ tone: cs.no <= 3 ? 'c' + cs.no : 'cx', kicker: '사건 ' + cs.no, title: cs.title, sub: cs.city, stamp: '수사 개시', lines: SC.sentences(cs.story[0].text), hint: hint, last: last, onDone: onDone });
+    SC.play({ tone: cs.no <= 4 ? 'c' + cs.no : 'cx', kicker: '사건 ' + cs.no, title: cs.title, sub: cs.city, stamp: '수사 개시', lines: SC.sentences(cs.story[0].text), hint: hint, last: last, onDone: onDone });
   }
   /** 처음 시작: 프롤로그 → 사건 1 장면 → then. 설정의 "처음 이야기 다시 보기"도 이것 */
   function introScene(then) {

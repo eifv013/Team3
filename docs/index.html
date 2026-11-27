@@ -895,6 +895,40 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 @media (prefers-reduced-motion:reduce){.float,.money.pop{animation-duration:.01s}.next-bar i{transition:none}}
 @media (prefers-reduced-motion:reduce){.card,.card.hit,.card.miss,.card.enter,.card.clue,.stamp.go{animation-duration:.01s}}
 
+/* ---------- 0.14.0 사건 4: 신분증 검사(검문소 창구) ---------- */
+body.case-4{--ink:#16130F;--panel:#221D17;--panel2:#2B251E;--line:#3E352A}
+body.case-4 .city-chip{color:#F0B860}
+body.case-4 #s-hub{background-image:linear-gradient(180deg,rgba(255,190,110,.06),transparent 45%),repeating-linear-gradient(135deg,rgba(240,184,96,.035) 0 10px,transparent 10px 20px)}
+.board.idboard{display:block;margin:0 -6px;padding:12px;border-radius:16px;background:linear-gradient(180deg,#3A2E24,#2A211A);border:5px solid #241C15;box-shadow:inset 0 0 0 2px #4A3A2C;overflow:hidden}
+.id-wrap{display:flex;flex-direction:column;gap:12px}
+.id-wanted{display:flex;gap:8px;align-items:center;background:#5A1F1F;color:#FFD9D0;border-radius:10px;padding:8px 12px;font-weight:800;font-size:15px}
+.id-wanted b{background:#FF7A59;color:#2A0E0E;border-radius:6px;padding:2px 7px;font-size:12px}
+.id-wanted.hit{box-shadow:0 0 0 3px #FF7A59;animation:shake .4s}
+.id-pair{display:flex;gap:12px;align-items:stretch}
+.id-pair.enter{animation:idin .3s cubic-bezier(.2,1.2,.4,1)}
+@keyframes idin{from{transform:translateX(50px);opacity:0}to{transform:none;opacity:1}}
+.board.idboard .id-photo{width:44%;flex:none;aspect-ratio:4/5;align-self:center;cursor:default}
+.id-doc{position:relative;flex:1;min-width:0;background:#EFE7D4;color:#2A2118;border-radius:12px;padding:10px 12px;box-shadow:0 5px 0 #B9AA8A;display:flex;flex-direction:column;gap:7px;overflow:hidden}
+.id-hd{display:flex;justify-content:space-between;font-size:11px;font-weight:900;letter-spacing:1px;color:#6B5A40;border-bottom:1.5px dashed #B9AA8A;padding-bottom:6px}
+.id-row{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:15px;font-weight:800;border-radius:6px;padding:3px 5px;margin:0 -5px}
+.id-row span{color:#8A7A60;font-size:12px;font-weight:700;flex:none}
+.id-row.ok{background:rgba(46,125,79,.18)}.id-row.ok b{color:#1F6B40}
+.id-row.bad{background:rgba(229,72,79,.22);color:#B3261E}
+.id-stamp{position:absolute;right:8px;bottom:12px;transform:rotate(-14deg) scale(2.2);opacity:0;border:3.5px solid;border-radius:8px;padding:1px 10px;font-size:22px;font-weight:900;pointer-events:none;background:rgba(239,231,212,.6)}
+.id-stamp.ps{color:#2E7D4F}.id-stamp.ar{color:#C0392B}
+.id-stamp.go{animation:idstamp .26s cubic-bezier(.3,1.6,.6,1) forwards}
+@keyframes idstamp{to{opacity:.95;transform:rotate(-14deg) scale(1)}}
+.id-pair.right .id-photo{box-shadow:0 0 0 3px var(--ok)}
+.id-pair.wrong{animation:shake .4s}.id-pair.wrong .id-photo{box-shadow:0 0 0 3px var(--miss)}
+.id-btns{display:flex;gap:10px}
+.id-btns button{flex:1;height:60px;border:0;border-radius:14px;font:inherit;font-weight:900;font-size:20px;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.35);transition:transform .08s,box-shadow .08s}
+.id-btns button:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.id-pass{background:#2E7D4F}.id-arrest{background:#C0392B}
+/* 작은 폰(SE): 4단계(수배 + 네 줄)에서도 단추까지 한 화면에 */
+@media (max-height:700px){.board.idboard{padding:8px}.id-wrap{gap:8px}.id-wanted{padding:5px 10px;font-size:13.5px}.id-pair{gap:8px}
+  .board.idboard .id-photo{width:38%}.id-doc{padding:7px 9px;gap:3px}.id-hd{padding-bottom:4px}.id-row{font-size:13.5px;padding:2px 4px}
+  .id-btns button{height:50px;font-size:18px}}
+@media (prefers-reduced-motion:reduce){.id-pair.enter,.id-wanted.hit,.id-pair.wrong{animation:none}.id-stamp.go{animation:none;opacity:.95;transform:rotate(-14deg)}}
 /* ---------- 0.5.0 사건 3: 면통 라인업 ---------- */
 body.case-3{--ink:#14161C;--panel:#1E222B;--panel2:#262B36;--line:#353B49}
 body.case-3 .city-chip{color:#E6D9A8}
@@ -2616,6 +2650,13 @@ body.prem-on #h-station::before{content:'👑 '}
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
   return [
+    { ver: '0.14.0', date: '2026-11-27', title: '사건 4',
+      items: [
+        '사건 3을 끝내면 사건 4가 열려요.',
+        '새 현장 출동 퍼즐 "신분증 검사": 사진과 신분증을 대조해 통과나 체포를 골라요.',
+        '사건 4 전용 출동 장비 3가지가 생겼어요.',
+        '도움말에 면통 라인업, 신분증 검사 설명이 생겼어요.'
+      ] },
     { ver: '0.13.26', date: '2026-11-27', title: '코드네임 옷',
       items: [
         '코드네임을 켠 파트너는 사무실에서 그 장면 옷을 입어요.'
@@ -3983,9 +4024,13 @@ body.prem-on #h-station::before{content:'👑 '}
     // 0.5.0: 사건 3(면통 라인업) 장비 셋
     painter:   { name: '몽타주 화가',  desc: '줄마다 아닌 사람 하나를 미리 지워 줘요', costs: [40000], case: 3 },
     lights:    { name: '조명 기사',    desc: '오인 지목 벌점 5초 → 3초 → 1초', costs: [15000, 45000], case: 3 },
-    witness2:  { name: '베테랑 증인',  desc: '검거하면 시간 +1초씩 더(최대 +3초)', costs: [16000, 48000, 144000], case: 3 }
+    witness2:  { name: '베테랑 증인',  desc: '검거하면 시간 +1초씩 더(최대 +3초)', costs: [16000, 48000, 144000], case: 3 },
+    // 0.14.0: 사건 4(신분증 검사) 장비 셋
+    uvlamp:    { name: '자외선 램프',  desc: '신분증마다 맞는 줄 하나를 미리 확인해 줘요', costs: [64000], case: 4 },
+    drill:     { name: '검문 교관',    desc: '오판 벌점 5초 → 3초 → 1초', costs: [24000, 72000], case: 4 },
+    shift:     { name: '교대 근무조',  desc: '맞히면 시간 +1초씩 더(최대 +3초)', costs: [26000, 78000, 234000], case: 4 }
   };
-  var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault', 'recorder', 'keeper', 'informant', 'painter', 'lights', 'witness2'];
+  var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault', 'recorder', 'keeper', 'informant', 'painter', 'lights', 'witness2', 'uvlamp', 'drill', 'shift'];
   // 이 사건에서 보이는(쓸 수 있는) 장비
   function gearFor(save) { var n = caseOf(save).no; return GEAR_KEYS.filter(function (k) { return !GEAR[k].case || GEAR[k].case === n; }); }
 
@@ -4059,7 +4104,29 @@ body.prem-on #h-station::before{content:'👑 '}
       { at: 8000, text: '마지막 줄의 마지막 사람을 지목하던 날, 증인이 유리 앞에서 오래 머뭇거렸다. 그리고 범인이 아니라 액자 속 지워진 얼굴 쪽으로 고개를 돌렸다. 그날 밤 내 책상 위에는 긁힌 자리를 오려 낸 사진 조각과 쪽지 한 장이 있었다. "줄 맨 끝 자리는 원래 내 자리였다. — 써드" 3팀의 네 번째 사람. 우리가 아무도 기억하지 않던 사람.\n— 다음 사건에서 계속' }
     ]
   };
-  var CASES = [CASE, CASE2, CASE3];
+  /*
+   * 사건 4 "빌린 얼굴"(0.14.0) — 무대는 북문 검문소. 현장 출동 퍼즐은 신분증 검사(idcheck.js).
+   *   여는 시점: 0 = 얼굴이 채워진 빈 신분증, 1500 = 딱 한 군데만 틀린 위조(퍼즐 규칙), 4000 = 우편 봉투의 옛 3팀 호수,
+   *              6500 = 빠진 0004번, 9000 = 팀 한계(수배 조건, 남은 건 창구에서 직접), 12000 = 종결. 써드의 진짜 이름은 아직 밝히지 않는다.
+   */
+  var CASE4 = {
+    no: 4,
+    title: '빌린 얼굴',
+    city: '북문 검문소',
+    mode: 'idcheck',
+    pay: 10,
+    goal: 12000,
+    idleCap: 9000,
+    story: [
+      { at: 0, text: '면통실 사건이 끝나고 일주일 뒤였다. 도시로 들어오는 모든 길목에서 같은 신분증이 쏟아져 나왔다. 해무항 밀수 상자에서 나온 바로 그 빈 신분증이었는데, 이번에는 빈칸 없이 이름과 얼굴이 채워져 있었다. 서장은 3팀 책상을 북문 검문소로 옮겨 놓았다. "들어오는 얼굴, 하나하나 다 맞춰 봐."' },
+      { at: 1500, text: '위조된 신분증은 언제나 딱 한 군데만 틀렸다. 모자가 맞으면 시간대가 틀렸고, 얼굴이 맞으면 흔적이 틀렸다. 두 군데를 틀린 위조는 한 장도 없었다. 해무항 목격자들과 같은, 지나치게 고른 실수였다. 만든 손이 같았다.' },
+      { at: 4000, text: '붙잡힌 사람들 대부분은 자기 신분증이 가짜인 줄도 몰랐다. 일자리를 주겠다는 쪽지와 함께 우편으로 받았다고 했다. 봉투 뒷면의 보낸 곳은 우리 서였다. 10년 전에 없어진 3팀 옛 사무실의 호수가 적혀 있었다.' },
+      { at: 6500, text: '압수한 신분증을 번호 순서대로 늘어놓자 하나가 비었다. 0004번. 서류 창고에서 찾아낸 10년 전 3팀 인사 기록도 네 번째 칸만 찢겨 나가 있었다. 남아 있는 건 발급 날짜와 지문 한 줄뿐이었다.' },
+      { at: 9000, text: '수배 명단이 내려왔다. 써드가 마지막으로 보낸 사람들은 위조가 아니라 진짜 신분증을 들고 온다. 이제는 신분증이 맞아도 수배 조건에 걸리면 세워야 한다. 책상에서 서류만 넘기는 팀으로는 거를 수 없다. 검문소 창구에 직접 앉을 차례다.' },
+      { at: 12000, text: '마지막 줄이 끝난 밤, 비어 있는 창구 위에 신분증 한 장이 놓여 있었다. 발급 번호는 0004번이었다. 사진 칸은 칼로 오려져 있었는데, 그 크기가 면통실 액자에서 긁혀 나간 얼굴과 꼭 같았다. 뒷면에는 늘 보던 손글씨가 있었다. "얼굴은 잠깐 빌려줬을 뿐이다. 이제 돌려받으러 간다. — 써드"\n— 다음 사건에서 계속' }
+    ]
+  };
+  var CASES = [CASE, CASE2, CASE3, CASE4];
   /*
    * 0.12.0 사건 수치 공식(정식 출시 7개 기준). 사건 번호만 넣으면 나온다 — 사건 4~7을 만들 때 숫자를 따로 맞추지 않는다.
    *   수사비 배수 pay = n(n+1)/2            → 1, 3, 6, 10, 15, 21, 28
@@ -4138,7 +4205,7 @@ body.prem-on #h-station::before{content:'👑 '}
       frac: 0,             // 팀이 잡다 만 몫(0~1)
       detectives: 1,       // 처음부터 1명(나 말고 동료 한 명)
       training: 0,
-      gear: { time: 0, veteran: 0, lab: 0, vault: 0, recorder: 0, keeper: 0, informant: 0, painter: 0, lights: 0, witness2: 0 },
+      gear: { time: 0, veteran: 0, lab: 0, vault: 0, recorder: 0, keeper: 0, informant: 0, painter: 0, lights: 0, witness2: 0, uvlamp: 0, drill: 0, shift: 0 },
       lastSeen: now,
       buffUntil: 0,
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
@@ -4403,7 +4470,7 @@ body.prem-on #h-station::before{content:'👑 '}
       nonePenalty: save.gear.vault ? 5 : 10,
       level: 1,
       helperAtFull: save.gear.lab > 0,
-      mode: caseOf(save).mode,  // 0.2.0: set(사건 1) | witness(사건 2) | 0.5.0: lineup(사건 3)
+      mode: caseOf(save).mode,  // 0.2.0: set(사건 1) | witness(사건 2) | 0.5.0: lineup(사건 3) | 0.14.0: idcheck(사건 4)
       // 사건 2 장비(목격자 출동에서만 쓰인다)
       trapPenalty: [8, 5, 2][save.gear.recorder] != null ? [8, 5, 2][save.gear.recorder] : 8,
       hitBonus: save.gear.informant,
@@ -4411,7 +4478,11 @@ body.prem-on #h-station::before{content:'👑 '}
       // 0.5.0 사건 3 장비(면통 라인업 출동에서만 쓰인다)
       missPenalty: [5, 3, 1][save.gear.lights] != null ? [5, 3, 1][save.gear.lights] : 5,
       lineupHitBonus: save.gear.witness2 || 0,
-      preOut: save.gear.painter > 0 ? 1 : 0
+      preOut: save.gear.painter > 0 ? 1 : 0,
+      // 0.14.0 사건 4 장비(신분증 검사 출동에서만 쓰인다)
+      idMissPenalty: [5, 3, 1][save.gear.drill] != null ? [5, 3, 1][save.gear.drill] : 5,
+      idHitBonus: save.gear.shift || 0,
+      preCheck: save.gear.uvlamp > 0 ? 1 : 0
     };
   }
 
@@ -8579,6 +8650,13 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     '.sc-t-intro,.sc-t-c1{--sc-top:#0B1426;--sc-low:#1B2A4A;--sc-glow:rgba(120,80,160,.35);--sc-moon:rgba(160,190,255,.35);--sc-acc:#FFD23F}',
     '.sc-t-c2{--sc-top:#07181C;--sc-low:#15404A;--sc-glow:rgba(120,200,210,.3);--sc-moon:rgba(170,235,240,.4);--sc-acc:#7FE0E8}',
     '.sc-t-c3{--sc-top:#140D07;--sc-low:#2E1F0D;--sc-glow:rgba(255,190,90,.22);--sc-moon:rgba(255,214,140,.4);--sc-acc:#FFC86B}',
+    '.sc-t-c4{--sc-top:#140E08;--sc-low:#3A2614;--sc-glow:rgba(255,170,80,.26);--sc-moon:rgba(255,220,170,.35);--sc-acc:#F0B860}',
+    // 0.14.0 사건 4 북문 검문소: 오가는 탐조등과 차단기
+    '.sc-search{position:absolute;left:50%;top:-6%;width:160%;height:120%;margin-left:-80%;pointer-events:none;transform-origin:50% 0;background:conic-gradient(from 168deg at 50% 0,transparent 0deg,rgba(255,214,150,.15) 8deg,rgba(255,214,150,.15) 18deg,transparent 26deg);animation:scsweep 5.5s ease-in-out infinite alternate}',
+    '@keyframes scsweep{from{transform:rotate(-24deg)}to{transform:rotate(24deg)}}',
+    '.sc-gate{position:absolute;left:10%;bottom:17%;width:58%;height:11px;border-radius:3px;background:repeating-linear-gradient(90deg,#D9413F 0 20px,#F4EFE2 20px 40px);box-shadow:0 3px 10px rgba(0,0,0,.65);transform-origin:0 50%;transform:rotate(-7deg);z-index:1}',
+    '.sc-gate:before{content:"";position:absolute;left:-9px;top:-5px;width:18px;height:64px;border-radius:3px;background:#1E1A16;box-shadow:inset 0 0 0 2px #3A3128}',
+    '.sc-gate:after{content:"";position:absolute;left:-4px;top:-14px;width:8px;height:8px;border-radius:50%;background:#FFB347;box-shadow:0 0 12px 4px rgba(255,170,70,.7);animation:scblink 1.2s steps(2) infinite}',
     '.sc-t-cx{--sc-top:#120C1C;--sc-low:#261A3E;--sc-glow:rgba(170,120,255,.3);--sc-moon:rgba(200,170,255,.4);--sc-acc:#C9B8FF}',
     '@keyframes scin{from{opacity:0}}@keyframes scout{to{opacity:0}}@keyframes scup{from{opacity:0;transform:translateY(10px)}}',
     '@keyframes scslam{from{opacity:0;transform:scale(1.5);filter:blur(6px)}}@keyframes scrule{from{transform:scaleX(0)}}',
@@ -8608,6 +8686,7 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
   function fx(tone) {
     if (tone === 'c2') return '<div class="sc-beam"></div>' + many(3, function (i) { return '<div class="sc-fog" style="bottom:' + (8 + i * 15) + '%;animation-duration:' + (18 + i * 7) + 's;animation-delay:-' + (i * 5) + 's"></div>'; });
     if (tone === 'c3') return '<div class="sc-lampc"></div><div class="sc-bulb"></div><div class="sc-blind"></div><div class="sc-dust">' + many(14, function (i) { return '<i style="left:' + ((i * 37) % 90 + 5) + '%;top:' + ((i * 53) % 60 + 12) + '%;animation-duration:' + (4 + i % 5) + 's"></i>'; }) + '</div>';
+    if (tone === 'c4') return '<div class="sc-search"></div><div class="sc-gate"></div><div class="sc-rain">' + many(22, function (i) { return '<i style="left:' + ((i * 29) % 100) + '%;animation-duration:' + (0.6 + (i % 7) * 0.09) + 's;animation-delay:-' + ((i * 13) % 10) / 10 + 's;opacity:' + (0.25 + (i % 4) * 0.12) + '"></i>'; }) + '</div>';
     return '<div class="sc-siren"><i></i><i></i></div><div class="sc-rain">' + many(34, function (i) { return '<i style="left:' + ((i * 29) % 100) + '%;animation-duration:' + (0.55 + (i % 7) * 0.09) + 's;animation-delay:-' + ((i * 13) % 10) / 10 + 's;opacity:' + (0.35 + (i % 4) * 0.15) + '"></i>'; }) + '</div>';
   }
 
@@ -9785,6 +9864,176 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
            levelForHits: levelForHits, createGame: createGame, choose: choose, hint: hint, pause: pause, resume: resume, word: word };
 });
 
+/*
+ * Team3IdCheck — 사건 4 "빌린 얼굴"의 퍼즐 규칙: 신분증 검사(0.14.0). 화면·시계·저장소와 무관하다.
+ *
+ * 규칙
+ *   검문소 창구에 한 명씩 온다. 왼쪽은 그 사람(사진 카드), 오른쪽은 그 사람이 내민 신분증(특징 글).
+ *   신분증이 사진과 한 군데라도 다르면 위조 → 체포. 모두 같으면 통과.
+ *   위조는 늘 "딱 한 군데"만 틀린다(써드의 손버릇. 이야기 1,500명 편에서 밝힌다).
+ *   4단계부터는 수배 조건이 붙는다: 신분증이 진짜여도 수배 조건(특징 하나)에 걸리면 체포.
+ *
+ * 단계(한 판 안에서 맞힌 수로 오른다)
+ *   1 : 모자, 얼굴
+ *   2 : + 시간대
+ *   3 : 네 특징 모두
+ *   4 : 네 특징 + 수배 조건
+ *
+ * 맞히면(통과든 체포든): 점수(연속 배수는 core 와 같다), 시간 +초, 다음 사람.
+ * 틀리면: 시간 −초, 연속 끊김, 다음 사람(한 명을 두 번 보지 않는다. 창구는 기다려 주지 않는다).
+ * 단서: 신분증에서 사진과 맞는 줄 절반에 확인 표시(사람마다 한 번). 위조면 틀린 줄은 늘 남는다.
+ * 장비(사건 4): 자외선 램프(사람마다 맞는 줄 하나를 미리 확인) · 검문 교관(오판 벌점 ↓) · 교대 근무조(맞히면 +초)
+ *
+ * 한 판의 시간 필드(endAt · pausedAt · over)는 core 와 같아서 SuspectsCore.timeLeft / tick / pause / resume 을 그대로 쓴다.
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./core.js'));
+  else root.Team3IdCheck = factory(root.SuspectsCore);
+})(typeof self !== 'undefined' ? self : this, function (C) {
+  'use strict';
+  var RULES = {
+    duration: 90,
+    base: 60,            // 한 명 1건 기본 점수(판단이 빨라 면통 100보다 낮게. 연속 배수는 core 와 같다)
+    hitTime: 1,          // 맞히면 +초
+    missPenalty: 5,      // 오판 −초
+    hintPenalty: 3,      // 단서 −초
+    forgedRate: 0.5,     // 위조 비율
+    wantedRate: 0.3,     // 4단계: 진짜 신분증인데 수배에 걸리는 사람 비율(위조가 아닐 때)
+    levelAt: { 1: 0, 2: 4, 3: 10, 4: 18 }
+  };
+  var LEVEL_NAME = { 1: '두 특징', 2: '세 특징', 3: '네 특징', 4: '수배 조건' };
+  var LV = {
+    1: { attrs: [1, 2] },
+    2: { attrs: [0, 1, 2] },
+    3: { attrs: [0, 1, 2, 3] },
+    4: { attrs: [0, 1, 2, 3], wanted: true }
+  };
+  function IError(code, message) { var e = new Error(message); e.name = 'IdCheckError'; e.code = code; return e; }
+  function pick(rng, n) { var i = Math.floor(rng() * n); return i >= n ? n - 1 : i; }
+
+  /**
+   * 한 사람. 반환 { id, doc:[값 4개], attrs, forged, diff(틀린 특징 번호, 없으면 -1), wanted:{a,v}|null,
+   *                arrest(정답이 체포인가), why:'forged'|'wanted'|'clean', checked:[확인 표시된 특징], level }
+   */
+  function makeQuestion(rng, level) {
+    var cfg = LV[level];
+    if (!cfg) throw IError('BAD_LEVEL', '단계는 1~4: ' + level);
+    var id = pick(rng, 81), v = C.decode(id), doc = v.slice(), attrs = cfg.attrs.slice();
+    var forged = rng() < RULES.forgedRate, diff = -1, wanted = null;
+    if (forged) { diff = attrs[pick(rng, attrs.length)]; doc[diff] = (doc[diff] + 1 + pick(rng, 2)) % 3; }
+    if (cfg.wanted) {
+      wanted = { a: attrs[pick(rng, attrs.length)], v: pick(rng, 3) };
+      // 진짜 신분증 중 일부는 일부러 수배에 걸리게(사진과 신분증을 같이 바꾼다 → 신분증은 여전히 진짜)
+      if (!forged && rng() < RULES.wantedRate) { var w = v.slice(); w[wanted.a] = wanted.v; id = C.encode(w); v = w; doc = w.slice(); }
+    }
+    var wantedHit = !!(wanted && v[wanted.a] === wanted.v);
+    return { id: id, doc: doc, attrs: attrs, forged: forged, diff: diff, wanted: wanted,
+             arrest: forged || wantedHit, why: forged ? 'forged' : wantedHit ? 'wanted' : 'clean', checked: [], level: level };
+  }
+  /** 신분증에서 사진과 맞는 줄(특징 번호) */
+  function okRows(q) { var v = C.decode(q.id); return q.attrs.filter(function (a) { return q.doc[a] === v[a]; }); }
+
+  function levelForHits(hits, start) {
+    var lv = 1;
+    for (var l = 2; l <= 4; l++) if (hits >= RULES.levelAt[l]) lv = l;
+    return Math.min(4, Math.max(lv, start || 1));
+  }
+  /**
+   * 한 판. opts: rng, now(ms) 필수 / duration / freeHints / mods(core.readMods 와 같은 것)
+   *   missPenalty(초, 장비 "검문 교관") / hitBonus(초, 장비 "교대 근무조") / preCheck(0|1, 장비 "자외선 램프")
+   */
+  function createGame(opts) {
+    opts = opts || {};
+    if (typeof opts.rng !== 'function') throw IError('BAD_RNG', 'rng 는 함수');
+    if (typeof opts.now !== 'number' || !isFinite(opts.now)) throw IError('BAD_TIME', 'now 는 밀리초');
+    var duration = opts.duration == null ? RULES.duration : opts.duration;
+    if (!(duration > 0)) throw IError('BAD_DURATION', '시간은 0보다 커야 한다');
+    var mods = C.readMods(opts.mods);
+    var missPenalty = opts.missPenalty == null ? RULES.missPenalty : opts.missPenalty;
+    var hitBonus = opts.hitBonus == null ? 0 : opts.hitBonus;
+    if (!(missPenalty >= 0 && missPenalty <= 30) || !(hitBonus >= 0 && hitBonus <= 10)) throw IError('BAD_OPTION', '벌점, 보너스 범위');
+    var st = {
+      mode: 'idcheck', rng: opts.rng, level: 1, startLevel: 1,
+      missPenalty: missPenalty, hitBonus: hitBonus, preCheck: opts.preCheck ? 1 : 0,
+      q: null, hintShown: false, hints: 0, freeHints: opts.freeHints || 0,
+      mods: mods, shield: mods.shield, shieldUsed: 0,
+      score: 0, combo: 0, bestCombo: 0, hits: 0, misses: 0, noneHits: 0, noneMisses: 0,
+      arrests: 0, passes: 0, wantedHits: 0,
+      endAt: opts.now + duration * 1000, pausedAt: null, over: false
+    };
+    st.q = fresh(st, 1);
+    return st;
+  }
+  // 다음 사람(장비 "자외선 램프"면 맞는 줄 하나를 미리 확인)
+  function fresh(state, level) {
+    var q = makeQuestion(state.rng, level);
+    if (state.preCheck) { var ok = okRows(q); if (ok.length) q.checked.push(ok[pick(state.rng, ok.length)]); }
+    return q;
+  }
+  function guard(state, now) {
+    if (state.pausedAt != null) throw IError('PAUSED', '멈춘 판');
+    if (C.tick(state, now)) throw IError('GAME_OVER', '끝난 판');
+  }
+  /**
+   * 판단 하나. arrest = true(체포) | false(통과). 반환
+   *   { ok, arrest(정답), why, diff, wanted, gain, combo, mult, levelUp?, penalty, shielded }
+   *   맞든 틀리든 다음 사람으로 넘어간다(반환 값은 방금 사람 기준).
+   */
+  function decide(state, arrest, now) {
+    guard(state, now);
+    if (arrest !== true && arrest !== false) throw IError('BAD_PICK', '체포 또는 통과만');
+    var q = state.q, md = state.mods, r = { arrest: q.arrest, why: q.why, diff: q.diff, wanted: q.wanted, id: q.id };
+    if (arrest === q.arrest) {
+      state.combo += 1;
+      if (state.combo > state.bestCombo) state.bestCombo = state.combo;
+      var mult = C.multiplierFor(state.combo, md.comboMax);
+      r.gain = Math.round(RULES.base * mult * md.scoreMult);
+      state.score += r.gain; state.hits += 1;
+      if (q.arrest) { state.arrests += 1; if (q.why === 'wanted') state.wantedHits += 1; } else state.passes += 1;
+      state.endAt += ((md.hitTime == null ? RULES.hitTime : md.hitTime) + (state.hitBonus || 0)) * 1000;
+      r.ok = true; r.combo = state.combo; r.mult = mult;
+    } else {
+      var pen = C.missPen(state, md.missPenalty == null ? state.missPenalty : md.missPenalty), shielded = false;   // 특별 출동 규칙이 있으면 그것 · 난이도 배수
+      if (state.shield > 0) { state.shield -= 1; state.shieldUsed += 1; pen = 0; shielded = true; }
+      state.combo = 0; state.misses += 1;
+      state.endAt -= pen * 1000;
+      r.ok = false; r.penalty = pen; r.shielded = shielded;
+    }
+    var lv = levelForHits(C.lvHits(state), state.startLevel);
+    if (lv !== state.level) r.levelUp = lv;
+    state.level = lv;
+    state.q = fresh(state, lv);
+    state.hintShown = false;
+    C.tick(state, now);
+    return r;
+  }
+  /** 단서: 아직 확인 안 한 "맞는 줄"의 절반(올림)에 확인 표시. 사람마다 한 번. 반환 { rows:[새로 확인한 특징], penalty } */
+  function hint(state, now) {
+    guard(state, now);
+    if (state.mods && state.mods.noHints) throw IError('NO_HINTS', '단서를 쓸 수 없는 출동');
+    if (state.hintShown) return { rows: [], penalty: 0 };
+    var q = state.q, left = okRows(q).filter(function (a) { return q.checked.indexOf(a) < 0; });
+    var k = Math.ceil(left.length / 2), got = [];
+    while (got.length < k) { var i = pick(state.rng, left.length); got.push(left.splice(i, 1)[0]); }
+    var p = 0;
+    if (state.freeHints > 0) state.freeHints -= 1;
+    else { p = C.hintCost(state, RULES.hintPenalty); state.endAt -= p * 1000; }
+    q.checked = q.checked.concat(got);
+    state.hints += 1; state.hintShown = true;
+    C.tick(state, now);
+    return { rows: got, penalty: p };
+  }
+  /** 판정 이유 글(화면용) */
+  function iga(w) { var c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 && c % 28 ? '이' : '가'); }   // 받침에 맞춘 "이/가"
+  function whyText(r) {
+    if (r.why === 'forged') return iga(C.ATTRS[r.diff].name) + ' 달라요';
+    if (r.why === 'wanted') return '수배 조건(' + C.ATTRS[r.wanted.a].values[r.wanted.v] + ')';
+    return '신분증이 맞아요';
+  }
+  return { RULES: RULES, LEVEL_NAME: LEVEL_NAME, LV: LV, makeQuestion: makeQuestion, okRows: okRows,
+           levelForHits: levelForHits, createGame: createGame, decide: decide, hint: hint, whyText: whyText };
+});
+
 </script>
 <script>
 /*
@@ -10761,8 +11010,11 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
   var LU = window.Team3Lineup, MT = window.Team3Montage;
   function LM() { return !!(game && game.mode === 'lineup'); }
   function MM() { return !!(game && game.mode === 'montage'); }
-  function boardIds() { return WM() ? game.q.board : LM() ? game.q.line : MM() ? game.q.cards : FM() ? [].concat.apply([], game.q.rows) : game.board; }
-  function actNow() { return WM() || MM() ? [0, 1, 2, 3] : LM() ? game.q.attrs : C.active(game); }
+  // 0.14.0 사건 4: 신분증 검사(game.mode === 'idcheck', idcheck.js) — 판 = 창구 하나(사진 + 신분증), 통과 · 체포 단추로 판정
+  var IC = window.Team3IdCheck;
+  function IM() { return !!(game && game.mode === 'idcheck'); }
+  function boardIds() { return WM() ? game.q.board : LM() ? game.q.line : MM() ? game.q.cards : IM() ? [game.q.id] : FM() ? [].concat.apply([], game.q.rows) : game.board; }
+  function actNow() { return WM() || MM() ? [0, 1, 2, 3] : LM() || IM() ? game.q.attrs : C.active(game); }
   // 멈춤 · 재개: 몽타주는 그림 시각도 함께 민다
   function gPause(g, t) { if (g.mode === 'montage') MT.pause(g, t); else C.pause(g, t); }
   function gResume(g, t) { if (g.mode === 'montage') MT.resume(g, t); else C.resume(g, t); }
@@ -10788,7 +11040,9 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     keepStamp(stamp);
     board.classList.toggle('luboard', LM());
     board.classList.toggle('mtg', MM());
+    board.classList.toggle('idboard', IM());
     if (LM()) { renderLineup(entering, act); return; }
+    if (IM()) { renderIdcheck(!!entering); return; }
     board.classList.toggle('forge', FM());
     if (FM()) {
       var fa = game.q.active;
@@ -10818,6 +11072,75 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     if (WM()) renderSays(false);
     if (MM()) renderPaper(!!entering);
     markPicks();
+  }
+
+  /* ---------- 사건 4 신분증 검사(0.14.0) ---------- */
+  // 검문소 창구: 위 = 수배 조건(4단계), 가운데 = 사진 카드 + 신분증, 아래 = 통과 · 체포 단추. entering 이면 오른쪽에서 밀려 들어온다
+  var idNo = 1000;
+  function renderIdcheck(entering) {
+    var board = $('board'), q = game.q, v = q.doc, wrap = board.querySelector('.id-wrap');
+    board.classList.remove('wit', 'w12', 'forge', 'dim');
+    if (!wrap) {
+      var stamp = $('stamp');
+      keepStamp(stamp);
+      board.innerHTML = '<div class="id-wrap"></div>';
+      board.appendChild(stamp);
+      wrap = board.querySelector('.id-wrap');
+      if (FX) FX.afterRender();
+    }
+    if (entering) idNo = 1000 + Math.floor(Math.random() * 9000);
+    wrap.innerHTML = (q.wanted ? '<div class="id-wanted"><b>수배</b>' + C.ATTRS[q.wanted.a].name + ' ' + C.ATTRS[q.wanted.a].values[q.wanted.v] + '</div>' : '') +
+      '<div class="id-pair' + (entering ? ' enter' : '') + '">' +
+        '<div class="card id-photo" role="img" aria-label="사진: ' + describe(q.id, q.attrs) + '" style="background:' + look(q.id, q.attrs).bg + '">' + cardInner(q.id, null, q.attrs) + '</div>' +
+        '<div class="id-doc" aria-label="신분증: ' + q.attrs.map(function (a) { return C.ATTRS[a].name + ' ' + C.ATTRS[a].values[v[a]]; }).join(', ') + '">' +
+          '<div class="id-hd"><span>신분증</span><span>No.' + idNo + '</span></div>' +
+          q.attrs.map(function (a) { return '<div class="id-row' + (q.checked.indexOf(a) >= 0 ? ' ok' : '') + '" data-a="' + a + '"><span>' + C.ATTRS[a].name + '</span><b>' + C.ATTRS[a].values[v[a]] + '</b></div>'; }).join('') +
+          '<span class="id-stamp" aria-hidden="true"></span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="id-btns"><button class="id-pass" data-dec="pass">통과</button><button class="id-arrest" data-dec="arrest">체포</button></div>';
+    board.setAttribute('data-level', String(game.level));
+  }
+  function judgeIdcheck(arrest) {
+    if (!game || game.over || lock || sheetOpen()) return;
+    var r, wrap = $('board').querySelector('.id-wrap');
+    try { r = IC.decide(game, arrest, now()); }
+    catch (e) { if (e.code === 'GAME_OVER') finish(); else setHint('판정 오류: ' + e.message, 'bad', 2000); return; }
+    lock = true;
+    // 신분증에 도장: 내가 누른 쪽. 위조였으면 틀린 줄을 빨갛게
+    var st = wrap && wrap.querySelector('.id-stamp'), pair = wrap && wrap.querySelector('.id-pair');
+    if (st) { st.textContent = arrest ? '체포' : '통과'; st.className = 'id-stamp go ' + (arrest ? 'ar' : 'ps'); }
+    if (r.why === 'forged' && wrap) { var row = wrap.querySelector('.id-row[data-a="' + r.diff + '"]'); if (row) row.classList.add('bad'); }
+    if (r.why === 'wanted' && wrap) { var wb = wrap.querySelector('.id-wanted'); if (wb) wb.classList.add('hit'); }
+    if (r.ok) {
+      if (pair) pair.classList.add('right');
+      sfx.hit(r.combo); buzz(arrest ? [12, 40, 20] : 12);
+      if (FX) FX.hit(pair ? [pair] : [], r.id);
+      if (arrest) popStamp('체포!', '+' + r.gain + (r.combo > 1 ? ' ,  연속 ' + r.combo : ''));
+      var ht = (game.mods && game.mods.hitTime != null ? game.mods.hitTime : IC.RULES.hitTime) + (game.hitBonus || 0);
+      setHint((arrest ? IC.whyText(r) : '통과') + (ht ? '  +' + ht + '초' : ''), 'good', 1100);
+    } else {
+      if (pair) pair.classList.add('wrong');
+      sfx.miss(); buzz(120);
+      shakeFx();
+      if (FX) FX.miss(pair ? [pair] : []);
+      var pen = r.shielded ? ' (변호사가 막았어요, 벌점 없음)' : ' (−' + r.penalty + '초)';
+      setHint((r.arrest ? '놓쳤어요: ' + IC.whyText(r) : '죄 없는 사람이에요, 신분증이 맞아요') + pen, 'bad', 2400);
+      flashTimer();
+    }
+    updateHud(); bumpCombo();
+    setTimeout(function () {
+      lock = false;
+      if (!game || game.over) { if (game) finish(); return; }
+      renderBoard([0]);
+      if (r.levelUp) {
+        var inames = { 2: ['세 특징', '시간대도 대조해요'], 3: ['네 특징', '흔적까지 대조해요'], 4: ['수배 조건', '신분증이 맞아도 걸리면 체포'] }[r.levelUp];
+        sfx.none(); buzz([30, 60, 30]);
+        if (FX) FX.levelUp(r.levelUp);
+        popStamp(inames[0], inames[1]);
+        setHint(r.levelUp === 4 ? '수배 명단이 내려왔어요. 신분증이 맞아도 수배 조건에 걸리면 체포' : '위조는 늘 딱 한 군데만 달라요', 'good', 3000);
+      }
+    }, r.ok ? 520 : 1100);
   }
 
   /* ---------- 사건 3 면통 라인업(0.5.0) ---------- */
@@ -10986,7 +11309,7 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     h.className = 'hint' + (kind ? ' ' + kind : '');
     clearTimeout(hintTimer);
     if (ms) hintTimer = setTimeout(function () {
-      h.textContent = LM() ? '진술에 모두 맞는 자리를 지목하세요' : MM() ? '몽타주와 같은 사람을 고르세요, 일찍 고를수록 배수 ↑' : FM() ? '가짜 줄을 찾으세요' : WM() ? '진술 넷 중 딱 셋과 맞는 사람이 범인' : '한 패인 세 명을 고르세요'; h.className = 'hint';
+      h.textContent = IM() ? '사진과 신분증이 다르면 체포, 같으면 통과' : LM() ? '진술에 모두 맞는 자리를 지목하세요' : MM() ? '몽타주와 같은 사람을 고르세요, 일찍 고를수록 배수 ↑' : FM() ? '가짜 줄을 찾으세요' : WM() ? '진술 넷 중 딱 셋과 맞는 사람이 범인' : '한 패인 세 명을 고르세요'; h.className = 'hint';
       renderNeeds();
     }, ms);
   }
@@ -11017,7 +11340,11 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     combo.textContent = game.combo > 1 ? '연속 ' + game.combo + ', ×' + C.multiplierFor(game.combo, game.mods && game.mods.comboMax) : '연속 ' + game.combo;
     combo.classList.toggle('live', game.combo > 1);
     var lv = $('level');
-    if (LM()) {
+    if (IM()) {
+      var inx = IC.RULES.levelAt[game.level + 1];
+      lv.textContent = '검문 ' + game.level + '단계, ' + IC.LEVEL_NAME[game.level] + (inx != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, inx) - game.hits) + '명' : '');
+      lv.classList.toggle('up', game.level === 4);
+    } else if (LM()) {
       var ln = LU.RULES.levelAt[game.level + 1];
       lv.textContent = '면통 ' + game.level + '단계, ' + LU.LEVEL_NAME[game.level] + (ln != null ? ', 다음까지 ' + Math.max(0, C.hitsFor(game, ln) - game.hits) + '명' : '');
       lv.classList.toggle('up', game.level === 4);
@@ -11042,7 +11369,8 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     f.hidden = !(game.freeHints > 0);
     f.textContent = String(game.freeHints);
     $('btn-hint').setAttribute('aria-label', game.freeHints > 0 ? '단서 보기 (무료 ' + game.freeHints + '번)' : '단서 보기 (' + (game.mods && game.mods.hintPenalty != null ? game.mods.hintPenalty : 3) + '초 줄어듦)');
-    $('stat-line').textContent = LM() ? '지목 ' + game.hits + ', 오인 ' + game.misses
+    $('stat-line').textContent = IM() ? '체포 ' + game.arrests + ', 통과 ' + game.passes + ', 오판 ' + game.misses
+      : LM() ? '지목 ' + game.hits + ', 오인 ' + game.misses
       : MM() ? '검거 ' + game.hits + ', 빠른 검거(×3 이상) ' + game.early + ', 틀림 ' + game.misses
       : FM()
       ? '찾음 ' + game.hits + ', 위조 없음 적중 ' + game.noneHits + ', 틀림 ' + (game.misses + game.noneMisses)
@@ -11090,7 +11418,8 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     cfg = config || defaultConfig();
     try {
       // mods(0.1.19): 특별 출동 규칙 · 준비물 "변호사 대기"(shield)
-      if (cfg.mode === 'lineup' && LU) game = LU.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, missPenalty: cfg.missPenalty, hitBonus: cfg.lineupHitBonus, preOut: cfg.preOut });
+      if (cfg.mode === 'idcheck' && IC) game = IC.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, missPenalty: cfg.idMissPenalty, hitBonus: cfg.idHitBonus, preCheck: cfg.preCheck });
+      else if (cfg.mode === 'lineup' && LU) game = LU.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, missPenalty: cfg.missPenalty, hitBonus: cfg.lineupHitBonus, preOut: cfg.preOut });
       else if (cfg.mode === 'montage' && MT) game = MT.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods });
       else if (cfg.mode === 'forgery' && F) game = F.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods });
       else if (cfg.mode === 'witness' && W) game = W.createGame({ rng: Math.random, now: now(), duration: cfg.duration, freeHints: cfg.freeHints, mods: cfg.mods, trapPenalty: cfg.trapPenalty, hitBonus: cfg.hitBonus });
@@ -11106,7 +11435,8 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     st.innerHTML = '';
     show('s-play');
     paperShown = 0;
-    if (LM()) setHint('목격자 진술에 모두 맞는 자리를 지목하세요', 'good', 4000);
+    if (IM()) setHint('사진과 신분증을 대조해요. 한 군데라도 다르면 체포, 모두 같으면 통과', 'good', 4000);
+    else if (LM()) setHint('목격자 진술에 모두 맞는 자리를 지목하세요', 'good', 4000);
     else if (MM()) setHint('특징이 하나씩 그려져요. 일찍 찾을수록 점수 ×4', 'good', 4000);
     else if (FM()) setHint('세 명씩 지은 줄 중 하나는 가짜예요. 한 특징만 둘이 같은 줄을 찾으세요', 'good', 4500);
     else if (WM()) setHint('진술 넷 중 딱 셋과 맞는 사람이 범인, 넷 다 맞으면 함정', 'good', 4000);
@@ -11115,18 +11445,19 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     var wm = WM();
     $('says').className = 'says';
     $('says').hidden = !(wm || LM() || MM());
-    $('btn-none').hidden = wm || FM() || LM() || MM();
+    $('btn-none').hidden = wm || FM() || LM() || MM() || IM();
     $('btn-none').textContent = FM() ? '위조 없음' : '검거 불가';
     $('needs').hidden = true;
     // 사건별 화면 연출(fx.js): 목격자 모드 = 사건 2 해무항, 한 패 모드 = 사건 1 CCTV
-    if (FX) FX.mount(wm ? 2 : LM() ? 3 : MM() ? 0 : 1, { board: $('board'), screen: $('s-play'), boss: !!cfg.boss, beamLie: !!cfg.beamLie,
+    if (FX) FX.mount(wm ? 2 : LM() ? 3 : MM() || IM() ? 0 : 1, { board: $('board'), screen: $('s-play'), boss: !!cfg.boss, beamLie: !!cfg.beamLie,
       getLieEl: function () { return WM() ? $('says').querySelector('div[data-k="' + game.q.lie + '"]') : null; } });
     // 준비물 "제보 전화"(0.1.19): 첫 판의 한 패 하나를 단서처럼 미리 표시한다(판이 바뀌면 사라진다)
     //   목격자 모드에서는 첫 문제의 거짓 진술을 미리 짚어 준다
     if (cfg.tip && wm) game.hintShown = true;
+    else if (cfg.tip && IM()) { try { IC.hint(Object.assign(game, { freeHints: game.freeHints + 1 }), now()); } catch (e) { /* 무시 */ } }
     else if (cfg.tip && LM()) { try { LU.hint(Object.assign(game, { freeHints: game.freeHints + 1 }), now()); } catch (e) { /* 무시 */ } }
     else if (cfg.tip && MM()) { /* 몽타주: 제보 전화는 쓰지 않는다 */ }
-    else if (cfg.tip && !FM() && !LM() && !MM()) {
+    else if (cfg.tip && !FM() && !LM() && !MM() && !IM()) {
       try {
         var first = C.findSets(game.board, C.active(game));
         if (first.length) game.clue = { set: first[0], shown: 3 };
@@ -11141,7 +11472,7 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     updateHud();
     // 0.7.0 난이도: 단순 · 미제 사건이면 도장 아래 글 앞에 붙인다(강력 사건은 기본이라 생략)
     var DfI = window.Team3Diff && cfg.diff && cfg.diff !== 'normal' ? window.Team3Diff.info(cfg.diff).name + ' ' : '';
-    popStamp(cfg.daily ? '특별 출동!' : '출동!', DfI + (cfg.daily && cfg.ruleName ? cfg.ruleName + ' ' + cfg.duration + '초' : cfg.duration + '초, ' + (LM() ? '범인을 지목하라' : '한 패를 찾아라')));
+    popStamp(cfg.daily ? '특별 출동!' : '출동!', DfI + (cfg.daily && cfg.ruleName ? cfg.ruleName + ' ' + cfg.duration + '초' : cfg.duration + '초, ' + (IM() ? '위조를 가려라' : LM() ? '범인을 지목하라' : '한 패를 찾아라')));
     if (cfg.used && cfg.used.length) setHint('준비물: ' + cfg.used.join(', '), 'good', 3000);
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(loop);
@@ -11154,6 +11485,7 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     if (WM()) { judgeWitness(i); return; }
     if (LM()) { judgeLineup(i); return; }
     if (MM()) { judgeMontage(i); return; }
+    if (IM()) return;   // 신분증 검사는 통과 · 체포 단추로만
     var k = sel.indexOf(i);
     if (k >= 0) {   // 다시 누르면 선택 해제: 뺀 자리(몇 번째였는지)의 음으로 내려가는 소리
       var was = sel.length;
@@ -11350,6 +11682,17 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
    */
   function onHint() {
     if (!game || game.over || lock || sheetOpen()) return;
+    if (IM()) {
+      var ir;
+      try { ir = IC.hint(game, now()); }
+      catch (e) { if (e.code === 'GAME_OVER') finish(); else if (e.code === 'NO_HINTS') setHint('이번 출동은 단서를 쓸 수 없어요', 'bad', 2000); else setHint('단서 오류: ' + e.message, 'bad', 2000); return; }
+      if (ir.penalty) flashTimer();
+      sfx.pick(0); updateHud();
+      if (!ir.rows.length) { setHint('이 신분증은 이미 확인했어요', '', 1600); return; }
+      renderBoard();
+      setHint('초록 줄은 사진과 맞아요: ' + ir.rows.map(function (a) { return C.ATTRS[a].name; }).join(', ') + (ir.penalty ? ' (−' + ir.penalty + '초)' : ''), 'good', 3000);
+      return;
+    }
     if (LM() || MM()) {
       var lr;
       try { lr = LM() ? LU.hint(game, now()) : MT.hint(game, now()); }
@@ -11430,18 +11773,25 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
     $('r-miss').textContent = g.misses + ' ' + g.noneMisses;
     if (FX) FX.unmount();
     // 결과 칸 이름: 목격자 모드는 "함정 체포 · 오인 체포"
-    var wmode = g.mode === 'witness', fmode = g.mode === 'forgery', lmode = g.mode === 'lineup', mmode = g.mode === 'montage';
+    var wmode = g.mode === 'witness', fmode = g.mode === 'forgery', lmode = g.mode === 'lineup', mmode = g.mode === 'montage', imode = g.mode === 'idcheck';
     $('r-none').parentNode.querySelector('.label').textContent = wmode ? '함정 체포' : fmode ? '위조 없음 적중' : '검거 불가 적중';
     $('r-miss').parentNode.querySelector('.label').textContent = wmode ? '오인 체포' : fmode ? '틀림' : '오인 체포·오판';
     if (wmode) { $('r-none').textContent = g.traps; $('r-miss').textContent = String(g.misses); }
     if (fmode) { $('r-none').textContent = g.noneHits; $('r-miss').textContent = String(g.misses + g.noneMisses); }
+    if (imode) {
+      $('r-none').parentNode.querySelector('.label').textContent = '수배 적발';
+      $('r-none').textContent = g.wantedHits;
+      $('r-miss').parentNode.querySelector('.label').textContent = '오판';
+      $('r-miss').textContent = String(g.misses);
+    }
     if (lmode || mmode) {
       $('r-none').parentNode.querySelector('.label').textContent = lmode ? '최고 단계' : '빠른 검거(×3↑)';
       $('r-none').textContent = lmode ? g.level : g.early;
       $('r-miss').parentNode.querySelector('.label').textContent = '오인 지목';
       $('r-miss').textContent = String(g.misses);
     }
-    var tip = lmode ? (g.misses > g.hits ? '진술 하나씩 대 보며 아닌 자리를 먼저 지우세요. "바로 왼쪽"은 그 자리의 왼쪽 사람을 보는 거예요.' : '면통 4단계는 진술이 셋이에요. 자리 관계 진술부터 보면 빨라요.')
+    var tip = imode ? (g.misses > g.hits ? '사진의 모자부터 신분증 줄을 하나씩 대 보세요. 위조는 늘 딱 한 군데만 달라요.' : g.level >= 4 ? '수배 조건은 신분증이 맞아도 걸려요. 사진을 수배 줄과 먼저 대 보면 빨라요.' : '연속으로 맞히면 점수가 올라가요. 망설여지면 돋보기로 맞는 줄을 지워 보세요.')
+      : lmode ? (g.misses > g.hits ? '진술 하나씩 대 보며 아닌 자리를 먼저 지우세요. "바로 왼쪽"은 그 자리의 왼쪽 사람을 보는 거예요.' : '면통 4단계는 진술이 셋이에요. 자리 관계 진술부터 보면 빨라요.')
       : mmode ? (g.misses > g.hits ? '특징이 둘만 보일 땐 맞는 사람이 여럿일 수 있어요. 셋째가 그려질 때까지 기다려도 ×2예요.' : '처음 두 특징에 맞는 사람이 하나뿐이면 바로 고르세요. ×3, ×4 가 크게 남아요.')
       : fmode ? '진짜 줄은 특징마다 셋 다 같거나 셋 다 달라요. 한 특징씩 줄을 훑어 "둘만 같은" 곳을 찾으세요.'
       : g.mode === 'witness'
@@ -11709,6 +12059,19 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
         '<p>검거 ' + W.RULES.levelAt[2] + '명이면 보통(함정이 늘 하나), ' + W.RULES.levelAt[3] + '명이면 어려움(12명, "모자를 썼어요"처럼 종류를 못 본 흐린 진술)이에요.</p>' +
         '<p>돋보기(<b>단서</b>)는 거짓 진술에 빨간 도장을 찍어 줘요. 한 문제에 한 번, 시간 −' + W.RULES.hintPenalty + '초.</p>');
     }
+    if (LU) {
+      out += item('면통 라인업 (사건 3)',
+        '<p>유리 너머 한 줄로 선 5~6명 중 목격자 진술에 <b>모두 맞는 자리</b>를 지목해요. 맞는 자리는 늘 하나예요.</p>' +
+        '<p>진술은 범인 자신의 특징이거나 "범인 <b>바로 왼쪽</b>은…"처럼 둘레 사람 이야기예요.</p>' +
+        '<p>지목 +' + LU.RULES.hitTime + '초, 오인 지목 −' + LU.RULES.missPenalty + '초. 돋보기(<b>단서</b>)는 아닌 자리 절반을 지워 줘요(−' + LU.RULES.hintPenalty + '초).</p>');
+    }
+    if (IC) {
+      out += item('신분증 검사 (사건 4)',
+        '<p>검문소 창구에 한 명씩 와요. 왼쪽 <b>사진</b>과 오른쪽 <b>신분증</b>을 대조해요.</p>' +
+        '<p>한 군데라도 다르면 위조, <b>체포</b>. 모두 같으면 <b>통과</b>. 위조는 늘 딱 한 군데만 달라요.</p>' +
+        '<p>맞히면 +' + IC.RULES.hitTime + '초, 틀리면 −' + IC.RULES.missPenalty + '초. ' + IC.RULES.levelAt[4] + '명을 맞히면 <b>수배 조건</b>이 붙어요. 신분증이 맞아도 수배 조건에 걸리면 체포예요.</p>' +
+        '<p>돋보기(<b>단서</b>)는 사진과 맞는 줄 절반에 초록 표시를 해 줘요(−' + IC.RULES.hintPenalty + '초).</p>');
+    }
     out += item('현장 출동',
       '<p>처음엔 <b>모자</b>만 봐요. 검거 ' + lv[2] + '명이면 얼굴, ' + lv[3] + '명이면 시간대, ' + lv[4] + '명이면 흔적까지 봐요.</p>' +
       '<p>검거하면 시간 <b>+' + sec(R.hitTime) + '</b>, 오인 체포는 <b>−' + sec(R.missPenalty) + '</b>.</p>' +
@@ -11894,6 +12257,7 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
   /* ---------- 연결 ---------- */
   $('board').addEventListener('click', function (e) {
     if (FM()) { var rb = e.target.closest('.rowbtn'); if (rb) onRow(parseInt(rb.getAttribute('data-r'), 10)); return; }
+    if (IM()) { var db = e.target.closest('[data-dec]'); if (db) judgeIdcheck(db.getAttribute('data-dec') === 'arrest'); return; }
     var card = e.target.closest('.card');
     if (card && card.hasAttribute('data-i')) onCard(parseInt(card.getAttribute('data-i'), 10));
   });
@@ -15383,12 +15747,12 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
   function dayNow() { return E.dayKey(nowMs(), new Date().getTimezoneOffset()); }
 
   /*
-   * 0.6.0 준비물 효과 글: 지금 사건의 퍼즐(set · witness · lineup)에 맞게. "어디에도 설명이 없음" → ? 단추 · 챙긴 것 줄에서 쓴다
+   * 0.6.0 준비물 효과 글: 지금 사건의 퍼즐(set · witness · lineup · idcheck)에 맞게. "어디에도 설명이 없음" → ? 단추 · 챙긴 것 줄에서 쓴다
    */
   function prepDesc(id) {
     var mode = I.caseOf(save).mode;
-    if (id === 'tip') return mode === 'witness' ? '첫 문제의 거짓 진술을 미리 짚어 줘요' : mode === 'lineup' ? '첫 줄에서 아닌 자리 절반을 미리 지워 줘요' : '출동을 시작할 때 한 패 하나를 미리 표시해 줘요';
-    if (id === 'lawyer') return mode === 'witness' ? '오인, 함정 체포 벌점을 2번 막아 줘요' : mode === 'lineup' ? '오인 지목 벌점을 2번 막아 줘요' : '오인 체포 벌점을 2번 막아 줘요';
+    if (id === 'tip') return mode === 'idcheck' ? '첫 신분증에서 사진과 맞는 줄 절반을 미리 확인해 줘요' : mode === 'witness' ? '첫 문제의 거짓 진술을 미리 짚어 줘요' : mode === 'lineup' ? '첫 줄에서 아닌 자리 절반을 미리 지워 줘요' : '출동을 시작할 때 한 패 하나를 미리 표시해 줘요';
+    if (id === 'lawyer') return mode === 'idcheck' ? '오판 벌점을 2번 막아 줘요' : mode === 'witness' ? '오인, 함정 체포 벌점을 2번 막아 줘요' : mode === 'lineup' ? '오인 지목 벌점을 2번 막아 줘요' : '오인 체포 벌점을 2번 막아 줘요';
     if (id === 'sketch') return '단서(돋보기)를 2번 무료로 써요';
     if (id === 'coffee') return '출동 시간 +15초';
     if (id === 'press') return '이번 출동으로 버는 수사비 1.5배';
@@ -15593,7 +15957,7 @@ if (typeof window !== 'undefined') window.Team3NoirTall = {"wolf": "data:image/w
   var PROLOGUE = ['도시의 밤은 조용한 적이 없다.', '신고는 밀려들고, 용의자는 늘 여럿이다.', '그중에서 진짜 범인을 가려내는 일.', '그게 수사 3팀의 일이다.', '오늘부터 당신이 3팀 팀장이다.'];
   function caseScene(cs, hint, onDone, last) {
     if (!SC) { if (onDone) onDone(); return; }
-    SC.play({ tone: cs.no <= 3 ? 'c' + cs.no : 'cx', kicker: '사건 ' + cs.no, title: cs.title, sub: cs.city, stamp: '수사 개시', lines: SC.sentences(cs.story[0].text), hint: hint, last: last, onDone: onDone });
+    SC.play({ tone: cs.no <= 4 ? 'c' + cs.no : 'cx', kicker: '사건 ' + cs.no, title: cs.title, sub: cs.city, stamp: '수사 개시', lines: SC.sentences(cs.story[0].text), hint: hint, last: last, onDone: onDone });
   }
   /** 처음 시작: 프롤로그 → 사건 1 장면 → then. 설정의 "처음 이야기 다시 보기"도 이것 */
   function introScene(then) {

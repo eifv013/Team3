@@ -97,9 +97,9 @@ test('장비: 단계마다 값, 끝까지 사면 MAXED, 모르는 항목은 BAD_
 
 test('장비가 출동 옵션을 바꾼다', () => {
   const s = I.newSave(T0);
-  assert.deepEqual(I.runOptions(s), { duration: 90, freeHints: 0, nonePenalty: 10, level: 1, helperAtFull: false, mode: 'set', trapPenalty: 8, hitBonus: 0, beamLie: false, missPenalty: 5, lineupHitBonus: 0, preOut: 0 });
+  assert.deepEqual(I.runOptions(s), { duration: 90, freeHints: 0, nonePenalty: 10, level: 1, helperAtFull: false, mode: 'set', trapPenalty: 8, hitBonus: 0, beamLie: false, missPenalty: 5, lineupHitBonus: 0, preOut: 0, idMissPenalty: 5, idHitBonus: 0, preCheck: 0 });
   s.gear = { time: 2, veteran: 1, lab: 1, vault: 1, recorder: 0, keeper: 0, informant: 0 };
-  assert.deepEqual(I.runOptions(s), { duration: 110, freeHints: 1, nonePenalty: 5, level: 1, helperAtFull: true, mode: 'set', trapPenalty: 8, hitBonus: 0, beamLie: false, missPenalty: 5, lineupHitBonus: 0, preOut: 0 });
+  assert.deepEqual(I.runOptions(s), { duration: 110, freeHints: 1, nonePenalty: 5, level: 1, helperAtFull: true, mode: 'set', trapPenalty: 8, hitBonus: 0, beamLie: false, missPenalty: 5, lineupHitBonus: 0, preOut: 0, idMissPenalty: 5, idHitBonus: 0, preCheck: 0 });
 });
 
 test('출동 결과: 점수만큼 수사비, 검거만큼 진척, 최고 기록', () => {
@@ -344,7 +344,11 @@ test('사건 2 파견: 사건 1을 끝내야 하고, 진척만 새로 시작하�
   s.caught = 5000; s.closed = true; s.closedAt = T0 + 3000;
   assert.equal(I.moveToNextCase(s, T0 + 4000).no, 3);
   assert.equal(I.runOptions(s).mode, 'lineup'); assert.equal(I.caseOf(s).city, '중앙서 면통실');
-  s.caught = 8000; s.closed = true;
+  // 0.14.0: 사건 3 다음은 사건 4(신분증 검사), 사건 4 다음은 아직 없다
+  s.caught = 8000; s.closed = true; s.closedAt = T0 + 5000;
+  assert.equal(I.moveToNextCase(s, T0 + 6000).no, 4);
+  assert.equal(I.runOptions(s).mode, 'idcheck'); assert.equal(I.caseOf(s).city, '북문 검문소');
+  s.caught = 12000; s.closed = true;
   assert.throws(() => I.moveToNextCase(s, T0), (e) => e.code === 'NO_NEXT');
 });
 
@@ -441,4 +445,18 @@ test('0.12.1 집중 수사: 하루 첫 3번 출동은 사건 검거 ×5, 그 뒤
     assert.equal(I.focusLeft(s, t + 864e5), 3, '다음 날 다시');
     assert.equal(I.RANKS.length, 8);
   } finally { I.TUNE.focusMult = 1; I.TUNE.restMult = 1; }
+});
+
+test('사건 4: 팀 수사비 10배, 팀은 9000명까지, 사건 4 장비는 사건 4에서만 · 신분증 검사 설정을 바꾼다', () => {
+  const s = I.newSave(T0);
+  s.caseNo = 4;
+  assert.equal(I.caseOf(s).pay, 10); assert.equal(I.caseOf(s).goal, 12000); assert.equal(I.caseOf(s).idleCap, 9000);
+  assert.equal(I.caseOf(s).story.length, 6);
+  assert.ok(I.caseOf(s).story.every((e, i, a) => i === 0 || e.at > a[i - 1].at));
+  assert.deepEqual(I.gearFor(s).filter(k => I.GEAR[k].case), ['uvlamp', 'drill', 'shift']);
+  s.gear.uvlamp = 1; s.gear.drill = 2; s.gear.shift = 3;
+  const o = I.runOptions(s);
+  assert.equal(o.mode, 'idcheck'); assert.equal(o.preCheck, 1); assert.equal(o.idMissPenalty, 1); assert.equal(o.idHitBonus, 3);
+  const s3 = I.newSave(T0); s3.caseNo = 3;
+  assert.throws(() => I.buy(s3, 'uvlamp', T0), (e) => e.code === 'OTHER_CASE');
 });

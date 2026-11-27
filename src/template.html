@@ -894,6 +894,40 @@ details.log-d .pn-body p{color:var(--text);font-size:14px;line-height:1.7}
 @media (prefers-reduced-motion:reduce){.float,.money.pop{animation-duration:.01s}.next-bar i{transition:none}}
 @media (prefers-reduced-motion:reduce){.card,.card.hit,.card.miss,.card.enter,.card.clue,.stamp.go{animation-duration:.01s}}
 
+/* ---------- 0.14.0 사건 4: 신분증 검사(검문소 창구) ---------- */
+body.case-4{--ink:#16130F;--panel:#221D17;--panel2:#2B251E;--line:#3E352A}
+body.case-4 .city-chip{color:#F0B860}
+body.case-4 #s-hub{background-image:linear-gradient(180deg,rgba(255,190,110,.06),transparent 45%),repeating-linear-gradient(135deg,rgba(240,184,96,.035) 0 10px,transparent 10px 20px)}
+.board.idboard{display:block;margin:0 -6px;padding:12px;border-radius:16px;background:linear-gradient(180deg,#3A2E24,#2A211A);border:5px solid #241C15;box-shadow:inset 0 0 0 2px #4A3A2C;overflow:hidden}
+.id-wrap{display:flex;flex-direction:column;gap:12px}
+.id-wanted{display:flex;gap:8px;align-items:center;background:#5A1F1F;color:#FFD9D0;border-radius:10px;padding:8px 12px;font-weight:800;font-size:15px}
+.id-wanted b{background:#FF7A59;color:#2A0E0E;border-radius:6px;padding:2px 7px;font-size:12px}
+.id-wanted.hit{box-shadow:0 0 0 3px #FF7A59;animation:shake .4s}
+.id-pair{display:flex;gap:12px;align-items:stretch}
+.id-pair.enter{animation:idin .3s cubic-bezier(.2,1.2,.4,1)}
+@keyframes idin{from{transform:translateX(50px);opacity:0}to{transform:none;opacity:1}}
+.board.idboard .id-photo{width:44%;flex:none;aspect-ratio:4/5;align-self:center;cursor:default}
+.id-doc{position:relative;flex:1;min-width:0;background:#EFE7D4;color:#2A2118;border-radius:12px;padding:10px 12px;box-shadow:0 5px 0 #B9AA8A;display:flex;flex-direction:column;gap:7px;overflow:hidden}
+.id-hd{display:flex;justify-content:space-between;font-size:11px;font-weight:900;letter-spacing:1px;color:#6B5A40;border-bottom:1.5px dashed #B9AA8A;padding-bottom:6px}
+.id-row{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:15px;font-weight:800;border-radius:6px;padding:3px 5px;margin:0 -5px}
+.id-row span{color:#8A7A60;font-size:12px;font-weight:700;flex:none}
+.id-row.ok{background:rgba(46,125,79,.18)}.id-row.ok b{color:#1F6B40}
+.id-row.bad{background:rgba(229,72,79,.22);color:#B3261E}
+.id-stamp{position:absolute;right:8px;bottom:12px;transform:rotate(-14deg) scale(2.2);opacity:0;border:3.5px solid;border-radius:8px;padding:1px 10px;font-size:22px;font-weight:900;pointer-events:none;background:rgba(239,231,212,.6)}
+.id-stamp.ps{color:#2E7D4F}.id-stamp.ar{color:#C0392B}
+.id-stamp.go{animation:idstamp .26s cubic-bezier(.3,1.6,.6,1) forwards}
+@keyframes idstamp{to{opacity:.95;transform:rotate(-14deg) scale(1)}}
+.id-pair.right .id-photo{box-shadow:0 0 0 3px var(--ok)}
+.id-pair.wrong{animation:shake .4s}.id-pair.wrong .id-photo{box-shadow:0 0 0 3px var(--miss)}
+.id-btns{display:flex;gap:10px}
+.id-btns button{flex:1;height:60px;border:0;border-radius:14px;font:inherit;font-weight:900;font-size:20px;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.35);transition:transform .08s,box-shadow .08s}
+.id-btns button:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.id-pass{background:#2E7D4F}.id-arrest{background:#C0392B}
+/* 작은 폰(SE): 4단계(수배 + 네 줄)에서도 단추까지 한 화면에 */
+@media (max-height:700px){.board.idboard{padding:8px}.id-wrap{gap:8px}.id-wanted{padding:5px 10px;font-size:13.5px}.id-pair{gap:8px}
+  .board.idboard .id-photo{width:38%}.id-doc{padding:7px 9px;gap:3px}.id-hd{padding-bottom:4px}.id-row{font-size:13.5px;padding:2px 4px}
+  .id-btns button{height:50px;font-size:18px}}
+@media (prefers-reduced-motion:reduce){.id-pair.enter,.id-wanted.hit,.id-pair.wrong{animation:none}.id-stamp.go{animation:none;opacity:.95;transform:rotate(-14deg)}}
 /* ---------- 0.5.0 사건 3: 면통 라인업 ---------- */
 body.case-3{--ink:#14161C;--panel:#1E222B;--panel2:#262B36;--line:#353B49}
 body.case-3 .city-chip{color:#E6D9A8}
@@ -2662,6 +2696,7 @@ body.prem-on #h-station::before{content:'👑 '}
 /*FORGERY*/
 /*LINEUP*/
 /*MONTAGE*/
+/*IDCHECK*/
 </script>
 <script>
 /*FX*/

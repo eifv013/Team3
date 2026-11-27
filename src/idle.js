@@ -73,9 +73,13 @@
     // 0.5.0: 사건 3(면통 라인업) 장비 셋
     painter:   { name: '몽타주 화가',  desc: '줄마다 아닌 사람 하나를 미리 지워 줘요', costs: [40000], case: 3 },
     lights:    { name: '조명 기사',    desc: '오인 지목 벌점 5초 → 3초 → 1초', costs: [15000, 45000], case: 3 },
-    witness2:  { name: '베테랑 증인',  desc: '검거하면 시간 +1초씩 더(최대 +3초)', costs: [16000, 48000, 144000], case: 3 }
+    witness2:  { name: '베테랑 증인',  desc: '검거하면 시간 +1초씩 더(최대 +3초)', costs: [16000, 48000, 144000], case: 3 },
+    // 0.14.0: 사건 4(신분증 검사) 장비 셋
+    uvlamp:    { name: '자외선 램프',  desc: '신분증마다 맞는 줄 하나를 미리 확인해 줘요', costs: [64000], case: 4 },
+    drill:     { name: '검문 교관',    desc: '오판 벌점 5초 → 3초 → 1초', costs: [24000, 72000], case: 4 },
+    shift:     { name: '교대 근무조',  desc: '맞히면 시간 +1초씩 더(최대 +3초)', costs: [26000, 78000, 234000], case: 4 }
   };
-  var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault', 'recorder', 'keeper', 'informant', 'painter', 'lights', 'witness2'];
+  var GEAR_KEYS = ['time', 'veteran', 'lab', 'vault', 'recorder', 'keeper', 'informant', 'painter', 'lights', 'witness2', 'uvlamp', 'drill', 'shift'];
   // 이 사건에서 보이는(쓸 수 있는) 장비
   function gearFor(save) { var n = caseOf(save).no; return GEAR_KEYS.filter(function (k) { return !GEAR[k].case || GEAR[k].case === n; }); }
 
@@ -149,7 +153,29 @@
       { at: 8000, text: '마지막 줄의 마지막 사람을 지목하던 날, 증인이 유리 앞에서 오래 머뭇거렸다. 그리고 범인이 아니라 액자 속 지워진 얼굴 쪽으로 고개를 돌렸다. 그날 밤 내 책상 위에는 긁힌 자리를 오려 낸 사진 조각과 쪽지 한 장이 있었다. "줄 맨 끝 자리는 원래 내 자리였다. — 써드" 3팀의 네 번째 사람. 우리가 아무도 기억하지 않던 사람.\n— 다음 사건에서 계속' }
     ]
   };
-  var CASES = [CASE, CASE2, CASE3];
+  /*
+   * 사건 4 "빌린 얼굴"(0.14.0) — 무대는 북문 검문소. 현장 출동 퍼즐은 신분증 검사(idcheck.js).
+   *   여는 시점: 0 = 얼굴이 채워진 빈 신분증, 1500 = 딱 한 군데만 틀린 위조(퍼즐 규칙), 4000 = 우편 봉투의 옛 3팀 호수,
+   *              6500 = 빠진 0004번, 9000 = 팀 한계(수배 조건, 남은 건 창구에서 직접), 12000 = 종결. 써드의 진짜 이름은 아직 밝히지 않는다.
+   */
+  var CASE4 = {
+    no: 4,
+    title: '빌린 얼굴',
+    city: '북문 검문소',
+    mode: 'idcheck',
+    pay: 10,
+    goal: 12000,
+    idleCap: 9000,
+    story: [
+      { at: 0, text: '면통실 사건이 끝나고 일주일 뒤였다. 도시로 들어오는 모든 길목에서 같은 신분증이 쏟아져 나왔다. 해무항 밀수 상자에서 나온 바로 그 빈 신분증이었는데, 이번에는 빈칸 없이 이름과 얼굴이 채워져 있었다. 서장은 3팀 책상을 북문 검문소로 옮겨 놓았다. "들어오는 얼굴, 하나하나 다 맞춰 봐."' },
+      { at: 1500, text: '위조된 신분증은 언제나 딱 한 군데만 틀렸다. 모자가 맞으면 시간대가 틀렸고, 얼굴이 맞으면 흔적이 틀렸다. 두 군데를 틀린 위조는 한 장도 없었다. 해무항 목격자들과 같은, 지나치게 고른 실수였다. 만든 손이 같았다.' },
+      { at: 4000, text: '붙잡힌 사람들 대부분은 자기 신분증이 가짜인 줄도 몰랐다. 일자리를 주겠다는 쪽지와 함께 우편으로 받았다고 했다. 봉투 뒷면의 보낸 곳은 우리 서였다. 10년 전에 없어진 3팀 옛 사무실의 호수가 적혀 있었다.' },
+      { at: 6500, text: '압수한 신분증을 번호 순서대로 늘어놓자 하나가 비었다. 0004번. 서류 창고에서 찾아낸 10년 전 3팀 인사 기록도 네 번째 칸만 찢겨 나가 있었다. 남아 있는 건 발급 날짜와 지문 한 줄뿐이었다.' },
+      { at: 9000, text: '수배 명단이 내려왔다. 써드가 마지막으로 보낸 사람들은 위조가 아니라 진짜 신분증을 들고 온다. 이제는 신분증이 맞아도 수배 조건에 걸리면 세워야 한다. 책상에서 서류만 넘기는 팀으로는 거를 수 없다. 검문소 창구에 직접 앉을 차례다.' },
+      { at: 12000, text: '마지막 줄이 끝난 밤, 비어 있는 창구 위에 신분증 한 장이 놓여 있었다. 발급 번호는 0004번이었다. 사진 칸은 칼로 오려져 있었는데, 그 크기가 면통실 액자에서 긁혀 나간 얼굴과 꼭 같았다. 뒷면에는 늘 보던 손글씨가 있었다. "얼굴은 잠깐 빌려줬을 뿐이다. 이제 돌려받으러 간다. — 써드"\n— 다음 사건에서 계속' }
+    ]
+  };
+  var CASES = [CASE, CASE2, CASE3, CASE4];
   /*
    * 0.12.0 사건 수치 공식(정식 출시 7개 기준). 사건 번호만 넣으면 나온다 — 사건 4~7을 만들 때 숫자를 따로 맞추지 않는다.
    *   수사비 배수 pay = n(n+1)/2            → 1, 3, 6, 10, 15, 21, 28
@@ -228,7 +254,7 @@
       frac: 0,             // 팀이 잡다 만 몫(0~1)
       detectives: 1,       // 처음부터 1명(나 말고 동료 한 명)
       training: 0,
-      gear: { time: 0, veteran: 0, lab: 0, vault: 0, recorder: 0, keeper: 0, informant: 0, painter: 0, lights: 0, witness2: 0 },
+      gear: { time: 0, veteran: 0, lab: 0, vault: 0, recorder: 0, keeper: 0, informant: 0, painter: 0, lights: 0, witness2: 0, uvlamp: 0, drill: 0, shift: 0 },
       lastSeen: now,
       buffUntil: 0,
       runs: 0, bestScore: 0, runCaught: 0, teamCaught: 0,
@@ -493,7 +519,7 @@
       nonePenalty: save.gear.vault ? 5 : 10,
       level: 1,
       helperAtFull: save.gear.lab > 0,
-      mode: caseOf(save).mode,  // 0.2.0: set(사건 1) | witness(사건 2) | 0.5.0: lineup(사건 3)
+      mode: caseOf(save).mode,  // 0.2.0: set(사건 1) | witness(사건 2) | 0.5.0: lineup(사건 3) | 0.14.0: idcheck(사건 4)
       // 사건 2 장비(목격자 출동에서만 쓰인다)
       trapPenalty: [8, 5, 2][save.gear.recorder] != null ? [8, 5, 2][save.gear.recorder] : 8,
       hitBonus: save.gear.informant,
@@ -501,7 +527,11 @@
       // 0.5.0 사건 3 장비(면통 라인업 출동에서만 쓰인다)
       missPenalty: [5, 3, 1][save.gear.lights] != null ? [5, 3, 1][save.gear.lights] : 5,
       lineupHitBonus: save.gear.witness2 || 0,
-      preOut: save.gear.painter > 0 ? 1 : 0
+      preOut: save.gear.painter > 0 ? 1 : 0,
+      // 0.14.0 사건 4 장비(신분증 검사 출동에서만 쓰인다)
+      idMissPenalty: [5, 3, 1][save.gear.drill] != null ? [5, 3, 1][save.gear.drill] : 5,
+      idHitBonus: save.gear.shift || 0,
+      preCheck: save.gear.uvlamp > 0 ? 1 : 0
     };
   }
 
